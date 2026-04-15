@@ -1470,6 +1470,160 @@ export default async function HomePage() {
   return <HomePageContent data={JSON.parse(JSON.stringify(data))} />;
 }
 ```
+## ⚠️ SEO APPLICABILITY RULE
+
+SEO is ONLY required for:
+
+* Public pages (`/`, `/about`, `/products`, `/blog`, etc.)
+
+SEO is NOT required for:
+
+* `/admin/**`
+* `/api/**`
+* `navbar`
+* `footer`
+* `/login`, `/signup`
+* `/cart`, `/checkout`, `/orders`
+
+👉 These MUST use:
+
+```
+robots: "noindex,nofollow"
+```
+
+---
+
+## ✅ SEO RULES (PUBLIC PAGES ONLY)
+
+Every public page MUST:
+
+* Implement `generateMetadata()`
+* Use `resolveSeo(page, defaultSeo)`
+* Include:
+
+  * metaTitle
+  * metaDescription
+  * keywords
+  * canonicalUrl
+  * OpenGraph
+  * structuredData
+
+❌ DO NOT:
+
+* Leave metadata empty
+* Use duplicate titles
+* Skip structured data
+
+---
+
+## ⚙️ PERFORMANCE RULES (MANDATORY)
+
+* Hero section MUST load instantly (NO lazy loading)
+* Below-the-fold sections MUST use `next/dynamic`
+* Use `next/image` for ALL images
+* Use `priority` for hero images
+* Avoid full `"use client"` pages
+* Split server + client components
+
+---
+
+## 🚀 RENDERING STRATEGY
+
+| Page Type | Strategy         |
+| --------- | ---------------- |
+| Home      | SSG + revalidate |
+| About     | SSG              |
+| Blog      | ISR              |
+| Product   | ISR              |
+| Admin     | CSR              |
+
+```js
+export const revalidate = 60;
+```
+
+---
+
+## 📊 CORE WEB VITALS TARGET
+
+* LCP < 2.5s
+* CLS < 0.1
+* FID < 100ms
+
+---
+
+## 🔍 INDEXING RULES
+
+### Indexed:
+
+* Home
+* About
+* Products
+* Blog
+* Contact
+
+### Not Indexed:
+
+* `/admin/**`
+* `/api/**`
+* `/login`, `/signup`
+* `/cart`, `/checkout`
+
+---
+
+## 🧠 STRUCTURED DATA RULE
+
+| Page    | Schema                 |
+| ------- | ---------------------- |
+| Home    | WebSite + Organization |
+| About   | AboutPage              |
+| Product | Product                |
+| Blog    | Article                |
+
+---
+
+## ⚡ LAZY LOADING RULE
+
+```js
+const Section = dynamic(() => import("./Section"));
+```
+
+✔ Use for:
+
+* testimonials
+* sliders
+* heavy UI
+
+❌ Don’t use for:
+
+* hero
+* main heading
+
+---
+
+## 🖼 IMAGE RULE
+
+```js
+<Image src="/img.png" alt="description" priority />
+```
+
+---
+
+## 🔗 CANONICAL RULE
+
+```js
+canonical: "https://yourdomain.com/page"
+```
+
+---
+
+## 🔥 FINAL GOAL
+
+* Fast loading website ⚡
+* SEO optimized pages 📈
+* Google indexable content 🔍
+* Scalable architecture 🧠
+
+---
 
 ---
 
