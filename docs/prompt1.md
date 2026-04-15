@@ -1111,6 +1111,177 @@ model Address {
   isDefault Boolean @default(false)
 }
 ```
+## 🌐 SITEMAP & ROBOTS SYSTEM (MANDATORY)
+
+### Goal
+
+Every public page created in the project must be automatically included in the sitemap without manual updates.
+
+---
+
+## ✅ SINGLE FILE RULE
+
+* Only ONE sitemap:
+
+  ```
+  /sitemap.xml
+  ```
+
+* Only ONE robots file:
+
+  ```
+  /robots.txt
+  ```
+
+---
+
+## ⚙️ BASE URL RULE (IMPORTANT)
+
+The project MUST use environment-based URL.
+
+```js
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://jivo.in";
+```
+
+👉 Always use `BASE_URL` instead of hardcoding domain.
+
+---
+
+## ⚙️ SITEMAP GENERATION RULE
+
+The project MUST use dynamic sitemap generation.
+
+### Implementation:
+
+* File location:
+
+  ```
+  src/app/sitemap.ts
+  ```
+
+* The sitemap must include:
+
+  1. Static routes (home, about, contact, etc.)
+  2. Dynamic routes (products, blog posts, etc.) from database
+
+---
+
+## 🧩 SITEMAP STRUCTURE RULE
+
+Every time a new page is created:
+
+### 1. Static Page
+
+If page is static:
+
+Example:
+
+```
+/about
+/contact
+/blog
+```
+
+👉 Add route inside sitemap static array using BASE_URL:
+
+```js
+{
+  url: `${BASE_URL}/about`
+}
+```
+
+---
+
+### 2. Dynamic Page
+
+If page uses database (Product, Blog):
+
+👉 Fetch data from DB and map:
+
+```js
+products.map(product => ({
+  url: `${BASE_URL}/product/${product.slug}`
+}))
+```
+
+---
+
+## ❌ EXCLUDED FROM SITEMAP
+
+DO NOT include:
+
+* /admin/**
+* /api/**
+* /login, /signup
+* /cart, /checkout
+* /orders
+
+---
+
+## 🤖 ROBOTS.TXT RULE
+
+* File location:
+
+  ```
+  src/app/robots.ts
+  ```
+
+* Must always:
+
+  * Allow all public pages
+  * Block private routes
+  * Reference sitemap using BASE_URL
+
+Example:
+
+```js
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://jivo.in";
+
+export default function robots() {
+  return {
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin", "/api"],
+      },
+    ],
+    sitemap: `${BASE_URL}/sitemap.xml`,
+  };
+}
+```
+
+---
+
+## 🔗 SITEMAP LINKING RULE
+
+robots.txt MUST dynamically include:
+
+```js
+sitemap: `${BASE_URL}/sitemap.xml`
+```
+
+---
+
+## 🔄 AUTO UPDATE RULE
+
+When a new page/module is created:
+
+* If static → add route in sitemap static list
+* If dynamic → ensure DB query is included in sitemap
+
+👉 Developer MUST NOT forget this step
+
+---
+
+## 🎯 FINAL GOAL
+
+* All public pages are indexed by Google
+* No private pages are indexed
+* Sitemap stays always updated automatically
+* Domain works correctly in dev + production
+
+---
 
 ---
 
