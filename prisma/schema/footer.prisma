@@ -1,0 +1,47 @@
+// ==========================================
+// FOOTER — site-wide footer for every public page
+// Managed from /admin/footer
+//   FooterColumn → list of link columns (e.g. "Our Essence", "Our Products")
+//   FooterLink   → individual link belonging to a column
+//   FooterSetting → singleton row with logo + contact info + copyright
+// ==========================================
+
+model FooterColumn {
+  id        String       @id @default(cuid())
+  title     String       // "OUR ESSENCE", "OUR PRODUCTS", etc.
+  sortOrder Int          @default(0)
+  isVisible Boolean      @default(true)
+  links     FooterLink[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([sortOrder])
+}
+
+model FooterLink {
+  id        String       @id @default(cuid())
+  columnId  String
+  column    FooterColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  title     String       // "Our Story", "Jivo Cold Press Canola Oil", etc.
+  href      String       // "/our-story", "/products/cold-press-canola-oil"
+  sortOrder Int          @default(0)
+  isVisible Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([columnId, sortOrder])
+}
+
+// Singleton — only one row with id = "default". Holds brand + contact info
+// shown in the footer bottom bar.
+model FooterSetting {
+  id            String   @id @default("default")
+  logoUrl       String?  // Uploaded brand logo
+  logoAlt       String?  // Alt text fallback
+  copyrightText String?  // e.g. "All Right Reserved © 2026"
+  address       String?  @db.Text
+  email         String?
+  phone         String?
+  phoneLabel    String?  // e.g. "(TOLL FREE)"
+  updatedAt     DateTime @updatedAt
+}

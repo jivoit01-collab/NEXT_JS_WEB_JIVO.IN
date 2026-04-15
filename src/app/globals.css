@@ -1,0 +1,288 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Custom dark variant */
+@custom-variant dark (&:is(.dark *));
+
+/* ================================================
+   JIVO THEME — matches brand screenshots
+   Palette:
+     - Olive green   (hero/vision bg)    oklch(0.35 0.05 115)
+     - Cream/beige   (categories bg)     oklch(0.82 0.05 100)
+     - Dark brown    (why-jivo bg)       oklch(0.28 0.03 70)
+     - Jivo gold     (accent/CTA)        oklch(0.72 0.13 80)
+     - Primary green (buttons/links)     oklch(0.52 0.13 140)
+     - Category cards:
+         green  #2e4a2a    oklch(0.38 0.08 140)
+         sage   #8fa574    oklch(0.67 0.07 120)
+         blue   #7dc5dd    oklch(0.78 0.08 225)
+         maroon #7e2e3e    oklch(0.38 0.13 20)
+================================================ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-full: 9999px;
+
+  /* Jivo brand palette (exposed as utilities) */
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+
+  --color-jivo-olive: var(--jivo-olive);
+  --color-jivo-cream: var(--jivo-cream);
+  --color-jivo-brown: var(--jivo-brown);
+  --color-jivo-green: var(--jivo-green);
+  --color-jivo-sage: var(--jivo-sage);
+  --color-jivo-blue: var(--jivo-blue);
+  --color-jivo-maroon: var(--jivo-maroon);
+
+  /* ── Fonts ──
+     Jost is the brand default. Overrides Tailwind's default --font-sans
+     so `font-sans` (and the body's base font) resolve to Jost. */
+  --font-sans: var(--font-jost), system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
+}
+
+/* ================================================
+   LIGHT THEME
+================================================ */
+:root {
+  --radius: 0.75rem;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-4: 1rem;
+  --space-8: 2rem;
+  --space-16: 4rem;
+
+  /* Neutrals */
+  --background: oklch(0.995 0.002 90);
+  --foreground: oklch(0.19 0.01 80);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.01 80);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.01 80);
+
+  --muted: oklch(0.96 0.005 90);
+  --muted-foreground: oklch(0.46 0.015 80);
+
+  --accent: oklch(0.94 0.02 100);
+  --accent-foreground: oklch(0.22 0.02 80);
+
+  --border: oklch(0.90 0.008 90);
+  --input: oklch(0.90 0.008 90);
+
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  /* Brand */
+  --primary: oklch(0.52 0.13 140);        /* Jivo green */
+  --primary-foreground: oklch(0.99 0.01 120);
+  --ring: oklch(0.58 0.13 140);
+
+  --secondary: oklch(0.93 0.04 95);       /* Soft cream/beige */
+  --secondary-foreground: oklch(0.22 0.03 80);
+
+  --gold: oklch(0.72 0.13 80);            /* Jivo gold accent */
+  --gold-foreground: oklch(0.19 0.02 80);
+
+  /* Jivo section backgrounds — exact brand hex codes */
+  --jivo-olive: #cbc995;      /* "MADE FOR EVERYDAY LOVE" cream bg */
+  --jivo-cream: oklch(0.95 0.03 95);
+  --jivo-brown: oklch(0.28 0.03 70);      /* "SO, WHY JIVO EXACTLY?" bg */
+
+  /* Category cards — ordered as shown in screenshot (left → right) */
+  --jivo-green: #1f5437;      /* Cooking Oil — dark green */
+  --jivo-sage: #80ae7d;       /* Wheatgrass Juice — sage green */
+  --jivo-blue: #47bbe4;       /* Water — sky blue */
+  --jivo-maroon: #8b2547;     /* Super Foods — maroon */
+
+  /* Shadow + Transition */
+  --shadow-soft: 0 1px 3px oklch(0 0 0 / 6%);
+  --shadow-xl: 0 20px 25px -5px oklch(0 0 0 / 8%);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================================
+   DARK THEME
+================================================ */
+.dark {
+  --background: oklch(0.16 0.01 70);
+  --foreground: oklch(0.98 0 0);
+
+  --card: oklch(0.22 0.01 70);
+  --card-foreground: oklch(0.98 0 0);
+
+  --popover: oklch(0.22 0.01 70);
+  --popover-foreground: oklch(0.98 0 0);
+
+  --muted: oklch(0.26 0.01 70);
+  --muted-foreground: oklch(0.72 0.01 70);
+
+  --accent: oklch(0.26 0.01 70);
+  --accent-foreground: oklch(0.98 0 0);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+
+  --primary: oklch(0.62 0.14 140);
+  --primary-foreground: oklch(0.12 0.02 120);
+  --ring: oklch(0.62 0.14 140);
+
+  --secondary: oklch(0.28 0.02 90);
+  --secondary-foreground: oklch(0.98 0 0);
+
+  --gold: oklch(0.78 0.13 80);
+  --gold-foreground: oklch(0.15 0.02 80);
+
+  --jivo-olive: #cbc995;
+  --jivo-cream: oklch(0.95 0.03 95);
+  --jivo-brown: oklch(0.22 0.03 70);
+  --jivo-green: #1f5437;
+  --jivo-sage: #80ae7d;
+  --jivo-blue: #47bbe4;
+  --jivo-maroon: #8b2547;
+}
+
+/* ================================================
+   BASE LAYER
+================================================ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+  }
+
+  h1 {
+    @apply text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-2xl sm:text-3xl font-bold;
+  }
+  h3 {
+    @apply text-lg sm:text-xl font-semibold;
+  }
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+/* ================================================
+   UTILITY HELPERS
+================================================ */
+.section-container {
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+.section-padding {
+  padding-block: var(--space-16);
+}
+.shadow-luxury {
+  box-shadow: var(--shadow-xl);
+}
+.transition-luxury {
+  transition: all var(--transition-normal);
+}
+.hover-lift {
+  transition: transform var(--transition-normal);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Text gradients */
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--primary), var(--ring));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.admin-gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ================================================
+   SCROLLBAR — fully hidden everywhere (still scrolls)
+================================================ */
+* {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* legacy Edge / IE */
+}
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Fade-in page transition */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}

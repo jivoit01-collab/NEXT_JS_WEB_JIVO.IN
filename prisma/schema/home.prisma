@@ -1,0 +1,21 @@
+// ==========================================
+// HOME PAGE + SHARED CMS PAGE CONTENT
+// Powers: /, /about, /privacy-policy, /terms-conditions
+// Sections: hero, mission, featured-products, health-benefits,
+//           testimonials, cta (stored as rows in this table)
+// ==========================================
+
+model PageContent {
+  id        String   @id @default(cuid())
+  page      String   // "home", "about", "privacy-policy", "terms-conditions"
+  section   String   // "hero", "mission", "cta", etc.
+  title     String?
+  content   Json     // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([page, section])
+  @@index([page, sortOrder])
+}
