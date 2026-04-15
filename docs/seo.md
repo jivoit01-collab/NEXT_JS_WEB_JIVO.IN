@@ -3,6 +3,33 @@
 > Per-page SEO, social-share metadata, and JSON-LD structured data for every public page on Jivo Wellness. Admin-editable from `/admin/seo` and from the SEO tab on each page editor (e.g. `/admin/home`). Read at request time by `generateMetadata()` via the `resolveSeo()` helper.
 
 ---
+## SEO VALIDATION RULES
+
+- metaTitle is REQUIRED
+- metaDescription is REQUIRED
+- canonicalUrl is REQUIRED
+- ogImage is REQUIRED
+- structuredData is REQUIRED
+
+If missing → fallback used but warning logged
+
+## STRUCTURED DATA TYPES
+
+Each page must use:
+
+Home → WebSite + Organization
+About → AboutPage
+Product → Product schema
+Blog → Article schema
+Contact → ContactPage
+
+## PERFORMANCE + SEO CONNECTION
+
+- Faster pages rank higher
+- Lazy loading improves LCP
+- Image optimization reduces CLS
+- SSR improves indexing
+
 
 ## Architecture
 
