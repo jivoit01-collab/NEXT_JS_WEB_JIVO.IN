@@ -2,6 +2,16 @@
 
 > **India's Largest Cold Press Canola Oil Seller** — A full-stack e-commerce and content management platform for premium oils, superfoods & wellness products. Built with a **built-in Admin CMS Dashboard** that lets a non-developer manage the **entire website** — every page's content, images, products, orders, blogs, navbar, SEO, and more — all from the browser. **Zero code changes needed** for day-to-day content management.
 
+
+## SEO + PERFORMANCE FLOW
+
+1. Page request comes
+2. Server renders HTML (SSR/SSG)
+3. Metadata generated via resolveSeo()
+4. Structured data injected
+5. Above-the-fold content rendered instantly
+6. Below-the-fold components lazy loaded
+7. Images optimized via next/image
 ---
 
 ## Table of Contents
