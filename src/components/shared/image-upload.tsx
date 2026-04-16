@@ -23,7 +23,6 @@ interface MultiImageUploadProps {
 interface UploadResponse {
   success: boolean;
   data?: {
-    url: string;
     filename: string;
     originalName: string;
     size: number;
@@ -31,6 +30,14 @@ interface UploadResponse {
     height: number;
   };
   error?: string;
+}
+
+/** Convert a stored filename to its API-served URL */
+export function toSrc(filename: string): string {
+  if (!filename) return '/api/uploads/placeholder.png';
+  // Already a full path (legacy or external URL) — pass through
+  if (filename.startsWith('/') || filename.startsWith('http')) return filename;
+  return `/api/uploads/${filename}`;
 }
 
 async function uploadFile(file: File): Promise<UploadResponse> {
@@ -45,11 +52,11 @@ async function uploadFile(file: File): Promise<UploadResponse> {
   return res.json();
 }
 
-async function deleteFile(url: string): Promise<void> {
+async function deleteFile(filename: string): Promise<void> {
   await fetch('/api/upload', {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ filename }),
   });
 }
 
@@ -72,7 +79,7 @@ export function ImageUpload({
       try {
         const result = await uploadFile(file);
         if (result.success && result.data) {
-          onChange(result.data.url);
+          onChange(result.data.filename);
         } else {
           setError(result.error ?? 'Upload failed');
         }
@@ -109,7 +116,7 @@ export function ImageUpload({
       <div className={cn('relative inline-block', className)}>
         <div className="group relative h-40 w-40 overflow-hidden rounded-lg border border-border">
           <Image
-            src={value}
+            src={toSrc(value)}
             alt="Uploaded"
             fill
             className="object-cover"
@@ -206,7 +213,7 @@ export function MultiImageUpload({
 
         const newUrls = results
           .filter((r) => r.success && r.data)
-          .map((r) => r.data!.url);
+          .map((r) => r.data!.filename);
 
         const firstError = results.find((r) => !r.success);
         if (firstError?.error) setError(firstError.error);
@@ -252,7 +259,7 @@ export function MultiImageUpload({
               key={url}
               className="group relative h-24 w-24 overflow-hidden rounded-lg border border-border"
             >
-              <Image src={url} alt="Uploaded" fill className="object-cover" />
+              <Image src={toSrc(url)} alt="Uploaded" fill className="object-cover" />
               <button
                 type="button"
                 onClick={() => handleRemove(url)}

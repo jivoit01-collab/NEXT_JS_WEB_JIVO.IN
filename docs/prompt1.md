@@ -713,63 +713,220 @@ export async function POST(req: Request) {
 }
 ```
 
-### 10. Page Documentation (`docs/home.md`)
+## 📄 PAGE DOCUMENTATION SYSTEM (UPDATED - MANDATORY)
 
-```markdown
-# Home Page - API Documentation
+### 🚨 CRITICAL RULE
 
-## Public API
+❌ DO NOT create:
 
-### GET /api/home
-Returns all active home page sections.
+* plan.md
+* multiple documentation files
 
-**Response:**
-{
-  "success": true,
-  "data": {
-    "hero": {
-      "title": "India's Largest Cold Press Canola Oil Seller",
-      "subtitle": "Premium oils for a healthier life",
-      "image": "https://utfs.io/f/xxx.webp",
-      "primaryCTA": { "label": "Shop Now", "link": "/products" },
-      "secondaryCTA": { "label": "Learn More", "link": "/about" }
-    },
-    "mission": {
-      "title": "Our Mission",
-      "description": "...",
-      "image": "https://utfs.io/f/xxx.webp",
-      "stats": [
-        { "label": "Products", "value": "50+" },
-        { "label": "Happy Customers", "value": "1M+" }
-      ]
-    },
-    "health-benefits": { ... },
-    "testimonials": { ... },
-    "cta": { ... }
-  }
-}
+✅ ONLY create ONE file per page:
 
-## Admin API
+```
+docs/{page}.md
+```
 
-### GET /api/admin/home
-Auth: Required (ADMIN/SUPER_ADMIN)
-Returns ALL sections (including inactive).
+---
 
-### POST /api/admin/home
-Auth: Required (ADMIN/SUPER_ADMIN)
-Create or update a section.
+## 🎯 PURPOSE
 
-**Request Body:**
-{
-  "section": "hero",
-  "content": {
-    "title": "India's Largest Cold Press Canola Oil Seller",
-    "subtitle": "Premium oils for a healthier life",
-    "image": "https://utfs.io/f/xxx.webp",
-    "primaryCTA": { "label": "Shop Now", "link": "/products" },
-    "secondaryCTA": { "label": "Learn More", "link": "/about" }
-  }
-}
+This file must help ANY developer:
+
+* understand page structure
+* understand API flow
+* understand UI rendering
+* understand SEO
+* manage updates easily
+
+---
+
+## 📦 REQUIRED CONTENT (MANDATORY)
+
+Each `{page}.md` MUST include:
+
+---
+
+### 1. 📌 PAGE OVERVIEW
+
+* Page name
+* Route
+* Admin route
+* Sections list
+
+Example:
+
+```
+Page: Home
+Route: /
+Admin: /admin/dashboard/home
+
+Sections:
+- hero
+- mission
+- testimonials
+```
+
+---
+
+### 2. 🧠 UI STRUCTURE (VERY IMPORTANT)
+
+Explain what user sees on screen:
+
+Example:
+
+```
+Hero Section:
+- Title (big heading)
+- Subtitle
+- Background image
+- Two buttons (Shop Now, Learn More)
+
+Mission Section:
+- Left image
+- Right text
+- Stats cards
+```
+
+👉 Based on screenshot/design
+
+---
+
+### 3. 🔌 API DOCUMENTATION (DETAILED)
+
+#### Public API
+
+```
+GET /api/{page}
+```
+
+✔ Include EXACT response JSON
+
+---
+
+#### Admin API
+
+```
+POST /api/admin/{page}
+```
+
+✔ Include:
+
+* request body
+* response
+* section-wise example
+
+---
+
+### 4. 🔄 WORKFLOW (MOST IMPORTANT)
+
+Explain full data flow:
+
+```
+Admin updates section →
+API call →
+Data saved in DB →
+Page revalidated →
+User sees updated UI
+```
+
+👉 Step-by-step
+
+---
+
+### 5. 🧾 DATA STRUCTURE
+
+Explain JSON per section:
+
+Example:
+
+```
+hero:
+- title: string
+- subtitle: string
+- image: string
+```
+
+---
+
+### 6. 🖼 IMAGE HANDLING
+
+Explain:
+
+* stored in `/uploads/images`
+* served via `/api/uploads/[filename]`
+* fallback logic
+
+---
+
+### 7. 🔍 SEO DOCUMENTATION (MANDATORY)
+
+Include:
+
+```
+metaTitle
+metaDescription
+keywords
+ogImage
+canonical
+structuredData
+```
+
+Explain:
+
+* where stored (SeoMeta)
+* how used (generateMetadata)
+
+---
+
+### 8. 🧪 POSTMAN TESTING
+
+Step-by-step:
+
+1. Login
+2. Get API
+3. Update section
+
+---
+
+### 9. 🔄 UPDATE LOG (VERY IMPORTANT)
+
+Whenever page changes:
+
+```
+[DATE]
+
+- Added new section: FAQ
+- Updated hero structure
+- Changed API response
+```
+
+👉 This MUST be updated on every change
+
+---
+
+## 🚫 FORBIDDEN
+
+Claude MUST NOT:
+
+* create multiple docs
+* skip workflow
+* skip UI explanation
+* skip SEO section
+* write incomplete API
+
+---
+
+## 🎯 FINAL GOAL
+
+* Any developer can manage project easily
+* No confusion in API/UI
+* Clear system understanding
+* Easy maintenance
+
+---
+
 
 **Response:** { "success": true, "data": { ... } }
 
@@ -1795,11 +1952,157 @@ const Section = dynamic(() => import("./Section"));
 
 ---
 
-## 🖼 IMAGE RULE
+## 🖼 IMAGE STORAGE SYSTEM (MANDATORY - STRICT RULE)
+
+### 🚨 CRITICAL RULE
+
+Dynamic images MUST NOT be stored inside `/public`.
+
+❌ FORBIDDEN:
+
+* `/public/images`
+* static image overwrite
+* same filename reuse
+
+---
+
+## ✅ APPROVED STORAGE ARCHITECTURE
+
+All uploaded images MUST be stored in:
+
+```
+/uploads/images/
+```
+
+---
+
+## ⚙️ FILE NAMING RULE (MANDATORY)
+
+Every uploaded file MUST have a unique name:
 
 ```js
-<Image src="/img.png" alt="description" priority />
+const fileName = `${Date.now()}-${originalName}`;
 ```
+
+👉 Prevents:
+
+* caching issues
+* overwrite bugs
+* missing images
+
+---
+
+## 🗄 DATABASE STORAGE RULE
+
+Only store the filename in DB:
+
+```json
+{
+  "image": "1713456789-hero.png"
+}
+```
+
+❌ DO NOT store full path
+❌ DO NOT store `/public/...`
+
+---
+
+## 🌐 IMAGE SERVING RULE
+
+Images MUST be served via API route:
+
+```
+/api/uploads/[filename]
+```
+
+---
+
+## ⚙️ API IMPLEMENTATION (MANDATORY)
+
+```js
+import fs from "fs";
+import path from "path";
+
+export async function GET(req, { params }) {
+  const filePath = path.join(process.cwd(), "uploads/images", params.file);
+
+  if (!fs.existsSync(filePath)) {
+    return new Response("Not Found", { status: 404 });
+  }
+
+  const file = fs.readFileSync(filePath);
+
+  return new Response(file, {
+    headers: {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=31536000",
+    },
+  });
+}
+```
+
+---
+
+## 🖥 FRONTEND USAGE RULE
+
+Always render image like this:
+
+```js
+src={`/api/uploads/${filename}`}
+```
+
+---
+
+## 🛡 FALLBACK HANDLING (MANDATORY)
+
+```js
+<img
+  src={`/api/uploads/${image}`}
+  onError={(e) => (e.currentTarget.src = "/placeholder.png")}
+/>
+```
+
+---
+
+## 🧹 DELETE RULE
+
+When deleting image:
+
+1. Delete from `/uploads/images`
+2. Remove reference from DB
+
+```js
+fs.unlinkSync(filePath);
+```
+
+---
+
+## ⚡ PERFORMANCE RULE
+
+* Use `Cache-Control` headers
+* Use unique filenames (no cache issues)
+* Optimize images using `sharp` before saving
+
+---
+
+## 🚫 FORBIDDEN PATTERNS
+
+Claude MUST NEVER:
+
+* store images in `/public`
+* reuse same file name
+* hardcode image paths
+* skip fallback handling
+* skip API-based serving
+
+---
+
+## 🎯 FINAL GOAL
+
+* No missing images
+* No caching issues
+* No broken UI
+* Scalable image system
 
 ---
 

@@ -25,7 +25,7 @@ export const defaultSeo = definePageSeo({
   ogTitle: "Jivo Wellness — Pure, Honest, Wellness-First Products",
   ogDescription:
     'Cold press oils, wheatgrass juice, superfoods & wellness products born from a mission of service.',
-  ogImage: '/images/common/og-default.png',
+  ogImage: 'og-default.png',
   twitterCard: 'summary_large_image',
   canonicalUrl: SITE_URL,
   robots: 'index,follow',

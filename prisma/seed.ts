@@ -36,11 +36,11 @@ async function main() {
   });
   console.log(`✓ Admin user: ${admin.email}`);
 
-  // All seeded image fields point to the placeholder. Admin uploads
+  // All seeded image fields store ONLY the filename. The frontend
+  // constructs /api/uploads/<filename> at render time. Admin uploads
   // override these via /admin/home, and the SafeImage component on the
-  // public page falls back to the placeholder if any uploaded file is
-  // ever deleted from disk.
-  const PLACEHOLDER = '/images/placeholder.jpg';
+  // public page falls back to placeholder.png if the file is missing.
+  const PLACEHOLDER = 'placeholder.png';
 
   // ── Home page sections ───────────────────────────────────────
   const homeSections = [
@@ -394,7 +394,7 @@ async function main() {
       ogTitle: 'Jivo Wellness — Pure, Honest, Wellness-First Products',
       ogDescription:
         'Cold press oils, wheatgrass juice, superfoods & wellness products born from a mission of service.',
-      ogImage: '/images/common/og-default.png',
+      ogImage: 'og-default.png',
       twitterCard: 'summary_large_image',
       canonicalUrl: process.env.NEXT_PUBLIC_APP_URL ?? 'https://jivo.in',
       robots: 'index,follow',
@@ -434,7 +434,7 @@ async function main() {
   await prisma.footerSetting.upsert({
     where: { id: 'default' },
     update: {
-      logoUrl: '/images/Jivo Logo.png',
+      logoUrl: 'jivo-logo.png',
       logoAlt: 'Jivo',
       copyrightText: `All Right Reserved © ${new Date().getFullYear()}`,
       address: 'Jt/190, Nehru Market, Rajouri Garden, New Delhi - 110027',
@@ -444,7 +444,7 @@ async function main() {
     },
     create: {
       id: 'default',
-      logoUrl: '/images/Jivo Logo.png',
+      logoUrl: 'jivo-logo.png',
       logoAlt: 'Jivo',
       copyrightText: `All Right Reserved © ${new Date().getFullYear()}`,
       address: 'Jt/190, Nehru Market, Rajouri Garden, New Delhi - 110027',

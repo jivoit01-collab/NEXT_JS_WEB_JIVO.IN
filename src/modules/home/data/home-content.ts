@@ -10,7 +10,7 @@ import type { ProductCategory, ValuePillar, HeroSlideData } from '../types';
  * `/public/`. If you reference a missing file, the public page will render
  * a broken image. The `placeholder.jpg` is the safe always-exists default.
  */
-const PLACEHOLDER = '/images/placeholder.jpg';
+const PLACEHOLDER = '/api/uploads/placeholder.png';
 
 export const heroContent = {
   logo: PLACEHOLDER,

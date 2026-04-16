@@ -3,18 +3,25 @@
 import Image, { type ImageProps } from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const PLACEHOLDER = '/images/placeholder.jpg';
+const PLACEHOLDER = '/api/uploads/placeholder.png';
 
 /**
- * URL-encodes each path segment (preserving slashes and query string).
- * Fixes "image not loading" issues for filenames that contain spaces or
- * special characters — e.g. `/images/Jivo Logo.png` → `/images/Jivo%20Logo.png`
+ * Resolves a stored image value to a serveable URL:
+ *   - Empty/falsy          → placeholder
+ *   - External (http/data) → pass through
+ *   - Absolute path (/…)   → URL-encode segments
+ *   - Bare filename         → /api/uploads/<filename>
  */
-function encodePath(raw: string): string {
+function resolveSrc(raw: string): string {
   if (!raw) return PLACEHOLDER;
   if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) {
     return raw;
   }
+  // Bare filename (no leading slash) → serve through uploads API
+  if (!raw.startsWith('/')) {
+    return `/api/uploads/${encodeURIComponent(raw)}`;
+  }
+  // Absolute path — URL-encode each segment
   const [pathPart, queryPart] = raw.split('?');
   const encoded = pathPart
     .split('/')
@@ -43,7 +50,7 @@ interface SafeImageProps extends Omit<ImageProps, 'src' | 'onError'> {
  * "stale image" issues).
  */
 export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
-  const initial = useMemo(() => encodePath(src), [src]);
+  const initial = useMemo(() => resolveSrc(src), [src]);
 
   type Phase = 'initial' | 'retry' | 'fallback';
   const [phase, setPhase] = useState<Phase>('initial');

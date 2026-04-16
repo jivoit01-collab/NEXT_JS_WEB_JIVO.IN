@@ -4,6 +4,15 @@ import { siteDefaultSeo } from './data/defaults';
 import { getSeoByPage } from './data/queries';
 import type { SeoDefaults, RobotsDirective } from './types';
 
+/** Convert a stored filename (or legacy path) to an API-served URL */
+function resolveImageUrl(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  // Already an absolute URL or a path — pass through
+  if (value.startsWith('http') || value.startsWith('/')) return value;
+  // Bare filename → serve through API
+  return `/api/uploads/${value}`;
+}
+
 function parseRobots(value: string): Metadata['robots'] {
   const v = (value as RobotsDirective) ?? 'index,follow';
   return {
@@ -75,15 +84,15 @@ export async function resolveSeo(
       siteName: SITE_NAME,
       locale: 'en_IN',
       type: 'website',
-      images: merged.ogImage
-        ? [{ url: merged.ogImage, width: 1200, height: 630, alt: merged.ogTitle ?? titleString }]
+      images: resolveImageUrl(merged.ogImage)
+        ? [{ url: resolveImageUrl(merged.ogImage)!, width: 1200, height: 630, alt: merged.ogTitle ?? titleString }]
         : [],
     },
     twitter: {
       card: merged.twitterCard,
       title: merged.ogTitle ?? titleString,
       description: merged.ogDescription ?? merged.metaDescription ?? undefined,
-      images: merged.ogImage ? [merged.ogImage] : undefined,
+      images: resolveImageUrl(merged.ogImage) ? [resolveImageUrl(merged.ogImage)!] : undefined,
     },
     alternates: merged.canonicalUrl ? { canonical: merged.canonicalUrl } : undefined,
   };

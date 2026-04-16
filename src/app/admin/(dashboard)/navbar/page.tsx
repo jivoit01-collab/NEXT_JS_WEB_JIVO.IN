@@ -20,7 +20,7 @@ import {
   DialogFooter,
   Badge,
 } from '@/components/ui';
-import { ImageUpload } from '@/components/shared';
+import { ImageUpload, toSrc } from '@/components/shared';
 import {
   Plus,
   Pencil,
@@ -362,7 +362,7 @@ export default function AdminNavbarManager() {
                 {logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={logoUrl}
+                    src={toSrc(logoUrl)}
                     alt={logoAlt || 'Logo preview'}
                     className="h-7 w-auto object-contain"
                   />

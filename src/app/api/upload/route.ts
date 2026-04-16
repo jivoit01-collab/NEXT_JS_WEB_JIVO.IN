@@ -9,6 +9,9 @@ import { existsSync } from 'fs';
 // Force Node runtime (sharp + fs are not edge-compatible)
 export const runtime = 'nodejs';
 
+/** Root-level uploads directory (outside /public) */
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'images');
+
 function sanitizeFilename(name: string): string {
   return name
     .replace(/\.[^/.]+$/, '')
@@ -64,19 +67,18 @@ export async function POST(req: NextRequest) {
 
     const safeName = sanitizeFilename(file.name);
     const filename = `${Date.now()}-${safeName}.webp`;
-    const uploadDir = path.join(process.cwd(), 'public', 'images');
-    const filePath = path.join(uploadDir, filename);
+    const filePath = path.join(UPLOAD_DIR, filename);
 
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
+    if (!existsSync(UPLOAD_DIR)) {
+      await mkdir(UPLOAD_DIR, { recursive: true });
     }
 
     await writeFile(filePath, webpBuffer);
 
+    // Return ONLY the filename — frontend constructs /api/uploads/<filename>
     return NextResponse.json({
       success: true,
       data: {
-        url: `/images/${filename}`,
         filename,
         originalName: file.name,
         size: webpBuffer.length,
@@ -99,25 +101,24 @@ export async function DELETE(req: NextRequest) {
   if (guard) return guard;
 
   try {
-    const { url } = (await req.json()) as { url?: string };
+    const { filename } = (await req.json()) as { filename?: string };
 
-    if (!url || typeof url !== 'string' || !url.startsWith('/images/')) {
+    if (!filename || typeof filename !== 'string') {
       return NextResponse.json(
-        { success: false, error: 'Invalid image URL' },
+        { success: false, error: 'Invalid filename' },
         { status: 400 },
       );
     }
 
-    // Prevent directory traversal
-    const normalized = path.normalize(url).replace(/\\/g, '/');
-    if (normalized.includes('..') || !normalized.startsWith('/images/')) {
+    // Prevent directory traversal — filename must be a bare name, no slashes
+    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
       return NextResponse.json(
-        { success: false, error: 'Invalid path' },
+        { success: false, error: 'Invalid filename' },
         { status: 400 },
       );
     }
 
-    const filePath = path.join(process.cwd(), 'public', normalized);
+    const filePath = path.join(UPLOAD_DIR, filename);
 
     if (!existsSync(filePath)) {
       return NextResponse.json(
