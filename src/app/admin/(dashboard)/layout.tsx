@@ -80,7 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link href="/" title="Back to Website">
             <ArrowLeft size={20} className="cursor-pointer hover:text-primary" />
           </Link>
-          <span className="text-lg font-bold">Admin Panel</span>
+          <span className="text-lg font-jost-bold">Admin Panel</span>
           <button
             onClick={() => setOpen(false)}
             className="cursor-pointer md:hidden"
@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               key={item.href}
               href={item.href}
               className={cn(
-                'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-jost-medium transition',
                 isActive(item.href)
                   ? 'bg-primary text-primary-foreground'
                   : 'text-foreground/80 hover:bg-accent hover:text-foreground',
@@ -125,7 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Menu size={24} />
             </button>
-            <h1 className="truncate text-sm font-semibold">Admin Panel</h1>
+            <h1 className="truncate text-sm font-jost-bold">Admin Panel</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Button

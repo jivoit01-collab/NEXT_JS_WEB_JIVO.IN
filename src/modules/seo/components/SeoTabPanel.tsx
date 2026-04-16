@@ -164,11 +164,11 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
     <div className="space-y-6">
       {/* Header */}
       <div className="rounded-xl border border-dashed bg-muted/30 p-4">
-        <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
+        <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
           <Search className="h-3.5 w-3.5" />
           SEO Settings
         </div>
-        <h3 className="text-base font-semibold">
+        <h3 className="text-base font-jost-bold">
           {pageLabel ?? page} — Search & Social Metadata
         </h3>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -181,7 +181,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
       <section className="space-y-4 rounded-xl border bg-card p-5">
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4 text-primary" />
-          <h4 className="text-sm font-semibold uppercase tracking-wide">Search</h4>
+          <h4 className="text-sm font-jost-bold uppercase tracking-wide">Search</h4>
         </div>
 
         <div className="space-y-2">
@@ -255,7 +255,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
       <section className="space-y-4 rounded-xl border bg-card p-5">
         <div className="flex items-center gap-2">
           <ImageIcon className="h-4 w-4 text-primary" />
-          <h4 className="text-sm font-semibold uppercase tracking-wide">Social Sharing</h4>
+          <h4 className="text-sm font-jost-bold uppercase tracking-wide">Social Sharing</h4>
         </div>
 
         <div className="space-y-2">
@@ -309,7 +309,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
       <section className="space-y-4 rounded-xl border bg-card p-5">
         <div className="flex items-center gap-2">
           <Code2 className="h-4 w-4 text-primary" />
-          <h4 className="text-sm font-semibold uppercase tracking-wide">
+          <h4 className="text-sm font-jost-bold uppercase tracking-wide">
             JSON-LD Structured Data
           </h4>
         </div>

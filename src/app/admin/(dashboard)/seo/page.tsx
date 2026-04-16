@@ -7,10 +7,10 @@ export default function AdminSeoPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
+        <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
           <Search className="h-3.5 w-3.5" /> SEO Manager
         </div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+        <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl">
           Search & Social Metadata
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">

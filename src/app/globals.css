@@ -177,6 +177,32 @@
 }
 
 /* ================================================
+   JOST FONT UTILITIES
+   Each maps directly to a specific Jost .ttf file.
+   Use these instead of generic font-bold / font-light etc.
+================================================ */
+@utility font-jost-light {
+  font-family: var(--font-jost), system-ui ;
+  font-weight: 300;
+}
+@utility font-jost-regular {
+  font-family: var(--font-jost), system-ui;
+  font-weight: 400;
+}
+@utility font-jost-medium {
+  font-family: var(--font-jost), system-ui;
+  font-weight: 500;
+}
+@utility font-jost-bold {
+  font-family: var(--font-jost), system-ui;
+  font-weight: 700;
+}
+@utility font-jost-extrabold {
+  font-family: var(--font-jost), system-ui;
+  font-weight: 800;
+}
+
+/* ================================================
    BASE LAYER
 ================================================ */
 @layer base {
@@ -190,13 +216,13 @@
   }
 
   h1 {
-    @apply text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight;
+    @apply text-3xl sm:text-4xl md:text-5xl font-jost-bold tracking-tight;
   }
   h2 {
-    @apply text-2xl sm:text-3xl font-bold;
+    @apply text-2xl sm:text-3xl font-jost-bold;
   }
   h3 {
-    @apply text-lg sm:text-xl font-semibold;
+    @apply text-lg sm:text-xl font-jost-bold;
   }
   p {
     @apply leading-relaxed;

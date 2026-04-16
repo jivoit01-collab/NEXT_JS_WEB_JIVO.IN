@@ -449,10 +449,10 @@ export default function AdminHomePageManager() {
     <div className="mx-auto max-w-6xl space-y-6">
       {/* ── Header ──────────────────────────── */}
       <div>
-        <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
+        <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
           <Home className="h-3.5 w-3.5" /> Home Page
         </div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+        <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl">
           Home Page Management
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -504,7 +504,7 @@ export default function AdminHomePageManager() {
       {/* ── Missing sections chips ─────────── */}
       {availableToCreate.length > 0 && (
         <div className="rounded-xl border border-dashed bg-muted/30 p-4">
-          <p className="mb-3 text-sm font-medium">
+          <p className="mb-3 text-sm font-jost-medium">
             You haven&apos;t created these sections yet:
           </p>
           <div className="flex flex-wrap gap-2">
@@ -550,7 +550,7 @@ export default function AdminHomePageManager() {
                     #{section.sortOrder}
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">
+                    <div className="font-jost-medium">
                       {section.title ??
                         SECTION_LABELS[section.section as SectionKey] ??
                         section.section}
@@ -736,7 +736,7 @@ export default function AdminHomePageManager() {
         <TabsContent value="hero-carousel" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Hero Carousel Slides</h2>
+              <h2 className="text-lg font-jost-bold">Hero Carousel Slides</h2>
               <p className="text-sm text-muted-foreground">
                 The first slide (sort order 0) is the <strong>Hero Section</strong> from the Sections tab.
                 Additional slides below rotate after it in the carousel.
@@ -749,11 +749,11 @@ export default function AdminHomePageManager() {
 
           {/* Hero section = slide 0 indicator */}
           <div className="flex items-center gap-4 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-xs font-jost-bold text-primary">
               #0
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-medium">Hero Section <span className="text-xs font-normal text-muted-foreground">(default first slide)</span></p>
+              <p className="font-jost-medium">Hero Section <span className="text-xs font-jost-regular text-muted-foreground">(default first slide)</span></p>
               <p className="text-sm text-muted-foreground">
                 Edit from the <strong>Sections</strong> tab &rarr; Hero section. Background image, headline &amp; subtitle from there become slide #0.
               </p>
@@ -763,7 +763,7 @@ export default function AdminHomePageManager() {
           {heroSlides.length === 0 ? (
             <div className="rounded-xl border border-dashed bg-muted/30 p-12 text-center">
               <ImageIcon className="mx-auto h-10 w-10 text-muted-foreground/50" />
-              <p className="mt-3 text-sm font-medium">No carousel slides yet</p>
+              <p className="mt-3 text-sm font-jost-medium">No carousel slides yet</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Add your first slide to enable the hero carousel.
               </p>
@@ -820,7 +820,7 @@ export default function AdminHomePageManager() {
 
                   {/* Content */}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{slide.headline || 'Untitled slide'}</p>
+                    <p className="truncate font-jost-medium">{slide.headline || 'Untitled slide'}</p>
                     <p className="mt-0.5 truncate text-sm text-muted-foreground">
                       {slide.subtitle || 'No subtitle'}
                     </p>
@@ -1018,11 +1018,11 @@ function StatCard({
 }) {
   return (
     <div className="rounded-xl border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-bold ${
+        className={`mt-1 text-2xl font-jost-bold ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >
@@ -1127,7 +1127,7 @@ function CategoriesEditor({ content, onChange }: EditorProps) {
       {items.map((item, index) => (
         <div key={index} className="rounded-lg border bg-muted/20 p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Category #{index + 1}</span>
+            <span className="text-sm font-jost-medium">Category #{index + 1}</span>
             <Button
               variant="ghost"
               size="icon-sm"
@@ -1163,7 +1163,7 @@ function CategoriesEditor({ content, onChange }: EditorProps) {
                   key={c.value}
                   type="button"
                   onClick={() => updateItem(index, 'bgColor', c.value)}
-                  className={`cursor-pointer rounded-md border px-3 py-1 text-xs font-medium transition ${
+                  className={`cursor-pointer rounded-md border px-3 py-1 text-xs font-jost-medium transition ${
                     item.bgColor === c.value
                       ? 'border-primary ring-2 ring-primary/30'
                       : 'border-border hover:border-muted-foreground'
@@ -1225,7 +1225,7 @@ function VisionMissionEditor({ content, onChange }: EditorProps) {
       <div className="space-y-2">
         <Label>
           Intro paragraph{' '}
-          <span className="text-xs font-normal text-muted-foreground">
+          <span className="text-xs font-jost-regular text-muted-foreground">
             (optional — shown between subtitle and Vision/Mission columns)
           </span>
         </Label>
@@ -1234,6 +1234,20 @@ function VisionMissionEditor({ content, onChange }: EditorProps) {
           onChange={(e) => set('intro', e.target.value)}
           rows={3}
           placeholder="Jivo exists to prove that business can be a pure expression of service…"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>
+          Intro paragraph 2{' '}
+          <span className="text-xs font-jost-regular text-muted-foreground">
+            (optional — second paragraph below the first intro)
+          </span>
+        </Label>
+        <Textarea
+          value={field(content, 'intro2')}
+          onChange={(e) => set('intro2', e.target.value)}
+          rows={3}
+          placeholder="Our story begins with our founding father…"
         />
       </div>
       <div className="space-y-2">
@@ -1478,9 +1492,9 @@ function WhyJivoEditor({ content, onChange }: EditorProps) {
       <div className="space-y-3 rounded-lg border bg-muted/10 p-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Label className="text-sm font-semibold">
+            <Label className="text-sm font-jost-bold">
               Value Pillars{' '}
-              <span className="font-normal text-muted-foreground">
+              <span className="font-jost-regular text-muted-foreground">
                 ({valuePillars.length} / 6 recommended)
               </span>
             </Label>
@@ -1500,7 +1514,7 @@ function WhyJivoEditor({ content, onChange }: EditorProps) {
 
         {valuePillars.length === 0 ? (
           <div className="rounded-md border border-dashed bg-background/40 p-6 text-center text-sm text-muted-foreground">
-            No pillars yet. Click <span className="font-medium">Add pillar</span> to create your first one.
+            No pillars yet. Click <span className="font-jost-medium">Add pillar</span> to create your first one.
           </div>
         ) : (
           <>
@@ -1514,7 +1528,7 @@ function WhyJivoEditor({ content, onChange }: EditorProps) {
                     key={index}
                     type="button"
                     onClick={() => setActivePillarIdx(index)}
-                    className={`flex shrink-0 items-center gap-2 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+                    className={`flex shrink-0 items-center gap-2 rounded px-3 py-1.5 text-xs font-jost-medium transition-colors ${
                       isActive
                         ? 'bg-background text-foreground shadow-sm'
                         : 'text-muted-foreground hover:bg-background/60 hover:text-foreground'

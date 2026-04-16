@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10">
             <LogIn className="h-7 w-7 text-green-400" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Jivo Admin</CardTitle>
+          <CardTitle className="text-2xl font-jost-bold text-white">Jivo Admin</CardTitle>
           <p className="text-sm text-white/60">Sign in to access the admin panel</p>
         </CardHeader>
         <CardContent>
@@ -49,7 +49,7 @@ export default function AdminLoginPage() {
               <div className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
             )}
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-white/80">
+              <label htmlFor="email" className="text-sm font-jost-medium text-white/80">
                 Email
               </label>
               <Input
@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-white/80">
+              <label htmlFor="password" className="text-sm font-jost-medium text-white/80">
                 Password
               </label>
               <Input

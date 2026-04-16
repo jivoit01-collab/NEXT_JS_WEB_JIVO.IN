@@ -26,7 +26,7 @@ export function ProductsFoundation({ data }: ProductsFoundationProps) {
 
         <div className="flex flex-col justify-center space-y-12">
           <div>
-            <h2 className="font-sans text-2xl font-bold tracking-tight text-white md:text-3xl">
+            <h2 className="font-sans text-2xl font-jost-bold tracking-tight text-white md:text-3xl">
               {content.section1.heading}
             </h2>
             <div className="mt-6 space-y-4">
@@ -39,7 +39,7 @@ export function ProductsFoundation({ data }: ProductsFoundationProps) {
           </div>
 
           <div>
-            <h2 className="font-sans text-2xl font-bold tracking-tight text-white md:text-3xl">
+            <h2 className="font-sans text-2xl font-jost-bold tracking-tight text-white md:text-3xl">
               {content.section2.heading}
             </h2>
             <div className="mt-6 space-y-4">

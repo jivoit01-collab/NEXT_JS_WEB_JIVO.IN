@@ -266,10 +266,10 @@ export default function AdminNavbarManager() {
       {/* ── Header ──────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
+          <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
             <Navigation className="h-3.5 w-3.5" /> Navbar
           </div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl">
             Navbar Management
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -317,7 +317,7 @@ export default function AdminNavbarManager() {
             <ImageIcon className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-base font-semibold">Brand logo</h2>
+            <h2 className="text-base font-jost-bold">Brand logo</h2>
             <p className="text-xs text-muted-foreground">
               Shown on the left of the public navbar. Recommended: transparent
               PNG/WebP, ~120×40 px.
@@ -367,7 +367,7 @@ export default function AdminNavbarManager() {
                     className="h-7 w-auto object-contain"
                   />
                 ) : (
-                  <span className="font-playfair text-lg font-semibold text-white">
+                  <span className="font-playfair text-lg font-jost-bold text-white">
                     {logoAlt || 'Jivo Wellness'}
                   </span>
                 )}
@@ -427,7 +427,7 @@ export default function AdminNavbarManager() {
                     #{link.sortOrder}
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{link.title}</div>
+                    <div className="font-jost-medium">{link.title}</div>
                   </TableCell>
                   <TableCell>
                     <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
@@ -636,11 +636,11 @@ function StatCard({
 }) {
   return (
     <div className="rounded-xl border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-bold ${
+        className={`mt-1 text-2xl font-jost-bold ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >

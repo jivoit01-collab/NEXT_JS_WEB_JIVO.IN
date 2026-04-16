@@ -10,7 +10,7 @@ export function VisionMission({ data }: VisionMissionProps) {
   const content = data ?? defaults;
 
   return (
-    <section className="relative w-full overflow-hidden py-16 md:py-24">
+    <section className="relative w-full overflow-hidden py-24 md:py-32">
       <SafeImage
         src={content.backgroundImage || defaults.backgroundImage}
         alt="Nature background"
@@ -18,45 +18,59 @@ export function VisionMission({ data }: VisionMissionProps) {
         className="object-cover"
       />
 
-      <div className="absolute inset-0 bg-black/55" />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/35" />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 text-white md:px-10">
-        {/* ── Top: heading + subtitle + intro — CENTERED ─────────── */}
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="font-sans text-2xl font-bold uppercase tracking-[0.12em] md:text-4xl">
+      {/* IMPORTANT: Wider container + shift upward */}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 text-white md:px-8">
+
+        {/* ── TOP CONTENT (slightly up, not center-heavy) ── */}
+        <div className=''>
+          <h2 className="font-sans text-center mb-5 text-2xl font-jost-bold uppercase tracking-[0.15em] md:text-4xl lg:text-4xl">
             {content.heading}
           </h2>
-
-          <p className="mt-3 text-sm italic text-white/85 md:text-base">
+        </div>
+        <div className='w-2/4'>
+          <p className=" text-base italic text-white/80 md:text-lg">
             {content.subtitle}
           </p>
 
-          {content.intro && content.intro.trim().length > 0 && (
-            <p className="mt-5 text-xs leading-relaxed text-white/85 md:text-sm">
+          {content.intro && (
+            <p className="mt-6 text-sm leading-relaxed text-white/80 md:text-base">
               {content.intro}
+            </p>
+          )}
+
+          {content.intro2 && (
+            <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base">
+              {content.intro2}
             </p>
           )}
         </div>
 
-        {/* ── Vision + Mission — columns, each LEFT-ALIGNED internally ── */}
-        <div className="mt-14 grid grid-cols-1 gap-12 md:mt-16 md:grid-cols-2 md:gap-20">
-          <div className="text-left">
-            <h3 className="mb-4 font-sans text-3xl font-extrabold uppercase tracking-[0.12em] md:text-5xl">
+        {/* ── VISION + MISSION (spread like design) ── */}
+        <div className="mt-20 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-32">
+          
+          {/* LEFT SIDE */}
+          <div className="max-w-md">
+            <h3 className="mb-6 font-sans text-2xl font-jost-extrabold uppercase tracking-[0.15em] md:text-4xl">
               Vision
             </h3>
-            <p className="text-sm leading-relaxed text-white/85 md:text-base">
+            <p className="text-base leading-relaxed text-white/85">
               {content.vision}
             </p>
           </div>
 
-          <div className="text-left">
-            <h3 className="mb-4 font-sans text-3xl font-extrabold uppercase tracking-[0.12em] md:text-5xl">
+          {/* RIGHT SIDE */}
+          <div className="max-w-md md:ml-auto">
+            <h3 className="mb-6 font-sans text-2xl font-jost-extrabold uppercase tracking-[0.15em] md:text-4xl">
               Mission
             </h3>
-            <p className="text-sm leading-relaxed text-white/85 md:text-base">
+            <p className="text-base leading-relaxed text-white/85">
               {content.mission}
             </p>
           </div>
+
         </div>
       </div>
     </section>

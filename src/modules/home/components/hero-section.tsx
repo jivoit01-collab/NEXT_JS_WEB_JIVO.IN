@@ -64,7 +64,7 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15 }}
-            className="font-serif text-xl font-bold tracking-[0.15em] sm:text-2xl md:text-3xl"
+            className="font-sans text-center mb-5 text-2xl font-jost-bold uppercase tracking-[0.15em] md:text-4xl lg:text-4xl"
           >
             {slide.headline}
           </motion.h1>
@@ -72,7 +72,7 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-3 max-w-md text-xs font-light leading-relaxed text-white/80 sm:text-sm"
+            className="mt-3 max-w-md text-xs font-jost-light leading-relaxed text-white/80 sm:text-sm"
           >
             {slide.subtitle}
           </motion.p>
@@ -160,10 +160,10 @@ function HeroCarousel({
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center"
           >
-            <h1 className="font-serif text-xl font-bold tracking-[0.15em] sm:text-2xl md:text-3xl">
+            <h1 className="font-sans text-center mb-5 text-2xl font-jost-bold uppercase tracking-[0.10em] md:text-4xl lg:text-4xl">
               {slides[selectedIndex].headline}
             </h1>
-            <p className="mt-3 max-w-md text-xs font-light leading-relaxed text-white/80 sm:text-sm">
+            <p className="mt-3 max-w-md text-xs font-jost-light leading-relaxed text-white/80 sm:text-sm">
               {slides[selectedIndex].subtitle}
             </p>
           </motion.div>

@@ -64,7 +64,7 @@ export function Navbar({
               className="h-7 w-auto object-contain lg:h-9"
             />
           ) : (
-            <span className="font-playfair text-xl font-semibold tracking-wide text-white lg:text-2xl">
+            <span className="font-playfair text-xl font-jost-bold tracking-wide text-white lg:text-2xl">
               {altText}
             </span>
           )}
@@ -76,7 +76,7 @@ export function Navbar({
             <Link
               key={link.href + link.title}
               href={link.href}
-              className="relative text-sm font-medium tracking-wide text-white/85 transition-colors duration-200 after:absolute after:-bottom-0.5 after:left-0 after:h-[1.5px] after:w-0 after:bg-white after:transition-all after:duration-300 hover:text-white hover:after:w-full"
+              className="relative text-sm font-jost-medium tracking-wide text-white/85 transition-colors duration-200 after:absolute after:-bottom-0.5 after:left-0 after:h-[1.5px] after:w-0 after:bg-white after:transition-all after:duration-300 hover:text-white hover:after:w-full"
             >
               {link.title}
             </Link>
@@ -108,7 +108,7 @@ export function Navbar({
               key={link.href + link.title}
               href={link.href}
               onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-base font-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-3 py-2.5 text-base font-jost-medium text-white/85 transition-colors hover:bg-white/10 hover:text-white"
             >
               {link.title}
             </Link>

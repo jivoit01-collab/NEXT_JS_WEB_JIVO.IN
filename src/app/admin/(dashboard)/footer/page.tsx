@@ -335,10 +335,10 @@ export default function AdminFooterPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       {/* ── Header ─────────────────────────────────── */}
       <div>
-        <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
+        <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
           <PanelBottom className="h-3.5 w-3.5" /> Footer
         </div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Footer Management</h1>
+        <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl">Footer Management</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Manage every footer column, link, and the bottom bar (logo + contact info).
         </p>
@@ -374,7 +374,7 @@ export default function AdminFooterPage() {
       {/* ══════════════════════════════════════════════ */}
       <div className="rounded-xl border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b px-5 py-3">
-          <h2 className="text-sm font-semibold">Brand &amp; Contact (bottom bar)</h2>
+          <h2 className="text-sm font-jost-bold">Brand &amp; Contact (bottom bar)</h2>
           <Button onClick={saveSettings} disabled={savingSettings} size="sm" className="gap-2">
             {savingSettings ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -467,7 +467,7 @@ export default function AdminFooterPage() {
       <div className="rounded-xl border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
           <div>
-            <h2 className="text-sm font-semibold">Link Columns</h2>
+            <h2 className="text-sm font-jost-bold">Link Columns</h2>
             <p className="text-xs text-muted-foreground">
               Click a tab to manage that column's links.
             </p>
@@ -503,7 +503,7 @@ export default function AdminFooterPage() {
                         : 'bg-muted-foreground'
                     }`}
                   />
-                  <span className="font-medium">{col.title}</span>
+                  <span className="font-jost-medium">{col.title}</span>
                   <span
                     className={`rounded-full px-1.5 text-[10px] ${
                       isActive
@@ -525,7 +525,7 @@ export default function AdminFooterPage() {
             {/* Active column header — title + actions on the column itself */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <h3 className="text-base font-semibold">{activeColumn.title}</h3>
+                <h3 className="text-base font-jost-bold">{activeColumn.title}</h3>
                 <Badge
                   variant={activeColumn.isVisible ? 'default' : 'secondary'}
                   className={
@@ -612,7 +612,7 @@ export default function AdminFooterPage() {
                         <TableCell className="font-mono text-xs text-muted-foreground">
                           #{link.sortOrder}
                         </TableCell>
-                        <TableCell className="font-medium">{link.title}</TableCell>
+                        <TableCell className="font-jost-medium">{link.title}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {link.href}
                         </TableCell>
@@ -881,11 +881,11 @@ function StatCard({
 }) {
   return (
     <div className="rounded-xl border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-bold ${
+        className={`mt-1 text-2xl font-jost-bold ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >
