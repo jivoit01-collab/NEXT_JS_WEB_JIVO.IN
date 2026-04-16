@@ -20,7 +20,9 @@
 .claude
 # production
 /build
-/public/images/
+
+# Uploaded images (dynamic, not committed)
+/uploads/images/
 # misc
 .DS_Store
 *.pem

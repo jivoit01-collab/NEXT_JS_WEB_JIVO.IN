@@ -6,7 +6,12 @@ import { getVisibleFooter } from '@/modules/footer';
 export async function Footer() {
   const { columns, setting } = await getVisibleFooter();
 
-  const logoSrc = setting.logoUrl || '/images/Jivo Logo.png';
+  const raw = setting.logoUrl || '';
+  const logoSrc = !raw
+    ? '/api/uploads/placeholder.png'
+    : raw.startsWith('/') || raw.startsWith('http')
+      ? raw
+      : `/api/uploads/${raw}`;
   const year = new Date().getFullYear();
   const copyright = setting.copyrightText || `All Right Reserved © ${year}`;
 

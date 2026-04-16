@@ -11,7 +11,7 @@ interface ImageWithFallbackProps extends Omit<ImageProps, 'onError'> {
 export function ImageWithFallback({
   src,
   alt,
-  fallbackSrc = '/images/common/placeholder.webp',
+  fallbackSrc = '/api/uploads/placeholder.png',
   className,
   ...props
 }: ImageWithFallbackProps) {

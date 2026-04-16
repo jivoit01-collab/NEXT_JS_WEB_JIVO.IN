@@ -18,7 +18,7 @@ export const siteDefaultSeo: Omit<SeoData, 'page'> = {
   ],
   ogTitle: SITE_NAME,
   ogDescription: SITE_DESCRIPTION,
-  ogImage: '/images/common/og-default.png',
+  ogImage: 'og-default.png',
   twitterCard: 'summary_large_image',
   canonicalUrl: SITE_URL,
   structuredData: {

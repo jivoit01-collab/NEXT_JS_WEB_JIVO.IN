@@ -6,13 +6,14 @@ import {
   whyJivoContent as textDefaults,
   valuePillars as pillarDefaults,
 } from '../data/home-content';
+import { toSrc } from '@/components/shared/image-upload';
 import type { WhyJivoContent } from '../types';
 
 interface WhyJivoProps {
   data?: WhyJivoContent;
 }
 
-const PLACEHOLDER = '/images/placeholder.jpg';
+const PLACEHOLDER = '/api/uploads/placeholder.png';
 
 export function WhyJivo({ data }: WhyJivoProps) {
   const content = data
@@ -28,7 +29,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
   return (
     <section
       className="font-sans px-4 py-20 md:py-28"
-      style={{ backgroundColor: '#1f5437', color: '#b8a472' }}
+      style={{ backgroundColor: '#1f5437', color: '#ffffff' }}
     >
       <div className="container mx-auto max-w-6xl">
         {/* Top — Two-column text */}
@@ -37,19 +38,19 @@ export function WhyJivo({ data }: WhyJivoProps) {
           <div>
             <h2
               className="font-sans font-extrabold uppercase leading-[1.05] tracking-tight"
-              style={{ color: '#b8a472', fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}
+              style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}
             >
               {content.heading}
             </h2>
             <p
               className="mt-4 text-base font-normal md:text-lg"
-              style={{ color: '#b8a472' }}
+              style={{ color: '#ffffff' }}
             >
               {content.subheading}
             </p>
             <p
               className="mt-8 text-[15px] italic leading-relaxed md:text-base"
-              style={{ color: '#b8a472' }}
+              style={{ color: '#ffffff' }}
             >
               {content.leftText}
             </p>
@@ -61,7 +62,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
               <p
                 key={index}
                 className="text-[13px] leading-relaxed md:text-sm"
-                style={{ color: '#b8a472' }}
+                style={{ color: '#ffffff' }}
               >
                 {paragraph}
               </p>
@@ -82,7 +83,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
             >
               <div className="relative mb-5 h-12 w-12">
                 <Image
-                  src={pillar.image || PLACEHOLDER}
+                  src={toSrc(pillar.image || PLACEHOLDER)}
                   alt={pillar.title}
                   fill
                   sizes="48px"
@@ -91,13 +92,13 @@ export function WhyJivo({ data }: WhyJivoProps) {
               </div>
               <h3
                 className="mb-3 text-sm font-bold italic md:text-base"
-                style={{ color: '#b8a472' }}
+                style={{ color: '#ffffff' }}
               >
                 {pillar.title}
               </h3>
               <p
                 className="text-[11px] font-light leading-relaxed md:text-xs"
-                style={{ color: '#b8a472' }}
+                style={{ color: '#ffffff' }}
               >
                 {pillar.description}
               </p>

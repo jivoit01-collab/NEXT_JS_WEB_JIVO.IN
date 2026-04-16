@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 import { useScroll } from '@/hooks';
 import { SITE_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { toSrc } from '@/components/shared/image-upload';
 
 export interface NavbarLink {
   id?: string;
@@ -55,7 +56,7 @@ export function Navbar({
         <Link href="/" className="relative flex items-center" aria-label={altText}>
           {logoUrl ? (
             <Image
-              src={logoUrl}
+              src={toSrc(logoUrl)}
               alt={altText}
               width={120}
               height={40}

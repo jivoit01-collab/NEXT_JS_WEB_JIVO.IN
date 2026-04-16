@@ -14,7 +14,7 @@ export function generateSeoMetadata({
   title,
   description = SITE_DESCRIPTION,
   keywords = [],
-  ogImage = '/images/common/og-default.png',
+  ogImage = '/api/uploads/og-default.png',
   canonicalUrl,
   noIndex = false,
 }: SeoParams): Metadata {
@@ -59,7 +59,7 @@ export function organizationJsonLd() {
     '@type': 'Organization',
     name: SITE_NAME,
     url: SITE_URL,
-    logo: `${SITE_URL}/images/common/logo.svg`,
+    logo: `${SITE_URL}/api/uploads/logo.svg`,
     sameAs: [
       'https://www.facebook.com/JivoWellness',
       'https://www.instagram.com/jivowellness',

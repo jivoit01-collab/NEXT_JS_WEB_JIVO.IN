@@ -60,7 +60,7 @@ const nextConfig: NextConfig = {
           headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
         },
         {
-          source: '/images/(.*)',
+          source: '/api/uploads/(.*)',
           headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, s-maxage=604800' }],
         },
       );
