@@ -73,6 +73,7 @@ export const visionMissionContent = {
   subtitle: 'Our foundation is truth, our motive is service.',
   intro:
     'Jivo exists to prove that business can be a pure expression of service. Every product we make and every decision we take is guided by this single idea: wellness is a duty, not a market.',
+  intro2: '',
   vision:
     'To create a world where wellness is accessible to all — through products rooted in truth, purity, and a deep respect for nature. Jivo envisions a future where every individual can reclaim their health and vitality through honest, natural solutions.',
   mission:

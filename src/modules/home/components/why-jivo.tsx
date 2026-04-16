@@ -29,7 +29,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
   return (
     <section
       className="font-sans px-4 py-20 md:py-28"
-      style={{ backgroundColor: '#1f5437', color: '#ffffff' }}
+      style={{ backgroundColor: '#7b593e', color:'#cbc995' }}
     >
       <div className="container mx-auto max-w-6xl">
         {/* Top — Two-column text */}
@@ -37,20 +37,20 @@ export function WhyJivo({ data }: WhyJivoProps) {
           {/* Left column */}
           <div>
             <h2
-              className="font-sans font-extrabold uppercase leading-[1.05] tracking-tight"
-              style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}
+              className="font-sans font-jost-extrabold uppercase leading-[1.05] tracking-tight"
+              style={{color:'#cbc995', fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}
             >
               {content.heading}
             </h2>
             <p
-              className="mt-4 text-base font-normal md:text-lg"
-              style={{ color: '#ffffff' }}
+              className="mt-4 text-base font-jost-regular md:text-lg"
+              style={{ color:'#cbc995' }}
             >
               {content.subheading}
             </p>
             <p
               className="mt-8 text-[15px] italic leading-relaxed md:text-base"
-              style={{ color: '#ffffff' }}
+              style={{ color:'#cbc995' }}
             >
               {content.leftText}
             </p>
@@ -62,7 +62,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
               <p
                 key={index}
                 className="text-[13px] leading-relaxed md:text-sm"
-                style={{ color: '#ffffff' }}
+                style={{ color:'#cbc995' }}
               >
                 {paragraph}
               </p>
@@ -91,14 +91,14 @@ export function WhyJivo({ data }: WhyJivoProps) {
                 />
               </div>
               <h3
-                className="mb-3 text-sm font-bold italic md:text-base"
-                style={{ color: '#ffffff' }}
+                className="mb-3 text-sm font-jost-bold italic md:text-base"
+                style={{ color:'#cbc995' }}
               >
                 {pillar.title}
               </h3>
               <p
-                className="text-[11px] font-light leading-relaxed md:text-xs"
-                style={{ color: '#ffffff' }}
+                className="text-[11px] font-jost-light leading-relaxed md:text-xs"
+                style={{ color:'#cbc995' }}
               >
                 {pillar.description}
               </p>

@@ -31,6 +31,8 @@ export interface VisionMissionContent {
   subtitle: string;
   /** Optional longer intro paragraph that sits between the subtitle and the Vision/Mission columns. */
   intro?: string;
+  /** Optional second intro paragraph shown below the first intro. */
+  intro2?: string;
   vision: string;
   mission: string;
 }

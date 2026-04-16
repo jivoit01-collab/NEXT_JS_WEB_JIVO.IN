@@ -26,6 +26,7 @@ export const visionMissionContentSchema = z.object({
   heading: z.string().min(1).max(200),
   subtitle: z.string().min(1).max(500),
   intro: z.string().max(2000).optional().default(''),
+  intro2: z.string().max(2000).optional().default(''),
   vision: z.string().min(1).max(2000),
   mission: z.string().min(1).max(2000),
 });

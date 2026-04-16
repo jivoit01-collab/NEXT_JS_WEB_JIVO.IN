@@ -212,11 +212,11 @@ export function SeoListTable() {
                     <Inbox className="h-8 w-8 opacity-60" />
                     {rows.length === 0 ? (
                       <>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-jost-medium">
                           No pages have SEO entries yet.
                         </p>
                         <p className="text-xs">
-                          Click <span className="font-semibold">Add Page SEO</span> above
+                          Click <span className="font-jost-bold">Add Page SEO</span> above
                           to create your first one. Pages also appear here automatically
                           after you save SEO from any page&apos;s admin editor.
                         </p>
@@ -242,7 +242,7 @@ export function SeoListTable() {
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-xs font-medium text-primary">
+                        <span className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-xs font-jost-medium text-primary">
                           {row.page}
                         </span>
                         <a
@@ -258,7 +258,7 @@ export function SeoListTable() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="line-clamp-1 font-medium">{row.metaTitle}</div>
+                      <div className="line-clamp-1 font-jost-medium">{row.metaTitle}</div>
                       {row.metaDescription && (
                         <div className="line-clamp-1 text-xs text-muted-foreground">
                           {row.metaDescription}

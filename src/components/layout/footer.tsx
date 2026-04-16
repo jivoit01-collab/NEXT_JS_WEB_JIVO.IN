@@ -29,7 +29,7 @@ export async function Footer() {
                 idx === columns.length - 1 ? 'lg:pr-0' : ''
               }`}
             >
-              <h4 className="mb-4 text-xs font-bold uppercase tracking-[0.15em] text-[#222]">
+              <h4 className="mb-4 text-xs font-jost-bold uppercase tracking-[0.15em] text-[#222]">
                 {column.title}
               </h4>
               <ul className="space-y-2">

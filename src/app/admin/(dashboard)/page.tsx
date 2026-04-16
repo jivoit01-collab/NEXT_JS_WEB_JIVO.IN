@@ -22,10 +22,10 @@ export default function AdminDashboardPage() {
   return (
     <div className="mx-auto max-w-5xl py-4 sm:py-8">
       <div className="mb-8 text-center sm:mb-12">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-gold sm:mb-4">
+        <p className="mb-3 text-sm font-jost-bold uppercase tracking-widest text-gold sm:mb-4">
           Admin Dashboard
         </p>
-        <h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">
+        <h1 className="text-3xl font-jost-bold sm:text-4xl md:text-5xl">
           <span className="text-foreground">Welcome to</span>{' '}
           <span className="admin-gradient-text">Jivo Wellness</span>
         </h1>
@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
               <mod.icon className="h-7 w-7 text-primary" />
             </div>
             <div className="text-center">
-              <span className="text-sm font-medium text-foreground">{mod.label}</span>
+              <span className="text-sm font-jost-medium text-foreground">{mod.label}</span>
               <p className="mt-1 text-xs text-muted-foreground">{mod.description}</p>
             </div>
           </Link>

@@ -14,7 +14,7 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
   return (
     <section className="bg-jivo-olive px-4 py-16 md:py-20">
       <div className="container mx-auto max-w-7xl">
-        <h2 className="mb-10 text-center font-sans text-2xl font-extrabold uppercase tracking-[0.2em] text-white md:mb-14 md:text-4xl">
+        <h2 className="mb-10 text-center font-sans text-2xl font-jost-extrabold uppercase tracking-[0.2em] text-white md:mb-14 md:text-4xl">
           {heading}
         </h2>
 
@@ -35,7 +35,7 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
                   />
                 </div>
 
-                <p className="mt-3 text-center font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white">
+                <p className="mt-3 text-center font-sans text-sm font-jost-bold uppercase tracking-[0.2em] text-white">
                   {category.name}
                 </p>
               </div>
