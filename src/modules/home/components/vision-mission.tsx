@@ -10,7 +10,7 @@ export function VisionMission({ data }: VisionMissionProps) {
   const content = data ?? defaults;
 
   return (
-    <section className="relative w-full overflow-hidden py-24 md:py-32">
+    <section className="relative w-full overflow-hidden py-24 md:py-20">
       <SafeImage
         src={content.backgroundImage || defaults.backgroundImage}
         alt="Nature background"
@@ -19,14 +19,14 @@ export function VisionMission({ data }: VisionMissionProps) {
       />
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/35" />
+      <div className="absolute inset-0 bg-black/25" />
 
       {/* IMPORTANT: Wider container + shift upward */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 text-white md:px-8">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 text-white md:px-8">
 
         {/* ── TOP CONTENT (slightly up, not center-heavy) ── */}
         <div className=''>
-          <h2 className="font-sans text-center mb-5 text-2xl font-jost-bold uppercase tracking-[0.15em] md:text-4xl lg:text-4xl">
+          <h2 className="font-sans text-center mb-15 text-2xl font-jost-bold uppercase tracking-[0.15em] md:text-4xl lg:text-[42px]">
             {content.heading}
           </h2>
         </div>

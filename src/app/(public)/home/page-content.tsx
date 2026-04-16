@@ -30,10 +30,15 @@ export default async function HomePage() {
     sectionMap.set(s.section, s.content);
   }
 
-  const links = navLinks.map((l: { id: string; title: string; href: string }) => ({
+  const links = navLinks.map((l: { id: string; title: string; href: string; subLinks?: { id: string; title: string; href: string }[] }) => ({
     id: l.id,
     title: l.title,
     href: l.href,
+    subLinks: l.subLinks?.map((s) => ({
+      id: s.id,
+      title: s.title,
+      href: s.href,
+    })) ?? [],
   }));
 
   return (

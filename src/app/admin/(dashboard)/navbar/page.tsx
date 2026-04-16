@@ -35,9 +35,19 @@ import {
   CheckCircle2,
   Save,
   Image as ImageIcon,
+  Layers,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────
+
+interface NavSubLinkRow {
+  id: string;
+  navLinkId: string;
+  title: string;
+  href: string;
+  sortOrder: number;
+  isVisible: boolean;
+}
 
 interface NavLinkRow {
   id: string;
@@ -45,6 +55,7 @@ interface NavLinkRow {
   href: string;
   sortOrder: number;
   isVisible: boolean;
+  subLinks: NavSubLinkRow[];
   createdAt: string;
   updatedAt: string;
 }
@@ -63,15 +74,36 @@ export default function AdminNavbarManager() {
   const [links, setLinks] = useState<NavLinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<NavLinkRow | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activeNavLinkId, setActiveNavLinkId] = useState<string | null>(null);
 
-  const [formTitle, setFormTitle] = useState('');
-  const [formHref, setFormHref] = useState('');
-  const [formSortOrder, setFormSortOrder] = useState(0);
-  const [formIsVisible, setFormIsVisible] = useState(true);
+  // NavLink dialog
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<NavLinkRow | null>(null);
+  const [linkForm, setLinkForm] = useState({
+    title: '',
+    href: '',
+    sortOrder: 0,
+    isVisible: true,
+  });
+
+  // SubLink dialog
+  const [subLinkDialogOpen, setSubLinkDialogOpen] = useState(false);
+  const [editingSubLink, setEditingSubLink] = useState<NavSubLinkRow | null>(null);
+  const [subLinkForm, setSubLinkForm] = useState({
+    navLinkId: '',
+    title: '',
+    href: '',
+    sortOrder: 0,
+    isVisible: true,
+  });
+
+  // Delete confirmation
+  const [deleteTarget, setDeleteTarget] = useState<
+    | { type: 'link'; id: string; title: string }
+    | { type: 'sublink'; id: string; title: string }
+    | null
+  >(null);
+
   const [error, setError] = useState('');
 
   // Logo / branding state
@@ -80,12 +112,18 @@ export default function AdminNavbarManager() {
   const [logoAlt, setLogoAlt] = useState<string>('');
   const [savingLogo, setSavingLogo] = useState(false);
 
+  // ── Fetch ─────────────────────────────────────────────────
+
   const fetchLinks = useCallback(async () => {
     try {
       const res = await fetch('/api/navbar?all=true', { cache: 'no-store' });
       const data = await res.json();
-      if (data.success) setLinks(data.data);
-      else toast.error(data.error ?? 'Failed to load nav links');
+      if (data.success) {
+        setLinks(data.data);
+        setActiveNavLinkId((curr) => curr ?? data.data[0]?.id ?? null);
+      } else {
+        toast.error(data.error ?? 'Failed to load nav links');
+      }
     } catch {
       toast.error('Failed to load navbar links');
     }
@@ -110,6 +148,12 @@ export default function AdminNavbarManager() {
   useEffect(() => {
     Promise.all([fetchLinks(), fetchSetting()]).finally(() => setLoading(false));
   }, [fetchLinks, fetchSetting]);
+
+  const activeNavLink = links.find((l) => l.id === activeNavLinkId) ?? null;
+  const totalSubLinks = links.reduce((n, l) => n + l.subLinks.length, 0);
+  const visibleCount = links.filter((l) => l.isVisible).length;
+
+  // ── Logo save ─────────────────────────────────────────────
 
   const saveLogo = async () => {
     setSavingLogo(true);
@@ -141,66 +185,50 @@ export default function AdminNavbarManager() {
     (setting?.logoUrl ?? '') !== logoUrl ||
     (setting?.logoAlt ?? '') !== logoAlt;
 
-  const visibleCount = links.filter((l) => l.isVisible).length;
+  // ── NavLink handlers ──────────────────────────────────────
 
-  const openCreate = () => {
-    setEditing(null);
-    setFormTitle('');
-    setFormHref('');
-    setFormSortOrder(links.length);
-    setFormIsVisible(true);
+  const openCreateLink = () => {
+    setEditingLink(null);
+    setLinkForm({ title: '', href: '', sortOrder: links.length, isVisible: true });
     setError('');
-    setDialogOpen(true);
+    setLinkDialogOpen(true);
   };
 
-  const openEdit = (link: NavLinkRow) => {
-    setEditing(link);
-    setFormTitle(link.title);
-    setFormHref(link.href);
-    setFormSortOrder(link.sortOrder);
-    setFormIsVisible(link.isVisible);
+  const openEditLink = (link: NavLinkRow) => {
+    setEditingLink(link);
+    setLinkForm({
+      title: link.title,
+      href: link.href,
+      sortOrder: link.sortOrder,
+      isVisible: link.isVisible,
+    });
     setError('');
-    setDialogOpen(true);
+    setLinkDialogOpen(true);
   };
 
-  const openDelete = (id: string) => {
-    setDeletingId(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleSave = async () => {
+  const saveLink = async () => {
     setSaving(true);
     setError('');
-
     try {
-      const isEdit = !!editing;
-      const url = isEdit ? `/api/navbar/${editing.id}` : '/api/navbar';
+      const isEdit = !!editingLink;
+      const url = isEdit ? `/api/navbar/${editingLink.id}` : '/api/navbar';
       const method = isEdit ? 'PUT' : 'POST';
-
-      const body = {
-        title: formTitle.trim(),
-        href: formHref.trim(),
-        sortOrder: formSortOrder,
-        isVisible: formIsVisible,
-      };
-
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify(linkForm),
       });
       const data = await res.json();
-
       if (!data.success) {
         setError(data.error ?? 'Something went wrong');
         toast.error(data.error ?? 'Failed to save');
         return;
       }
-
       toast.success(`Link ${isEdit ? 'updated' : 'created'} successfully`);
-      setDialogOpen(false);
+      setLinkDialogOpen(false);
       await fetchLinks();
       router.refresh();
+      if (!isEdit && data.data?.id) setActiveNavLinkId(data.data.id);
     } catch {
       toast.error('Network error — please retry');
     } finally {
@@ -208,30 +236,7 @@ export default function AdminNavbarManager() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deletingId) return;
-    setSaving(true);
-
-    try {
-      const res = await fetch(`/api/navbar/${deletingId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        toast.success('Link deleted');
-        setDeleteDialogOpen(false);
-        setDeletingId(null);
-        await fetchLinks();
-        router.refresh();
-      } else {
-        toast.error(data.error ?? 'Delete failed');
-      }
-    } catch {
-      toast.error('Network error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const toggleVisible = async (link: NavLinkRow) => {
+  const toggleLinkVisibility = async (link: NavLinkRow) => {
     try {
       const res = await fetch(`/api/navbar/${link.id}`, {
         method: 'PUT',
@@ -240,9 +245,7 @@ export default function AdminNavbarManager() {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(
-          `"${link.title}" ${link.isVisible ? 'hidden' : 'published'}`,
-        );
+        toast.success(`"${link.title}" ${link.isVisible ? 'hidden' : 'published'}`);
         await fetchLinks();
         router.refresh();
       } else {
@@ -252,6 +255,118 @@ export default function AdminNavbarManager() {
       toast.error('Network error');
     }
   };
+
+  // ── SubLink handlers ──────────────────────────────────────
+
+  const openCreateSubLink = () => {
+    if (!activeNavLink) return;
+    setEditingSubLink(null);
+    setSubLinkForm({
+      navLinkId: activeNavLink.id,
+      title: '',
+      href: '',
+      sortOrder: activeNavLink.subLinks.length,
+      isVisible: true,
+    });
+    setError('');
+    setSubLinkDialogOpen(true);
+  };
+
+  const openEditSubLink = (sub: NavSubLinkRow) => {
+    setEditingSubLink(sub);
+    setSubLinkForm({
+      navLinkId: sub.navLinkId,
+      title: sub.title,
+      href: sub.href,
+      sortOrder: sub.sortOrder,
+      isVisible: sub.isVisible,
+    });
+    setError('');
+    setSubLinkDialogOpen(true);
+  };
+
+  const saveSubLink = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const isEdit = !!editingSubLink;
+      const url = isEdit
+        ? `/api/navbar/sublinks/${editingSubLink.id}`
+        : '/api/navbar/sublinks';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subLinkForm),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.error ?? 'Something went wrong');
+        toast.error(data.error ?? 'Failed to save');
+        return;
+      }
+      toast.success(`Sub-link ${isEdit ? 'updated' : 'created'} successfully`);
+      setSubLinkDialogOpen(false);
+      await fetchLinks();
+      router.refresh();
+    } catch {
+      toast.error('Network error — please retry');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleSubLinkVisibility = async (sub: NavSubLinkRow) => {
+    try {
+      const res = await fetch(`/api/navbar/sublinks/${sub.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVisible: !sub.isVisible }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Sub-link ${sub.isVisible ? 'hidden' : 'published'}`);
+        await fetchLinks();
+        router.refresh();
+      } else {
+        toast.error(data.error ?? 'Update failed');
+      }
+    } catch {
+      toast.error('Network error');
+    }
+  };
+
+  // ── Delete ────────────────────────────────────────────────
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setSaving(true);
+    try {
+      const endpoint =
+        deleteTarget.type === 'link'
+          ? `/api/navbar/${deleteTarget.id}`
+          : `/api/navbar/sublinks/${deleteTarget.id}`;
+      const res = await fetch(endpoint, { method: 'DELETE' });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.error ?? 'Delete failed');
+        return;
+      }
+      toast.success(`${deleteTarget.type === 'link' ? 'Nav link' : 'Sub-link'} deleted`);
+      if (deleteTarget.type === 'link' && deleteTarget.id === activeNavLinkId) {
+        setActiveNavLinkId(null);
+      }
+      setDeleteTarget(null);
+      await fetchLinks();
+      router.refresh();
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Loading state ─────────────────────────────────────────
 
   if (loading) {
     return (
@@ -273,7 +388,7 @@ export default function AdminNavbarManager() {
             Navbar Management
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage the top navigation links shown across the public site.
+            Manage top navigation links and their hover dropdown sub-links.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -283,7 +398,7 @@ export default function AdminNavbarManager() {
               View Live Site
             </a>
           </Button>
-          <Button onClick={openCreate} className="gap-2">
+          <Button onClick={openCreateLink} className="gap-2">
             <Plus className="h-4 w-4" />
             Add Link
           </Button>
@@ -291,7 +406,7 @@ export default function AdminNavbarManager() {
       </div>
 
       {/* ── Stats row ──────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
           icon={<Link2 className="h-4 w-4" />}
           label="Total links"
@@ -302,6 +417,11 @@ export default function AdminNavbarManager() {
           label="Visible"
           value={visibleCount}
           tone="primary"
+        />
+        <StatCard
+          icon={<Layers className="h-4 w-4" />}
+          label="Total sub-links"
+          value={totalSubLinks}
         />
         <StatCard
           icon={<EyeOff className="h-4 w-4" />}
@@ -320,7 +440,7 @@ export default function AdminNavbarManager() {
             <h2 className="text-base font-jost-bold">Brand logo</h2>
             <p className="text-xs text-muted-foreground">
               Shown on the left of the public navbar. Recommended: transparent
-              PNG/WebP, ~120×40 px.
+              PNG/WebP, ~120x40 px.
             </p>
           </div>
         </div>
@@ -398,107 +518,255 @@ export default function AdminNavbarManager() {
         </div>
       </div>
 
-      {/* ── Links table ────────────────────── */}
-      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead className="w-20">Order</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Link</TableHead>
-              <TableHead className="w-28">Status</TableHead>
-              <TableHead className="w-32 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {links.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="py-12 text-center text-muted-foreground"
+      {/* ══════════════════════════════════════════════ */}
+      {/* NAV LINKS — TAB ROW (like footer columns)     */}
+      {/* ══════════════════════════════════════════════ */}
+      <div className="rounded-xl border bg-card shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
+          <div>
+            <h2 className="text-sm font-jost-bold">Nav Links &amp; Sub-Links</h2>
+            <p className="text-xs text-muted-foreground">
+              Click a tab to manage that link&apos;s dropdown sub-links.
+            </p>
+          </div>
+          <Button onClick={openCreateLink} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" /> Add Link
+          </Button>
+        </div>
+
+        {/* Tab strip */}
+        <div className="scrollbar-hide flex gap-2 overflow-x-auto border-b bg-muted/20 px-5 py-3">
+          {links.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No links yet.</p>
+          ) : (
+            links.map((link) => {
+              const isActive = link.id === activeNavLinkId;
+              return (
+                <button
+                  key={link.id}
+                  onClick={() => setActiveNavLinkId(link.id)}
+                  className={`group flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                    isActive
+                      ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                      : 'border-border bg-card hover:border-muted-foreground hover:bg-accent'
+                  }`}
                 >
-                  No nav links yet — click &quot;Add Link&quot; to create one.
-                </TableCell>
-              </TableRow>
-            ) : (
-              links.map((link) => (
-                <TableRow key={link.id} className="group">
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    #{link.sortOrder}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-jost-medium">{link.title}</div>
-                  </TableCell>
-                  <TableCell>
-                    <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                      {link.href}
-                    </code>
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => toggleVisible(link)}
-                      className="cursor-pointer"
-                      title={
-                        link.isVisible
-                          ? 'Click to hide from navbar'
-                          : 'Click to show in navbar'
-                      }
-                    >
-                      <Badge
-                        variant={link.isVisible ? 'default' : 'secondary'}
-                        className={
-                          link.isVisible
-                            ? 'bg-primary/15 text-primary hover:bg-primary/25'
-                            : 'hover:bg-secondary/80'
-                        }
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      link.isVisible
+                        ? isActive
+                          ? 'bg-primary-foreground'
+                          : 'bg-primary'
+                        : 'bg-muted-foreground'
+                    }`}
+                  />
+                  <span className="font-jost-medium">{link.title}</span>
+                  <span
+                    className={`rounded-full px-1.5 text-[10px] ${
+                      isActive
+                        ? 'bg-primary-foreground/20'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {link.subLinks.length}
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {/* ── Active link panel ──────────────────────── */}
+        {activeNavLink ? (
+          <div className="p-5">
+            {/* Active link header */}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <h3 className="text-base font-jost-bold">{activeNavLink.title}</h3>
+                <Badge
+                  variant={activeNavLink.isVisible ? 'default' : 'secondary'}
+                  className={
+                    activeNavLink.isVisible ? 'bg-primary/15 text-primary' : ''
+                  }
+                >
+                  {activeNavLink.isVisible ? 'Active' : 'Hidden'}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Order #{activeNavLink.sortOrder}
+                </span>
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+                  {activeNavLink.href}
+                </code>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleLinkVisibility(activeNavLink)}
+                  className="gap-2"
+                >
+                  {activeNavLink.isVisible ? (
+                    <>
+                      <EyeOff className="h-3.5 w-3.5" /> Hide link
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3.5 w-3.5" /> Publish link
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEditLink(activeNavLink)}
+                  className="gap-2"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Edit link
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setDeleteTarget({
+                      type: 'link',
+                      id: activeNavLink.id,
+                      title: activeNavLink.title,
+                    })
+                  }
+                  className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete link
+                </Button>
+                <Button onClick={openCreateSubLink} size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" /> Add Sub-Link
+                </Button>
+              </div>
+            </div>
+
+            {/* Sub-links table */}
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 hover:bg-muted/40">
+                    <TableHead className="w-16">Order</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>URL</TableHead>
+                    <TableHead className="w-28">Status</TableHead>
+                    <TableHead className="w-32 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeNavLink.subLinks.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="py-12 text-center text-sm text-muted-foreground"
                       >
-                        <span
-                          className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
-                            link.isVisible ? 'bg-primary' : 'bg-muted-foreground'
-                          }`}
-                        />
-                        {link.isVisible ? 'Visible' : 'Hidden'}
-                      </Badge>
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openEdit(link)}
-                        title="Edit"
-                        className="cursor-pointer hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openDelete(link.id)}
-                        title="Delete"
-                        className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                        No sub-links yet. Click <b>Add Sub-Link</b> to create one.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    activeNavLink.subLinks.map((sub) => (
+                      <TableRow key={sub.id}>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          #{sub.sortOrder}
+                        </TableCell>
+                        <TableCell className="font-jost-medium">{sub.title}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {sub.href}
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => toggleSubLinkVisibility(sub)}
+                            className="cursor-pointer"
+                            title={sub.isVisible ? 'Click to hide' : 'Click to publish'}
+                          >
+                            <Badge
+                              variant={sub.isVisible ? 'default' : 'secondary'}
+                              className={
+                                sub.isVisible
+                                  ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                                  : 'hover:bg-secondary/80'
+                              }
+                            >
+                              <span
+                                className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                                  sub.isVisible ? 'bg-primary' : 'bg-muted-foreground'
+                                }`}
+                              />
+                              {sub.isVisible ? 'Active' : 'Hidden'}
+                            </Badge>
+                          </button>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => toggleSubLinkVisibility(sub)}
+                              title={sub.isVisible ? 'Hide' : 'Publish'}
+                              className="hover:bg-accent"
+                            >
+                              {sub.isVisible ? (
+                                <Eye className="h-4 w-4" />
+                              ) : (
+                                <EyeOff className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => openEditSubLink(sub)}
+                              title="Edit"
+                              className="hover:bg-primary/10 hover:text-primary"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                setDeleteTarget({
+                                  type: 'sublink',
+                                  id: sub.id,
+                                  title: sub.title,
+                                })
+                              }
+                              title="Delete"
+                              className="text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        ) : (
+          <div className="p-12 text-center text-sm text-muted-foreground">
+            {links.length === 0
+              ? 'Add your first nav link above to get started.'
+              : 'Select a link tab to manage its sub-links.'}
+          </div>
+        )}
       </div>
 
-      {/* ── Edit / Create Dialog ───────────── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* ══════════════════════════════════════════════ */}
+      {/* NavLink Dialog                                 */}
+      {/* ══════════════════════════════════════════════ */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-                {editing ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                {editingLink ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
               </span>
-              {editing ? 'Edit nav link' : 'Create nav link'}
+              {editingLink ? 'Edit nav link' : 'Create nav link'}
             </DialogTitle>
           </DialogHeader>
 
@@ -508,8 +776,8 @@ export default function AdminNavbarManager() {
               <Input
                 id="nav-title"
                 placeholder="e.g. Our Essence"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
+                value={linkForm.title}
+                onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })}
                 maxLength={60}
               />
               <p className="text-xs text-muted-foreground">
@@ -522,8 +790,8 @@ export default function AdminNavbarManager() {
               <Input
                 id="nav-href"
                 placeholder="e.g. /our-essence"
-                value={formHref}
-                onChange={(e) => setFormHref(e.target.value)}
+                value={linkForm.href}
+                onChange={(e) => setLinkForm({ ...linkForm, href: e.target.value })}
                 maxLength={200}
               />
               <p className="text-xs text-muted-foreground">
@@ -537,9 +805,9 @@ export default function AdminNavbarManager() {
                 <Input
                   type="number"
                   min={0}
-                  value={formSortOrder}
+                  value={linkForm.sortOrder}
                   onChange={(e) =>
-                    setFormSortOrder(parseInt(e.target.value) || 0)
+                    setLinkForm({ ...linkForm, sortOrder: parseInt(e.target.value) || 0 })
                   }
                 />
               </div>
@@ -547,11 +815,11 @@ export default function AdminNavbarManager() {
                 <Label className="text-xs">Visibility</Label>
                 <Button
                   type="button"
-                  variant={formIsVisible ? 'default' : 'secondary'}
+                  variant={linkForm.isVisible ? 'default' : 'secondary'}
                   className="w-full"
-                  onClick={() => setFormIsVisible(!formIsVisible)}
+                  onClick={() => setLinkForm({ ...linkForm, isVisible: !linkForm.isVisible })}
                 >
-                  {formIsVisible ? (
+                  {linkForm.isVisible ? (
                     <>
                       <Eye className="mr-2 h-4 w-4" /> Visible
                     </>
@@ -573,13 +841,13 @@ export default function AdminNavbarManager() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={saving} className="min-w-28">
+            <Button onClick={saveLink} disabled={saving} className="min-w-28">
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
-              ) : editing ? (
+              ) : editingLink ? (
                 'Save changes'
               ) : (
                 'Create'
@@ -589,30 +857,116 @@ export default function AdminNavbarManager() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete confirmation ────────────── */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
+      {/* ══════════════════════════════════════════════ */}
+      {/* SubLink Dialog                                 */}
+      {/* ══════════════════════════════════════════════ */}
+      <Dialog open={subLinkDialogOpen} onOpenChange={setSubLinkDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete nav link?</DialogTitle>
+            <DialogTitle>{editingSubLink ? 'Edit sub-link' : 'Add sub-link'}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            This will remove the link from the public site navbar. This cannot
-            be undone.
-          </p>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Parent link</Label>
+              <select
+                className="h-9 w-full cursor-pointer rounded-md border border-border bg-background px-3 text-sm"
+                value={subLinkForm.navLinkId}
+                onChange={(e) => setSubLinkForm({ ...subLinkForm, navLinkId: e.target.value })}
+              >
+                {links.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input
+                value={subLinkForm.title}
+                onChange={(e) => setSubLinkForm({ ...subLinkForm, title: e.target.value })}
+                placeholder="e.g. The Story / Journey"
+                maxLength={120}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>URL / path</Label>
+              <Input
+                value={subLinkForm.href}
+                onChange={(e) => setSubLinkForm({ ...subLinkForm, href: e.target.value })}
+                placeholder="/our-essence/story"
+                maxLength={300}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Sort order</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={subLinkForm.sortOrder}
+                  onChange={(e) =>
+                    setSubLinkForm({ ...subLinkForm, sortOrder: parseInt(e.target.value) || 0 })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Visibility</Label>
+                <Button
+                  type="button"
+                  variant={subLinkForm.isVisible ? 'default' : 'secondary'}
+                  className="w-full"
+                  onClick={() =>
+                    setSubLinkForm({ ...subLinkForm, isVisible: !subLinkForm.isVisible })
+                  }
+                >
+                  {subLinkForm.isVisible ? 'Active' : 'Hidden'}
+                </Button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                <X className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setSubLinkDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={saving}
-            >
+            <Button onClick={saveSubLink} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Yes, delete
+              {editingSubLink ? 'Save changes' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════════════════════════════════════════════ */}
+      {/* Delete Confirm                                 */}
+      {/* ══════════════════════════════════════════════ */}
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              Delete {deleteTarget?.type === 'link' ? 'nav link' : 'sub-link'}?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete <b>{deleteTarget?.title}</b>?
+            {deleteTarget?.type === 'link' &&
+              ' This will also delete all sub-links inside this nav link.'}{' '}
+            This cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
