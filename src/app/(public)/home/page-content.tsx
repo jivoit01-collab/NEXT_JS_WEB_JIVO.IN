@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from 'next/cache';
 import { Footer, Navbar } from '@/components/layout';
 import { JsonLd } from '@/components/shared';
-import { HomeMain, getHomePageSections, defaultSeo } from '@/modules/home';
+import { HomeMain, getHomePageSections, getActiveHeroSlides, defaultSeo } from '@/modules/home';
 import { getVisibleNavLinks, getNavbarSetting } from '@/modules/navbar';
 import { resolveSeo, getStructuredData } from '@/modules/seo/utils';
 
@@ -17,8 +17,9 @@ export default async function HomePage() {
   // Opt out of every Next.js cache layer so CMS edits are visible on every refresh.
   noStore();
 
-  const [sections, navLinks, navSetting, structuredData] = await Promise.all([
+  const [sections, heroSlides, navLinks, navSetting, structuredData] = await Promise.all([
     getHomePageSections(),
+    getActiveHeroSlides(),
     getVisibleNavLinks(),
     getNavbarSetting(),
     getStructuredData('home', defaultSeo),
@@ -43,7 +44,7 @@ export default async function HomePage() {
         logoUrl={navSetting.logoUrl}
         logoAlt={navSetting.logoAlt}
       />
-      <HomeMain sections={sectionMap} />
+      <HomeMain sections={sectionMap} heroSlides={heroSlides} />
       <Footer />
     </div>
   );

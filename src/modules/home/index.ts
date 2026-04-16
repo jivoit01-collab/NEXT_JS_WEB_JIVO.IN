@@ -15,6 +15,12 @@ export {
   updateHomePageSection,
   upsertHomePageSection,
   deleteHomePageSection,
+  getActiveHeroSlides,
+  getAllHeroSlides,
+  createHeroSlide,
+  updateHeroSlide,
+  deleteHeroSlide,
+  reorderHeroSlides,
 } from './actions';
 
 // Validations
@@ -32,6 +38,7 @@ export {
 // Default content (also used as seed data)
 export {
   heroContent,
+  defaultHeroSlides,
   productCategories,
   visionMissionContent,
   productsFoundationContent,
@@ -52,4 +59,5 @@ export type {
   ProductsFoundationContent,
   WhyJivoContent,
   HomeSectionKey,
+  HeroSlideData,
 } from './types';

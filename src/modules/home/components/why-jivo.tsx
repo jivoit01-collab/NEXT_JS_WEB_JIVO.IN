@@ -12,7 +12,7 @@ interface WhyJivoProps {
   data?: WhyJivoContent;
 }
 
-const PLACEHOLDER = '/images/placeholder.png';
+const PLACEHOLDER = '/images/placeholder.jpg';
 
 export function WhyJivo({ data }: WhyJivoProps) {
   const content = data

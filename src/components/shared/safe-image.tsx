@@ -3,7 +3,7 @@
 import Image, { type ImageProps } from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const PLACEHOLDER = '/images/placeholder.png';
+const PLACEHOLDER = '/images/placeholder.jpg';
 
 /**
  * URL-encodes each path segment (preserving slashes and query string).

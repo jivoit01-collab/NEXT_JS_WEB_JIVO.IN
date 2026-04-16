@@ -38,6 +38,9 @@ import {
   CheckCircle2,
   X,
   Search,
+  Image as ImageIcon,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { SeoTabPanel } from '@/modules/seo';
 import { defaultSeo as homeDefaultSeo } from '@/modules/home';
@@ -46,10 +49,19 @@ import { defaultSeo as homeDefaultSeo } from '@/modules/home';
 
 interface HomeSection {
   id: string;
-  page: string;
   section: string;
   title: string | null;
   content: Record<string, unknown>;
+  sortOrder: number;
+  isActive: boolean;
+  updatedAt: string;
+}
+
+interface HeroSlide {
+  id: string;
+  backgroundImage: string;
+  headline: string;
+  subtitle: string;
   sortOrder: number;
   isActive: boolean;
   updatedAt: string;
@@ -139,6 +151,22 @@ export default function AdminHomePageManager() {
   const [formIsActive, setFormIsActive] = useState(true);
   const [error, setError] = useState('');
 
+  // ── Hero Slides state ──────────────────────────
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [slideDialogOpen, setSlideDialogOpen] = useState(false);
+  const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
+  const [deleteSlideDialogOpen, setDeleteSlideDialogOpen] = useState(false);
+  const [deletingSlideId, setDeletingSlideId] = useState<string | null>(null);
+  const [slideForm, setSlideForm] = useState({
+    backgroundImage: '',
+    headline: '',
+    subtitle: '',
+    sortOrder: 0,
+    isActive: true,
+  });
+  const [slideSaving, setSlideSaving] = useState(false);
+  const [slideError, setSlideError] = useState('');
+
   const fetchSections = useCallback(async () => {
     try {
       const res = await fetch('/api/home?all=true', { cache: 'no-store' });
@@ -152,9 +180,20 @@ export default function AdminHomePageManager() {
     }
   }, []);
 
+  const fetchSlides = useCallback(async () => {
+    try {
+      const res = await fetch('/api/hero-slides?all=true', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success) setHeroSlides(data.data);
+    } catch {
+      toast.error('Failed to load hero slides');
+    }
+  }, []);
+
   useEffect(() => {
     fetchSections();
-  }, [fetchSections]);
+    fetchSlides();
+  }, [fetchSections, fetchSlides]);
 
   const existingKeys = sections.map((s) => s.section);
   const availableToCreate = SECTION_ORDER.filter((k) => !existingKeys.includes(k));
@@ -276,6 +315,126 @@ export default function AdminHomePageManager() {
     }
   };
 
+  // ── Hero Slide handlers ─────────────────────
+  const openCreateSlide = () => {
+    setEditingSlide(null);
+    // Sort order starts at 1 — hero section (Sections tab) is slide 0
+    const maxOrder = heroSlides.reduce((max, s) => Math.max(max, s.sortOrder), 0);
+    setSlideForm({
+      backgroundImage: '',
+      headline: '',
+      subtitle: '',
+      sortOrder: maxOrder + 1,
+      isActive: true,
+    });
+    setSlideError('');
+    setSlideDialogOpen(true);
+  };
+
+  const openEditSlide = (slide: HeroSlide) => {
+    setEditingSlide(slide);
+    setSlideForm({
+      backgroundImage: slide.backgroundImage,
+      headline: slide.headline,
+      subtitle: slide.subtitle,
+      sortOrder: slide.sortOrder,
+      isActive: slide.isActive,
+    });
+    setSlideError('');
+    setSlideDialogOpen(true);
+  };
+
+  const handleSaveSlide = async () => {
+    setSlideSaving(true);
+    setSlideError('');
+    try {
+      const isEdit = !!editingSlide;
+      const url = isEdit ? `/api/hero-slides/${editingSlide.id}` : '/api/hero-slides';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(slideForm),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setSlideError(data.error ?? 'Something went wrong');
+        toast.error(data.error ?? 'Failed to save slide');
+        return;
+      }
+      toast.success(`Slide ${isEdit ? 'updated' : 'created'}`);
+      setSlideDialogOpen(false);
+      await fetchSlides();
+      router.refresh();
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setSlideSaving(false);
+    }
+  };
+
+  const handleDeleteSlide = async () => {
+    if (!deletingSlideId) return;
+    setSlideSaving(true);
+    try {
+      const res = await fetch(`/api/hero-slides/${deletingSlideId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Slide deleted');
+        setDeleteSlideDialogOpen(false);
+        setDeletingSlideId(null);
+        await fetchSlides();
+        router.refresh();
+      } else {
+        toast.error(data.error ?? 'Delete failed');
+      }
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setSlideSaving(false);
+    }
+  };
+
+  const toggleSlideActive = async (slide: HeroSlide) => {
+    try {
+      const res = await fetch(`/api/hero-slides/${slide.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !slide.isActive }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Slide ${slide.isActive ? 'hidden' : 'published'}`);
+        await fetchSlides();
+        router.refresh();
+      }
+    } catch {
+      toast.error('Network error');
+    }
+  };
+
+  const moveSlide = async (index: number, direction: 'up' | 'down') => {
+    const newSlides = [...heroSlides];
+    const swapIdx = direction === 'up' ? index - 1 : index + 1;
+    if (swapIdx < 0 || swapIdx >= newSlides.length) return;
+    [newSlides[index], newSlides[swapIdx]] = [newSlides[swapIdx], newSlides[index]];
+    const ids = newSlides.map((s) => s.id);
+    try {
+      const res = await fetch('/api/hero-slides/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchSlides();
+        router.refresh();
+      }
+    } catch {
+      toast.error('Network error');
+    }
+  };
+
   const currentSectionKey = editingSection?.section ?? createKey;
 
   if (loading) {
@@ -306,6 +465,9 @@ export default function AdminHomePageManager() {
         <TabsList className="w-full justify-start sm:w-auto">
           <TabsTrigger value="sections" className="gap-2">
             <Layers className="h-4 w-4" /> Sections
+          </TabsTrigger>
+          <TabsTrigger value="hero-carousel" className="gap-2">
+            <ImageIcon className="h-4 w-4" /> Hero Carousel
           </TabsTrigger>
           <TabsTrigger value="seo" className="gap-2">
             <Search className="h-4 w-4" /> SEO
@@ -568,6 +730,264 @@ export default function AdminHomePageManager() {
         </DialogContent>
       </Dialog>
 
+        </TabsContent>
+
+        {/* ── Hero Carousel Tab ─────────────────── */}
+        <TabsContent value="hero-carousel" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Hero Carousel Slides</h2>
+              <p className="text-sm text-muted-foreground">
+                The first slide (sort order 0) is the <strong>Hero Section</strong> from the Sections tab.
+                Additional slides below rotate after it in the carousel.
+              </p>
+            </div>
+            <Button onClick={openCreateSlide} className="gap-2">
+              <Plus className="h-4 w-4" /> Add slide
+            </Button>
+          </div>
+
+          {/* Hero section = slide 0 indicator */}
+          <div className="flex items-center gap-4 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
+              #0
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">Hero Section <span className="text-xs font-normal text-muted-foreground">(default first slide)</span></p>
+              <p className="text-sm text-muted-foreground">
+                Edit from the <strong>Sections</strong> tab &rarr; Hero section. Background image, headline &amp; subtitle from there become slide #0.
+              </p>
+            </div>
+          </div>
+
+          {heroSlides.length === 0 ? (
+            <div className="rounded-xl border border-dashed bg-muted/30 p-12 text-center">
+              <ImageIcon className="mx-auto h-10 w-10 text-muted-foreground/50" />
+              <p className="mt-3 text-sm font-medium">No carousel slides yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Add your first slide to enable the hero carousel.
+              </p>
+              <Button onClick={openCreateSlide} className="mt-4 gap-2" size="sm">
+                <Plus className="h-3.5 w-3.5" /> Add first slide
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {heroSlides.map((slide, index) => (
+                <div
+                  key={slide.id}
+                  className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm"
+                >
+                  {/* Order controls */}
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => moveSlide(index, 'up')}
+                      disabled={index === 0}
+                      className="h-6 w-6"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </Button>
+                    <span className="text-xs font-mono text-muted-foreground">
+                      #{slide.sortOrder}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => moveSlide(index, 'down')}
+                      disabled={index === heroSlides.length - 1}
+                      className="h-6 w-6"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+
+                  {/* Thumbnail */}
+                  <div className="relative h-20 w-36 shrink-0 overflow-hidden rounded-lg bg-muted">
+                    {slide.backgroundImage ? (
+                      <img
+                        src={slide.backgroundImage}
+                        alt={slide.headline}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{slide.headline || 'Untitled slide'}</p>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                      {slide.subtitle || 'No subtitle'}
+                    </p>
+                  </div>
+
+                  {/* Status */}
+                  <button onClick={() => toggleSlideActive(slide)} className="cursor-pointer">
+                    <Badge
+                      variant={slide.isActive ? 'default' : 'secondary'}
+                      className={
+                        slide.isActive
+                          ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                          : 'hover:bg-secondary/80'
+                      }
+                    >
+                      <span
+                        className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                          slide.isActive ? 'bg-primary' : 'bg-muted-foreground'
+                        }`}
+                      />
+                      {slide.isActive ? 'Active' : 'Hidden'}
+                    </Badge>
+                  </button>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => openEditSlide(slide)}
+                      className="cursor-pointer hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => {
+                        setDeletingSlideId(slide.id);
+                        setDeleteSlideDialogOpen(true);
+                      }}
+                      className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Slide Create/Edit Dialog */}
+          <Dialog open={slideDialogOpen} onOpenChange={setSlideDialogOpen}>
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    {editingSlide ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </span>
+                  {editingSlide ? 'Edit slide' : 'Add new slide'}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-5 py-2">
+                <div className="space-y-2">
+                  <Label>Background image</Label>
+                  <ImageUpload
+                    value={slideForm.backgroundImage}
+                    onChange={(url) => setSlideForm((f) => ({ ...f, backgroundImage: url }))}
+                    onRemove={() => setSlideForm((f) => ({ ...f, backgroundImage: '' }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Headline</Label>
+                  <Input
+                    value={slideForm.headline}
+                    onChange={(e) => setSlideForm((f) => ({ ...f, headline: e.target.value }))}
+                    placeholder="LET NATURE RECLAIM YOU"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Subtitle</Label>
+                  <Textarea
+                    value={slideForm.subtitle}
+                    onChange={(e) => setSlideForm((f) => ({ ...f, subtitle: e.target.value }))}
+                    rows={2}
+                    placeholder="A short description for this slide..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 rounded-lg border bg-muted/20 p-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Sort order</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={slideForm.sortOrder}
+                      onChange={(e) =>
+                        setSlideForm((f) => ({ ...f, sortOrder: parseInt(e.target.value) || 0 }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Visibility</Label>
+                    <Button
+                      type="button"
+                      variant={slideForm.isActive ? 'default' : 'secondary'}
+                      className="w-full"
+                      onClick={() => setSlideForm((f) => ({ ...f, isActive: !f.isActive }))}
+                    >
+                      {slideForm.isActive ? (
+                        <>
+                          <Eye className="mr-2 h-4 w-4" /> Active
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="mr-2 h-4 w-4" /> Hidden
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {slideError && (
+                  <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    <X className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{slideError}</span>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setSlideDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveSlide} disabled={slideSaving} className="min-w-28">
+                  {slideSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : editingSlide ? (
+                    'Save changes'
+                  ) : (
+                    'Create slide'
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Slide Delete Confirmation */}
+          <Dialog open={deleteSlideDialogOpen} onOpenChange={setDeleteSlideDialogOpen}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Delete slide?</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                This slide will be removed from the hero carousel. This cannot be undone.
+              </p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDeleteSlideDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteSlide} disabled={slideSaving}>
+                  {slideSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Yes, delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* ── SEO Tab ─────────────────────────── */}

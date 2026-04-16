@@ -1,14 +1,11 @@
 // ==========================================
-// HOME PAGE + SHARED CMS PAGE CONTENT
-// Powers: /, /about, /privacy-policy, /terms-conditions
-// Sections: hero, mission, featured-products, health-benefits,
-//           testimonials, cta (stored as rows in this table)
+// HOME PAGE — one table per page/feature
+// Sections: hero, categories, vision_mission, products_foundation, why_jivo
 // ==========================================
 
-model PageContent {
+model HomePage {
   id        String   @id @default(cuid())
-  page      String   // "home", "about", "privacy-policy", "terms-conditions"
-  section   String   // "hero", "mission", "cta", etc.
+  section   String   @unique  // "hero", "categories", "vision_mission", etc.
   title     String?
   content   Json     // flexible JSON for any section structure
   sortOrder Int      @default(0)
@@ -16,6 +13,24 @@ model PageContent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([page, section])
-  @@index([page, sortOrder])
+  @@index([sortOrder])
+}
+
+// ==========================================
+// HERO CAROUSEL SLIDES — individual slides for the home hero
+// Each slide has its own background image, headline, and subtitle.
+// The logo is shared across all slides (stored in HomePage hero section).
+// ==========================================
+
+model HeroSlide {
+  id              String   @id @default(cuid())
+  backgroundImage String
+  headline        String
+  subtitle        String   @default("")
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([sortOrder])
 }

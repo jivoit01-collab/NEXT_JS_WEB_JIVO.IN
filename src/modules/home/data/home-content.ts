@@ -1,4 +1,4 @@
-import type { ProductCategory, ValuePillar } from '../types';
+import type { ProductCategory, ValuePillar, HeroSlideData } from '../types';
 
 /**
  * Default content shown when:
@@ -8,9 +8,9 @@ import type { ProductCategory, ValuePillar } from '../types';
  *
  * IMPORTANT: every URL here must point to a file that exists on disk in
  * `/public/`. If you reference a missing file, the public page will render
- * a broken image. The `placeholder.png` is the safe always-exists default.
+ * a broken image. The `placeholder.jpg` is the safe always-exists default.
  */
-const PLACEHOLDER = '/images/placeholder.png';
+const PLACEHOLDER = '/images/placeholder.jpg';
 
 export const heroContent = {
   logo: PLACEHOLDER,
@@ -19,6 +19,26 @@ export const heroContent = {
   subtitle:
     'The Heartbeat of Jivo — pure, honest products born from a mission of wellness and service.',
 };
+
+// Default carousel slides (sort order starts at 1 — hero section is slide 0)
+export const defaultHeroSlides: HeroSlideData[] = [
+  {
+    id: 'default-1',
+    backgroundImage: PLACEHOLDER,
+    headline: 'SMALL MOMENTS OF JOY',
+    subtitle: "India's largest seller of cold press canola oil. India's first patented wheatgrass product.",
+    sortOrder: 1,
+    isActive: true,
+  },
+  {
+    id: 'default-2',
+    backgroundImage: PLACEHOLDER,
+    headline: 'LEADING THE WAY TOUCHING LIVES',
+    subtitle: 'A pure brand, built on the values of service — Bringing goodness from India for all of humanity.',
+    sortOrder: 2,
+    isActive: true,
+  },
+];
 
 export const productCategories: ProductCategory[] = [
   {
