@@ -3,6 +3,7 @@ import { HeroSection } from './hero-section';
 import { SectionSkeleton } from '@/components/shared';
 import type {
   HeroContent,
+  HeroSlideData,
   CategoriesContent,
   VisionMissionContent,
   ProductsFoundationContent,
@@ -38,12 +39,13 @@ const WhyJivo = dynamic(
 
 interface HomeMainProps {
   sections: Map<string, unknown>;
+  heroSlides?: HeroSlideData[];
 }
 
-export function HomeMain({ sections }: HomeMainProps) {
+export function HomeMain({ sections, heroSlides }: HomeMainProps) {
   return (
     <main>
-      <HeroSection data={sections.get('hero') as HeroContent | undefined} />
+      <HeroSection data={sections.get('hero') as HeroContent | undefined} slides={heroSlides} />
       <ProductCategories data={sections.get('categories') as CategoriesContent | undefined} />
       <VisionMission data={sections.get('vision_mission') as VisionMissionContent | undefined} />
       <ProductsFoundation

@@ -115,21 +115,45 @@ When the user says **"create the {page} page"**, **ALWAYS** produce ALL of the f
 
 ### Step 1: Prisma Model
 
-Create/update the model in `prisma/schema.prisma` for the page's data.
+Create/update the model in `prisma/schema/{page}.prisma` for the page's data.
+
+**⚠️ NAMING CONVENTION (MANDATORY):**
+- **One table per page/feature** — NEVER use a generic shared table for multiple pages.
+- **Table name = page name** — e.g. `HomePage`, `AboutPage`, `ContactPage`, `MediaPage`.
+- All sections of a page are rows inside that page's single table (stored as JSON in `content` column).
+- No `page` column needed — the table name IS the page.
+- Sub-features that need their own table use the page name as prefix — e.g. `HeroSlide` for home carousel slides.
+- Site-wide features (navbar, footer, seo) get their own feature-named table — e.g. `NavLink`, `Footer`, `SeoMeta`.
 
 **Pattern for CMS-managed pages:**
 ```prisma
-model PageContent {
+model HomePage {
   id        String   @id @default(cuid())
-  page      String                // "home", "about", "contact"
-  section   String                // "hero", "mission", "features", "seo"
+  section   String   @unique       // "hero", "categories", "vision_mission", etc.
   title     String?
-  content   Json                  // Flexible JSON for any section structure
+  content   Json                   // Flexible JSON for any section structure
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@unique([page, section])
+
+  @@index([sortOrder])
+}
+```
+
+**For other pages, follow the same pattern:**
+```prisma
+model AboutPage {
+  id        String   @id @default(cuid())
+  section   String   @unique
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
 }
 ```
 

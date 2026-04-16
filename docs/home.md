@@ -3,13 +3,15 @@
 > **Routes**
 > Public: `/`
 > Admin:  `/admin/home`
-> API:    `/api/home`, `/api/home/:id`
+> API:    `/api/home`, `/api/home/:id`, `/api/hero-slides`, `/api/hero-slides/:id`, `/api/hero-slides/reorder`
 
 ---
 
 ## 1. Overview
 
-The home page is **fully CMS-managed**. Every visual section is stored as a row in the `PageContent` table (`page = "home"`) with a section-specific JSON `content` column. The admin dashboard provides a tabbed editor that writes to this table; the public page reads from it.
+The home page is **fully CMS-managed**. Every visual section is stored as a row in the `HomePage` table with a section-specific JSON `content` column. The admin dashboard provides a tabbed editor that writes to this table; the public page reads from it.
+
+The **hero section** supports a **carousel** of slides stored in the separate `HeroSlide` table. Each slide has its own background image, headline, and subtitle. The logo is shared across all slides (stored in the `hero` section of `HomePage`).
 
 If a section row is missing or `isActive = false`, the public page falls back to the default content defined in [`src/modules/home/data/home-content.ts`](../src/modules/home/data/home-content.ts).
 
@@ -17,7 +19,7 @@ If a section row is missing or `isActive = false`, the public page falls back to
 
 | # | Section key           | Component                         | Purpose                                                    |
 |---|-----------------------|-----------------------------------|------------------------------------------------------------|
-| 1 | `hero`                | `HeroSection`                     | Full-screen intro with logo, headline, tagline, CTA        |
+| 1 | `hero`                | `HeroSection`                     | Full-screen carousel with logo, slides (image+headline+subtitle) |
 | 2 | `categories`          | `ProductCategories`               | "MADE FOR EVERYDAY LOVE" — 4 category cards                |
 | 3 | `vision_mission`      | `VisionMission`                   | "LET NATURE RECLAIM YOU" two-column Vision & Mission block |
 | 4 | `products_foundation` | `ProductsFoundation`              | Dark section with product image + two text blocks          |
@@ -30,10 +32,9 @@ If a section row is missing or `isActive = false`, the public page falls back to
 File: [`prisma/schema/home.prisma`](../prisma/schema/home.prisma)
 
 ```prisma
-model PageContent {
+model HomePage {
   id        String   @id @default(cuid())
-  page      String   // "home", "about", "privacy-policy", etc.
-  section   String   // "hero", "categories", "vision_mission", etc.
+  section   String   @unique  // "hero", "categories", "vision_mission", etc.
   title     String?
   content   Json     // Flexible shape per section (see Section 4)
   sortOrder Int      @default(0)
@@ -41,15 +42,28 @@ model PageContent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([page, section])
-  @@index([page, sortOrder])
+  @@index([sortOrder])
+}
+
+model HeroSlide {
+  id              String   @id @default(cuid())
+  backgroundImage String
+  headline        String
+  subtitle        String   @default("")
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([sortOrder])
 }
 ```
 
-- A section is **uniquely identified by the (page, section) tuple** — e.g. `("home", "hero")`.
+- A section is **uniquely identified by its `section` key** — e.g. `"hero"`.
 - `content` is a free-form JSON blob validated at the application layer with Zod (see [`validations.ts`](../src/modules/home/validations.ts)).
 - `sortOrder` controls display order on the public page.
 - `isActive = false` hides the section from the public page.
+- **Hero carousel slides** are stored in a separate `HeroSlide` table (not inside the `hero` section JSON). Each slide has its own background image, headline, subtitle, sortOrder, and isActive flag.
 
 ---
 
@@ -75,9 +89,12 @@ src/app/(public)/page.tsx        # Public home page (/)
 src/app/admin/(dashboard)/home/page.tsx   # Admin editor (/admin/home)
 src/app/api/home/route.ts        # GET (list) + POST (create)
 src/app/api/home/[id]/route.ts   # GET + PUT + DELETE (by section id)
+src/app/api/hero-slides/route.ts         # GET (list) + POST (create slide)
+src/app/api/hero-slides/[id]/route.ts    # PUT + DELETE (single slide)
+src/app/api/hero-slides/reorder/route.ts # PUT (bulk reorder slides)
 
-prisma/schema/home.prisma        # PageContent model
-prisma/seed.ts                   # Seeds all 5 sections on `npm run db:seed`
+prisma/schema/home.prisma        # HomePage + HeroSlide models
+prisma/seed.ts                   # Seeds 5 sections + 3 hero slides on `npm run db:seed`
 ```
 
 ---

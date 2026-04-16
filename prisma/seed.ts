@@ -40,7 +40,7 @@ async function main() {
   // override these via /admin/home, and the SafeImage component on the
   // public page falls back to the placeholder if any uploaded file is
   // ever deleted from disk.
-  const PLACEHOLDER = '/images/placeholder.png';
+  const PLACEHOLDER = '/images/placeholder.jpg';
 
   // ── Home page sections ───────────────────────────────────────
   const homeSections = [
@@ -185,11 +185,10 @@ async function main() {
   ];
 
   for (const s of homeSections) {
-    await prisma.pageContent.upsert({
-      where: { page_section: { page: 'home', section: s.section } },
+    await prisma.homePage.upsert({
+      where: { section: s.section },
       update: { title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
       create: {
-        page: 'home',
         section: s.section,
         title: s.title,
         content: s.content,
@@ -199,6 +198,35 @@ async function main() {
     });
   }
   console.log(`✓ Home sections: ${homeSections.map((s) => s.section).join(', ')}`);
+
+  // ── Hero carousel slides ─────────────────────────────────────
+  // Sort order starts at 1 — sort order 0 is the hero section itself
+  // (managed from Sections tab, not the Hero Carousel tab)
+  const heroSlides = [
+    {
+      backgroundImage: PLACEHOLDER,
+      headline: 'SMALL MOMENTS OF JOY',
+      subtitle:
+        "India's largest seller of cold press canola oil. India's first patented wheatgrass product.",
+      sortOrder: 1,
+    },
+    {
+      backgroundImage: PLACEHOLDER,
+      headline: 'LEADING THE WAY TOUCHING LIVES',
+      subtitle:
+        'A pure brand, built on the values of service — Bringing goodness from India for all of humanity.',
+      sortOrder: 2,
+    },
+  ];
+
+  // Wipe & re-create hero slides for a clean seed
+  await prisma.heroSlide.deleteMany();
+  for (const slide of heroSlides) {
+    await prisma.heroSlide.create({
+      data: { ...slide, isActive: true },
+    });
+  }
+  console.log(`✓ Hero slides: ${heroSlides.length}`);
 
   // ── Navbar links ─────────────────────────────────────────────
   // Exact labels/links from the reference screenshot.

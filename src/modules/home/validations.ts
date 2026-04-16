@@ -82,3 +82,24 @@ export const sectionContentSchemas: Record<string, z.ZodType> = {
 
 export type HomeSectionInput = z.infer<typeof homeSectionSchema>;
 export type HomeSectionUpdateInput = z.infer<typeof homeSectionUpdateSchema>;
+
+// ---- Hero Slide Schemas ----
+
+export const heroSlideSchema = z.object({
+  backgroundImage: z.string().min(1, 'Background image is required'),
+  headline: z.string().min(1, 'Headline is required').max(200),
+  subtitle: z.string().max(500).default(''),
+  sortOrder: z.coerce.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export const heroSlideUpdateSchema = z.object({
+  backgroundImage: z.string().min(1).optional(),
+  headline: z.string().min(1).max(200).optional(),
+  subtitle: z.string().max(500).optional(),
+  sortOrder: z.coerce.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export type HeroSlideInput = z.infer<typeof heroSlideSchema>;
+export type HeroSlideUpdateInput = z.infer<typeof heroSlideUpdateSchema>;

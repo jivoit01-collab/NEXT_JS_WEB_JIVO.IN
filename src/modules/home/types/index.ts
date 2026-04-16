@@ -55,3 +55,14 @@ export type HomeSectionKey =
   | 'vision_mission'
   | 'products_foundation'
   | 'why_jivo';
+
+// ---- Hero Carousel Slide ----
+
+export interface HeroSlideData {
+  id: string;
+  backgroundImage: string;
+  headline: string;
+  subtitle: string;
+  sortOrder: number;
+  isActive: boolean;
+}

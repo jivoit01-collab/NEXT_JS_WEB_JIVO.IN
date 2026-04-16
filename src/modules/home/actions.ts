@@ -3,11 +3,15 @@
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
-import { homeSectionSchema, homeSectionUpdateSchema, sectionContentSchemas } from './validations';
+import {
+  homeSectionSchema,
+  homeSectionUpdateSchema,
+  sectionContentSchemas,
+  heroSlideSchema,
+  heroSlideUpdateSchema,
+} from './validations';
 import type { ActionResponse } from '@/lib/action-response';
-import type { PageContent } from '@prisma/client';
-
-const PAGE = 'home';
+import type { HomePage, HeroSlide } from '@prisma/client';
 
 async function requireAdmin<T>(): Promise<ActionResponse<T> | null> {
   const session = await auth();
@@ -18,25 +22,24 @@ async function requireAdmin<T>(): Promise<ActionResponse<T> | null> {
 }
 
 // Public — active home sections ordered by sortOrder
-export async function getHomePageSections(): Promise<PageContent[]> {
-  return prisma.pageContent.findMany({
-    where: { page: PAGE, isActive: true },
+export async function getHomePageSections(): Promise<HomePage[]> {
+  return prisma.homePage.findMany({
+    where: { isActive: true },
     orderBy: { sortOrder: 'asc' },
   });
 }
 
 // Admin — all home sections including inactive
-export async function getAllHomePageSections(): Promise<PageContent[]> {
-  return prisma.pageContent.findMany({
-    where: { page: PAGE },
+export async function getAllHomePageSections(): Promise<HomePage[]> {
+  return prisma.homePage.findMany({
     orderBy: { sortOrder: 'asc' },
   });
 }
 
 // Admin — get single section
-export async function getHomePageSection(id: string): Promise<ActionResponse<PageContent>> {
-  const section = await prisma.pageContent.findUnique({ where: { id } });
-  if (!section || section.page !== PAGE) {
+export async function getHomePageSection(id: string): Promise<ActionResponse<HomePage>> {
+  const section = await prisma.homePage.findUnique({ where: { id } });
+  if (!section) {
     return { success: false, error: 'Section not found' };
   }
   return { success: true, data: section };
@@ -47,8 +50,8 @@ export async function upsertHomePageSection(
   section: string,
   content: unknown,
   opts?: { sortOrder?: number; isActive?: boolean; title?: string | null },
-): Promise<ActionResponse<PageContent>> {
-  const guard = await requireAdmin<PageContent>();
+): Promise<ActionResponse<HomePage>> {
+  const guard = await requireAdmin<HomePage>();
   if (guard) return guard;
 
   const contentSchema = sectionContentSchemas[section];
@@ -66,10 +69,9 @@ export async function upsertHomePageSection(
     }
   }
 
-  const record = await prisma.pageContent.upsert({
-    where: { page_section: { page: PAGE, section } },
+  const record = await prisma.homePage.upsert({
+    where: { section },
     create: {
-      page: PAGE,
       section,
       content: content as object,
       title: opts?.title ?? null,
@@ -91,8 +93,8 @@ export async function upsertHomePageSection(
 }
 
 // Admin — create section (if you want strict create, not upsert)
-export async function createHomePageSection(input: unknown): Promise<ActionResponse<PageContent>> {
-  const guard = await requireAdmin<PageContent>();
+export async function createHomePageSection(input: unknown): Promise<ActionResponse<HomePage>> {
+  const guard = await requireAdmin<HomePage>();
   if (guard) return guard;
 
   const parsed = homeSectionSchema.safeParse(input);
@@ -114,15 +116,13 @@ export async function createHomePageSection(input: unknown): Promise<ActionRespo
     }
   }
 
-  const existing = await prisma.pageContent.findUnique({
-    where: { page_section: { page: PAGE, section } },
-  });
+  const existing = await prisma.homePage.findUnique({ where: { section } });
   if (existing) {
     return { success: false, error: `Section "${section}" already exists` };
   }
 
-  const created = await prisma.pageContent.create({
-    data: { page: PAGE, section, content: content as object, sortOrder, isActive },
+  const created = await prisma.homePage.create({
+    data: { section, content: content as object, sortOrder, isActive },
   });
 
   revalidatePath('/', 'layout');
@@ -134,12 +134,12 @@ export async function createHomePageSection(input: unknown): Promise<ActionRespo
 export async function updateHomePageSection(
   id: string,
   input: unknown,
-): Promise<ActionResponse<PageContent>> {
-  const guard = await requireAdmin<PageContent>();
+): Promise<ActionResponse<HomePage>> {
+  const guard = await requireAdmin<HomePage>();
   if (guard) return guard;
 
-  const existing = await prisma.pageContent.findUnique({ where: { id } });
-  if (!existing || existing.page !== PAGE) {
+  const existing = await prisma.homePage.findUnique({ where: { id } });
+  if (!existing) {
     return { success: false, error: 'Section not found' };
   }
 
@@ -169,7 +169,7 @@ export async function updateHomePageSection(
     }
   }
 
-  const updated = await prisma.pageContent.update({
+  const updated = await prisma.homePage.update({
     where: { id },
     data: parsed.data as object,
   });
@@ -180,17 +180,120 @@ export async function updateHomePageSection(
 }
 
 // Admin — delete
-export async function deleteHomePageSection(id: string): Promise<ActionResponse<PageContent>> {
-  const guard = await requireAdmin<PageContent>();
+export async function deleteHomePageSection(id: string): Promise<ActionResponse<HomePage>> {
+  const guard = await requireAdmin<HomePage>();
   if (guard) return guard;
 
-  const existing = await prisma.pageContent.findUnique({ where: { id } });
-  if (!existing || existing.page !== PAGE) {
+  const existing = await prisma.homePage.findUnique({ where: { id } });
+  if (!existing) {
     return { success: false, error: 'Section not found' };
   }
 
-  const deleted = await prisma.pageContent.delete({ where: { id } });
+  const deleted = await prisma.homePage.delete({ where: { id } });
   revalidatePath('/', 'layout');
   revalidatePath('/');
   return { success: true, data: deleted };
+}
+
+// =============================================
+// HERO SLIDES — carousel slide CRUD
+// =============================================
+
+// Public — active slides ordered by sortOrder
+export async function getActiveHeroSlides(): Promise<HeroSlide[]> {
+  return prisma.heroSlide.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+  });
+}
+
+// Admin — all slides including inactive
+export async function getAllHeroSlides(): Promise<HeroSlide[]> {
+  return prisma.heroSlide.findMany({
+    orderBy: { sortOrder: 'asc' },
+  });
+}
+
+// Admin — create slide
+export async function createHeroSlide(input: unknown): Promise<ActionResponse<HeroSlide>> {
+  const guard = await requireAdmin<HeroSlide>();
+  if (guard) return guard;
+
+  const parsed = heroSlideSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: 'Validation failed',
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  const created = await prisma.heroSlide.create({ data: parsed.data });
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: created };
+}
+
+// Admin — update slide
+export async function updateHeroSlide(
+  id: string,
+  input: unknown,
+): Promise<ActionResponse<HeroSlide>> {
+  const guard = await requireAdmin<HeroSlide>();
+  if (guard) return guard;
+
+  const existing = await prisma.heroSlide.findUnique({ where: { id } });
+  if (!existing) {
+    return { success: false, error: 'Slide not found' };
+  }
+
+  const parsed = heroSlideUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: 'Validation failed',
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  const updated = await prisma.heroSlide.update({
+    where: { id },
+    data: parsed.data,
+  });
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: updated };
+}
+
+// Admin — delete slide
+export async function deleteHeroSlide(id: string): Promise<ActionResponse<HeroSlide>> {
+  const guard = await requireAdmin<HeroSlide>();
+  if (guard) return guard;
+
+  const existing = await prisma.heroSlide.findUnique({ where: { id } });
+  if (!existing) {
+    return { success: false, error: 'Slide not found' };
+  }
+
+  const deleted = await prisma.heroSlide.delete({ where: { id } });
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: deleted };
+}
+
+// Admin — bulk reorder slides
+export async function reorderHeroSlides(ids: string[]): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+
+  await prisma.$transaction(
+    ids.map((id, index) =>
+      prisma.heroSlide.update({ where: { id }, data: { sortOrder: index } }),
+    ),
+  );
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: null };
 }
