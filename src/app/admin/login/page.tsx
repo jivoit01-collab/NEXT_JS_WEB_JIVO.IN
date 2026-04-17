@@ -3,23 +3,52 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { LogIn, Loader2 } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  function validate(): boolean {
+    let valid = true;
+    setEmailError('');
+    setPasswordError('');
+
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('Enter a valid email address');
+      valid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      valid = false;
+    } else if (password.length < 4) {
+      setPasswordError('Password must be at least 4 characters');
+      valid = false;
+    }
+
+    return valid;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
+    if (!validate()) return;
+
+    setLoading(true);
+
     const result = await signIn('credentials', {
-      email,
+      email: email.trim().toLowerCase(),
       password,
       redirect: false,
     });
@@ -34,65 +63,109 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1a1a2e] px-4">
-      <Card className="w-full max-w-md border-white/10 bg-[#16213e] text-white shadow-2xl">
-        <CardHeader className="space-y-2 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10">
-            <LogIn className="h-7 w-7 text-green-400" />
+    <main className="flex min-h-screen items-center justify-center px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md rounded-xl border bg-card p-8 shadow-xl"
+        noValidate
+      >
+        {/* Header */}
+        <h1 className="mb-2 text-center text-3xl font-bold text-foreground">
+          Admin Login
+        </h1>
+        <p className="mb-8 text-center text-sm text-muted-foreground">
+          Secure admin access only
+        </p>
+
+        {/* Server error */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            {error}
           </div>
-          <CardTitle className="text-2xl font-jost-bold text-white">Jivo Admin</CardTitle>
-          <p className="text-sm text-white/60">Sign in to access the admin panel</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
-            )}
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-jost-medium text-white/80">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@jivo.in"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-green-500 focus:ring-green-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-jost-medium text-white/80">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-green-500 focus:ring-green-500"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-500 text-white hover:bg-green-600"
+        )}
+
+        {/* Email */}
+        <div className="mb-5">
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Email Address
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError('');
+            }}
+            placeholder="Enter your email"
+            className={`w-full rounded-lg border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground transition focus:outline-none focus:ring-2 ${
+              emailError
+                ? 'border-destructive focus:ring-destructive/50'
+                : 'border-input focus:ring-ring'
+            }`}
+          />
+          {emailError && (
+            <p className="mt-1.5 text-xs text-destructive">{emailError}</p>
+          )}
+        </div>
+
+        {/* Password */}
+        <div className="mb-7">
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Password
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError('');
+              }}
+              placeholder="Enter your password"
+              className={`w-full rounded-lg border bg-background px-4 py-3 pr-12 text-foreground placeholder:text-muted-foreground transition focus:outline-none focus:ring-2 ${
+                passwordError
+                  ? 'border-destructive focus:ring-destructive/50'
+                  : 'border-input focus:ring-ring'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground transition-colors hover:text-foreground"
+              tabIndex={-1}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
+          {passwordError && (
+            <p className="mt-1.5 text-xs text-destructive">{passwordError}</p>
+          )}
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-primary py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Logging in...
+            </span>
+          ) : (
+            'Login to Dashboard'
+          )}
+        </button>
+
+        {/* Footer */}
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          This is a secure admin area. Only authorized personnel should log in.
+        </p>
+      </form>
+    </main>
   );
 }

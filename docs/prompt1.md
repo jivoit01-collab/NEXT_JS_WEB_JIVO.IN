@@ -7,8 +7,8 @@
 ## Quick Reference
 
 - **Architecture:** See `EXPLAIN.md` for full tech stack, folder structure, and system details
-- **Admin Styling:** Copy exact admin dashboard design from `cd ../mera-pind-balle-balle` (sidebar, topbar, cards, forms, tables)
-- **Reference Project:** `../mera-pind-balle-balle/src/app/(admin)/admin/dashboard/` for admin UI patterns
+- **Admin Styling:** Follow the existing admin dashboard at `src/app/admin/(dashboard)/layout.tsx` — sidebar, topbar, card-grid boxes, forms, tables
+- **Reference:** Use the existing `/admin` page, `/admin/our-essence` page, and admin layout as the source of truth for all admin UI patterns
 
 ---
 
@@ -253,45 +253,110 @@ All other public routes **MUST** have an SEO entry.
 
 ---
 
-## Admin Dashboard Design (EXACT COPY from Mera Pind Balle Balle)
+## Admin Dashboard Design (Self-Referencing — No External Projects)
 
-The admin dashboard must match the exact styling from the reference project at `../mera-pind-balle-balle`.
+All admin UI patterns come from the existing code in THIS project. Do NOT reference `mera-pind-balle-balle` or any external project.
 
-### Dashboard Layout (`src/app/(admin)/admin/dashboard/layout.tsx`)
+### Dashboard Layout (`src/app/admin/(dashboard)/layout.tsx`)
 
-**Copy this exact pattern from MPBB:**
 - `"use client"` component
 - Fixed 256px sidebar on left (`w-64 bg-card border-r shadow-sm`)
 - Mobile: hamburger → slide-in sidebar with backdrop overlay (`bg-black/40`)
 - Sidebar header: Back arrow (link to `/`) + "Admin Panel" title + close button (mobile)
-- Scrollable nav items with icons from `lucide-react`
-- Active state: `bg-primary text-primary-foreground` on active link
-- Hover state: `hover:bg-accent text-foreground/80 hover:text-foreground`
+- Styled scrollbar: thin 6px, rounded thumb, hover darkens
 - Main content area: `flex-1 md:ml-64 min-w-0`
 - Mobile topbar: `sticky top-0 z-20 h-14 border-b bg-background/95 backdrop-blur`
 - Desktop topbar: `sticky top-0 z-20 h-12 border-b bg-background/95 backdrop-blur`
-- Both topbars have: `ModeToggle` + `AdminLogoutButton`
+- Both topbars have: `ModeToggle` (dark/light) + `Logout` button
 - Content area: `<main className="p-4 sm:p-6">{children}</main>`
 
-### Sidebar Menu Items
+### Sidebar Structure (Dropdown Sections)
+
+Every sidebar item is a **dropdown section** with a consistent pattern:
+- Section header: icon + title (links to hub page) + chevron toggle (expands/collapses)
+- Active state: `bg-primary text-primary-foreground`
+- Hover state: `hover:bg-accent text-foreground/80 hover:text-foreground`
+- Children: indented with `border-l`, smaller text `text-[13px]`
+- Active child: `bg-primary/15 text-primary`
+- Auto-expand: whichever section contains the current page auto-expands on mount
 
 ```tsx
-const menuItems = [
-  { title: "Dashboard",      href: "/admin/dashboard",               icon: LayoutDashboard },
-  { title: "Home Page",      href: "/admin/dashboard/home",          icon: Home },
-  { title: "About Page",     href: "/admin/dashboard/about",         icon: Info },
-  { title: "Products",       href: "/admin/dashboard/products",      icon: Package },
-  { title: "Orders",         href: "/admin/dashboard/orders",        icon: ShoppingCart },
-  { title: "Blogs",          href: "/admin/dashboard/blogs",         icon: FileText },
-  { title: "Careers",        href: "/admin/dashboard/careers",       icon: BriefcaseBusiness },
-  { title: "Contact Leads",  href: "/admin/dashboard/contact",       icon: Mail },
-  { title: "Newsletter",     href: "/admin/dashboard/newsletter",    icon: Newspaper },
-  { title: "Navbar",         href: "/admin/dashboard/navbar",        icon: Navigation },
-  { title: "SEO",            href: "/admin/dashboard/seo",           icon: Globe },
-  { title: "Settings",       href: "/admin/dashboard/settings",      icon: Settings },
-  { title: "Uploads",        href: "/admin/dashboard/uploads",       icon: Upload },
+const SIDEBAR: NavSection[] = [
+  {
+    title: 'Dashboard',
+    href: '/admin',
+    icon: LayoutDashboard,
+    children: [
+      { title: 'Home Page', href: '/admin/home', icon: Home },
+      { title: 'Navbar', href: '/admin/navbar', icon: Navigation },
+      { title: 'Footer', href: '/admin/footer', icon: PanelBottom },
+    ],
+  },
+  {
+    title: 'Our Essence',
+    href: '/admin/our-essence',
+    icon: Sparkles,
+    children: [
+      { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen },
+    ],
+  },
+  { title: 'Our Products', href: '/admin/our-products', icon: Package, children: [] },
+  { title: 'Jivo Media', href: '/admin/media', icon: Newspaper, children: [] },
+  { title: 'Community', href: '/admin/community', icon: Users, children: [] },
+  { title: 'SEO Manager', href: '/admin/seo', icon: Globe, children: [] },
 ];
 ```
+
+**SEO Manager is a separate top-level section** (not nested under Dashboard) because it manages SEO across ALL pages site-wide.
+
+### Adding a New Page to the Sidebar
+
+When building a new page, add it as a child of the appropriate section:
+1. Open `src/app/admin/(dashboard)/layout.tsx`
+2. Find the relevant section in `SIDEBAR`
+3. Add `{ title: 'Page Name', href: '/admin/page-route', icon: IconName }` to its `children`
+4. Add the same page entry to the section's hub page (e.g., `src/app/admin/(dashboard)/our-essence/page.tsx` → `SECTION_PAGES` array)
+
+### Section Hub Pages (Dashboard for each nav section)
+
+Each sidebar section links to a **hub page** with this consistent layout:
+1. Colored section label (uppercase, tracking-widest)
+2. Title heading (font-jost-bold, centered)
+3. Subtitle with description
+4. Search bar (filters pages by name + description)
+5. Section icon + "Pages" or "Global Pages" heading
+6. Card grid (2×2 mobile → 3-col tablet → 4-col desktop)
+
+### Card Grid Box Styling (MANDATORY for all admin hubs)
+
+```tsx
+<Link
+  href={page.href}
+  className="group relative flex flex-col items-center justify-center gap-3
+    overflow-hidden rounded-2xl border bg-card p-6 text-center
+    transition-all duration-300 hover:-translate-y-1.5
+    hover:border-primary/30 hover:shadow-lg"
+>
+  {/* Gradient overlay on hover */}
+  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-emerald-600/5
+    opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+  {/* Icon */}
+  <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl
+    bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+    <Icon size={24} className="text-primary" />
+  </div>
+
+  {/* Label + description */}
+  <div className="relative z-10">
+    <span className="text-sm font-semibold text-foreground
+      transition-colors duration-200 group-hover:text-primary">{page.label}</span>
+    <p className="mt-1 text-[11px] leading-tight text-muted-foreground">{page.description}</p>
+  </div>
+</Link>
+```
+
+Each page entry needs: `label`, `href`, `icon`, `description`, `color` (gradient classes).
 
 ### Admin Page Patterns
 
@@ -571,7 +636,7 @@ export default async function HomePage() {
 
 ### 8. Admin Dashboard Page (`src/app/(admin)/admin/dashboard/home/page.tsx`)
 
-**IMPORTANT: Follow the EXACT admin styling from Mera Pind Balle Balle.**
+**IMPORTANT: Follow the EXACT admin styling from the existing admin dashboard in this project.**
 
 ```tsx
 "use client";
@@ -609,7 +674,7 @@ export default function HomePageManager() {
     setLoading(false);
   }
 
-  // Tab-based editor UI (matches MPBB admin/dashboard/home pattern)
+  // Tab-based editor UI (matches existing admin page editor pattern)
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -644,7 +709,7 @@ export default function HomePageManager() {
         {/* Tab content — form fields for active section */}
         <div className="p-6 space-y-6">
           {/* Render form fields based on activeTab */}
-          {/* See MPBB admin/dashboard/home/page.tsx for exact field patterns */}
+          {/* See src/app/admin/(dashboard)/home/page.tsx for exact field patterns */}
         </div>
       </div>
     </div>
@@ -2294,9 +2359,9 @@ If `NEXT_PUBLIC_SENTRY_DSN` is set:
 
 When building any page:
 
-1. **Always read the reference project first**: `cd ../mera-pind-balle-balle` to check how admin pages are styled
+1. **Always read the existing admin pages first**: check `src/app/admin/(dashboard)/layout.tsx` and any existing hub/editor pages for styling patterns
 2. **Follow the module structure exactly**: types → validations → data → actions → components → main.tsx
-3. **Admin pages must match MPBB styling**: same sidebar, topbar, form patterns, button styles, tab interfaces
+3. **Admin pages must match the existing admin styling**: same sidebar dropdown pattern, card-grid boxes, tabbed editor forms, button styles — reference `src/app/admin/(dashboard)/` for all patterns
 4. **Create the docs/{page}.md file** for every page with API URLs, JSON data, and Postman instructions
 5. **Use the user's screenshots/descriptions** to determine what sections each page needs
 6. **Always create**: public page + admin dashboard page + API routes + SEO tab + docs MD — every single time

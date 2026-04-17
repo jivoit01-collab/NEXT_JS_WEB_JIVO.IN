@@ -1,0 +1,19 @@
+// ==========================================
+// OUR ESSENCE — THE STORY page
+// Route: /our-essence/the-story
+// Admin: /admin/dashboard/our-essence-the-story
+// Sections: hero, founder, vision
+// ==========================================
+
+model OurEssenceTheStory {
+  id        String   @id @default(cuid())
+  section   String   @unique  // "hero", "founder", "vision"
+  title     String?
+  content   Json     // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

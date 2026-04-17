@@ -1,65 +1,117 @@
-import Link from 'next/link';
-import { Home, LayoutDashboard, Search } from 'lucide-react';
+'use client';
 
-const modules = [
-  {
-    label: 'Home Page',
-    href: '/admin/home',
-    icon: Home,
-    description: 'Hero, categories, vision, why Jivo & more',
-    ready: true,
-  },
-  {
-    label: 'SEO',
-    href: '/admin/seo',
-    icon: Search,
-    description: 'Per-page meta titles, descriptions, OG & JSON-LD',
-    ready: true,
-  },
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import {
+  Home,
+  Search,
+  Navigation,
+  PanelBottom,
+  Settings,
+} from 'lucide-react';
+
+interface PageEntry {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  description: string;
+  color: string;
+}
+
+const ALL_PAGES: PageEntry[] = [
+  { label: 'Home Page', href: '/admin/home', icon: Home, description: 'Hero, categories, vision, why Jivo & more', color: 'from-emerald-500/20 to-emerald-600/5' },
+  { label: 'Navbar', href: '/admin/navbar', icon: Navigation, description: 'Manage navigation links & sub-links', color: 'from-sky-500/20 to-sky-600/5' },
+  { label: 'Footer', href: '/admin/footer', icon: PanelBottom, description: 'Columns, links & contact settings', color: 'from-amber-500/20 to-amber-600/5' },
 ];
 
 export default function AdminDashboardPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!searchQuery.trim()) return ALL_PAGES;
+    const q = searchQuery.toLowerCase();
+    return ALL_PAGES.filter(
+      (p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
+    );
+  }, [searchQuery]);
+
   return (
     <div className="mx-auto max-w-5xl py-4 sm:py-8">
-      <div className="mb-8 text-center sm:mb-12">
-        <p className="mb-3 text-sm font-jost-bold uppercase tracking-widest text-gold sm:mb-4">
+      {/* Header */}
+      <div className="mb-8 text-center sm:mb-10">
+        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest text-gold sm:text-sm">
           Admin Dashboard
         </p>
-        <h1 className="text-3xl font-jost-bold sm:text-4xl md:text-5xl">
+        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl lg:text-5xl">
           <span className="text-foreground">Welcome to</span>{' '}
           <span className="admin-gradient-text">Jivo Wellness</span>
         </h1>
-        <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground sm:mt-4 sm:text-base">
-          Manage your website content from here. More modules will light up as you build them.
+        <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
+          Manage your website content. Use the sidebar to navigate sections, or search below.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {modules.map((mod, index) => (
-          <Link
-            key={mod.href}
-            href={mod.href}
-            className="group flex cursor-pointer flex-col items-center gap-3 rounded-xl border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
-            style={{ animationDelay: `${index * 60}ms` }}
+      {/* Search */}
+      <div className="relative mx-auto mb-8 max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search pages..."
+          className="w-full rounded-xl border bg-card py-2.5 pl-10 pr-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 transition-colors group-hover:bg-primary/20">
-              <mod.icon className="h-7 w-7 text-primary" />
-            </div>
-            <div className="text-center">
-              <span className="text-sm font-jost-medium text-foreground">{mod.label}</span>
-              <p className="mt-1 text-xs text-muted-foreground">{mod.description}</p>
-            </div>
-          </Link>
-        ))}
-
-        {/* Placeholder slot showing more coming */}
-        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-muted/30 p-6 text-center">
-          <LayoutDashboard className="h-7 w-7 text-muted-foreground/60" />
-          <span className="text-xs text-muted-foreground">
-            More modules appear here as you build them
-          </span>
-        </div>
+            Clear
+          </button>
+        )}
       </div>
+
+      {/* Section heading */}
+      <div className="mb-5 flex items-center gap-2">
+        <Settings className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-xs font-jost-bold uppercase tracking-widest text-muted-foreground">
+          Global Pages &amp; Settings
+        </h2>
+      </div>
+
+      {/* Card grid — MPBB style */}
+      {filtered.length === 0 ? (
+        <div className="rounded-xl border border-dashed bg-muted/20 py-10 text-center">
+          <Search className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">No pages match your search.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-5">
+          {filtered.map((page) => {
+            const Icon = page.icon;
+            return (
+              <Link
+                key={page.href}
+                href={page.href}
+                className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border bg-card p-6 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${page.color} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+                  <Icon size={24} className="text-primary" />
+                </div>
+                <div className="relative z-10">
+                  <span className="text-sm font-semibold text-foreground transition-colors duration-200 group-hover:text-primary">
+                    {page.label}
+                  </span>
+                  <p className="mt-1 text-[11px] leading-tight text-muted-foreground">
+                    {page.description}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
