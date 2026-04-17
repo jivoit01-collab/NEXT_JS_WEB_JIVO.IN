@@ -34,10 +34,15 @@ interface UploadResponse {
 
 /** Convert a stored filename to its API-served URL */
 export function toSrc(filename: string): string {
-  if (!filename) return '/api/uploads/placeholder.png';
+  if (!filename || filename === 'placeholder.png') return '/api/uploads/placeholder.png';
   // Already a full path (legacy or external URL) — pass through
   if (filename.startsWith('/') || filename.startsWith('http')) return filename;
   return `/api/uploads/${filename}`;
+}
+
+/** Returns true when the value is empty or just the seed placeholder — treat as "no image uploaded". */
+export function isPlaceholderOrEmpty(value: string | undefined | null): boolean {
+  return !value || value === 'placeholder.png';
 }
 
 async function uploadFile(file: File): Promise<UploadResponse> {
@@ -110,8 +115,8 @@ export function ImageUpload({
     }
   }, [value, onRemove, onChange]);
 
-  // If image already uploaded, show preview
-  if (value) {
+  // If a real image is uploaded (not just the seed placeholder), show preview
+  if (value && value !== 'placeholder.png') {
     return (
       <div className={cn('relative inline-block', className)}>
         <div className="group relative h-40 w-40 overflow-hidden rounded-lg border border-border">

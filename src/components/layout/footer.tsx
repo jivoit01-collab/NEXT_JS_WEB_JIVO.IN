@@ -12,16 +12,16 @@ export async function Footer() {
     : raw.startsWith('/') || raw.startsWith('http')
       ? raw
       : `/api/uploads/${raw}`;
+
   const year = new Date().getFullYear();
-  const copyright = setting.copyrightText || `All Right Reserved © ${year}`;
+  const copyright =
+    setting.copyrightText || `All Right Reserved © ${year}`;
 
   return (
     <footer className="bg-[#e8e8e8] text-[#333]">
       {/* ── Link columns ──────────────────────────── */}
-      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-12">
-        {/* divide-x adds a thin vertical line between columns at desktop;
-            on mobile/tablet it auto-hides because columns wrap. */}
-        <div className="grid grid-cols-2 gap-y-10 sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-[#bbb]">
+      <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-[#bbb]">
           {columns.map((column, idx) => (
             <div
               key={column.id}
@@ -29,23 +29,29 @@ export async function Footer() {
                 idx === columns.length - 1 ? 'lg:pr-0' : ''
               }`}
             >
-              <h4 className="mb-4 text-xs font-jost-bold uppercase tracking-[0.15em] text-[#222]">
+              <h4 className="mb-4 text-md font-jost-bold uppercase tracking-[0.15em] text-[#222]">
                 {column.title}
               </h4>
-              <ul className="space-y-2">
+
+              <ul className="space-y-3">
                 {column.links.map((link) => (
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="group flex items-start gap-1.5 text-xs leading-relaxed text-[#555] transition-colors hover:text-[#222]"
+                      className="group relative inline-flex items-start gap-2 text-sm text-[#555] transition-all duration-300"
                     >
-                      <span
-                        aria-hidden
-                        className="shrink-0 text-[#555] transition-colors group-hover:text-[#222]"
-                      >
+                      {/* Arrow */}
+                      <span className="transition-transform duration-300 group-hover:translate-x-1">
                         &gt;
                       </span>
-                      {link.title}
+
+                      {/* Text */}
+                      <span className="relative transition-colors duration-300 group-hover:text-[#111]">
+                        {link.title}
+
+                        {/* Animated underline */}
+                        <span className="absolute left-0 -bottom-0.5 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -58,7 +64,8 @@ export async function Footer() {
       {/* ── Bottom bar ─────────────────────────────── */}
       <div className="border-t border-[#ccc] bg-[#ddd]">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-6 py-5 md:flex-row md:justify-between lg:px-12">
-          {/* Left: logo + copyright */}
+          
+          {/* Logo + copyright */}
           <div className="flex items-center gap-4">
             <SafeImage
               src={logoSrc}
@@ -70,7 +77,7 @@ export async function Footer() {
             <p className="text-xs text-[#555]">{copyright}</p>
           </div>
 
-          {/* Right: contact info */}
+          {/* Contact */}
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             {setting.address && (
               <div className="flex items-center gap-1.5 text-xs text-[#555]">
@@ -78,24 +85,30 @@ export async function Footer() {
                 <span>{setting.address}</span>
               </div>
             )}
+
             {setting.email && (
               <Link
                 href={`mailto:${setting.email}`}
-                className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#222]"
+                className="group flex items-center gap-1.5 text-xs text-[#555] transition-all duration-300 hover:text-[#111]"
               >
-                <Mail className="h-3.5 w-3.5 shrink-0" />
-                <span>{setting.email}</span>
+                <Mail className="h-3.5 w-3.5 shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                <span className="relative">
+                  {setting.email}
+                  <span className="absolute left-0 -bottom-0.5 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
+                </span>
               </Link>
             )}
+
             {setting.phone && (
               <Link
                 href={`tel:${setting.phone.replace(/\s+/g, '')}`}
-                className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#222]"
+                className="group flex items-center gap-1.5 text-xs text-[#555] transition-all duration-300 hover:text-[#111]"
               >
-                <Phone className="h-3.5 w-3.5 shrink-0" />
-                <span>
+                <Phone className="h-3.5 w-3.5 shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                <span className="relative">
                   {setting.phone}
                   {setting.phoneLabel ? ` ${setting.phoneLabel}` : ''}
+                  <span className="absolute left-0 -bottom-0.5 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
                 </span>
               </Link>
             )}

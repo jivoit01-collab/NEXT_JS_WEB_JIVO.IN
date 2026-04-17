@@ -8,7 +8,7 @@ export { SearchInput } from './search-input';
 export { CertificationBadges } from './certification-badges';
 export { SocialLinks } from './social-links';
 export { WhatsAppWidget } from './whatsapp-widget';
-export { ImageUpload, MultiImageUpload, toSrc } from './image-upload';
+export { ImageUpload, MultiImageUpload, toSrc, isPlaceholderOrEmpty } from './image-upload';
 export { SafeImage } from './safe-image';
 export { LazyOnView } from './lazy-on-view';
 export { SectionSkeleton } from './section-skeleton';
