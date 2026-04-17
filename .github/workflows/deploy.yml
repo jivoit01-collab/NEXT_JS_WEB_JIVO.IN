@@ -1,0 +1,79 @@
+# name: Deploy to Production
+
+# on:
+#   push:
+#     branches: [main]
+
+#   # Allow manual trigger from GitHub UI
+#   workflow_dispatch:
+
+# # Prevent multiple deployments running at the same time
+# concurrency:
+#   group: production-deploy
+#   cancel-in-progress: false
+
+# jobs:
+#   deploy:
+#     name: Build & Deploy
+#     runs-on: [self-hosted, windows, production]
+#     timeout-minutes: 15
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 22
+#           cache: npm
+
+#       - name: Install dependencies
+#         run: npm ci
+
+#       - name: Generate Prisma client
+#         run: npx prisma generate
+
+#       - name: Run database migrations
+#         run: npx prisma db push --skip-generate
+
+#       - name: Build Next.js
+#         run: npm run build
+
+#       - name: Restart application service
+#         run: |
+#           nssm restart JivoWeb
+#           Start-Sleep -Seconds 5
+
+#       - name: Health check
+#         run: |
+#           $maxRetries = 5
+#           $retryCount = 0
+#           $success = $false
+
+#           while ($retryCount -lt $maxRetries -and -not $success) {
+#             try {
+#               $response = Invoke-WebRequest -Uri "http://localhost:3000" -UseBasicParsing -TimeoutSec 10
+#               if ($response.StatusCode -eq 200) {
+#                 Write-Host "Health check passed! Status: $($response.StatusCode)"
+#                 $success = $true
+#               }
+#             } catch {
+#               $retryCount++
+#               Write-Host "Attempt $retryCount/$maxRetries failed. Retrying in 5s..."
+#               Start-Sleep -Seconds 5
+#             }
+#           }
+
+#           if (-not $success) {
+#             Write-Error "Health check failed after $maxRetries attempts!"
+#             exit 1
+#           }
+
+#       - name: Deployment summary
+#         if: success()
+#         run: |
+#           Write-Host "Deployment successful!"
+#           Write-Host "Commit: ${{ github.sha }}"
+#           Write-Host "Branch: ${{ github.ref_name }}"
+#           Write-Host "Triggered by: ${{ github.actor }}"
