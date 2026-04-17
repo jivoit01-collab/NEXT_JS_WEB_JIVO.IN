@@ -15,6 +15,7 @@ import {
   Navigation,
   PanelBottom,
   Search,
+  BookOpen,
   LogOut,
   ArrowLeft,
   Moon,
@@ -25,6 +26,7 @@ import {
 const menuItems = [
   { title: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { title: 'Home Page', href: '/admin/home', icon: Home },
+  { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen },
   { title: 'Navbar', href: '/admin/navbar', icon: Navigation },
   { title: 'Footer', href: '/admin/footer', icon: PanelBottom },
   { title: 'SEO', href: '/admin/seo', icon: Search },
