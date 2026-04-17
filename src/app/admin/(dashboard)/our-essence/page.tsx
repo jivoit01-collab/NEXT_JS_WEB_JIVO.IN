@@ -2,13 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import {
-  Home,
-  Search,
-  Navigation,
-  PanelBottom,
-  Settings,
-} from 'lucide-react';
+import { Search, Sparkles, BookOpen } from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -18,19 +12,20 @@ interface PageEntry {
   color: string;
 }
 
-const ALL_PAGES: PageEntry[] = [
-  { label: 'Home Page', href: '/admin/home', icon: Home, description: 'Hero, categories, vision, why Jivo & more', color: 'from-emerald-500/20 to-emerald-600/5' },
-  { label: 'Navbar', href: '/admin/navbar', icon: Navigation, description: 'Manage navigation links & sub-links', color: 'from-sky-500/20 to-sky-600/5' },
-  { label: 'Footer', href: '/admin/footer', icon: PanelBottom, description: 'Columns, links & contact settings', color: 'from-amber-500/20 to-amber-600/5' },
+const SECTION_PAGES: PageEntry[] = [
+  { label: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen, description: 'Hero, founder bio & vision', color: 'from-teal-500/20 to-teal-600/5' },
+  // Add more Our Essence pages here
 ];
 
-export default function AdminDashboardPage() {
+const ACCENT = '#0a7362';
+
+export default function OurEssenceHubPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return ALL_PAGES;
+    if (!searchQuery.trim()) return SECTION_PAGES;
     const q = searchQuery.toLowerCase();
-    return ALL_PAGES.filter(
+    return SECTION_PAGES.filter(
       (p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
     );
   }, [searchQuery]);
@@ -39,15 +34,14 @@ export default function AdminDashboardPage() {
     <div className="mx-auto max-w-5xl py-4 sm:py-8">
       {/* Header */}
       <div className="mb-8 text-center sm:mb-10">
-        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest text-gold sm:text-sm">
-          Admin Dashboard
+        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm" style={{ color: ACCENT }}>
+          Our Essence
         </p>
-        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl lg:text-5xl">
-          <span className="text-foreground">Welcome to</span>{' '}
-          <span className="admin-gradient-text">Jivo Wellness</span>
+        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl">
+          Manage Our Essence Pages
         </h1>
         <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
-          Manage your website content. Use the sidebar to navigate sections, or search below.
+          The story, values, and identity of Jivo Wellness.
         </p>
       </div>
 
@@ -73,13 +67,13 @@ export default function AdminDashboardPage() {
 
       {/* Section heading */}
       <div className="mb-5 flex items-center gap-2">
-        <Settings className="h-4 w-4 text-muted-foreground" />
+        <Sparkles className="h-4 w-4" style={{ color: ACCENT }} />
         <h2 className="text-xs font-jost-bold uppercase tracking-widest text-muted-foreground">
-          Global Pages &amp; Settings
+          Pages
         </h2>
       </div>
 
-      {/* Card grid — MPBB style */}
+      {/* Card grid */}
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-muted/20 py-10 text-center">
           <Search className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />

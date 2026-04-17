@@ -2,13 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import {
-  Home,
-  Search,
-  Navigation,
-  PanelBottom,
-  Settings,
-} from 'lucide-react';
+import { Search, Users } from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -18,19 +12,19 @@ interface PageEntry {
   color: string;
 }
 
-const ALL_PAGES: PageEntry[] = [
-  { label: 'Home Page', href: '/admin/home', icon: Home, description: 'Hero, categories, vision, why Jivo & more', color: 'from-emerald-500/20 to-emerald-600/5' },
-  { label: 'Navbar', href: '/admin/navbar', icon: Navigation, description: 'Manage navigation links & sub-links', color: 'from-sky-500/20 to-sky-600/5' },
-  { label: 'Footer', href: '/admin/footer', icon: PanelBottom, description: 'Columns, links & contact settings', color: 'from-amber-500/20 to-amber-600/5' },
+const SECTION_PAGES: PageEntry[] = [
+  // Add community pages here as you build them
 ];
 
-export default function AdminDashboardPage() {
+const ACCENT = '#cd5c5c';
+
+export default function CommunityHubPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return ALL_PAGES;
+    if (!searchQuery.trim()) return SECTION_PAGES;
     const q = searchQuery.toLowerCase();
-    return ALL_PAGES.filter(
+    return SECTION_PAGES.filter(
       (p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
     );
   }, [searchQuery]);
@@ -39,15 +33,14 @@ export default function AdminDashboardPage() {
     <div className="mx-auto max-w-5xl py-4 sm:py-8">
       {/* Header */}
       <div className="mb-8 text-center sm:mb-10">
-        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest text-gold sm:text-sm">
-          Admin Dashboard
+        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm" style={{ color: ACCENT }}>
+          Community
         </p>
-        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl lg:text-5xl">
-          <span className="text-foreground">Welcome to</span>{' '}
-          <span className="admin-gradient-text">Jivo Wellness</span>
+        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl">
+          Manage Community Pages
         </h1>
         <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
-          Manage your website content. Use the sidebar to navigate sections, or search below.
+          Careers, contact, events, and engagement.
         </p>
       </div>
 
@@ -59,28 +52,27 @@ export default function AdminDashboardPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search pages..."
-          className="w-full rounded-xl border bg-card py-2.5 pl-10 pr-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          disabled={SECTION_PAGES.length === 0}
+          className="w-full rounded-xl border bg-card py-2.5 pl-10 pr-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
         />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
-          >
-            Clear
-          </button>
-        )}
       </div>
 
       {/* Section heading */}
       <div className="mb-5 flex items-center gap-2">
-        <Settings className="h-4 w-4 text-muted-foreground" />
+        <Users className="h-4 w-4" style={{ color: ACCENT }} />
         <h2 className="text-xs font-jost-bold uppercase tracking-widest text-muted-foreground">
-          Global Pages &amp; Settings
+          Pages
         </h2>
       </div>
 
-      {/* Card grid — MPBB style */}
-      {filtered.length === 0 ? (
+      {/* Card grid or empty state */}
+      {SECTION_PAGES.length === 0 ? (
+        <div className="rounded-2xl border border-dashed bg-muted/20 py-16 text-center">
+          <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+          <p className="font-semibold text-muted-foreground">No community pages yet</p>
+          <p className="mt-1 text-xs text-muted-foreground/70">Pages will appear here as you build them.</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-muted/20 py-10 text-center">
           <Search className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
           <p className="text-sm text-muted-foreground">No pages match your search.</p>

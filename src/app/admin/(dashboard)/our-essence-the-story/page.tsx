@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Save, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/shared';
@@ -29,7 +30,10 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function TheStoryManager() {
-  const [activeTab, setActiveTab] = useState<TabKey>('hero');
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    searchParams.get('tab') === 'seo' ? 'seo' : 'hero',
+  );
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
 
