@@ -6,12 +6,16 @@ import { auth } from '@/lib/auth';
 import {
   navLinkSchema,
   navLinkUpdateSchema,
+  navSubLinkSchema,
+  navSubLinkUpdateSchema,
   navbarSettingSchema,
 } from './validations';
 import type { ActionResponse } from '@/lib/action-response';
-import type { NavLink, NavbarSetting } from '@prisma/client';
+import type { NavLink, NavSubLink, NavbarSetting } from '@prisma/client';
 
 const SETTING_ID = 'default';
+
+type NavLinkWithSubs = NavLink & { subLinks: NavSubLink[] };
 
 async function requireAdmin<T>(): Promise<ActionResponse<T> | null> {
   const session = await auth();
@@ -21,24 +25,40 @@ async function requireAdmin<T>(): Promise<ActionResponse<T> | null> {
   return null;
 }
 
-// Public — visible links only, ordered
-export async function getVisibleNavLinks(): Promise<NavLink[]> {
+// ── Public — visible links + visible sub-links, ordered ───────
+
+export async function getVisibleNavLinks(): Promise<NavLinkWithSubs[]> {
   return prisma.navLink.findMany({
     where: { isVisible: true },
     orderBy: { sortOrder: 'asc' },
+    include: {
+      subLinks: {
+        where: { isVisible: true },
+        orderBy: { sortOrder: 'asc' },
+      },
+    },
   });
 }
 
-// Admin — all links including hidden
-export async function getAllNavLinks(): Promise<NavLink[]> {
+// ── Admin — all links + all sub-links ─────────────────────────
+
+export async function getAllNavLinks(): Promise<NavLinkWithSubs[]> {
   return prisma.navLink.findMany({
     orderBy: { sortOrder: 'asc' },
+    include: {
+      subLinks: {
+        orderBy: { sortOrder: 'asc' },
+      },
+    },
   });
 }
 
 // Admin — single link
-export async function getNavLink(id: string): Promise<ActionResponse<NavLink>> {
-  const link = await prisma.navLink.findUnique({ where: { id } });
+export async function getNavLink(id: string): Promise<ActionResponse<NavLinkWithSubs>> {
+  const link = await prisma.navLink.findUnique({
+    where: { id },
+    include: { subLinks: { orderBy: { sortOrder: 'asc' } } },
+  });
   if (!link) return { success: false, error: 'Nav link not found' };
   return { success: true, data: link };
 }
@@ -94,7 +114,7 @@ export async function updateNavLink(
   return { success: true, data: updated };
 }
 
-// Admin — delete
+// Admin — delete (cascade deletes sub-links via Prisma)
 export async function deleteNavLink(id: string): Promise<ActionResponse<NavLink>> {
   const guard = await requireAdmin<NavLink>();
   if (guard) return guard;
@@ -103,6 +123,84 @@ export async function deleteNavLink(id: string): Promise<ActionResponse<NavLink>
   if (!existing) return { success: false, error: 'Nav link not found' };
 
   const deleted = await prisma.navLink.delete({ where: { id } });
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: deleted };
+}
+
+// ── Sub-link CRUD ─────────────────────────────────────────────
+
+// Admin — create sub-link
+export async function createNavSubLink(input: unknown): Promise<ActionResponse<NavSubLink>> {
+  const guard = await requireAdmin<NavSubLink>();
+  if (guard) return guard;
+
+  const parsed = navSubLinkSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: 'Validation failed',
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  // Verify parent exists
+  const parent = await prisma.navLink.findUnique({ where: { id: parsed.data.navLinkId } });
+  if (!parent) return { success: false, error: 'Parent nav link not found' };
+
+  const created = await prisma.navSubLink.create({ data: parsed.data });
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: created };
+}
+
+// Admin — update sub-link
+export async function updateNavSubLink(
+  id: string,
+  input: unknown,
+): Promise<ActionResponse<NavSubLink>> {
+  const guard = await requireAdmin<NavSubLink>();
+  if (guard) return guard;
+
+  const existing = await prisma.navSubLink.findUnique({ where: { id } });
+  if (!existing) return { success: false, error: 'Sub-link not found' };
+
+  const parsed = navSubLinkUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: 'Validation failed',
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  // If moving to a different parent, verify it exists
+  if (parsed.data.navLinkId && parsed.data.navLinkId !== existing.navLinkId) {
+    const parent = await prisma.navLink.findUnique({ where: { id: parsed.data.navLinkId } });
+    if (!parent) return { success: false, error: 'Target parent nav link not found' };
+  }
+
+  const updated = await prisma.navSubLink.update({
+    where: { id },
+    data: parsed.data,
+  });
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: updated };
+}
+
+// Admin — delete sub-link
+export async function deleteNavSubLink(id: string): Promise<ActionResponse<NavSubLink>> {
+  const guard = await requireAdmin<NavSubLink>();
+  if (guard) return guard;
+
+  const existing = await prisma.navSubLink.findUnique({ where: { id } });
+  if (!existing) return { success: false, error: 'Sub-link not found' };
+
+  const deleted = await prisma.navSubLink.delete({ where: { id } });
 
   revalidatePath('/', 'layout');
   revalidatePath('/');

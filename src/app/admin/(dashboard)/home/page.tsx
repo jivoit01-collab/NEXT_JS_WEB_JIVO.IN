@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   Button,
@@ -138,6 +138,7 @@ function getDefaultContent(section: SectionKey): Record<string, unknown> {
 
 export default function AdminHomePageManager() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -461,7 +462,7 @@ export default function AdminHomePageManager() {
       </div>
 
       {/* ── Top-level Tabs (Sections / SEO) ── */}
-      <Tabs defaultValue="sections" className="space-y-6">
+      <Tabs defaultValue={searchParams.get('tab') === 'seo' ? 'seo' : 'sections'} className="space-y-6">
         <TabsList className="w-full justify-start sm:w-auto">
           <TabsTrigger value="sections" className="gap-2">
             <Layers className="h-4 w-4" /> Sections

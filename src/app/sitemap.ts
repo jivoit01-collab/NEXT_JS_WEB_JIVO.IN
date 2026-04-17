@@ -4,6 +4,7 @@ import { SITE_URL } from '@/lib/constants';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     '',
+    '/our-essence/the-story',
     '/who-we-are',
     '/our-values',
     '/why-jivo',
