@@ -4,6 +4,12 @@
 /* Custom dark variant */
 @custom-variant dark (&:is(.dark *));
 
+/* Ensure all interactive elements show pointer cursor */
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
 /* ================================================
    JIVO THEME — matches brand screenshots
    Palette:

@@ -12,6 +12,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed:reset": "npx tsx prisma/seed.ts --reset",
     "db:studio": "prisma studio"
   },
   "prisma": {
