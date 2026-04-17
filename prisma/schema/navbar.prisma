@@ -1,20 +1,35 @@
 // ==========================================
 // NAVBAR — top navigation for the public site
 // Managed from /admin/navbar (CRUD)
-// Example seeded rows:
-//   Products, Our Essence, Media, Community
+// Top-level links: Our Essence, Our Products, Jivo Media, Community
+// Each link can have sub-links shown in a hover mega-dropdown.
 // ==========================================
 
 model NavLink {
+  id        String       @id @default(cuid())
+  title     String       // "Our Essence", "Our Products", "Jivo Media", "Community"
+  href      String       // "/our-essence", "/products", "/media", "/community"
+  sortOrder Int          @default(0)
+  isVisible Boolean      @default(true)
+  subLinks  NavSubLink[] // Dropdown sub-items shown on hover
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([sortOrder])
+}
+
+model NavSubLink {
   id        String   @id @default(cuid())
-  title     String   // "Products", "Our Essence", "Media", "Community"
-  href      String   // "/products", "/our-essence", "/media", "/community"
+  navLinkId String
+  navLink   NavLink  @relation(fields: [navLinkId], references: [id], onDelete: Cascade)
+  title     String   // "The Story / Journey", "Canola Oil", etc.
+  href      String   // "/our-essence/story", "/products/canola-oil", etc.
   sortOrder Int      @default(0)
   isVisible Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([sortOrder])
+  @@index([navLinkId, sortOrder])
 }
 
 // Singleton — only ever one row (id = "default").
