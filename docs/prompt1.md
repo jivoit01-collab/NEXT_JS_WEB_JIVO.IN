@@ -3302,3 +3302,198 @@ Before a hero ships:
 🚫 DO NOT BREAK: SafeImage retry/fallback/placeholder-on-missing (that placeholder is a STATIC PNG, not a blur preview — unrelated), lazy loading for below-the-fold sections, ISR, module architecture.
 
 **Authority precedence across image rules:** §42 > §41 > §40 > §29. When earlier sections contradict §42 on blur, §42 wins.
+
+---
+
+## §43 📱 RESPONSIVE DESIGN + SCROLL-TRIGGERED TEXT ANIMATION (MANDATORY)
+
+Applies to **every public page AND every admin dashboard page**. Non-negotiable — any new section or page must ship with this scale out of the gate. No "we'll fix it later" — fix it now.
+
+### §43.1 🎯 Mandatory breakpoint scale
+
+Use Tailwind's default breakpoints. You MUST provide a value for each step where the element meaningfully changes size. Skipping `md:` is the most common mistake — don't.
+
+| Prefix | Min width | Device                               |
+| ------ | --------- | ------------------------------------ |
+| base   | 0         | Phones (320–639 px)                  |
+| `sm:`  | 640 px    | Large phones / small tablets         |
+| `md:`  | 768 px    | Tablets                              |
+| `lg:`  | 1024 px   | Small laptops / landscape tablets    |
+| `xl:`  | 1280 px   | Desktops                             |
+| `2xl:` | 1536 px   | Large desktops (optional)            |
+
+### §43.2 🔤 Mandatory text-size scale
+
+Copy this table verbatim when choosing classes. Don't invent your own scale.
+
+| Element                        | base       | sm          | md          | lg           | xl         |
+| ------------------------------ | ---------- | ----------- | ----------- | ------------ | ---------- |
+| Hero H1 (primary, LCP)         | `text-3xl` | `sm:text-4xl` | `md:text-4xl` | `lg:text-5xl` | `xl:text-5xl` |
+| Section H2 (below-fold)        | `text-2xl` | `sm:text-3xl` | `md:text-4xl` | `lg:text-5xl` | —          |
+| Sub-heading H3                 | `text-xl`  | `sm:text-2xl` | `md:text-2xl` | `lg:text-3xl` | —          |
+| Eyebrow / label (UPPERCASE)    | `text-xs`  | `sm:text-sm`  | `md:text-base`| —            | —          |
+| Body paragraph (primary)       | `text-sm`  | `sm:text-base`| `md:text-lg`  | `lg:text-xl`  | —          |
+| Body paragraph (secondary)     | `text-xs`  | `sm:text-sm`  | `md:text-base`| —            | —          |
+| Button / link                  | `text-sm`  | `sm:text-base`| —            | —            | —          |
+| Footer link                    | `text-xs`  | `sm:text-sm`  | `md:text-base`| —            | —          |
+
+**Never use** `text-md` — it does not exist in Tailwind and silently falls back to default. Use `text-base`.
+
+### §43.3 📏 Mandatory spacing scale
+
+```
+Section vertical padding:   py-16 sm:py-20 md:py-24 lg:py-28
+Section horizontal padding: px-4 sm:px-6 lg:px-8
+Container max-width:        max-w-7xl (or max-w-6xl for text-heavy)
+Grid gaps (body content):   gap-8 sm:gap-10 md:gap-12 lg:gap-16
+Space between H2 and body:  mb-10 sm:mb-12 md:mb-14 lg:mb-20
+```
+
+Hero is the only exception — use a `min-h-[...]` scale instead (`min-h-[60vh] sm:min-h-[70vh] lg:min-h-screen`).
+
+### §43.4 🧱 Grid stacking rules
+
+| Grid size        | Stack breakpoint | Example                                              |
+| ---------------- | ---------------- | ---------------------------------------------------- |
+| 2-col content    | `md:grid-cols-2` | `grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-16`   |
+| 3-col cards      | `sm:` then `lg:` | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`          |
+| 4–5 col footer   | progressive      | `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5` |
+| 6 uniform pills  | balanced         | `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6`          |
+
+### §43.5 🛡 Overflow safety (prevents horizontal scroll on 320 px)
+
+Every grid child must have `min-w-0` so long text doesn't stretch the track. Every long-string container (links, emails, URLs, addresses) must have `break-words`. Phone numbers get `whitespace-nowrap`. Emails on xs only may use `break-all sm:break-normal`.
+
+```tsx
+<div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+  <div className="min-w-0">            {/* prevents overflow */}
+    <a className="break-words">…</a>
+  </div>
+</div>
+```
+
+### §43.6 🎬 Scroll-triggered text animation (MANDATORY for every non-hero section)
+
+Goal: when the user scrolls, every block of text fades in smoothly. No plain static text below the fold.
+
+**Required primitives** (both already exist — DO NOT re-implement):
+
+- `@/lib/animation-variants` → `container`, `fadeUp`, `fadeUpSlow`, `scaleIn`, `defaultViewport`
+- `@/components/shared` → `SplitWords` (word-by-word reveal for headings)
+
+**Required pattern for every section component:**
+
+```tsx
+'use client';
+import { motion } from 'framer-motion';
+import { SplitWords } from '@/components/shared';
+import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
+
+export function MySection({ data }: Props) {
+  return (
+    <section className="py-16 sm:py-20 md:py-24 lg:py-28">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={defaultViewport}
+        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
+      >
+        <motion.h2
+          variants={fadeUp}
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
+        >
+          <SplitWords text={data.heading} inheritParent />
+        </motion.h2>
+
+        <motion.p
+          variants={fadeUp}
+          className="mt-4 text-sm sm:text-base md:text-lg"
+        >
+          {data.body}
+        </motion.p>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+**Animation rules (strict):**
+
+| Rule | Why |
+| ---- | --- |
+| ✅ Wrap every section in ONE motion parent with `variants={container}` | One `IntersectionObserver` per section instead of N |
+| ✅ Children use `variants={fadeUp}` — no per-child `whileInView` | Parent triggers, children inherit |
+| ✅ Use `<SplitWords>` for the primary heading of every section | Word-by-word reveal is the project's signature |
+| ✅ Pass `inheritParent` to `<SplitWords>` when it sits inside a motion parent | Avoids nested stagger conflicts |
+| ✅ `viewport={defaultViewport}` (`once:true, amount:0.25`) | Animate once, never on scroll-up |
+| ✅ Transform + opacity only | GPU path; no layout thrash |
+| ❌ NO animation in hero (see §40) | LCP must not wait |
+| ❌ NO `filter`, `blur`, `scale`-heavy, `rotate`-heavy on body text | Glitch + repaint |
+| ❌ NO `animate={{...}}` loops on public pages | Battery drain, CPU waste |
+| ❌ NO `setState` inside `requestAnimationFrame` | Triggers a full React render every frame |
+
+### §43.7 🧪 Admin dashboard responsive rules (MANDATORY for every `/admin/**` page)
+
+The dashboard is used from phones too (content fixes on the go). Every admin page must survive 360 px width without horizontal scroll.
+
+```tsx
+// Page header — stack on mobile, row on desktop
+<div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+  <div className="min-w-0">
+    <h1 className="text-xl sm:text-2xl md:text-3xl">Page Manager</h1>
+    <p className="mt-1 text-xs sm:text-sm text-muted-foreground">…</p>
+  </div>
+  <button className="w-full sm:w-auto …">Save</button>   {/* full-width on mobile */}
+</div>
+
+// Tabs — always horizontal scrollable, never wrap
+<div className="flex overflow-x-auto border-b">
+  {TABS.map((t) => (
+    <button className="whitespace-nowrap px-3 py-2.5 text-sm sm:px-4 sm:py-3 sm:text-base">
+      {t.label}
+    </button>
+  ))}
+</div>
+
+// Tab panel padding
+<div className="space-y-4 p-4 sm:space-y-6 sm:p-6">…</div>
+
+// Every form input — always w-full
+<input className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+
+// Nested card (block list item) — less padding on mobile
+<div className="space-y-3 rounded-lg border bg-background/60 p-3 sm:p-4">…</div>
+
+// Inline row that could wrap — wrap + gap
+<div className="flex flex-wrap items-center justify-between gap-2">…</div>
+```
+
+**Admin rules (strict):**
+
+- ✅ `w-full sm:w-auto` on every primary action button — full-width touch target on phones
+- ✅ `overflow-x-auto` on tab rows, data tables, and wide toolbars
+- ✅ `min-w-0` on every flex/grid child that contains long strings
+- ✅ Padding scales `p-3 sm:p-4` / `p-4 sm:p-6` — never hard-code `p-6` everywhere
+- ✅ Text scales `text-xl sm:text-2xl md:text-3xl` for page titles
+- ❌ NO admin page with fixed widths (`w-[640px]`) that break at 360 px
+- ❌ NO buttons smaller than 40 px touch target (min `py-2` with `text-sm`)
+
+### §43.8 ✅ Pre-merge responsive checklist
+
+Before shipping any new section or page, click through these at 320 px, 375 px, 768 px, 1024 px, and 1440 px. Every one must pass:
+
+- [ ] No horizontal scrollbar at any width
+- [ ] All text fits within its column — no overflow, no truncation you didn't plan
+- [ ] Grids stack at the right breakpoint (2-col at `md:`, 3+ col at `sm:`)
+- [ ] Every primary heading uses `<SplitWords>` and reveals on scroll
+- [ ] Every body paragraph uses `motion.p variants={fadeUp}`
+- [ ] Hero has NO scroll animation (initial/animate only, or static)
+- [ ] Buttons are full-width on xs, auto-width on sm+
+- [ ] Admin tabs scroll horizontally without wrapping
+- [ ] Footer works at 320 px — contact items stack cleanly
+- [ ] Lighthouse mobile Performance ≥ 75, LCP ≤ 2.5 s
+
+### §43.9 🎯 Authority
+
+When §43 conflicts with an earlier section's casual example, §43 wins. The scale tables in §43.2 and §43.3 are the single source of truth for sizing. Earlier sections' one-off class strings in code snippets are illustrative — always prefer the §43 scale.

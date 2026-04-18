@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { SafeImage } from '@/components/shared';
+import { SafeImage, SplitWords } from '@/components/shared';
 import { productCategories as defaults } from '../data/home-content';
 import type { CategoriesContent } from '../types';
 import { motion } from 'framer-motion';
@@ -17,12 +17,12 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
   const categories = data?.items ?? defaults;
 
   return (
-    <section className="bg-jivo-olive px-4 py-16 md:py-20">
+    <section className="bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28">
       <div className="container mx-auto max-w-7xl">
 
         {/* Heading */}
-        <h2 className="mb-10 text-center font-sans text-2xl font-jost-extrabold uppercase tracking-[0.2em] text-white md:mb-14 md:text-4xl">
-          {heading}
+        <h2 className="mb-10 text-center font-sans text-2xl font-jost-extrabold uppercase tracking-[0.2em] text-white sm:mb-12 sm:text-3xl md:mb-14 md:text-4xl lg:text-5xl">
+          <SplitWords text={heading} />
         </h2>
 
         {/* Grid */}
@@ -31,7 +31,7 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
           initial="hidden"
           whileInView="show"
           viewport={defaultViewport}
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+          className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4"
         >
           {categories.map((category) => (
             <motion.div key={category.name} variants={scaleIn}>
@@ -40,8 +40,8 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
                   <div
                     className={`
                       ${category.bgColor}
-                      relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl p-4
-                      shadow-md transition-all duration-500
+                      relative flex aspect-3/4 flex-col overflow-hidden rounded-xl p-3
+                      shadow-md transition-all duration-500 sm:p-4
                       group-hover:shadow-2xl group-hover:shadow-black/30
                     `}
                   >
@@ -62,7 +62,7 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
                     </div>
 
                     {/* Title */}
-                    <p className="mt-3 text-center font-sans text-sm font-jost-bold uppercase tracking-[0.2em] text-white transition-all duration-300 group-hover:tracking-[0.25em]">
+                    <p className="mt-3 text-center font-sans text-xs font-jost-bold uppercase tracking-[0.2em] text-white transition-all duration-300 sm:text-sm md:text-base group-hover:tracking-[0.25em]">
                       {category.name}
                     </p>
                   </div>
