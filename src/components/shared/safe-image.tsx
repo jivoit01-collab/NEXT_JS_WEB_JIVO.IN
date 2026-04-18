@@ -2,9 +2,13 @@
 
 import Image, { type ImageProps } from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Variants } from "framer-motion";
 
 const PLACEHOLDER = '/api/uploads/placeholder.png';
-
+const variants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
 /**
  * Resolves a stored image value to a serveable URL:
  *   - Empty/falsy/placeholder → placeholder
@@ -52,7 +56,7 @@ interface SafeImageProps extends Omit<ImageProps, 'src' | 'onError'> {
  *   4. In dev mode: shows a visible red "MISSING" badge so broken images
  *      are impossible to miss during development.
  */
-export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
+export function SafeImage({ src, alt, onMissing, sizes, ...rest }: SafeImageProps) {
   const initial = useMemo(() => resolveSrc(src), [src]);
   const isRealImage = !isPlaceholderValue(src);
 
@@ -77,7 +81,7 @@ export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
         key={`${initial}-${phase}`}
         src={currentSrc}
         alt={alt}
-        unoptimized
+        sizes={sizes ?? '(max-width: 768px) 100vw, 50vw'}
         onError={() => {
           if (phase === 'initial') {
             // Transient failure? Try once more with a cache-buster.
