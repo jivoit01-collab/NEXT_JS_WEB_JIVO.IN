@@ -11,7 +11,7 @@ export function PrinciplesSection({ data }: Props) {
   const { backgroundImage, blocks } = data ?? defaultPrinciplesContent;
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-28">
+    <section className="relative overflow-hidden py-10 sm:py-20 lg:py-20">
       {/* Background */}
       {backgroundImage ? (
         <SafeImage
@@ -25,8 +25,6 @@ export function PrinciplesSection({ data }: Props) {
         <div className="absolute inset-0 bg-gradient-to-b from-[#f8a880] via-[#f1738a] to-[#8b4789]" />
       )}
 
-      {/* Light overlay — keep the sky readable */}
-      <div className="absolute inset-0 bg-black/35" />
 
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-6xl px-5 sm:px-6 lg:px-12">
