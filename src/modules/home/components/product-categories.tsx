@@ -6,6 +6,7 @@ import { productCategories as defaults } from '../data/home-content';
 import type { CategoriesContent } from '../types';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { container, scaleIn, defaultViewport } from '@/lib/animation-variants';
 
 interface ProductCategoriesProps {
   data?: CategoriesContent;
@@ -14,21 +15,6 @@ interface ProductCategoriesProps {
 export function ProductCategories({ data }: ProductCategoriesProps) {
   const heading = data?.heading ?? 'MADE FOR EVERYDAY LOVE';
   const categories = data?.items ?? defaults;
-
-  // Stagger animation
-  const container = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 25, scale: 0.96 },
-    show: { opacity: 1, y: 0, scale: 1 },
-  };
 
   return (
     <section className="bg-jivo-olive px-4 py-16 md:py-20">
@@ -44,11 +30,11 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
           variants={container}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true }}
+          viewport={defaultViewport}
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
         >
           {categories.map((category) => (
-            <motion.div key={category.name} variants={item}>
+            <motion.div key={category.name} variants={scaleIn}>
               <TiltCard>
                 <Link href={category.href} className="group block h-full">
                   <div

@@ -4,6 +4,7 @@ import { SafeImage } from '@/components/shared';
 import type { TheStoryFounderContent } from '../types';
 import { defaultFounderContent } from '../data/defaults';
 import { motion } from 'framer-motion';
+import { containerSlow, fadeUpSlow, defaultViewport } from '@/lib/animation-variants';
 
 interface Props {
   data?: TheStoryFounderContent;
@@ -12,41 +13,18 @@ interface Props {
 export function FounderSection({ data }: Props) {
   const { sectionHeading, title, paragraph, founderImage } = data ?? defaultFounderContent;
 
-  // 🔥 animation
-  const container = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.18,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 30, filter: 'blur(6px)' },
-    show: {
-      opacity: 1,
-      y: 0,
-      filter: 'blur(0px)',
-      transition: {
-        duration: 0.8,
-        ease: [0.22, 1, 0.36, 1],
-      },
-    },
-  };
-
   return (
     <section className="bg-[#0a7362] py-12 md:py-16">
       <motion.div
-        variants={container}
+        variants={containerSlow}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.2 }} // ✅ 20% trigger
+        viewport={defaultViewport}
         className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-10"
       >
         {/* Heading */}
         <motion.h2
-          variants={item}
+          variants={fadeUpSlow}
           className="font-jost-bold mb-10 text-center text-2xl tracking-[0.15em] text-white uppercase md:text-3xl lg:text-4xl"
         >
           {sectionHeading}
@@ -55,7 +33,7 @@ export function FounderSection({ data }: Props) {
         {/* Content */}
         <div className="grid items-center gap-10 md:grid-cols-[1fr_auto]">
           {/* LEFT TEXT */}
-          <motion.div variants={item} className="max-w-lg">
+          <motion.div variants={fadeUpSlow} className="max-w-lg">
             <h3 className="font-jost-bold mb-4 text-base tracking-wider text-white/90 uppercase md:text-lg">
               {title}
             </h3>
@@ -64,7 +42,7 @@ export function FounderSection({ data }: Props) {
           </motion.div>
 
           {/* RIGHT IMAGE */}
-          <motion.div variants={item} className="flex justify-center md:justify-end">
+          <motion.div variants={fadeUpSlow} className="flex justify-center md:justify-end">
             <motion.div
               whileHover={{ scale: 1.04 }}
               transition={{ type: 'spring', stiffness: 120 }}
