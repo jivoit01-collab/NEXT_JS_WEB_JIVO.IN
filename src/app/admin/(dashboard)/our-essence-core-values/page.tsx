@@ -94,12 +94,14 @@ export default function CoreValuesManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-jost-bold text-2xl sm:text-3xl">Core Values — Page Manager</h1>
-          <p className="mt-1 text-muted-foreground">
+      <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-jost-bold text-xl sm:text-2xl md:text-3xl">
+            Core Values — Page Manager
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
             Manage the Our Essence / Core Values page sections
           </p>
         </div>
@@ -107,7 +109,7 @@ export default function CoreValuesManager() {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2 font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:px-6 sm:text-base"
           >
             {loading ? (
               <>
@@ -129,7 +131,7 @@ export default function CoreValuesManager() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`whitespace-nowrap px-4 py-3 font-jost-medium transition-colors ${
+              className={`whitespace-nowrap px-3 py-2.5 text-sm font-jost-medium transition-colors sm:px-4 sm:py-3 sm:text-base ${
                 activeTab === tab.key
                   ? 'border-b-2 border-primary text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -140,7 +142,7 @@ export default function CoreValuesManager() {
           ))}
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
           {/* ── Hero Tab ───────────────────────────── */}
           {activeTab === 'hero' && (
             <div className="space-y-4">
@@ -245,11 +247,11 @@ export default function CoreValuesManager() {
 
       {/* Bottom save button for content tabs */}
       {activeTab !== 'seo' && (
-        <div className="flex justify-end">
+        <div className="flex justify-stretch sm:justify-end">
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2 font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:px-6 sm:text-base"
           >
             {loading ? (
               <>
@@ -291,24 +293,24 @@ function BlockList({ label, minBlocks, blocks, onChange }: BlockListProps) {
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <label className="text-sm font-jost-medium">
           {label} ({blocks.length})
         </label>
         <button
           type="button"
           onClick={addBlock}
-          className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-jost-medium hover:bg-accent"
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-jost-medium hover:bg-accent"
         >
           <Plus className="h-3.5 w-3.5" /> Add block
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {blocks.map((block, i) => (
           <div
             key={i}
-            className="space-y-3 rounded-lg border bg-background/60 p-4"
+            className="space-y-3 rounded-lg border bg-background/60 p-3 sm:p-4"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Block {i + 1}</span>

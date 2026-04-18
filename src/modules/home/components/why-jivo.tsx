@@ -5,8 +5,8 @@ import {
   whyJivoContent as textDefaults,
   valuePillars as pillarDefaults,
 } from '../data/home-content';
-import { SafeImage } from '@/components/shared';
-import { containerSlow, fadeUpSlow, defaultViewport } from '@/lib/animation-variants';
+import { SafeImage, SplitWords } from '@/components/shared';
+import { container, containerSlow, fadeUpSlow, scaleIn, defaultViewport } from '@/lib/animation-variants';
 import type { WhyJivoContent } from '../types';
 
 interface WhyJivoProps {
@@ -27,7 +27,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
 
   return (
     <section
-      className="font-sans px-4 py-20 md:py-28"
+      className="font-sans px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28"
       style={{ backgroundColor: '#7b593e', color: '#cbc995' }}
     >
       <motion.div
@@ -39,25 +39,25 @@ export function WhyJivo({ data }: WhyJivoProps) {
       >
 
         {/* ── TOP SECTION ───────────────── */}
-        <div className="mb-24 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-20">
+        <div className="mb-16 grid grid-cols-1 gap-10 sm:mb-20 md:mb-24 md:grid-cols-2 md:gap-16 lg:gap-20">
           
           {/* LEFT */}
           <div>
             <motion.h2
               variants={fadeUpSlow}
               className="font-jost-extrabold uppercase leading-[1.05] tracking-tight"
-              style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}
+              style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)' }}
             >
-              {content.heading}
+              <SplitWords text={content.heading} inheritParent />
             </motion.h2>
 
-            <motion.p variants={fadeUpSlow} className="mt-4 text-base md:text-lg">
+            <motion.p variants={fadeUpSlow} className="mt-4 text-base sm:text-lg md:text-xl">
               {content.subheading}
             </motion.p>
 
             <motion.p
               variants={fadeUpSlow}
-              className="mt-8 text-[15px] italic leading-relaxed md:text-base"
+              className="mt-6 text-sm italic leading-relaxed sm:mt-8 sm:text-base md:text-lg"
             >
               {content.leftText}
             </motion.p>
@@ -69,7 +69,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
               <motion.p
                 key={index}
                 variants={fadeUpSlow}
-                className="text-[13px] leading-relaxed md:text-sm"
+                className="text-sm leading-relaxed md:text-base"
               >
                 {paragraph}
               </motion.p>
@@ -78,18 +78,18 @@ export function WhyJivo({ data }: WhyJivoProps) {
         </div>
 
         {/* ── VALUE PILLARS ───────────────── */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
+        <motion.div
+          variants={container}
+          className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-10 md:gap-y-12 lg:grid-cols-6"
+        >
           {pillars.map((pillar, index) => (
             <motion.div
               key={pillar.title + index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              variants={scaleIn}
               whileHover={{ y: -6, scale: 1.03 }}
               className="group flex flex-col items-center text-center"
             >
-              <div className="relative mb-5 h-12 w-12 transition-transform duration-300 group-hover:scale-110">
+              <div className="relative mb-4 h-10 w-10 transition-transform duration-300 sm:mb-5 sm:h-12 sm:w-12 group-hover:scale-110">
                 <SafeImage
                   src={pillar.image}
                   alt={pillar.title}
@@ -99,16 +99,16 @@ export function WhyJivo({ data }: WhyJivoProps) {
                 />
               </div>
 
-              <h3 className="mb-3 text-sm font-jost-bold italic md:text-base">
+              <h3 className="mb-2 text-sm font-jost-bold italic sm:mb-3 md:text-base">
                 {pillar.title}
               </h3>
 
-              <p className="text-[11px] leading-relaxed md:text-xs">
+              <p className="text-xs leading-relaxed md:text-sm">
                 {pillar.description}
               </p>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </motion.div>
     </section>
   );
