@@ -41,7 +41,9 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
           src={slide.backgroundImage}
           alt={slide.headline}
           fill
-          fetchPriority="high"
+          priority
+          quality={100}
+          sizes="(max-width: 768px) 100vw, 1920px"
           className="object-cover object-[center_30%]"
         />
         <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center text-white">
@@ -55,7 +57,9 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
               alt="Jivo Logo"
               width={520}
               height={220}
-              fetchPriority="high"
+              priority
+              quality={90}
+              sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 352px"
               className="mb-43 h-auto w-56 sm:w-72 md:w-80 lg:w-[22rem]"
             />
           </motion.div>
@@ -126,7 +130,9 @@ function HeroCarousel({
                 src={slide.backgroundImage}
                 alt={slide.headline}
                 fill
-                fetchPriority="high"
+                priority
+                quality={100}
+                sizes="(max-width: 768px) 100vw, 1920px"
                 className="object-cover object-[center_30%]"
               />
               <div className="pointer-events-none absolute inset-0 bg-black/30" />
@@ -144,7 +150,9 @@ function HeroCarousel({
             alt="Jivo Logo"
             width={520}
             height={220}
-            fetchPriority="high"
+            priority
+            quality={90}
+            sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 352px"
             className="h-auto w-56 sm:w-72 md:w-80 lg:w-[22rem]"
           />
         </div>
