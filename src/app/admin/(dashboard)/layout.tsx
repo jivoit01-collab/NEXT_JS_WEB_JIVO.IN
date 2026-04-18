@@ -20,6 +20,7 @@ import {
   Newspaper,
   Users,
   BookOpen,
+  Compass,
   ChevronDown,
   LogOut,
   ArrowLeft,
@@ -63,6 +64,7 @@ const SIDEBAR: NavSection[] = [
     icon: Sparkles,
     children: [
       { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen },
+      { title: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass },
     ],
   },
   {
@@ -90,6 +92,7 @@ const SIDEBAR: NavSection[] = [
     children: [
       { title: 'Home', href: '/admin/home', icon: Home, tab: 'seo' },
       { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen, tab: 'seo' },
+      { title: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass, tab: 'seo' },
     ],
   },
 ];
