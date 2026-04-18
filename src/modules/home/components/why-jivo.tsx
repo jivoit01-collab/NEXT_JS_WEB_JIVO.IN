@@ -6,6 +6,7 @@ import {
   valuePillars as pillarDefaults,
 } from '../data/home-content';
 import { SafeImage } from '@/components/shared';
+import { containerSlow, fadeUpSlow, defaultViewport } from '@/lib/animation-variants';
 import type { WhyJivoContent } from '../types';
 
 interface WhyJivoProps {
@@ -24,44 +25,16 @@ export function WhyJivo({ data }: WhyJivoProps) {
 
   const pillars = data?.valuePillars ?? pillarDefaults;
 
-  // 🔥 smooth container animation
-  const container = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.18, // slower = more engaging
-      },
-    },
-  };
-
-  // 🔥 premium text animation
-  const item = {
-    hidden: {
-      opacity: 0,
-      y: 40,
-      filter: 'blur(6px)',
-    },
-    show: {
-      opacity: 1,
-      y: 0,
-      filter: 'blur(0px)',
-      transition: {
-        duration: 0.8,
-        ease: [0.22, 1, 0.36, 1], // smooth easing
-      },
-    },
-  };
-
   return (
     <section
       className="font-sans px-4 py-20 md:py-28"
       style={{ backgroundColor: '#7b593e', color: '#cbc995' }}
     >
       <motion.div
-        variants={container}
+        variants={containerSlow}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.2 }} // ✅ 20% trigger
+        viewport={defaultViewport}
         className="container mx-auto max-w-6xl"
       >
 
@@ -71,19 +44,19 @@ export function WhyJivo({ data }: WhyJivoProps) {
           {/* LEFT */}
           <div>
             <motion.h2
-              variants={item}
+              variants={fadeUpSlow}
               className="font-jost-extrabold uppercase leading-[1.05] tracking-tight"
               style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)' }}
             >
               {content.heading}
             </motion.h2>
 
-            <motion.p variants={item} className="mt-4 text-base md:text-lg">
+            <motion.p variants={fadeUpSlow} className="mt-4 text-base md:text-lg">
               {content.subheading}
             </motion.p>
 
             <motion.p
-              variants={item}
+              variants={fadeUpSlow}
               className="mt-8 text-[15px] italic leading-relaxed md:text-base"
             >
               {content.leftText}
@@ -95,7 +68,7 @@ export function WhyJivo({ data }: WhyJivoProps) {
             {content.rightParagraphs.map((paragraph, index) => (
               <motion.p
                 key={index}
-                variants={item}
+                variants={fadeUpSlow}
                 className="text-[13px] leading-relaxed md:text-sm"
               >
                 {paragraph}

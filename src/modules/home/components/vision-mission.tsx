@@ -4,6 +4,7 @@ import { SafeImage } from '@/components/shared';
 import { visionMissionContent as defaults } from '../data/home-content';
 import type { VisionMissionContent } from '../types';
 import { motion } from 'framer-motion';
+import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
 
 interface VisionMissionProps {
   data?: VisionMissionContent;
@@ -11,22 +12,6 @@ interface VisionMissionProps {
 
 export function VisionMission({ data }: VisionMissionProps) {
   const content = data ?? defaults;
-
-  // 🔥 animation container
-  const container = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.15,
-      },
-    },
-  };
-
-  // 🔥 animation item
-  const item = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0 },
-  };
 
   return (
     <section className="relative w-full overflow-hidden py-24 md:py-20">
@@ -44,19 +29,19 @@ export function VisionMission({ data }: VisionMissionProps) {
         variants={container}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, amount: 0.5 }} // ✅ 20% trigger
+        viewport={defaultViewport}
         className="relative z-10 mx-auto max-w-6xl px-4 text-white md:px-8"
       >
 
         {/* HEADING */}
-        <motion.div variants={item}>
+        <motion.div variants={fadeUp}>
           <h2 className="font-sans text-center mb-15 text-2xl font-jost-bold uppercase tracking-[0.15em] md:text-4xl lg:text-[42px]">
             {content.heading}
           </h2>
         </motion.div>
 
         {/* INTRO TEXT */}
-        <motion.div variants={item} className="w-2/4">
+        <motion.div variants={fadeUp} className="w-2/4">
           <p className="text-base italic text-white/80 md:text-lg">
             {content.subtitle}
           </p>
@@ -78,7 +63,7 @@ export function VisionMission({ data }: VisionMissionProps) {
         <div className="mt-20 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-32">
           
           {/* VISION */}
-          <motion.div variants={item} className="max-w-md">
+          <motion.div variants={fadeUp} className="max-w-md">
             <h3 className="mb-6 font-sans text-2xl font-jost-extrabold uppercase tracking-[0.15em] md:text-4xl">
               Vision
             </h3>
@@ -88,7 +73,7 @@ export function VisionMission({ data }: VisionMissionProps) {
           </motion.div>
 
           {/* MISSION */}
-          <motion.div variants={item} className="max-w-md md:ml-auto">
+          <motion.div variants={fadeUp} className="max-w-md md:ml-auto">
             <h3 className="mb-6 font-sans text-2xl font-jost-extrabold uppercase tracking-[0.15em] md:text-4xl">
               Mission
             </h3>

@@ -12,3 +12,4 @@ export { ImageUpload, MultiImageUpload, toSrc, isPlaceholderOrEmpty } from './im
 export { SafeImage } from './safe-image';
 export { LazyOnView } from './lazy-on-view';
 export { SectionSkeleton } from './section-skeleton';
+export { Section } from './section';

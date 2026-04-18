@@ -44,7 +44,6 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
           fetchPriority="high"
           className="object-cover object-[center_30%]"
         />
-        <div className="pointer-events-none absolute inset-0 bg-black/30" />
         <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center text-white">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
