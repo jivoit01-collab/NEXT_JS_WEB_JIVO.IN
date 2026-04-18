@@ -1,76 +1,171 @@
-# Implementation Plan — `/our-essence/core-values` Page
+# Core Values — Page Documentation
 
-> **Status:** Plan only. No code will be written until you say "go".
-> **Scope:** New public page `/our-essence/core-values` + full admin CMS + API routes + SEO + docs, following every rule in `docs/prompt1.md`.
-
----
-
-## 1. Page Overview
+## 1. 📌 Page Overview
 
 | Field | Value |
 |-------|-------|
 | Page | Core Values |
 | Public route | `/our-essence/core-values` |
-| Admin route | `/admin/our-essence-core-values` (sibling of existing `/admin/our-essence-the-story`) |
-| Parent section | Our Essence |
-| Navbar | already built — not touched |
+| Admin route | `/admin/our-essence-core-values` |
+| SEO page key | `our-essence-core-values` |
+| Prisma model | `OurEssenceCoreValues` |
+| Module | `src/modules/our-essence/core-values/` |
 
-### Sections (derived from the 3 screenshots)
-
-| Key | Screenshot | Title | Layout |
-|-----|-----------|-------|--------|
-| `hero` | #1 | ESSENCE IN ACTION | Full-screen (100vh) background image, text left-aligned, vertically centered-bottom |
-| `foundation` | #2 | TRUTH AS FOUNDATION | Centered white title + 2-column grid (Truth / Devotion) over hands background |
-| `principles` | #3 | (no title) | 2-column grid with 3 pillars (Sewa, Intelligence, Integrity) over sunset-sky background |
+**Sections (stored as rows in `OurEssenceCoreValues`, keyed by `section`):**
+- `hero` — Essence in Action
+- `foundation` — Truth as Foundation (repeatable value blocks)
+- `principles` — Sewa / Intelligence / Integrity (repeatable value blocks)
 
 ---
 
-## 2. UI Structure
+## 2. 🧠 UI Structure
 
-### Hero Section (`hero`) — full screen
-- Height: `min-h-screen` with background image covering full viewport
-- Background: wheat-field sunset image
-- Dark gradient overlay on left side only (`bg-gradient-to-r from-black/70 via-black/40 to-transparent`) for legibility
-- Content block aligned **bottom-left** with generous padding (`px-6 sm:px-12 lg:px-20 pb-20 sm:pb-28`)
-- Typography:
-  - **Heading**: `ESSENCE IN ACTION` — `font-jost-bold`, `text-5xl md:text-6xl lg:text-7xl`, white, uppercase, tracking-tight
-  - **Subtitle**: `text-base md:text-lg`, white/90, max-w-md, mt-4
-  - **Paragraph**: separate `text-sm md:text-base`, white/80, max-w-md, mt-6
-- No CTA buttons (pure value-statement page)
-- `priority` on the image, `sizes="100vw"`
+### Hero Section (`hero`)
+- Full-bleed background image (`min-h-screen` on lg)
+- Content aligned **bottom-left** — sits over a `from-black/70 → transparent` left-to-right gradient for legibility
+- **Heading** (big): `ESSENCE IN ACTION` — uppercase, `font-jost-bold`, responsive `3xl → 6xl`
+- **Subtitle** (white/90): one-line statement about values transforming into action
+- **Paragraph** (white/80): longer description — "These principles are not ideas…"
+- No CTAs
+- Image loaded with `priority` (LCP candidate)
 
 ### Foundation Section (`foundation`)
-- Height: `min-h-[80vh]` with background image of hands
-- Dark overlay (`bg-black/55`) for legibility across entire image
-- Centered heading **TRUTH AS FOUNDATION** at top (`text-4xl md:text-5xl lg:text-6xl`, font-jost-bold, tracking-wide, uppercase)
-- Two-column grid below heading (`grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 max-w-6xl mx-auto px-6 pb-20`)
-  - **TRUTH** — small uppercase label + paragraph text
-  - **DEVOTION** — small uppercase label + paragraph text
-- Labels: `text-base tracking-[0.2em] font-jost-bold text-white uppercase mb-4`
-- Body text: `text-sm md:text-base text-white/85 leading-relaxed`
+- Background image (or dark fallback gradient `from-[#2d1810]`)
+- `bg-black/55` overlay
+- Centered heading **TRUTH AS FOUNDATION** — `text-2xl sm:text-3xl md:text-4xl lg:text-5xl`, uppercase, `tracking-[0.12em]`
+- 2-column grid (`md:grid-cols-2`, gap `16–24`)
+- Each block: small uppercase label + paragraph body
+- **Repeatable** — admin can add/remove blocks (min 2)
 
 ### Principles Section (`principles`)
-- Height: `min-h-[80vh]` with sunset-sky background
-- Light overlay (`bg-black/30`) to keep the sky visible but text legible
-- 2-column grid with 3 pillars (Sewa top-left, Intelligence top-right, Integrity bottom-left)
-- Same label + body styling as foundation section
-- 3rd pillar spans second row, leaving the bottom-right empty (matches screenshot)
+- Background image (or sunset gradient fallback `from-[#f8a880] → [#8b4789]`)
+- `bg-black/35` light overlay (keeps sky visible)
+- 2-column grid with N value blocks (min 3)
+- First 3 render as: Sewa top-left, Intelligence top-right, Integrity bottom-left (fourth cell empty by design)
+- **Repeatable** — admin can add/remove blocks (min 3)
 
-### Shared wrapper
-- `main.tsx` composes: `<HeroSection />` (eager) → `<LazyOnView><FoundationSection/></LazyOnView>` → `<LazyOnView><PrinciplesSection/></LazyOnView>` per §24
+### Composition (`core-values-main.tsx`)
+- Hero eager (SSR)
+- Foundation + Principles loaded via `next/dynamic` with `<SectionSkeleton>` fallbacks
 
 ---
 
-## 3. Prisma Model
+## 3. 🔌 API Documentation
 
-New file: `prisma/schema/core-values.prisma`
+### Public API
 
+```
+GET /api/our-essence/core-values
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "hero": {
+      "heading": "ESSENCE IN ACTION",
+      "subtitle": "Where values transform into everyday actions that serve humanity.",
+      "paragraph": "These principles are not ideas—they are lived, practiced, and expressed in every action we take.",
+      "backgroundImage": "1713456789-hero.png"
+    },
+    "foundation": {
+      "heading": "TRUTH AS FOUNDATION",
+      "backgroundImage": "1713456789-hands.png",
+      "blocks": [
+        { "label": "TRUTH", "description": "Truth is the recognition of…" },
+        { "label": "DEVOTION", "description": "Work is approached as an expression of Devotion…" }
+      ]
+    },
+    "principles": {
+      "backgroundImage": "1713456789-sky.png",
+      "blocks": [
+        { "label": "SEWA (SELFLESS SERVICE)", "description": "All work is an absolute offering…" },
+        { "label": "INTELLIGENCE", "description": "Intelligence is Truth manifest…" },
+        { "label": "INTEGRITY", "description": "Integrity is defined as an absolute…" }
+      ]
+    }
+  }
+}
+```
+
+### Admin API
+
+Requires an authenticated ADMIN / SUPER_ADMIN session cookie.
+
+#### `GET /api/admin/our-essence/core-values`
+Returns all sections (active + inactive). Same shape as public GET.
+
+Error responses:
+- `401` `{ "success": false, "error": "Unauthorized" }`
+- `500` `{ "success": false, "error": "Failed to load sections" }`
+
+#### `POST /api/admin/our-essence/core-values`
+Upserts a single section.
+
+**Request body:**
+```json
+{
+  "section": "hero",
+  "content": {
+    "heading": "ESSENCE IN ACTION",
+    "subtitle": "...",
+    "paragraph": "...",
+    "backgroundImage": "1713456789-hero.png"
+  }
+}
+```
+
+**Response (success):**
+```json
+{ "success": true, "data": { "id": "...", "section": "hero", "content": { ... }, "sortOrder": 0, "isActive": true, "createdAt": "...", "updatedAt": "..." } }
+```
+
+**Error responses:**
+- `400` `{ "success": false, "error": "Missing section or content" }`
+- `401` `{ "success": false, "error": "Unauthorized" }`
+- `500` `{ "success": false, "error": "Failed to save section" }`
+
+#### SEO endpoint (shared)
+```
+GET  /api/admin/seo/our-essence-core-values
+POST /api/admin/seo/our-essence-core-values
+```
+Handles the `SeoMeta` row with `page = "our-essence-core-values"`. Owned by the shared `@/modules/seo` module.
+
+---
+
+## 4. 🔄 Workflow
+
+```
+Admin visits /admin/our-essence-core-values
+  → Tab switcher: Hero | Foundation | Principles | SEO
+  → Edits form fields (uploads images via ImageUpload / UploadThing)
+  → Clicks "Save Changes"
+      ↓
+  Client calls upsertCoreValuesSectionAction(section, content)  [server action]
+      ↓
+  Action → requireAdmin() guard → Zod validation → prisma.ourEssenceCoreValues.upsert()
+      ↓
+  revalidatePath('/our-essence/core-values')
+  revalidatePath('/admin/our-essence-core-values')
+      ↓
+  Next visitor of /our-essence/core-values sees the new content
+```
+
+For the SEO tab: `<SeoTabPanel page="our-essence-core-values" />` talks to `/api/admin/seo/[page]`. A separate row lives in `SeoMeta`.
+
+---
+
+## 5. 🧾 Data Structure
+
+### Prisma model (`prisma/schema/our-essence-core-values.prisma`)
 ```prisma
-model CoreValuesPage {
+model OurEssenceCoreValues {
   id        String   @id @default(cuid())
-  section   String   @unique       // "hero" | "foundation" | "principles"
+  section   String   @unique
   title     String?
-  content   Json                   // typed by module types
+  content   Json
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -80,211 +175,200 @@ model CoreValuesPage {
 }
 ```
 
-Then: `npm run db:generate && npm run db:push`.
+### TypeScript types (`src/modules/our-essence/core-values/types.ts`)
 
-`SeoMeta` already exists (used by the shared SEO module) — only a new seeded row with `page = "our-essence/core-values"` is needed.
-
----
-
-## 4. Module Layout — `src/modules/core-values/`
-
-```
-src/modules/core-values/
-  components/
-    hero-section.tsx
-    foundation-section.tsx
-    principles-section.tsx
-    main.tsx
-    index.ts
-  data/
-    queries.ts          # getCoreValuesPageData, getCoreValuesSection
-    mutations.ts        # upsertCoreValuesSection
-    defaults.ts         # defaultSeo + defaultContent per section
-    index.ts
-  actions.ts            # updateCoreValuesSection, updateSeoMeta wrapper
-  validations.ts        # Zod: heroSchema, foundationSchema, principlesSchema (+ seoSchema import)
-  types.ts              # HeroSection, FoundationSection, PrinciplesSection, CoreValuesPageData
-  index.ts              # barrel
-```
-
-### Types (`types.ts`)
-
+**Hero**
 ```ts
-export interface HeroSectionData {
-  eyebrow?: string;              // optional "ESSENCE IN ACTION" override
-  title: string;
+interface CoreValuesHeroContent {
+  heading: string;
   subtitle: string;
-  description: string;
-  backgroundImage: string;       // stored as /api/uploads/{filename}
-}
-
-export interface ValueBlock {
-  label: string;                 // "TRUTH" / "DEVOTION" / ...
-  description: string;
-}
-
-export interface FoundationSectionData {
-  heading: string;               // "TRUTH AS FOUNDATION"
-  backgroundImage: string;
-  blocks: ValueBlock[];          // [Truth, Devotion]
-}
-
-export interface PrinciplesSectionData {
-  backgroundImage: string;
-  blocks: ValueBlock[];          // [Sewa, Intelligence, Integrity]
-}
-
-export interface CoreValuesPageData {
-  hero: HeroSectionData;
-  foundation: FoundationSectionData;
-  principles: PrinciplesSectionData;
+  paragraph: string;
+  backgroundImage: string;  // stored filename
 }
 ```
 
-### Validations (`validations.ts`)
-- Zod schemas matching each type.
-- `blocks` array: min 2 for foundation, min 3 for principles.
-- Re-export `seoSchema` from `@/modules/seo/validations` for the admin SEO tab.
-
-### Defaults (`data/defaults.ts`)
-- Ships strong defaults so the page renders correctly **before** admin edits.
-- `defaultSeo` template (per §23):
-  - metaTitle: `"Core Values | Our Essence | Jivo Wellness"`
-  - metaDescription: `"Truth, Devotion, Sewa, Intelligence, Integrity — the five principles that shape every action at Jivo Wellness."`
-  - keywords: `["jivo core values", "truth devotion sewa", "jivo essence", "wellness values"]`
-  - ogImage: hero fallback
-  - structuredData: `AboutPage` schema
-  - canonicalUrl: `${BASE_URL}/our-essence/core-values`
-  - robots: `"index,follow"`
-- `defaultContent` for all 3 sections (exact copy from screenshots).
-
----
-
-## 5. Public Page
-
-```
-src/app/(public)/our-essence/core-values/
-  page.tsx           # generateMetadata via resolveSeo("our-essence/core-values", defaultSeo)
-  loading.tsx        # 3 skeleton blocks
-  error.tsx          # §27 template — tag "[core-values page error]"
-  not-found.tsx      # §27 template
-```
-
-`page.tsx`:
-```tsx
-export const revalidate = 60;                // SSG + ISR per §25
-export async function generateMetadata() {
-  return resolveSeo("our-essence/core-values", defaultSeo);
-}
-export default async function CoreValuesPage() {
-  const data = await getCoreValuesPageData();
-  return <CoreValuesPageContent data={JSON.parse(JSON.stringify(data))} />;
-}
-```
-
----
-
-## 6. Admin Dashboard Page
-
-```
-src/app/admin/(dashboard)/our-essence-core-values/
-  page.tsx           # tabbed editor
-  loading.tsx
-  error.tsx
-```
-
-### Tabs (in order)
-1. **Hero** — title, subtitle, description, background image (UploadThing)
-2. **Foundation** — heading, background image, dynamic list of `{label, description}` blocks (Add/Remove, min 2)
-3. **Principles** — background image, dynamic list of blocks (min 3)
-4. **SEO** — `<SeoTabPanel page="our-essence/core-values" />` (reused from `@/modules/seo`)
-
-### Sidebar registration
-In `src/app/admin/(dashboard)/layout.tsx` → `SIDEBAR` → `"Our Essence"` children:
+**Foundation**
 ```ts
-{ title: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass }
+interface CoreValueBlock {
+  label: string;
+  description: string;
+}
+
+interface CoreValuesFoundationContent {
+  heading: string;
+  backgroundImage: string;
+  blocks: CoreValueBlock[];  // min 2
+}
 ```
-And add matching entry to the Our Essence hub page `SECTION_PAGES` array.
 
-### UX details (matches existing admin)
-- Header with title + "Save Changes" button (top-right, also bottom)
-- Alerts: `bg-primary/10 border-primary/30` for success, `bg-destructive/10 border-destructive/30` for error
-- Toast via Sonner
-- Image uploads go through UploadThing → store only filename → render via `/api/uploads/[filename]` (§image storage rule)
+**Principles**
+```ts
+interface CoreValuesPrinciplesContent {
+  backgroundImage: string;
+  blocks: CoreValueBlock[];  // min 3
+}
+```
 
----
-
-## 7. API Routes
-
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/core-values` | `GET` | Public fetch — returns all active sections merged into `CoreValuesPageData` |
-| `/api/admin/core-values` | `GET` | Admin fetch — all sections including inactive |
-| `/api/admin/core-values` | `POST` | Upsert one section `{section, content}` — auth-guarded (ADMIN / SUPER_ADMIN) |
-| `/api/admin/seo/[page]` | `GET`/`POST` | Already exists — handles SEO for any page including this one |
-
-All responses follow `ActionResponse<T>` (§27): `{success: true, data}` or `{success: false, error}`.
-All errors logged with `[GET /api/core-values]` / `[POST /api/admin/core-values]` prefix.
+### Zod validation
+All three shapes are validated server-side in `upsertCoreValuesSectionAction` via `coreValuesSectionSchemas[section]`. Invalid payloads return `fieldErrors`.
 
 ---
 
-## 8. Sitemap & Robots
+## 6. 🖼 Image Handling
 
-- `src/app/sitemap.ts` → add static route `{BASE_URL}/our-essence/core-values` (priority 0.8, changefreq monthly).
-- No robots.txt change (defaults already allow all public pages).
+Follows the project-wide image rule:
+- **Upload**: `<ImageUpload>` component (wraps UploadThing) writes the file to `/uploads/images/` with a unique `${Date.now()}-${originalName}` name
+- **Database**: only the **filename** is stored in `content.backgroundImage` — never a full path
+- **Serving**: `<SafeImage>` (public page) resolves the filename to `/api/uploads/{filename}` under the hood; falls back to a placeholder if the file is missing
+- **Delete**: deleting the row / clearing the field also removes the file via the uploads API
 
----
-
-## 9. Seed Data
-
-Extend `prisma/seed.ts`:
-1. Insert 3 rows into `CoreValuesPage` using `defaultContent`.
-2. Insert 1 row into `SeoMeta` with `page = "our-essence/core-values"` from `defaultSeo`.
+Do NOT store images in `/public/images` or hardcode paths.
 
 ---
 
-## 10. Docs File — `docs/core-values.md`
+## 7. 🔍 SEO Documentation
 
-Full per-page docs per the §Page Documentation System rule:
-1. Page overview (route, admin route, sections)
-2. UI structure (hero / foundation / principles)
-3. API documentation (public GET, admin GET/POST, SEO endpoint) with exact request/response JSON
-4. Workflow (admin edits → API → DB → revalidate → public updated)
-5. Data structure per section
-6. Image handling (upload → `/uploads/images/{timestamp}-{name}` → served via `/api/uploads/[filename]`)
-7. SEO documentation (fields stored in `SeoMeta` row `page="our-essence/core-values"`)
-8. Postman testing (login → get → update hero → update foundation → update principles → update SEO)
-9. Update log (first entry: today)
+### Storage
+- Row in `SeoMeta` with `page = "our-essence-core-values"`
+- Seeded by `prisma/seed.ts` from `defaultSeo` in `src/modules/our-essence/core-values/data/defaults.ts`
 
----
+### Fallback chain (resolved at request time by `resolveSeo()`)
+1. `SeoMeta` row (DB)
+2. Module `defaultSeo` (in `data/defaults.ts`)
+3. Site-wide `siteDefaultSeo` (in `src/modules/seo/data/defaults.ts`)
 
-## 11. Deliverables Checklist (§26)
+### Fields
+| Field | Default |
+|-------|---------|
+| metaTitle | `Core Values \| Our Essence \| Jivo Wellness` |
+| metaDescription | `Truth, Devotion, Sewa, Intelligence, Integrity — the five principles that shape every action at Jivo Wellness.` |
+| keywords | `['jivo core values','jivo essence','truth devotion sewa','sewa selfless service','intelligence integrity','jivo wellness values','essence in action','truth as foundation', …]` |
+| ogTitle | `Our Core Values — Essence in Action` |
+| ogDescription | `Truth, Devotion, Sewa, Intelligence, Integrity — the principles behind every action at Jivo.` |
+| ogImage | `og-default.png` |
+| twitterCard | `summary_large_image` |
+| canonicalUrl | `${SITE_URL}/our-essence/core-values` |
+| robots | `index,follow` |
+| structuredData | JSON-LD `AboutPage` — name + url + description |
 
-- [ ] `prisma/schema/core-values.prisma` + `db:push`
-- [ ] `src/modules/core-values/{types,validations,actions}.ts`
-- [ ] `src/modules/core-values/data/{queries,mutations,defaults,index}.ts`
-- [ ] `src/modules/core-values/components/{hero,foundation,principles,main,index}.tsx/.ts`
-- [ ] `src/modules/core-values/index.ts`
-- [ ] `src/app/(public)/our-essence/core-values/{page,loading,error,not-found}.tsx`
-- [ ] `src/app/admin/(dashboard)/our-essence-core-values/{page,loading,error}.tsx`
-- [ ] Sidebar + hub page entry in Our Essence
-- [ ] `src/app/api/core-values/route.ts`
-- [ ] `src/app/api/admin/core-values/route.ts`
-- [ ] Seed `CoreValuesPage` + `SeoMeta` row
-- [ ] `src/app/sitemap.ts` updated
-- [ ] `docs/core-values.md`
+### Usage in `page.tsx`
+```tsx
+export async function generateMetadata() {
+  return resolveSeo('our-essence-core-values', defaultSeo);
+}
 
----
-
-## 12. Open Decisions (picked best-practice defaults — will proceed unless you object)
-
-1. **Route path** — `/our-essence/core-values` (nested under our-essence) rather than flat `/core-values`. Matches visual hierarchy and the admin naming convention already in use for "our-essence-the-story".
-2. **Section count** — 3 sections (hero / foundation / principles) rather than 1 monolith. Lets admin edit each background and value block independently.
-3. **Admin URL** — `/admin/our-essence-core-values` (flat slug with hyphens) — matches existing `the-story` sibling.
-4. **`principles` section layout** — 2-col grid with 3 items, bottom-right cell empty to match screenshot #3 exactly.
-5. **SEO page key** — `"our-essence/core-values"` (slash-separated, matches route). Downstream SeoMeta lookups key by this exact string.
-6. **Rendering** — `revalidate = 60` (ISR) rather than `force-dynamic`, since this is static-ish content updated rarely.
+const [sections, structuredData] = await Promise.all([
+  getCoreValuesSections(),
+  getStructuredData('our-essence-core-values', defaultSeo),
+]);
+// <JsonLd data={structuredData} /> rendered above <CoreValuesMain />
+```
 
 ---
 
-**Ready to build.** Say "go" (or "build it") and I will execute Phase-by-Phase in this order: Prisma → module files → public page → admin page → API routes → sidebar wiring → seed → sitemap → docs.
+## 8. 🧪 Postman Testing
+
+### 1. Public GET
+```
+GET http://localhost:3000/api/our-essence/core-values
+```
+Expect: `{ success: true, data: { hero, foundation, principles } }`
+
+### 2. Login as admin
+```
+POST http://localhost:3000/api/auth/callback/credentials
+Body (x-www-form-urlencoded):
+  email=admin@jivo.in
+  password=<ADMIN_PASSWORD>
+```
+Copy the `next-auth.session-token` cookie from the response.
+
+### 3. Admin GET
+```
+GET http://localhost:3000/api/admin/our-essence/core-values
+Cookie: next-auth.session-token=...
+```
+
+### 4. Update hero
+```
+POST http://localhost:3000/api/admin/our-essence/core-values
+Cookie: next-auth.session-token=...
+Content-Type: application/json
+
+{
+  "section": "hero",
+  "content": {
+    "heading": "ESSENCE IN ACTION",
+    "subtitle": "Where values transform into everyday actions that serve humanity.",
+    "paragraph": "These principles are not ideas—they are lived, practiced, and expressed in every action we take.",
+    "backgroundImage": "1713456789-hero.png"
+  }
+}
+```
+
+### 5. Update foundation
+```
+POST http://localhost:3000/api/admin/our-essence/core-values
+Body:
+{
+  "section": "foundation",
+  "content": {
+    "heading": "TRUTH AS FOUNDATION",
+    "backgroundImage": "1713456789-hands.png",
+    "blocks": [
+      { "label": "TRUTH", "description": "..." },
+      { "label": "DEVOTION", "description": "..." }
+    ]
+  }
+}
+```
+
+### 6. Update principles
+```
+POST http://localhost:3000/api/admin/our-essence/core-values
+Body:
+{
+  "section": "principles",
+  "content": {
+    "backgroundImage": "1713456789-sky.png",
+    "blocks": [
+      { "label": "SEWA (SELFLESS SERVICE)", "description": "..." },
+      { "label": "INTELLIGENCE", "description": "..." },
+      { "label": "INTEGRITY", "description": "..." }
+    ]
+  }
+}
+```
+
+### 7. Update SEO
+```
+POST http://localhost:3000/api/admin/seo/our-essence-core-values
+Cookie: next-auth.session-token=...
+Content-Type: application/json
+
+{
+  "metaTitle": "Core Values | Our Essence | Jivo Wellness",
+  "metaDescription": "...",
+  "keywords": ["jivo core values", "essence in action"],
+  "ogTitle": "...",
+  "ogDescription": "...",
+  "ogImage": "1713456789-og.png",
+  "twitterCard": "summary_large_image",
+  "canonicalUrl": "https://jivo.in/our-essence/core-values",
+  "robots": "index,follow",
+  "structuredData": { "@type": "AboutPage" }
+}
+```
+
+---
+
+## 9. 🔄 Update Log
+
+### 2026-04-18
+- Initial build — page, admin editor, API routes, SEO, sitemap entry, seed rows
+- Prisma model `OurEssenceCoreValues` created and pushed
+- Sections: `hero`, `foundation`, `principles`
+- Sidebar entry added under "Our Essence" (+ SEO Manager children)
+- Hub card added at `/admin/our-essence`
+- Sitemap entry `/our-essence/core-values` added
+- `definePageSeo` default registered — seed upserts `SeoMeta` row
