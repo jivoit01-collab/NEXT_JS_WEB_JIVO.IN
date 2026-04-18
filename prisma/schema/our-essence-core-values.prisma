@@ -1,0 +1,19 @@
+// ==========================================
+// OUR ESSENCE — CORE VALUES page
+// Route: /our-essence/core-values
+// Admin: /admin/our-essence-core-values
+// Sections: hero, foundation, principles
+// ==========================================
+
+model OurEssenceCoreValues {
+  id        String   @id @default(cuid())
+  section   String   @unique  // "hero", "foundation", "principles"
+  title     String?
+  content   Json     // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

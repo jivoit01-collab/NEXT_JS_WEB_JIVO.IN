@@ -376,6 +376,19 @@ async function main() {
       robots: 'index,follow',
       structuredData: { '@type': 'AboutPage', name: 'The Story of Jivo Wellness', url: `${BASE}/our-essence/the-story` },
     },
+    {
+      page: 'our-essence-core-values',
+      metaTitle: 'Core Values | Our Essence | Jivo Wellness',
+      metaDescription: 'Truth, Devotion, Sewa, Intelligence, Integrity — the five principles that shape every action at Jivo Wellness.',
+      keywords: ['jivo core values', 'jivo essence', 'truth devotion sewa', 'sewa selfless service', 'intelligence integrity', 'jivo wellness values', 'essence in action', 'truth as foundation'],
+      ogTitle: 'Our Core Values — Essence in Action',
+      ogDescription: 'Truth, Devotion, Sewa, Intelligence, Integrity — the principles behind every action at Jivo.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/core-values`,
+      robots: 'index,follow',
+      structuredData: { '@type': 'AboutPage', name: 'Core Values of Jivo Wellness', url: `${BASE}/our-essence/core-values` },
+    },
   ];
 
   for (const seo of seoSeeds) {
@@ -440,6 +453,63 @@ async function main() {
           data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
         });
         console.log(`  The Story "${s.section}": created`);
+      }
+    }
+  }
+
+  // ── Our Essence — Core Values sections ─────────────────────
+  const coreValuesSections = [
+    {
+      section: 'hero', title: 'Hero', sortOrder: 0,
+      content: {
+        heading: 'ESSENCE IN ACTION',
+        subtitle: 'Where values transform into everyday actions that serve humanity.',
+        paragraph: 'These principles are not ideas—they are lived, practiced, and expressed in every action we take.',
+        backgroundImage: PLACEHOLDER,
+      },
+    },
+    {
+      section: 'foundation', title: 'Truth as Foundation', sortOrder: 1,
+      content: {
+        heading: 'TRUTH AS FOUNDATION',
+        backgroundImage: PLACEHOLDER,
+        blocks: [
+          { label: 'TRUTH', description: 'Truth is the recognition of the fundamental origin and unity in all things and all beings. This guides all actions toward absolute honesty, transparency, and integrity.' },
+          { label: 'DEVOTION', description: 'Work is approached as an expression of Devotion. This means tasks are undertaken selflessly, not for personal ambition, but as an all-inclusive expression of service to humanity. It is understood that in this state of devotion—devoid of self—a far greater intelligence, or grace, finds its expression.' },
+        ],
+      },
+    },
+    {
+      section: 'principles', title: 'Principles', sortOrder: 2,
+      content: {
+        backgroundImage: PLACEHOLDER,
+        blocks: [
+          { label: 'SEWA (SELFLESS SERVICE)', description: 'All work is an absolute offering. Sewa is the practical, moment-to-moment action of Devotion and the chosen path to realizing the ultimate Truth.' },
+          { label: 'INTELLIGENCE', description: 'Intelligence is Truth manifest. This principle guides the organization to understand the fundamental "why" and "how" (cause and effect) in its work, to learn from facts, and to act with clarity.' },
+          { label: 'INTEGRITY', description: 'Integrity is defined as an absolute and unwavering commitment to the core principles of Truth, Devotion, Sewa, and Intelligence in every decision.' },
+        ],
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceCoreValues.deleteMany();
+    for (const s of coreValuesSections) {
+      await prisma.ourEssenceCoreValues.create({
+        data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+      });
+    }
+    console.log(`✓ Core Values: RESET (${coreValuesSections.length} sections)`);
+  } else {
+    for (const s of coreValuesSections) {
+      const exists = await prisma.ourEssenceCoreValues.findUnique({ where: { section: s.section } });
+      if (exists) {
+        console.log(`  Core Values "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceCoreValues.create({
+          data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+        });
+        console.log(`  Core Values "${s.section}": created`);
       }
     }
   }

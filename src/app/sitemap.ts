@@ -5,6 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     '',
     '/our-essence/the-story',
+    '/our-essence/core-values',
     '/who-we-are',
     '/our-values',
     '/why-jivo',
