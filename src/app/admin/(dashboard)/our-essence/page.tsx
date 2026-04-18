@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, BookOpen } from 'lucide-react';
+import { Search, Sparkles, BookOpen, Compass } from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -14,6 +14,7 @@ interface PageEntry {
 
 const SECTION_PAGES: PageEntry[] = [
   { label: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen, description: 'Hero, founder bio & vision', color: 'from-teal-500/20 to-teal-600/5' },
+  { label: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass, description: 'Truth, Devotion, Sewa, Intelligence, Integrity', color: 'from-amber-500/20 to-amber-600/5' },
   // Add more Our Essence pages here
 ];
 

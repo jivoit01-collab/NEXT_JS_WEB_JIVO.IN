@@ -20,3 +20,24 @@ export type {
   TheStoryVisionContent,
   TheStorySectionKey,
 } from './the-story';
+
+export {
+  CoreValuesMain,
+  CoreValuesHero,
+  FoundationSection,
+  PrinciplesSection,
+  getCoreValuesPageSectionsAction,
+  getAllCoreValuesSectionsAction,
+  getCoreValuesSectionAction,
+  upsertCoreValuesSectionAction,
+  deleteCoreValuesSectionAction,
+  defaultSeo as coreValuesDefaultSeo,
+} from './core-values';
+
+export type {
+  CoreValuesHeroContent,
+  CoreValuesFoundationContent,
+  CoreValuesPrinciplesContent,
+  CoreValueBlock,
+  CoreValuesSectionKey,
+} from './core-values';
