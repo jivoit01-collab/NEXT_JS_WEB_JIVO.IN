@@ -2380,3 +2380,235 @@ When the user sends screenshots or describes sections, map each visual section t
 - A tab in the admin editor (final tab is always SEO)
 - An API endpoint with documented JSON format
 - A field in the page's `defaultSeo` (update if the section changes keywords/description relevance)
+
+---
+
+# 🔥 GLOBAL SYSTEM RULES — IMAGE + PERFORMANCE + SAFETY (MANDATORY)
+
+---
+
+## §28 🛑 SEED SAFETY SYSTEM (CRITICAL — NEVER BREAK DATA)
+
+### 🚨 RULE
+
+Claude MUST NEVER overwrite existing database content.
+
+### ❌ FORBIDDEN
+
+- Using `upsert` in seed scripts for CMS content (sections, pages, rows that admins edit)
+- Overwriting existing records during `db:seed`
+- Resetting DB in production without `--force`
+- Replacing existing image field with `"placeholder.png"` when a row already exists
+
+### ✅ REQUIRED
+
+**Safe Seed Logic (INSERT ONLY for CMS content):**
+
+```ts
+const existing = await prisma.model.findUnique({ where: { key } });
+if (!existing) {
+  await prisma.model.create({ data });
+} else {
+  // skip — admin may have edited this row
+}
+```
+
+Only `User` / `SeoMeta` / settings rows are allowed to `upsert`, and only when `FORCE_RESET` is true OR the row is missing.
+
+### ⚠️ RESET MODE (STRICT CONTROL)
+
+```bash
+npm run db:seed:reset           # dev/staging only
+npm run db:seed:reset -- --force   # production — dangerous, wipes content
+```
+
+Guard required:
+
+```ts
+if (FORCE_RESET && process.env.NODE_ENV === 'production' && !args.includes('--force')) {
+  console.error('❌ REFUSED: --reset on production requires --force flag');
+  process.exit(1);
+}
+```
+
+### 🎯 GOAL
+
+- Never lose uploaded images
+- Never override admin changes
+- Safe production deployment
+
+---
+
+## §29 🖼 IMAGE SYSTEM (MANDATORY)
+
+### 🚨 CRITICAL RULE
+
+**ALL images in the project MUST use `<SafeImage>` component** from `@/components/shared`.
+
+### ❌ FORBIDDEN
+
+- `<img>` tag usage (raw HTML)
+- `<SafeImage><Image/></SafeImage>` pattern (double-wrapping)
+- Direct `next/image` `<Image>` for user-editable/DB-backed images (only allowed for static `/public` assets like logos in navbar/footer where absolute control is needed — and even there prefer `<SafeImage>`)
+- Direct `/api/uploads/...` URL construction in JSX
+- Manual `onError` fallback logic in components (SafeImage already handles it)
+- Storing full image path in DB — store **filename only**
+
+### ✅ REQUIRED
+
+SafeImage MUST:
+- Use `next/image` internally
+- Accept `src` as **bare filename** (e.g. `"1713456789-hero.png"`), absolute path (`/…`), or external URL (`http…`)
+- Convert internally → `/api/uploads/${filename}`
+- Handle missing images automatically with placeholder fallback
+- URL-encode filenames (spaces / special chars)
+- Log warning in dev mode when fallback triggers
+- Support `priority` prop for hero / above-the-fold images
+- Default to lazy loading (via `next/image`)
+
+### Reference implementation
+
+The canonical `SafeImage` lives at [`src/components/shared/safe-image.tsx`](../src/components/shared/safe-image.tsx). Do NOT duplicate it — always import from `@/components/shared`.
+
+Usage:
+
+```tsx
+import { SafeImage } from '@/components/shared';
+
+// Hero / above-the-fold
+<SafeImage src={hero.backgroundImage} alt="Hero" fill priority sizes="100vw" className="object-cover" />
+
+// Below-the-fold — lazy by default
+<SafeImage src={card.image} alt={card.title} width={400} height={300} className="object-cover" />
+```
+
+### 🔄 GLOBAL REPLACEMENT RULE
+
+When touching any file, if you see:
+
+```
+Find:    <img ... src={...} ...
+Replace: <SafeImage src={rawFilename} alt=... ... />
+```
+
+(pass the raw filename — SafeImage resolves the URL itself; do NOT pass `toSrc()` or `/api/uploads/...`)
+
+### ⚙️ IMAGE STORAGE RULE
+
+- Upload destination: `/uploads/images/`
+- Filename format: `${Date.now()}-${sanitizedOriginalName}`
+- DB stores **filename only**: `"171234-logo.webp"` — NOT `"/uploads/images/171234-logo.webp"`, NOT `"/api/uploads/171234-logo.webp"`
+
+### 🌐 IMAGE SERVING RULE
+
+All uploaded images served via the API route:
+
+```
+GET /api/uploads/[filename]
+```
+
+No direct filesystem access from the client.
+
+---
+
+## §30 🧠 DEBUGGING (PRODUCTION-SAFE LOGGING)
+
+### SafeImage (dev only)
+
+SafeImage already emits `console.warn('[SafeImage] IMAGE MISSING: …')` on fallback — no manual wiring needed.
+
+### Upload API logging (required)
+
+In `src/app/api/uploads/[filename]/route.ts`, when the requested file is missing, log a warning in dev so devs can spot a dangling DB reference:
+
+```ts
+if (!existsSync(filePath)) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('[UPLOAD API] Missing file:', filename);
+  }
+  // fall back to placeholder…
+}
+```
+
+### Debug matrix
+
+| Case          | Behavior              |
+| ------------- | --------------------- |
+| Image correct | Render normally       |
+| DB wrong      | Placeholder + warning |
+| File deleted  | Placeholder + warning |
+| Broken path   | Logged clearly        |
+
+---
+
+## §31 ⚡ PERFORMANCE + LAZY LOADING (MANDATORY)
+
+- Hero section → **NO** lazy loading (eager SSR for LCP)
+- All other sections → `next/dynamic` with a skeleton `loading` fallback
+- Avoid full-page `"use client"` — split server + client
+- Use `next/image` (via `<SafeImage>`) for every image
+- Use `priority` only on hero images
+
+```tsx
+const Section = dynamic(() => import('./section').then(m => m.Section), {
+  loading: () => <SectionSkeleton height="lg" />,
+});
+```
+
+---
+
+## §32 ✨ UI/UX ANIMATION RULE
+
+### Section sizing
+
+- Vertical rhythm: `py-16 md:py-24` (or similar — stay consistent)
+- Container: `mx-auto max-w-7xl px-4 sm:px-6 lg:px-8`
+- Responsive grids: `grid md:grid-cols-2 gap-8 items-center`; alternate image left/right for rhythm
+
+### Scroll-reveal animation (when framer-motion fits)
+
+```tsx
+<motion.div
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6 }}
+  viewport={{ once: true }}
+>
+  …
+</motion.div>
+```
+
+### Image performance
+
+- Hero → `priority`
+- Others → default (lazy)
+- Always via `<SafeImage>`
+
+---
+
+## §33 🛡 PRODUCTION SAFETY
+
+### Must follow
+
+- Never delete `/uploads/images` directory
+- Never run `db:seed:reset` in production without `--force` and explicit approval
+- Validate image shape/size before saving (UploadThing enforces this — don't bypass)
+
+### Optional hardening
+
+- Check file exists before render (SafeImage does)
+- Log missing files (SafeImage + uploads API both do)
+- Clean unused images via a scheduled admin tool (not auto)
+
+---
+
+## §34 🔥 FINAL EXPECTED RESULT
+
+- No image bugs
+- No DB overwrite issues
+- High performance (LCP < 2.5s, CLS < 0.1)
+- Strong debugging (grep-able log tags)
+- Clean UI/UX
+- Scalable architecture
+
+Claude MUST follow §28–§33 for: existing code refactor, new page creation, admin dashboard work, and API development.

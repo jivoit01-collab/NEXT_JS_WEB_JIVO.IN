@@ -25,7 +25,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@/components/ui';
-import { ImageUpload, toSrc } from '@/components/shared';
+import { ImageUpload, SafeImage } from '@/components/shared';
 import {
   Plus,
   Pencil,
@@ -807,10 +807,12 @@ export default function AdminHomePageManager() {
                   {/* Thumbnail */}
                   <div className="relative h-20 w-36 shrink-0 overflow-hidden rounded-lg bg-muted">
                     {slide.backgroundImage ? (
-                      <img
-                        src={toSrc(slide.backgroundImage)}
+                      <SafeImage
+                        src={slide.backgroundImage}
                         alt={slide.headline}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="144px"
+                        className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">

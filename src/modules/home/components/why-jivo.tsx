@@ -1,19 +1,16 @@
 'use client';
 
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   whyJivoContent as textDefaults,
   valuePillars as pillarDefaults,
 } from '../data/home-content';
-import { toSrc } from '@/components/shared/image-upload';
+import { SafeImage } from '@/components/shared';
 import type { WhyJivoContent } from '../types';
 
 interface WhyJivoProps {
   data?: WhyJivoContent;
 }
-
-const PLACEHOLDER = '/api/uploads/placeholder.png';
 
 export function WhyJivo({ data }: WhyJivoProps) {
   const content = data
@@ -120,8 +117,8 @@ export function WhyJivo({ data }: WhyJivoProps) {
               className="group flex flex-col items-center text-center"
             >
               <div className="relative mb-5 h-12 w-12 transition-transform duration-300 group-hover:scale-110">
-                <Image
-                  src={toSrc(pillar.image || PLACEHOLDER)}
+                <SafeImage
+                  src={pillar.image}
                   alt={pillar.title}
                   fill
                   sizes="48px"
