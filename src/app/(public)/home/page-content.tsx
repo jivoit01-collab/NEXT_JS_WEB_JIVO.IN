@@ -1,11 +1,14 @@
-import { unstable_noStore as noStore } from 'next/cache';
 import { JsonLd } from '@/components/shared';
 import { HomeMain, getHomePageSections, getActiveHeroSlides, defaultSeo } from '@/modules/home';
 import { resolveSeo, getStructuredData } from '@/modules/seo/utils';
 
-// NOTE: Route segment config (`dynamic`, `revalidate`) lives in
+// NOTE: Route segment config (`revalidate`) lives in
 // `src/app/(public)/page.tsx` (the actual route file). Next.js only reads
 // segment exports from route files, not from imported modules.
+//
+// ISR: page is statically generated and refreshed every 5 minutes. Admin
+// saves call `revalidatePath('/')` for instant invalidation on edit.
+// See docs/prompt1.md §38.
 
 // Navbar + Footer are rendered once in `src/app/(public)/layout.tsx`.
 // No page needs to import them individually.
@@ -15,9 +18,6 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage() {
-  // Opt out of every Next.js cache layer so CMS edits are visible on every refresh.
-  noStore();
-
   const [sections, heroSlides, structuredData] = await Promise.all([
     getHomePageSections(),
     getActiveHeroSlides(),

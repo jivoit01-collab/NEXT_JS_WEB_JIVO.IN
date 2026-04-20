@@ -77,7 +77,6 @@ export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
         key={`${initial}-${phase}`}
         src={currentSrc}
         alt={alt}
-        unoptimized
         onError={() => {
           if (phase === 'initial') {
             // Transient failure? Try once more with a cache-buster.

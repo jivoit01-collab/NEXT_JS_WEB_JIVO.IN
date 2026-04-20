@@ -36,16 +36,17 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
   if (allSlides.length <= 1) {
     const slide = allSlides[0];
     return (
-      <section className="relative h-screen min-h-150 w-full overflow-hidden">
+      <section className="relative h-[60vh] w-full overflow-hidden sm:h-[70vh] lg:h-screen lg:min-h-150">
         <SafeImage
           src={slide.backgroundImage}
           alt={slide.headline}
           fill
-          fetchPriority="high"
+          priority
+          quality={100}
+          sizes="(max-width: 768px) 100vw, 1920px"
           className="object-cover object-[center_30%]"
         />
-        <div className="pointer-events-none absolute inset-0 bg-black/30" />
-        <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center text-white">
+        <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center gap-8 px-6 text-center text-white sm:gap-10 md:gap-12 lg:gap-14">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -56,15 +57,17 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
               alt="Jivo Logo"
               width={520}
               height={220}
-              fetchPriority="high"
-              className="mb-43 h-auto w-56 sm:w-72 md:w-80 lg:w-[22rem]"
+              priority
+              quality={90}
+              sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 352px"
+              className="h-auto w-40 sm:w-52 md:w-60 lg:w-72"
             />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15 }}
-            className="font-sans text-center mb-5 text-2xl font-jost-bold uppercase tracking-[0.15em] md:text-4xl lg:text-4xl"
+            className="font-sans text-center text-3xl font-jost-bold uppercase  sm:text-4xl md:text-4xl lg:text-5xl xl:text-5xl"
           >
             {slide.headline}
           </motion.h1>
@@ -72,7 +75,7 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-3 max-w-md text-xs font-jost-light leading-relaxed text-white/80 sm:text-sm"
+            className="-mt-4 max-w-md text-md font-jost-light leading-relaxed text-white/80 sm:-mt-6 sm:text-1xl md:-mt-8 md:max-w-xl md:text-1xl lg:text-1xl"
           >
             {slide.subtitle}
           </motion.p>
@@ -114,7 +117,7 @@ function HeroCarousel({
   }, [emblaApi, onSelect]);
 
   return (
-    <section className="relative h-screen min-h-150 w-full overflow-hidden">
+    <section className="relative h-[60vh] w-full overflow-hidden sm:h-[70vh] lg:h-screen lg:min-h-150">
       {/* Embla viewport */}
       <div ref={emblaRef} className="h-full">
         <div className="flex h-full">
@@ -127,7 +130,9 @@ function HeroCarousel({
                 src={slide.backgroundImage}
                 alt={slide.headline}
                 fill
-                fetchPriority="high"
+                priority
+                quality={100}
+                sizes="(max-width: 768px) 100vw, 1920px"
                 className="object-cover object-[center_30%]"
               />
               <div className="pointer-events-none absolute inset-0 bg-black/30" />
@@ -137,16 +142,18 @@ function HeroCarousel({
       </div>
 
       {/* Fixed logo + animated text overlay */}
-      <div className="pointer-events-none absolute inset-0 z-10 mx-auto flex max-w-5xl flex-col items-center justify-center px-6 text-center text-white">
+      <div className="pointer-events-none absolute inset-0 z-10 mx-auto flex max-w-5xl flex-col items-center justify-center gap-8 px-6 text-center text-white sm:gap-10 md:gap-12 lg:gap-14">
         {/* Logo — always visible, no animation on slide change */}
-        <div className="mb-43">
+        <div>
           <SafeImage
             src={logoSrc}
             alt="Jivo Logo"
             width={520}
             height={220}
-            fetchPriority="high"
-            className="h-auto w-56 sm:w-72 md:w-80 lg:w-[22rem]"
+            priority
+            quality={90}
+            sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 352px"
+            className="h-auto w-40 sm:w-52 md:w-60 lg:w-72"
           />
         </div>
 
@@ -160,10 +167,10 @@ function HeroCarousel({
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center"
           >
-            <h1 className="font-sans text-center mb-5 text-2xl font-jost-bold uppercase tracking-[0.10em] md:text-4xl lg:text-4xl">
+            <h1 className="font-sans text-center text-3xl font-jost-bold uppercase tracking-widest sm:text-4xl md:text-4xl lg:text-5xl xl:text-5xl">
               {slides[selectedIndex].headline}
             </h1>
-            <p className="mt-3 max-w-md text-xs font-jost-light leading-relaxed text-white/80 sm:text-sm">
+            <p className="mt-4 max-w-md text-sm font-jost-light leading-relaxed text-white/80 sm:mt-5 sm:text-base md:mt-6 md:max-w-xl md:text-lg lg:text-xl">
               {slides[selectedIndex].subtitle}
             </p>
           </motion.div>

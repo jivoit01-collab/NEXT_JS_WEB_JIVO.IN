@@ -20,7 +20,7 @@ import {
   DialogFooter,
   Badge,
 } from '@/components/ui';
-import { ImageUpload, toSrc } from '@/components/shared';
+import { ImageUpload, SafeImage } from '@/components/shared';
 import {
   Plus,
   Pencil,
@@ -30,7 +30,6 @@ import {
   EyeOff,
   Navigation,
   Link2,
-  ExternalLink,
   X,
   CheckCircle2,
   Save,
@@ -392,12 +391,6 @@ export default function AdminNavbarManager() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline" className="gap-2">
-            <a href="/" target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4" />
-              View Live Site
-            </a>
-          </Button>
           <Button onClick={openCreateLink} className="gap-2">
             <Plus className="h-4 w-4" />
             Add Link
@@ -480,10 +473,11 @@ export default function AdminNavbarManager() {
               </Label>
               <div className="flex h-16 items-center justify-between rounded-md bg-gradient-to-br from-[#3d4f2f] to-[#2a3a1f] px-4">
                 {logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={toSrc(logoUrl)}
+                  <SafeImage
+                    src={logoUrl}
                     alt={logoAlt || 'Logo preview'}
+                    width={120}
+                    height={28}
                     className="h-7 w-auto object-contain"
                   />
                 ) : (
@@ -599,12 +593,12 @@ export default function AdminNavbarManager() {
                 </code>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="scrollbar-hide flex w-full items-center gap-2 overflow-x-auto sm:w-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => toggleLinkVisibility(activeNavLink)}
-                  className="gap-2"
+                  className="shrink-0 gap-2"
                 >
                   {activeNavLink.isVisible ? (
                     <>
@@ -620,7 +614,7 @@ export default function AdminNavbarManager() {
                   variant="outline"
                   size="sm"
                   onClick={() => openEditLink(activeNavLink)}
-                  className="gap-2"
+                  className="shrink-0 gap-2"
                 >
                   <Pencil className="h-3.5 w-3.5" /> Edit link
                 </Button>
@@ -634,11 +628,11 @@ export default function AdminNavbarManager() {
                       title: activeNavLink.title,
                     })
                   }
-                  className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="shrink-0 gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Delete link
                 </Button>
-                <Button onClick={openCreateSubLink} size="sm" className="gap-2">
+                <Button onClick={openCreateSubLink} size="sm" className="shrink-0 gap-2">
                   <Plus className="h-4 w-4" /> Add Sub-Link
                 </Button>
               </div>
