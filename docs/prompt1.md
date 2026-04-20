@@ -1799,12 +1799,56 @@ Next.js already code-splits every route. Pages under `src/app/(public)/{page}/pa
 
 ### Rules
 
-- **Hero / first section:** eager (SSR, no dynamic import)
-- **All other sections:** wrapped in `dynamic()` + `<LazyOnView>`
+- **Hero / first section:** eager (SSR, no dynamic import, no animation)
+- **SEO-relevant content sections:** `next/dynamic` ONLY (NOT wrapped in `<LazyOnView>`) — this code-splits JS but keeps SSR so crawlers see full content. Reveal-on-scroll is handled by framer-motion `whileInView` instead. See §24b below.
+- **Client-only widgets** (carousels, chat, comments, optional interactive blocks, heavy framer-motion-driven hero effects): wrap in `<LazyOnView>` — browser skips mounting until the user scrolls near them. SSR is intentionally skipped for these.
 - **Heavy components** (TipTap editor, Swiper carousel, chart libs): always `dynamic(..., { ssr: false })`
 - **Admin dashboard tabs:** each tab's body is lazy-loaded with `dynamic()` — tab content only renders when user clicks the tab
-- **Images:** use `<SafeImage loading="lazy" />` for below-the-fold, `priority` only on hero image
+- **Images:** use `<SafeImage />` everywhere — default lazy-loading, `priority` only on hero image
 - **Never** import one page's components from another page's `page.tsx`
+
+### §24b — When to use `<LazyOnView>` vs bare `next/dynamic`
+
+| Section type | Strategy | Why |
+|---|---|---|
+| Hero / above-the-fold | Direct SSR import (no dynamic, no LazyOnView) | LCP — must render on first paint |
+| SEO content below fold (mission, values, why-jivo, story, etc.) | `next/dynamic` alone + framer-motion `whileInView` for reveal | Crawlers need to see content. JS still splits per section. Animation triggers only when scrolled to — same UX benefit without SEO cost. |
+| Non-SEO widget (testimonial carousel, video embed, chat, comments, map) | `next/dynamic(..., { ssr: false })` + `<LazyOnView>` | No SEO relevance. Skip SSR and skip render entirely until visible — saves TTFB + JS. |
+| Admin editor tabs | `next/dynamic` only | No SEO. Lazy on tab click. |
+
+**Hydration-safety rule:** Never wrap SSR-content in `<LazyOnView>`. SSR sends the children's HTML; `<LazyOnView>` initial client state is `visible=false` → hydration mismatch. The existing `home-main.tsx` documents this — do not revert.
+
+### §24c — Reveal-on-scroll without sacrificing SSR
+
+Use framer-motion's `whileInView` + the shared variants in [`src/lib/animation-variants.ts`](../src/lib/animation-variants.ts):
+
+```tsx
+'use client';
+import { motion } from 'framer-motion';
+import { container, fadeUp } from '@/lib/animation-variants';
+
+export function MissionSection({ data }) {
+  return (
+    <section className="py-16 md:py-24">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.25 }}
+        className="mx-auto max-w-6xl px-4"
+      >
+        <motion.h2 variants={fadeUp}>{data.heading}</motion.h2>
+        <motion.p variants={fadeUp}>{data.body}</motion.p>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+- **One `motion.div` parent** per section with `staggerChildren` — not one `<motion.*>` per DOM node. Fewer IntersectionObservers, smoother stagger.
+- **`viewport={{ once: true, amount: 0.25 }}`** — animate once, at 25% visible. Never re-animate on scroll-up.
+- **Never animate the hero.** LCP must not wait for JS/animation.
+- **Respect `prefers-reduced-motion`** via `useReducedMotion()` → return a no-op variant set.
 
 ---
 
@@ -2380,3 +2424,1076 @@ When the user sends screenshots or describes sections, map each visual section t
 - A tab in the admin editor (final tab is always SEO)
 - An API endpoint with documented JSON format
 - A field in the page's `defaultSeo` (update if the section changes keywords/description relevance)
+
+---
+
+# 🔥 GLOBAL SYSTEM RULES — IMAGE + PERFORMANCE + SAFETY (MANDATORY)
+
+---
+
+## §28 🛑 SEED SAFETY SYSTEM (CRITICAL — NEVER BREAK DATA)
+
+### 🚨 RULE
+
+Claude MUST NEVER overwrite existing database content.
+
+### ❌ FORBIDDEN
+
+- Using `upsert` in seed scripts for CMS content (sections, pages, rows that admins edit)
+- Overwriting existing records during `db:seed`
+- Resetting DB in production without `--force`
+- Replacing existing image field with `"placeholder.png"` when a row already exists
+
+### ✅ REQUIRED
+
+**Safe Seed Logic (INSERT ONLY for CMS content):**
+
+```ts
+const existing = await prisma.model.findUnique({ where: { key } });
+if (!existing) {
+  await prisma.model.create({ data });
+} else {
+  // skip — admin may have edited this row
+}
+```
+
+Only `User` / `SeoMeta` / settings rows are allowed to `upsert`, and only when `FORCE_RESET` is true OR the row is missing.
+
+### ⚠️ RESET MODE (STRICT CONTROL)
+
+```bash
+npm run db:seed:reset           # dev/staging only
+npm run db:seed:reset -- --force   # production — dangerous, wipes content
+```
+
+Guard required:
+
+```ts
+if (FORCE_RESET && process.env.NODE_ENV === 'production' && !args.includes('--force')) {
+  console.error('❌ REFUSED: --reset on production requires --force flag');
+  process.exit(1);
+}
+```
+
+### 🎯 GOAL
+
+- Never lose uploaded images
+- Never override admin changes
+- Safe production deployment
+
+---
+
+## §29 🖼 IMAGE SYSTEM (MANDATORY)
+
+### 🚨 CRITICAL RULE
+
+**ALL images in the project MUST use `<SafeImage>` component** from `@/components/shared`.
+
+### ❌ FORBIDDEN
+
+- `<img>` tag usage (raw HTML)
+- `<SafeImage><Image/></SafeImage>` pattern (double-wrapping)
+- Direct `next/image` `<Image>` for user-editable/DB-backed images (only allowed for static `/public` assets like logos in navbar/footer where absolute control is needed — and even there prefer `<SafeImage>`)
+- Direct `/api/uploads/...` URL construction in JSX
+- Manual `onError` fallback logic in components (SafeImage already handles it)
+- Storing full image path in DB — store **filename only**
+
+### ✅ REQUIRED
+
+SafeImage MUST:
+- Use `next/image` internally
+- Accept `src` as **bare filename** (e.g. `"1713456789-hero.png"`), absolute path (`/…`), or external URL (`http…`)
+- Convert internally → `/api/uploads/${filename}`
+- Handle missing images automatically with placeholder fallback
+- URL-encode filenames (spaces / special chars)
+- Log warning in dev mode when fallback triggers
+- Support `priority` prop for hero / above-the-fold images
+- Default to lazy loading (via `next/image`)
+
+### Reference implementation
+
+The canonical `SafeImage` lives at [`src/components/shared/safe-image.tsx`](../src/components/shared/safe-image.tsx). Do NOT duplicate it — always import from `@/components/shared`.
+
+Usage:
+
+```tsx
+import { SafeImage } from '@/components/shared';
+
+// Hero / above-the-fold
+<SafeImage src={hero.backgroundImage} alt="Hero" fill priority sizes="100vw" className="object-cover" />
+
+// Below-the-fold — lazy by default
+<SafeImage src={card.image} alt={card.title} width={400} height={300} className="object-cover" />
+```
+
+### 🔄 GLOBAL REPLACEMENT RULE
+
+When touching any file, if you see:
+
+```
+Find:    <img ... src={...} ...
+Replace: <SafeImage src={rawFilename} alt=... ... />
+```
+
+(pass the raw filename — SafeImage resolves the URL itself; do NOT pass `toSrc()` or `/api/uploads/...`)
+
+### ⚙️ IMAGE STORAGE RULE
+
+- Upload destination: `/uploads/images/`
+- Filename format: `${Date.now()}-${sanitizedOriginalName}`
+- DB stores **filename only**: `"171234-logo.webp"` — NOT `"/uploads/images/171234-logo.webp"`, NOT `"/api/uploads/171234-logo.webp"`
+
+### 🌐 IMAGE SERVING RULE
+
+All uploaded images served via the API route:
+
+```
+GET /api/uploads/[filename]
+```
+
+No direct filesystem access from the client.
+
+---
+
+## §30 🧠 DEBUGGING (PRODUCTION-SAFE LOGGING)
+
+### SafeImage (dev only)
+
+SafeImage already emits `console.warn('[SafeImage] IMAGE MISSING: …')` on fallback — no manual wiring needed.
+
+### Upload API logging (required)
+
+In `src/app/api/uploads/[filename]/route.ts`, when the requested file is missing, log a warning in dev so devs can spot a dangling DB reference:
+
+```ts
+if (!existsSync(filePath)) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('[UPLOAD API] Missing file:', filename);
+  }
+  // fall back to placeholder…
+}
+```
+
+### Debug matrix
+
+| Case          | Behavior              |
+| ------------- | --------------------- |
+| Image correct | Render normally       |
+| DB wrong      | Placeholder + warning |
+| File deleted  | Placeholder + warning |
+| Broken path   | Logged clearly        |
+
+---
+
+## §31 ⚡ PERFORMANCE + LAZY LOADING (MANDATORY)
+
+- Hero section → **NO** lazy loading (eager SSR for LCP)
+- All other sections → `next/dynamic` with a skeleton `loading` fallback
+- Avoid full-page `"use client"` — split server + client
+- Use `next/image` (via `<SafeImage>`) for every image
+- Use `priority` only on hero images
+
+```tsx
+const Section = dynamic(() => import('./section').then(m => m.Section), {
+  loading: () => <SectionSkeleton height="lg" />,
+});
+```
+
+---
+
+## §32 ✨ UI/UX ANIMATION RULE
+
+### Section sizing
+
+- Vertical rhythm: `py-16 md:py-24` (or similar — stay consistent)
+- Container: `mx-auto max-w-7xl px-4 sm:px-6 lg:px-8`
+- Responsive grids: `grid md:grid-cols-2 gap-8 items-center`; alternate image left/right for rhythm
+
+### Scroll-reveal animation (when framer-motion fits)
+
+```tsx
+<motion.div
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6 }}
+  viewport={{ once: true }}
+>
+  …
+</motion.div>
+```
+
+### Image performance
+
+- Hero → `priority`
+- Others → default (lazy)
+- Always via `<SafeImage>`
+
+---
+
+## §33 🛡 PRODUCTION SAFETY
+
+### Must follow
+
+- Never delete `/uploads/images` directory
+- Never run `db:seed:reset` in production without `--force` and explicit approval
+- Validate image shape/size before saving (UploadThing enforces this — don't bypass)
+
+### Optional hardening
+
+- Check file exists before render (SafeImage does)
+- Log missing files (SafeImage + uploads API both do)
+- Clean unused images via a scheduled admin tool (not auto)
+
+---
+
+## §34 🔥 FINAL EXPECTED RESULT
+
+- No image bugs
+- No DB overwrite issues
+- High performance (LCP < 2.5s, CLS < 0.1)
+- Strong debugging (grep-able log tags)
+- Clean UI/UX
+- Scalable architecture
+
+Claude MUST follow §28–§37 for: existing code refactor, new page creation, admin dashboard work, and API development.
+
+---
+
+## §35 🎬 ANIMATION SYSTEM (CENTRALIZED — MANDATORY)
+
+### 🎯 Goal
+
+One source of truth for reveal-on-scroll motion. No per-section `Variants` objects. No `ease: [0.22, 1, 0.36, 1]` literals that break TS.
+
+### ✅ Required file
+
+```
+src/lib/animation-variants.ts
+```
+
+Exports typed `Variants` (from `framer-motion`):
+
+- `container` — parent with `staggerChildren: 0.12`
+- `fadeUp` — `opacity 0 → 1`, `y 40 → 0`, duration 0.6
+- `fadeIn` — `opacity 0 → 1`, duration 0.5
+- `fadeUpSlow` — same as fadeUp with duration 0.8 + larger stagger (for headline-heavy sections)
+- Cubic bezier easing via `cubicBezier(…)` helper (not raw number arrays)
+
+### ✅ Usage pattern
+
+```tsx
+'use client';
+import { motion } from 'framer-motion';
+import { container, fadeUp } from '@/lib/animation-variants';
+
+<motion.div
+  variants={container}
+  initial="hidden"
+  whileInView="show"
+  viewport={{ once: true, amount: 0.25 }}
+>
+  <motion.h2 variants={fadeUp}>…</motion.h2>
+  <motion.p  variants={fadeUp}>…</motion.p>
+</motion.div>
+```
+
+### 🚫 Strict rules
+
+- ❌ NO animation in hero (LCP must not wait)
+- ❌ NO heavy transforms (scale+rotate+filter stacks)
+- ❌ NO infinite animations on public pages
+- ❌ NO duplicate `Variants` objects in section files — always import from `@/lib/animation-variants`
+- ✅ duration 0.5–0.8, opacity + y only for body content
+- ✅ Always `viewport={{ once: true }}`
+- ✅ Respect `prefers-reduced-motion` via `useReducedMotion()`
+
+---
+
+## §36 🎨 SHARED SECTION WRAPPER (MANDATORY FOR NEW SECTIONS)
+
+### 🎯 Goal
+
+Kill the repeated `<section><bg><overlay><container>…</container></section>` boilerplate across every module. One component, consistent spacing, enforceable defaults.
+
+### ✅ Required file
+
+```
+src/components/shared/section.tsx
+```
+
+Exported as `<Section>` from `@/components/shared`.
+
+### Props
+
+```ts
+interface SectionProps {
+  /** Filename or absolute path — rendered via <SafeImage fill /> when provided. */
+  background?: string;
+  /** Dark overlay opacity 0–100. Default 0 (no overlay). */
+  overlay?: number;
+  /** Vertical rhythm. Default "default" = py-16 md:py-24. */
+  padding?: 'sm' | 'default' | 'lg' | 'none';
+  /** Inner container max-width. Default "7xl". */
+  container?: '5xl' | '6xl' | '7xl' | 'full';
+  /** Additional classes on <section>. */
+  className?: string;
+  /** Additional classes on inner container. */
+  innerClassName?: string;
+  children: React.ReactNode;
+}
+```
+
+### Usage
+
+```tsx
+<Section background={data.bg} overlay={55} container="6xl">
+  <h2>…</h2>
+  <p>…</p>
+</Section>
+```
+
+### Consistency
+
+- Vertical rhythm: always `py-16 md:py-24` (default) unless specified
+- Container: `mx-auto w-full px-4 sm:px-6 lg:px-8` + max-width
+- Background image: rendered via `<SafeImage fill sizes="100vw" />`
+- Overlay: `absolute inset-0 bg-black/{overlay}` when provided
+- Content layer: `relative z-10`
+
+Use `<Section>` for ALL new section components. Existing sections can migrate incrementally — do not mass-refactor.
+
+---
+
+## §37 💀 SKELETON RULES (IMPROVED)
+
+### 🎯 Goal
+
+Loading skeletons should MATCH the section's shape to prevent CLS and give the user a believable placeholder.
+
+### ❌ FORBIDDEN
+
+- One-size-fits-all generic skeletons
+- Skeletons taller/shorter than the real section (causes jump)
+- Skeletons inside `<LazyOnView fallback>` for SSR content (hydration mismatch)
+
+### ✅ REQUIRED
+
+- `SectionSkeleton` accepts `height: 'sm' | 'md' | 'lg' | 'hero'` — pick the size closest to the real section
+- For layout-heavy sections (two-column, grid), create a section-specific skeleton that mirrors the grid
+- Use `animate-pulse` from `@/components/ui/skeleton`
+- Place skeletons only in `next/dynamic(..., { loading: ... })` — never in `<LazyOnView fallback>` for SEO content
+
+```tsx
+const MissionSection = dynamic(
+  () => import('./mission-section').then(m => m.MissionSection),
+  { loading: () => <SectionSkeleton height="lg" /> },
+);
+```
+
+---
+
+## §38 🚀 RENDERING STRATEGY (UPDATED — ISR, NOT `noStore`)
+
+### 🎯 Goal
+
+Every CMS-driven public page should serve from edge cache by default and rebuild on admin edit — not hit the DB on every visit.
+
+### ❌ FORBIDDEN for CMS content pages
+
+- `export const dynamic = 'force-dynamic'`
+- `unstable_noStore()` at the top of `page.tsx`
+
+### ✅ REQUIRED
+
+```tsx
+// src/app/(public)/{page}/page.tsx
+export const revalidate = 300;  // 5 min — long enough to cache, short enough to refresh
+```
+
+Admin save flow already calls `revalidatePath('/…')` inside server actions → cache invalidates instantly when admin edits. ISR fills in the rest.
+
+### Exceptions
+
+- Admin dashboard pages (`/admin/**`) → CSR (no revalidate needed — authenticated views)
+- User-specific pages (`/orders`, `/cart`) → `export const dynamic = 'force-dynamic'` (always fresh per user)
+- Non-indexed auth pages (`/login`, `/signup`) → default
+
+### Prisma SELECT optimization
+
+Every `findMany` in a page's data query MUST select only the columns it needs:
+
+```ts
+await prisma.ourEssenceCoreValues.findMany({
+  where: { isActive: true },
+  orderBy: { sortOrder: 'asc' },
+  select: { section: true, content: true },  // ← not the whole row
+});
+```
+
+Saves bandwidth + parse time. Full-row fetches are allowed only for admin edit screens where every field matters.
+
+### SEO query dedup
+
+`resolveSeo(page, …)` and `getStructuredData(page, …)` both call `getSeoByPage(page)` — a duplicate round trip. Fix by wrapping `getSeoByPage` with React's `cache()`:
+
+```ts
+// src/modules/seo/data/queries.ts
+import { cache } from 'react';
+export const getSeoByPage = cache(async (page: string) => {
+  return prisma.seoMeta.findUnique({ where: { page } });
+});
+```
+
+Request-scoped memoization — second call in the same request is free.
+
+### Font + resource preloading
+
+- Jost loaded via `next/font` with `display: 'swap'` (already required — verify in `app/layout.tsx`)
+- Hero image: explicit `<link rel="preload" as="image" href={…}>` injected per-page for cold-cache LCP wins
+
+---
+
+## §39 FINAL RESULT EXPECTED (COMPOSITE)
+
+- Sections load on scroll (via code-splitting + animated reveal)
+- Smooth 60fps animations (single motion parent + stagger)
+- Fast initial load (ISR cache + hero preload + SELECT columns)
+- Clean UI (shared `<Section>` wrapper)
+- Clean TS (typed variants — no more `ease` tuple errors)
+
+🚫 DO NOT BREAK: SafeImage internals, Prisma per-page schema, module architecture, admin dashboard pattern, SSR for SEO sections.
+
+---
+
+## §40 🚀 HERO LCP OPTIMIZATION (MANDATORY — EXTENDS §29, §31, §35, §38)
+
+### 🎯 Goal
+
+The hero is the LCP element on every public page. Target Lighthouse Performance ≥ 90 desktop / 75–85 mobile. Every rule below is non-negotiable for hero sections.
+
+### §40.1 — Hero image props (STRICT)
+
+Every hero `<SafeImage>` MUST pass:
+
+```tsx
+<SafeImage
+  src={hero.backgroundImage}
+  alt={hero.heading}
+  fill
+  priority                                   // ← forces eager fetch, skips lazy
+  sizes="(max-width: 768px) 100vw, 100vw"    // ← tell browser it's full-width
+  placeholder="blur"                         // ← when a blurDataURL is available
+  blurDataURL={hero.backgroundBlur}          // ← 10×10 base64 JPEG from sharp
+  className="object-cover"
+/>
+```
+
+- ✅ `priority` — required on every hero image (bypasses the lazy queue, preloads via `<link rel="preload">`)
+- ✅ `sizes="100vw"` (or responsive variant) — required so the optimizer picks the right width
+- ✅ `placeholder="blur"` with `blurDataURL` — required when the image is uploaded through admin (generate blur at upload time with `sharp`)
+- ❌ Never omit `sizes` on `fill` images — defaults to 100vw which may over-download
+- ❌ Never use `priority` on anything BELOW the hero (it poisons the preload queue)
+
+### §40.2 — Image size & format limits (STRICT)
+
+| Target | Max size | Format |
+|--------|----------|--------|
+| Desktop hero | 200 KB | WebP or AVIF |
+| Mobile hero | 100 KB | WebP or AVIF |
+| Below-the-fold | 150 KB | WebP or AVIF |
+
+- `sharp` (already in deps) is run at upload time to re-encode uploaded JPEG/PNG to WebP and strip metadata
+- AVIF is better but slower to encode — WebP is the baseline requirement
+- Originals > 2 MB should be rejected at upload with a clear error
+- Admin UI should warn when a hero image exceeds the budget after encoding
+
+### §40.3 — Blur placeholder generation (upload pipeline)
+
+At upload time:
+
+```ts
+import sharp from 'sharp';
+
+const buffer = await sharp(originalBuffer)
+  .resize(10, 10, { fit: 'inside' })
+  .jpeg({ quality: 50 })
+  .toBuffer();
+
+const blurDataURL = `data:image/jpeg;base64,${buffer.toString('base64')}`;
+```
+
+Store `blurDataURL` in the section's JSON content alongside the filename:
+
+```json
+{
+  "backgroundImage": "171234-hero.webp",
+  "backgroundBlur": "data:image/jpeg;base64,…"
+}
+```
+
+`SafeImage` forwards both to `next/image`.
+
+### §40.4 — Hero animation (STRICT — reinforces §35)
+
+- ❌ NO `whileInView` on hero (LCP must paint before any JS is interactive)
+- ❌ NO stagger / heavy motion / blur-filter reveal / clip-path on hero
+- ❌ NO delayed mount (no `<LazyOnView>` — hero must render on first paint)
+- ✅ Static content is the default
+- ✅ A single `opacity 0 → 1` fade (≤ 0.3s, no Y translate) is the MAX allowed — apply only to the content overlay, never to the image itself
+- ✅ Hero text must be real server-rendered HTML, not framer-motion children
+
+**Existing exception:** `the-story/hero-section.tsx` currently animates heading/paragraph via `animate="show"` on mount. This is legacy. New hero sections MUST follow the static rule. Migrate existing ones when touching them.
+
+### §40.5 — Overlay simplification
+
+Overlays are allowed but keep them cheap:
+
+- ✅ ONE overlay element maximum
+- ✅ Flat `bg-black/40` / `bg-black/50` is preferred over gradients for speed
+- ✅ If a gradient is required for contrast, use `bg-gradient-to-t from-black/60 to-transparent` (single-direction, 2 stops max)
+- ❌ NO stacked overlays (don't layer gradient + solid + vignette)
+- ❌ NO `backdrop-filter: blur` on hero overlay (expensive, hurts mobile FPS)
+
+### §40.6 — Mobile-specific rules
+
+- Hero min-height: `min-h-[60vh] sm:min-h-[70vh] lg:min-h-screen` — NOT `min-h-screen` on mobile (mobile screens are tall, this forces too much scrolling before second section)
+- Mobile viewport ≠ desktop viewport — never serve a desktop-resolution image to a 400px-wide phone. Let `next/image` pick the right size via `sizes`.
+- Text size: `clamp()` or responsive utilities — don't ship 96px fonts on mobile
+
+### §40.7 — Font performance (reinforces §38)
+
+Every font loaded through `next/font` MUST declare:
+
+```ts
+import { Jost } from 'next/font/google';
+
+export const jost = Jost({
+  subsets: ['latin'],
+  display: 'swap',       // ← REQUIRED — prevents invisible-text-during-fetch
+  weight: ['400', '500', '700', '800'],
+  preload: true,         // default, but explicit is better
+  variable: '--font-jost',
+});
+```
+
+- ❌ Never use `display: 'block'` or `display: 'optional'` for body fonts — causes FOIT (flash of invisible text)
+- ✅ Preload ONLY fonts used above the fold; defer weights only needed deeper in the page
+
+### §40.8 — Above-the-fold priority rule
+
+Rendering budget, in order:
+
+1. **First paint (0–1000ms):** hero image + hero HTML (server-rendered, priority-preloaded)
+2. **LCP (< 2.5s):** hero image fully decoded + painted
+3. **Interactive:** framework JS, section chunks, analytics — all AFTER hero paints
+4. **Below fold:** `next/dynamic` sections fetch their JS chunks as user scrolls
+
+No JS, no framer-motion, no fonts-that-aren't-preloaded, no third-party widgets should block hero paint. If it's not above-the-fold, it's not allowed to run before LCP.
+
+### §40.9 — Verification checklist
+
+Before shipping a hero:
+
+- [ ] `priority` set
+- [ ] `sizes` set (at minimum `"100vw"`)
+- [ ] `placeholder="blur"` + `blurDataURL` if image is admin-uploaded
+- [ ] Image served as WebP/AVIF (not PNG/JPEG for hero)
+- [ ] Image size under §40.2 budget
+- [ ] No animation on hero content or image
+- [ ] Single overlay, flat or 2-stop gradient max
+- [ ] `min-h-*` scaled per breakpoint
+- [ ] Lighthouse LCP ≤ 2.5s on Moto G4 throttled profile
+
+### 🎯 Expected scores after §40 compliance
+
+- Desktop Performance: ≥ 90
+- Mobile Performance: 75–85
+- LCP: < 2.5s
+- CLS: < 0.1
+
+🚫 DO NOT BREAK: SafeImage internals (don't bypass it), lazy loading system (§24), section architecture (§25, §36), Prisma / API contracts. §40 is additive — it tightens existing rules, never replaces them.
+
+---
+
+## §41 🖼 HERO IMAGE QUALITY (CORRECTS §40.1 / §40.2)
+
+### 🎯 Goal
+
+Hero image must render **visually identical to the uploaded original** on desktop — no blur, no pixelation, no CSS upscaling. §40's delivery rules still apply; this section corrects the `sizes` + encoding specifics that were causing perceived quality loss.
+
+### 🚨 Why the earlier rule caused blur
+
+`sizes="100vw"` on a `fill` image tells the browser to pick the largest srcset candidate matching viewport width. If the source is smaller than the rendered size (e.g. a 1200px-wide upload displayed on a 1920px desktop), every candidate gets CSS-upscaled → blur. Two failure modes:
+
+1. **Source too small** — admin uploaded a 1024px image but viewport is 1920px wide. No srcset candidate is large enough.
+2. **Optimizer picks a small candidate then CSS stretches it** — happens when `sizes` is unbounded and the candidate selection heuristic undershoots.
+
+### §41.1 — Updated hero `sizes` prop (REPLACES §40.1 wording)
+
+Use a **capped** sizes string so the browser knows the maximum natural width of the image:
+
+```tsx
+<SafeImage
+  src={hero.backgroundImage}
+  alt={hero.heading}
+  fill
+  priority
+  sizes="(max-width: 768px) 100vw, 1920px"    // ← cap at 1920 on desktop
+  placeholder="blur"
+  blurDataURL={hero.backgroundBlur}
+  className="object-cover"
+/>
+```
+
+Variants by context:
+
+| Hero placement | `sizes` |
+|---|---|
+| Full-bleed hero (100vw × 100vh) | `"(max-width: 768px) 100vw, 1920px"` |
+| Bounded hero inside a container (e.g. `max-w-7xl`) | `"(max-width: 768px) 100vw, 1440px"` |
+| Card / thumbnail (never hero) | `"(max-width: 640px) 100vw, 600px"` |
+
+### §41.2 — Source image dimensions (STRICT)
+
+| Target | Min width | Max width | Notes |
+|---|---|---|---|
+| Full-bleed desktop hero | 1920 px | 2400 px | Anything < 1920 will blur on FHD+ screens |
+| Bounded desktop hero | 1440 px | 1800 px | Sized for container width |
+| Mobile hero (responsive source) | 800 px | 1000 px | Served via srcset to phones |
+| Below-the-fold images | 800 px | 1600 px | Depends on grid width |
+
+- ❌ NEVER upload 4000 px+ images — wasted bytes, `sharp` slow, no visual benefit past 2× display resolution
+- ❌ NEVER upload < 1920 px and expect sharp display on 1080p monitors
+- ✅ Admin UI should WARN (not block) when a hero upload is < 1920 px wide
+- ✅ Admin UI should REJECT uploads > 5 MB or > 4000 px on either axis
+
+### §41.3 — Compression quality (CORRECTS §40.2)
+
+`sharp` re-encoding settings at upload time:
+
+```ts
+// src/lib/image-pipeline.ts (or wherever uploads are processed)
+await sharp(buffer)
+  .resize({ width: 1920, withoutEnlargement: true })   // cap, don't upscale
+  .webp({ quality: 85 })                                // 80–90 is the safe band
+  .toBuffer();
+```
+
+| Setting | Value | Why |
+|---|---|---|
+| Quality | **80–90** | 85 is the default sweet spot; 80 if file must be smaller; NEVER below 70 |
+| Format | WebP (fallback to AVIF when supported) | Preserves quality at 60–70% the size of JPEG |
+| `withoutEnlargement` | `true` | Never upscale a small source — it just gets bigger and blurrier |
+| Chroma subsampling | `4:4:4` on hero | For text-on-image heroes, avoid the default `4:2:0` which fuzzes edges |
+
+Budget from §40.2 still holds (Desktop hero ≤ 200 KB) — quality 85 at 1920 px width typically lands in 120–180 KB for photographic content. If a particular image exceeds 200 KB at quality 85, reduce source dimensions before reducing quality.
+
+### §41.4 — Hero slider / carousel (multiple images)
+
+When admin uploads 4–10 hero slides:
+
+- ✅ **First slide only** gets `priority` — it's the LCP candidate
+- ✅ All other slides: no `priority`, default lazy loading
+- ✅ Use Swiper's `lazy` preload strategy so next slide loads just before it animates in
+- ❌ NEVER set `priority` on every slide — poisons the preload queue and kills LCP
+
+```tsx
+{slides.map((slide, i) => (
+  <SafeImage
+    key={slide.id}
+    src={slide.image}
+    priority={i === 0}                                  // ← only first
+    sizes="(max-width: 768px) 100vw, 1920px"
+    fill
+    className="object-cover"
+  />
+))}
+```
+
+### §41.5 — Blur placeholder behavior (refines §40.3)
+
+- ✅ `blurDataURL` appears for ~50–300ms while full image decodes
+- ✅ Full image MUST replace blur completely — if the blur persists, that's a bug (usually: wrong `src` path or broken `/api/uploads/...` response)
+- ❌ Blur must NOT be visible at rest. If users see blur after load, `SafeImage` has entered fallback state — check the `[SafeImage] IMAGE MISSING` warning in the console.
+- ✅ `blurDataURL` itself is tiny (10×10 base64 ≈ 400 bytes) — inlined, no extra request
+
+### §41.6 — CSS rules that protect image quality
+
+```tsx
+<SafeImage … className="object-cover" />   // ✅ correct
+```
+
+- ✅ `object-fit: cover` — fills the container, crops overflow, no distortion
+- ❌ `object-fit: fill` — stretches image to container = distortion
+- ❌ `transform: scale(>1)` on hero image — CSS upscale = blur
+- ❌ `width: 100%; height: auto;` on a `fill` image — conflicts with `next/image` fill math
+- ❌ Tailwind utilities that force oversized rendering (e.g. explicit `w-[2400px]` on a 1920-px source)
+
+### §41.7 — The quality-vs-performance tradeoff (PRIORITY ORDER)
+
+When tuning, apply fixes in this order:
+
+1. **Fix `sizes`** (free — no quality cost, fixes browser candidate selection)
+2. **Fix source dimensions** (upload at 1920 px min — free quality gain)
+3. **Keep quality at 85** (don't touch)
+4. **Switch JPEG → WebP** (same visual quality, 30–40% smaller)
+5. **Only then** consider shrinking dimensions / dropping quality if still over budget
+
+NEVER start with quality reduction. Compression is the last lever, not the first.
+
+### §41.8 — Verification checklist
+
+Before marking a hero "done":
+
+- [ ] Source image is WebP, ≥ 1920 px wide
+- [ ] `sizes` uses the capped form from §41.1
+- [ ] `priority` is set on the hero (and ONLY the hero / first carousel slide)
+- [ ] `object-cover` (not `fill`, not `contain` unless explicitly a logo)
+- [ ] On desktop: zoom to 100% — image looks identical to the original upload
+- [ ] On mobile: image is crisp, not noticeably pixelated
+- [ ] Lighthouse: LCP image size matches expected byte budget (dev tools → Network → Name column shows served size)
+
+### 🎯 Expected result
+
+- Hero looks EXACTLY like the uploaded original on desktop ✅
+- No blur at 100% zoom on 1920×1080 ✅
+- Mobile gets a smaller, appropriately-sized variant ✅
+- LCP still under 2.5s ✅
+- File size in the 120–200 KB band for photographic heroes ✅
+
+🚫 DO NOT BREAK: §40 targets (LCP, file size budgets), SafeImage retry/fallback logic, lazy loading for below-the-fold. §41 is a correction layer — when §40 and §41 disagree on `sizes`, follow §41.
+
+---
+
+## §42 🖼 HERO CLARITY POLICY — NO BLUR, NO EFFECTS (SUPERSEDES §40.3 + §41.5)
+
+### 🎯 Goal
+
+Hero images render at **full clarity on first paint**. No loading blur. No transition that degrades the image. What the admin uploaded is what the user sees.
+
+### 🚨 Precedence over earlier rules
+
+This section overrides the following parts of §40 and §41:
+
+- **§40.3 (blur placeholder generation via `sharp`)** — NO LONGER REQUIRED. Do not compute `blurDataURL`; do not store it in section JSON.
+- **§40.1 (`placeholder="blur"` + `blurDataURL` props)** — NO LONGER REQUIRED. Remove both props from every hero `<SafeImage>`.
+- **§41.5 (blur behavior during load)** — INVALID. Blur never appears, not even briefly.
+
+Everything else in §40 and §41 stands (source dimensions, `sizes` capping, `priority` on first slide only, quality 80–90 band).
+
+### §42.1 — Canonical hero `<SafeImage>` props
+
+```tsx
+<SafeImage
+  src={hero.backgroundImage}
+  alt={hero.heading}
+  fill
+  priority
+  sizes="(max-width: 768px) 100vw, 1920px"
+  className="object-cover"
+/>
+```
+
+Note what is **removed** vs §40.1:
+
+- ❌ NO `placeholder="blur"`
+- ❌ NO `blurDataURL={…}`
+
+Everything else is unchanged.
+
+### §42.2 — Forbidden visual effects on hero images
+
+| Effect | Why forbidden |
+|---|---|
+| `placeholder="blur"` | Shows a blurred low-res preview before decode — visible quality hit |
+| `blurDataURL` | Only used by `placeholder="blur"`; no reason to store if unused |
+| CSS `filter: blur(*)` on image | Obvious clarity loss |
+| CSS `backdrop-filter: blur(*)` on overlay | Reduces perceived sharpness of image beneath; expensive on mobile |
+| `transform: scale(>1)` | Upscales image via CSS → softness |
+| Framer-motion `filter: 'blur(6px) → blur(0px)'` reveal | Starts blurred; user sees a blurry frame |
+| `transition: opacity` with staggered children | Delays full-quality render (reinforces §35 hero animation ban) |
+| Overlay opacity > 0.4 | Obscures image detail; if contrast is an issue, darken the image at encode time instead of overlaying heavily |
+
+### §42.3 — Allowed CSS only
+
+```css
+/* The entire allowed CSS surface for a hero image */
+object-fit: cover;         /* or `contain` for logos */
+width: 100%;
+height: 100%;
+```
+
+Everything else on the image element is forbidden. Gradients/overlays live on sibling elements, never on the image itself.
+
+### §42.4 — Overlay rules (tightens §40.5)
+
+- ✅ Single overlay element, sibling to the image (never on the image)
+- ✅ Max opacity: `bg-black/40` — higher than that hides upload detail
+- ✅ Flat color preferred; 2-stop linear gradient allowed only for text-contrast reasons (`from-black/50 to-transparent`)
+- ❌ NO `backdrop-blur-*` on the overlay — defeats the entire clarity policy
+
+### §42.5 — Image delivery (reinforces §41.1 / §41.2)
+
+- Desktop source ≥ 1920 px wide — non-negotiable for sharp rendering on FHD+ monitors
+- Mobile source 800–1000 px — right-sized, no downscale waste
+- WebP or AVIF only — NEVER upscale a small PNG/JPEG source
+- Admin UI MUST warn if upload is < 1920 px on hero fields
+
+### §42.6 — Hero carousel behavior
+
+```tsx
+{slides.map((slide, i) => (
+  <SafeImage
+    key={slide.id}
+    src={slide.image}
+    alt={slide.headline}
+    fill
+    priority={i === 0}
+    sizes="(max-width: 768px) 100vw, 1920px"
+    className="object-cover"
+  />
+))}
+```
+
+- First slide: `priority`, eager decode, no blur
+- Slides 2..N: default lazy, no `priority`, no blur
+- NEVER precompute or display blur on any slide
+
+### §42.7 — Compression quality (reinforces §41.3)
+
+- WebP quality: **85** (default), range **80–90**
+- AVIF quality: **65** (≈ visual equivalent of WebP 85), range **60–75**
+- NEVER below quality 70 (WebP) / 55 (AVIF) — causes visible blocking artifacts
+- Chroma subsampling `4:4:4` for text-on-image heroes (preserves edge sharpness)
+
+### §42.8 — Priority order when tuning clarity vs performance
+
+1. **Clarity first** — image must look identical to upload at 100% zoom
+2. **Correct source dimensions** — ≥ 1920 px for desktop heroes
+3. **Delivery (`sizes`, `priority`)** — free, no quality cost
+4. **Format** — WebP/AVIF, no quality loss vs JPEG
+5. **Compression** — last lever; never drop below the bands in §42.7
+
+If a hero can't fit in 200 KB at quality 85 / 1920 px wide, reduce source dimensions toward 1600 px before reducing quality.
+
+### §42.9 — Final checklist
+
+Before a hero ships:
+
+- [ ] No `placeholder="blur"` prop anywhere
+- [ ] No `blurDataURL` stored in DB or passed as prop
+- [ ] No `filter: blur` or `backdrop-filter: blur` in any stylesheet or inline style
+- [ ] No framer-motion blur-transition on hero content
+- [ ] Overlay opacity ≤ 0.4
+- [ ] Source image ≥ 1920 px (desktop) in WebP/AVIF at quality 80–90
+- [ ] `sizes="(max-width: 768px) 100vw, 1920px"` on the `<SafeImage>`
+- [ ] `priority` on the hero (or first carousel slide only)
+- [ ] At 100% browser zoom: image looks pixel-identical to the uploaded original
+- [ ] Lighthouse LCP ≤ 2.5s, Performance ≥ 90 desktop
+
+### 🎯 Expected result
+
+- Pixel-perfect clarity on first paint ✅
+- Zero blur frames during load ✅
+- No CSS filter or motion-driven distortion ✅
+- Mobile still gets the right-sized image via `sizes` ✅
+- Performance budget held because clarity doesn't mean bigger files — it means the right source at the right `sizes` ✅
+
+🚫 DO NOT BREAK: SafeImage retry/fallback/placeholder-on-missing (that placeholder is a STATIC PNG, not a blur preview — unrelated), lazy loading for below-the-fold sections, ISR, module architecture.
+
+**Authority precedence across image rules:** §42 > §41 > §40 > §29. When earlier sections contradict §42 on blur, §42 wins.
+
+---
+
+## §43 📱 RESPONSIVE DESIGN + SCROLL-TRIGGERED TEXT ANIMATION (MANDATORY)
+
+Applies to **every public page AND every admin dashboard page**. Non-negotiable — any new section or page must ship with this scale out of the gate. No "we'll fix it later" — fix it now.
+
+### §43.1 🎯 Mandatory breakpoint scale
+
+Use Tailwind's default breakpoints. You MUST provide a value for each step where the element meaningfully changes size. Skipping `md:` is the most common mistake — don't.
+
+| Prefix | Min width | Device                               |
+| ------ | --------- | ------------------------------------ |
+| base   | 0         | Phones (320–639 px)                  |
+| `sm:`  | 640 px    | Large phones / small tablets         |
+| `md:`  | 768 px    | Tablets                              |
+| `lg:`  | 1024 px   | Small laptops / landscape tablets    |
+| `xl:`  | 1280 px   | Desktops                             |
+| `2xl:` | 1536 px   | Large desktops (optional)            |
+
+### §43.2 🔤 Mandatory text-size scale
+
+Copy this table verbatim when choosing classes. Don't invent your own scale.
+
+| Element                        | base       | sm          | md          | lg           | xl         |
+| ------------------------------ | ---------- | ----------- | ----------- | ------------ | ---------- |
+| Hero H1 (primary, LCP)         | `text-3xl` | `sm:text-4xl` | `md:text-4xl` | `lg:text-5xl` | `xl:text-5xl` |
+| Section H2 (below-fold)        | `text-2xl` | `sm:text-3xl` | `md:text-4xl` | `lg:text-5xl` | —          |
+| Sub-heading H3                 | `text-xl`  | `sm:text-2xl` | `md:text-2xl` | `lg:text-3xl` | —          |
+| Eyebrow / label (UPPERCASE)    | `text-xs`  | `sm:text-sm`  | `md:text-base`| —            | —          |
+| Body paragraph (primary)       | `text-sm`  | `sm:text-base`| `md:text-lg`  | `lg:text-xl`  | —          |
+| Body paragraph (secondary)     | `text-xs`  | `sm:text-sm`  | `md:text-base`| —            | —          |
+| Button / link                  | `text-sm`  | `sm:text-base`| —            | —            | —          |
+| Footer link                    | `text-xs`  | `sm:text-sm`  | `md:text-base`| —            | —          |
+
+**Never use** `text-md` — it does not exist in Tailwind and silently falls back to default. Use `text-base`.
+
+### §43.3 📏 Mandatory spacing scale
+
+```
+Section vertical padding:   py-16 sm:py-20 md:py-24 lg:py-28
+Section horizontal padding: px-4 sm:px-6 lg:px-8
+Container max-width:        max-w-7xl (or max-w-6xl for text-heavy)
+Grid gaps (body content):   gap-8 sm:gap-10 md:gap-12 lg:gap-16
+Space between H2 and body:  mb-10 sm:mb-12 md:mb-14 lg:mb-20
+```
+
+Hero is the only exception — use a `min-h-[...]` scale instead (`min-h-[60vh] sm:min-h-[70vh] lg:min-h-screen`).
+
+### §43.4 🧱 Grid stacking rules
+
+| Grid size        | Stack breakpoint | Example                                              |
+| ---------------- | ---------------- | ---------------------------------------------------- |
+| 2-col content    | `md:grid-cols-2` | `grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-16`   |
+| 3-col cards      | `sm:` then `lg:` | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`          |
+| 4–5 col footer   | progressive      | `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5` |
+| 6 uniform pills  | balanced         | `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6`          |
+
+### §43.5 🛡 Overflow safety (prevents horizontal scroll on 320 px)
+
+Every grid child must have `min-w-0` so long text doesn't stretch the track. Every long-string container (links, emails, URLs, addresses) must have `break-words`. Phone numbers get `whitespace-nowrap`. Emails on xs only may use `break-all sm:break-normal`.
+
+```tsx
+<div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+  <div className="min-w-0">            {/* prevents overflow */}
+    <a className="break-words">…</a>
+  </div>
+</div>
+```
+
+### §43.6 🎬 Scroll-triggered text animation (MANDATORY for every non-hero section)
+
+Goal: when the user scrolls, every block of text fades in smoothly. No plain static text below the fold.
+
+**Required primitives** (both already exist — DO NOT re-implement):
+
+- `@/lib/animation-variants` → `container`, `fadeUp`, `fadeUpSlow`, `scaleIn`, `defaultViewport`
+- `@/components/shared` → `SplitWords` (word-by-word reveal for headings)
+
+**Required pattern for every section component:**
+
+```tsx
+'use client';
+import { motion } from 'framer-motion';
+import { SplitWords } from '@/components/shared';
+import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
+
+export function MySection({ data }: Props) {
+  return (
+    <section className="py-16 sm:py-20 md:py-24 lg:py-28">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={defaultViewport}
+        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
+      >
+        <motion.h2
+          variants={fadeUp}
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
+        >
+          <SplitWords text={data.heading} inheritParent />
+        </motion.h2>
+
+        <motion.p
+          variants={fadeUp}
+          className="mt-4 text-sm sm:text-base md:text-lg"
+        >
+          {data.body}
+        </motion.p>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+**Animation rules (strict):**
+
+| Rule | Why |
+| ---- | --- |
+| ✅ Wrap every section in ONE motion parent with `variants={container}` | One `IntersectionObserver` per section instead of N |
+| ✅ Children use `variants={fadeUp}` — no per-child `whileInView` | Parent triggers, children inherit |
+| ✅ Use `<SplitWords>` for the primary heading of every section | Word-by-word reveal is the project's signature |
+| ✅ Pass `inheritParent` to `<SplitWords>` when it sits inside a motion parent | Avoids nested stagger conflicts |
+| ✅ `viewport={defaultViewport}` (`once:true, amount:0.25`) | Animate once, never on scroll-up |
+| ✅ Transform + opacity only | GPU path; no layout thrash |
+| ❌ NO animation in hero (see §40) | LCP must not wait |
+| ❌ NO `filter`, `blur`, `scale`-heavy, `rotate`-heavy on body text | Glitch + repaint |
+| ❌ NO `animate={{...}}` loops on public pages | Battery drain, CPU waste |
+| ❌ NO `setState` inside `requestAnimationFrame` | Triggers a full React render every frame |
+
+### §43.7 🧪 Admin dashboard responsive rules (MANDATORY for every `/admin/**` page)
+
+The dashboard is used from phones too (content fixes on the go). Every admin page must survive 360 px width without horizontal scroll.
+
+```tsx
+// Page header — stack on mobile, row on desktop
+<div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+  <div className="min-w-0">
+    <h1 className="text-xl sm:text-2xl md:text-3xl">Page Manager</h1>
+    <p className="mt-1 text-xs sm:text-sm text-muted-foreground">…</p>
+  </div>
+  <button className="w-full sm:w-auto …">Save</button>   {/* full-width on mobile */}
+</div>
+
+// Tabs — always horizontal scrollable, never wrap
+<div className="flex overflow-x-auto border-b">
+  {TABS.map((t) => (
+    <button className="whitespace-nowrap px-3 py-2.5 text-sm sm:px-4 sm:py-3 sm:text-base">
+      {t.label}
+    </button>
+  ))}
+</div>
+
+// Tab panel padding
+<div className="space-y-4 p-4 sm:space-y-6 sm:p-6">…</div>
+
+// Every form input — always w-full
+<input className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+
+// Nested card (block list item) — less padding on mobile
+<div className="space-y-3 rounded-lg border bg-background/60 p-3 sm:p-4">…</div>
+
+// Inline row that could wrap — wrap + gap
+<div className="flex flex-wrap items-center justify-between gap-2">…</div>
+```
+
+**Admin rules (strict):**
+
+- ✅ `w-full sm:w-auto` on every primary action button — full-width touch target on phones
+- ✅ `overflow-x-auto` on tab rows, data tables, and wide toolbars
+- ✅ `min-w-0` on every flex/grid child that contains long strings
+- ✅ Padding scales `p-3 sm:p-4` / `p-4 sm:p-6` — never hard-code `p-6` everywhere
+- ✅ Text scales `text-xl sm:text-2xl md:text-3xl` for page titles
+- ❌ NO admin page with fixed widths (`w-[640px]`) that break at 360 px
+- ❌ NO buttons smaller than 40 px touch target (min `py-2` with `text-sm`)
+
+### §43.8 ✅ Pre-merge responsive checklist
+
+Before shipping any new section or page, click through these at 320 px, 375 px, 768 px, 1024 px, and 1440 px. Every one must pass:
+
+- [ ] No horizontal scrollbar at any width
+- [ ] All text fits within its column — no overflow, no truncation you didn't plan
+- [ ] Grids stack at the right breakpoint (2-col at `md:`, 3+ col at `sm:`)
+- [ ] Every primary heading uses `<SplitWords>` and reveals on scroll
+- [ ] Every body paragraph uses `motion.p variants={fadeUp}`
+- [ ] Hero has NO scroll animation (initial/animate only, or static)
+- [ ] Buttons are full-width on xs, auto-width on sm+
+- [ ] Admin tabs scroll horizontally without wrapping
+- [ ] Footer works at 320 px — contact items stack cleanly
+- [ ] Lighthouse mobile Performance ≥ 75, LCP ≤ 2.5 s
+
+### §43.9 🎯 Authority
+
+When §43 conflicts with an earlier section's casual example, §43 wins. The scale tables in §43.2 and §43.3 are the single source of truth for sizing. Earlier sections' one-off class strings in code snippets are illustrative — always prefer the §43 scale.

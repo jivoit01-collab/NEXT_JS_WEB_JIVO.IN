@@ -90,12 +90,14 @@ export default function TheStoryManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-jost-bold text-2xl sm:text-3xl">The Story — Page Manager</h1>
-          <p className="mt-1 text-muted-foreground">
+      <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-jost-bold text-xl sm:text-2xl md:text-3xl">
+            The Story — Page Manager
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
             Manage the Our Essence / The Story page sections
           </p>
         </div>
@@ -103,7 +105,7 @@ export default function TheStoryManager() {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2 font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:px-6 sm:text-base"
           >
             {loading ? (
               <>
@@ -125,7 +127,7 @@ export default function TheStoryManager() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`whitespace-nowrap px-4 py-3 font-jost-medium transition-colors ${
+              className={`whitespace-nowrap px-3 py-2.5 text-sm font-jost-medium transition-colors sm:px-4 sm:py-3 sm:text-base ${
                 activeTab === tab.key
                   ? 'border-b-2 border-primary text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -136,7 +138,7 @@ export default function TheStoryManager() {
           ))}
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
           {/* ── Hero Tab ───────────────────────────── */}
           {activeTab === 'hero' && (
             <div className="space-y-4">
@@ -266,11 +268,11 @@ export default function TheStoryManager() {
 
       {/* Bottom save button for content tabs */}
       {activeTab !== 'seo' && (
-        <div className="flex justify-end">
+        <div className="flex justify-stretch sm:justify-end">
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2 font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:px-6 sm:text-base"
           >
             {loading ? (
               <>

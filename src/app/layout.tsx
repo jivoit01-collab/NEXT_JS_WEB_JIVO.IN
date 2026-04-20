@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { AuthSessionProvider, ThemeProvider, QueryProvider } from '@/providers';
 import { ReduxProvider } from '@/store/provider';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
+import { OfflineIndicator } from '@/components/shared';
 import './globals.css';
 
 const inter = Inter({
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ReduxProvider>
               <QueryProvider>
                 {children}
+                <OfflineIndicator />
                 <Toaster richColors position="top-right" />
               </QueryProvider>
             </ReduxProvider>
