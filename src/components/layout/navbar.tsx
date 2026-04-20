@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useScroll } from '@/hooks';
 import { SITE_NAME } from '@/lib/constants';
@@ -10,17 +11,64 @@ import { cn } from '@/lib/utils';
 import { toSrc } from '@/components/shared/image-upload';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function Navbar({ links = [], logoUrl, logoAlt }) {
+type NavbarSubLink = {
+  title: string;
+  href: string;
+};
+
+type NavbarLink = {
+  title: string;
+  href: string;
+  subLinks?: NavbarSubLink[];
+};
+
+const NAV_LINKS: NavbarLink[] = [
+  {
+    title: 'Products',
+    href: '/our-products',
+    subLinks: [
+      { title: 'Cold Press Canola Oil', href: '/products/cold-press-canola-oil' },
+      { title: 'Olive Oil', href: '/products/olive-oil' },
+      { title: 'Mustard Oil', href: '/products/mustard-oil' },
+      { title: 'Wheatgrass Drink', href: '/products/wheatgrass-drink' },
+      { title: 'Pure Desi Ghee', href: '/products/pure-desi-ghee' },
+    ],
+  },
+  {
+    title: 'Our Essence',
+    href: '/our-essence',
+    subLinks: [
+      { title: 'The Story', href: '/our-essence/the-story' },
+      { title: 'Core Values', href: '/our-essence/core-values' },
+    ],
+  },
+  { title: 'Media', href: '/media' },
+  { title: 'Community', href: '/community' },
+];
+
+const HOME_LINK: NavbarLink = { title: 'Home', href: '/' };
+
+export type NavbarProps = {
+  logoUrl?: string | null;
+  logoAlt?: string | null;
+};
+
+export function Navbar({ logoUrl, logoAlt }: NavbarProps) {
+  const pathname = usePathname();
+  const links = useMemo<NavbarLink[]>(
+    () => (pathname === '/' ? NAV_LINKS : [HOME_LINK, ...NAV_LINKS]),
+    [pathname],
+  );
   const scrolled = useScroll(40);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [expandedMobile, setExpandedMobile] = useState(null);
-  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  const leaveTimer = useRef(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const altText = logoAlt?.trim() || SITE_NAME;
 
   // Hover open
-  const openDropdown = useCallback((key) => {
+  const openDropdown = useCallback((key: string) => {
     if (leaveTimer.current) clearTimeout(leaveTimer.current);
     setActiveDropdown(key);
   }, []);
@@ -37,7 +85,14 @@ export function Navbar({ links = [], logoUrl, logoAlt }) {
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const toggleMobileAccordion = (key) => {
+  // Clear any pending hover-close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (leaveTimer.current) clearTimeout(leaveTimer.current);
+    };
+  }, []);
+
+  const toggleMobileAccordion = (key: string) => {
     setExpandedMobile((prev) => (prev === key ? null : key));
   };
 
@@ -73,8 +128,8 @@ export function Navbar({ links = [], logoUrl, logoAlt }) {
         {/* Desktop Nav */}
         <nav className="hidden items-center gap-8 md:flex">
           {links.map((link) => {
-            const key = link.id || link.title;
-            const hasSubLinks = link.subLinks?.length > 0;
+            const key = link.title;
+            const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
             const isActive = activeDropdown === key;
 
             return (
@@ -136,9 +191,9 @@ export function Navbar({ links = [], logoUrl, logoAlt }) {
                     >
                       <div className="min-w-[220px] rounded-2xl border border-white/40 bg-[#c0c0c0] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.25)]">
 
-                        {link.subLinks.map((sub) => (
+                        {link.subLinks?.map((sub) => (
                           <Link
-                            key={sub.id || sub.href + sub.title}
+                            key={sub.href + sub.title}
                             href={sub.href}
                             onClick={() => setActiveDropdown(null)}
                             className="group block px-4 py-2.5 text-sm font-semibold text-black"
@@ -181,8 +236,8 @@ export function Navbar({ links = [], logoUrl, logoAlt }) {
             <nav className="flex flex-col px-4 py-6">
 
               {links.map((link) => {
-                const key = link.id || link.title;
-                const hasSubLinks = link.subLinks?.length > 0;
+                const key = link.title;
+                const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
                 const isExpanded = expandedMobile === key;
 
                 return (
@@ -223,9 +278,9 @@ export function Navbar({ links = [], logoUrl, logoAlt }) {
                       >
                         <div className="overflow-hidden">
                           <div className="ml-4 rounded-xl bg-[#c0c0c0]">
-                            {link.subLinks.map((sub) => (
+                            {link.subLinks?.map((sub) => (
                               <Link
-                                key={sub.id || sub.href + sub.title}
+                                key={sub.href + sub.title}
                                 href={sub.href}
                                 onClick={() => setMobileOpen(false)}
                                 className="group block px-6 py-3 text-sm font-bold text-black border-b border-black/5 last:border-0"

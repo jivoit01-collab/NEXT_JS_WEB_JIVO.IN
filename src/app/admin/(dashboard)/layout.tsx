@@ -26,6 +26,7 @@ import {
   ArrowLeft,
   Moon,
   Sun,
+  ExternalLink,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
@@ -277,15 +278,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-9 w-9">
               {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
+            <Button asChild variant="outline" size="icon" className="h-9 w-9">
+              <a href="/" target="_blank" rel="noopener noreferrer" aria-label="View Live Site">
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
             <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </header>
 
-        <header className="sticky top-0 z-20 hidden h-12 items-center justify-end gap-3 border-b bg-background/95 px-6 backdrop-blur md:flex">
+        <header className="sticky top-0 z-20 hidden h-16 items-center justify-end gap-3 border-b bg-background/95 px-6 backdrop-blur md:flex">
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-9 w-9">
             {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <a href="/" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4" /> View Live Site
+            </a>
           </Button>
           <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
             <LogOut className="h-4 w-4" /> Logout

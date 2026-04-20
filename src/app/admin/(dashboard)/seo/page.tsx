@@ -81,6 +81,17 @@ export default function AdminSeoPage() {
   const [newPageError, setNewPageError] = useState<string | null>(null);
   const [deletingPage, setDeletingPage] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeCardId) return;
+    const handler = () => setActiveCardId(null);
+    const id = window.setTimeout(() => window.addEventListener('click', handler), 0);
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener('click', handler);
+    };
+  }, [activeCardId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -245,29 +256,34 @@ export default function AdminSeoPage() {
             const href = publicHref(row.page);
             const gradient = GRADIENTS[i % GRADIENTS.length];
 
+            const isCardActive = activeCardId === row.id;
             return (
               <div
                 key={row.id}
-                className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border bg-card p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveCardId((prev) => (prev === row.id ? null : row.id));
+                }}
+                className={`group relative flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border bg-card p-3 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg sm:gap-3 sm:p-5 ${isCardActive ? '-translate-y-1.5 border-primary/30 shadow-lg' : ''}`}
               >
-                {/* Gradient hover bg */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+                {/* Gradient hover/active bg */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} transition-opacity duration-300 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`} />
 
                 {/* Icon */}
-                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+                <div className="relative z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20 sm:h-12 sm:w-12">
                   {isNoIndex ? (
-                    <ShieldOff size={22} className="text-muted-foreground" />
+                    <ShieldOff className="h-4 w-4 text-muted-foreground sm:h-[22px] sm:w-[22px]" />
                   ) : (
-                    <Globe size={22} className="text-primary" />
+                    <Globe className="h-4 w-4 text-primary sm:h-[22px] sm:w-[22px]" />
                   )}
                 </div>
 
                 {/* Title + description */}
                 <div className="relative z-10">
-                  <span className="text-sm font-semibold text-foreground transition-colors duration-200 group-hover:text-primary">
+                  <span className="text-xs font-semibold text-foreground transition-colors duration-200 group-hover:text-primary sm:text-sm">
                     {pageLabel(row.page)}
                   </span>
-                  <p className="mt-0.5 line-clamp-1 text-[11px] leading-tight text-muted-foreground">
+                  <p className="mt-0.5 line-clamp-1 text-[10px] leading-tight text-muted-foreground sm:text-[11px]">
                     {row.metaTitle}
                   </p>
                 </div>
@@ -276,16 +292,20 @@ export default function AdminSeoPage() {
                 <div className="relative z-10">
                   <Badge
                     variant={isNoIndex ? 'secondary' : 'default'}
-                    className={`text-[10px] ${isNoIndex ? '' : 'bg-primary/15 text-primary hover:bg-primary/25'}`}
+                    className={`px-1.5 py-0 text-[9px] sm:text-[10px] ${isNoIndex ? '' : 'bg-primary/15 text-primary hover:bg-primary/25'}`}
                   >
                     {row.robots}
                   </Badge>
                 </div>
 
-                {/* Action buttons — visible on hover */}
-                <div className="relative z-10 flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                {/* Action buttons — visible on hover (desktop) or tap (mobile) */}
+                <div className={`relative z-10 flex items-center gap-1 transition-opacity duration-200 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`}>
                   <button
-                    onClick={() => setEditingPage(row.page)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveCardId(null);
+                      setEditingPage(row.page);
+                    }}
                     className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                     title="Edit SEO"
                   >
@@ -295,13 +315,18 @@ export default function AdminSeoPage() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                     className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                     title={`Visit ${href}`}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                   <button
-                    onClick={() => setDeletingPage(row.page)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveCardId(null);
+                      setDeletingPage(row.page);
+                    }}
                     className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                     title="Delete SEO"
                   >
@@ -318,7 +343,7 @@ export default function AdminSeoPage() {
       {rows.length > 0 && (
         <p className="mt-4 text-xs text-muted-foreground">
           Showing {filtered.length} of {rows.length} page{rows.length !== 1 ? 's' : ''}.
-          Hover a card to edit, visit, or delete.
+          Hover or tap a card to edit, visit, or delete.
         </p>
       )}
 

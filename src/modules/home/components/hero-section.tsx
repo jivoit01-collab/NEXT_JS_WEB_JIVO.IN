@@ -36,7 +36,7 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
   if (allSlides.length <= 1) {
     const slide = allSlides[0];
     return (
-      <section className="relative h-screen min-h-150 w-full overflow-hidden">
+      <section className="relative h-[60vh] w-full overflow-hidden sm:h-[70vh] lg:h-screen lg:min-h-150">
         <SafeImage
           src={slide.backgroundImage}
           alt={slide.headline}
@@ -75,7 +75,7 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="-mt-4 max-w-md text-sm font-jost-light leading-relaxed text-white/80 sm:-mt-6 sm:text-base md:-mt-8 md:max-w-xl md:text-lg lg:text-xl"
+            className="-mt-4 max-w-md text-md font-jost-light leading-relaxed text-white/80 sm:-mt-6 sm:text-1xl md:-mt-8 md:max-w-xl md:text-1xl lg:text-1xl"
           >
             {slide.subtitle}
           </motion.p>
@@ -117,7 +117,7 @@ function HeroCarousel({
   }, [emblaApi, onSelect]);
 
   return (
-    <section className="relative h-screen min-h-150 w-full overflow-hidden">
+    <section className="relative h-[60vh] w-full overflow-hidden sm:h-[70vh] lg:h-screen lg:min-h-150">
       {/* Embla viewport */}
       <div ref={emblaRef} className="h-full">
         <div className="flex h-full">
