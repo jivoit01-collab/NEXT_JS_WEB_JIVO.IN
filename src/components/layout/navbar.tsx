@@ -22,42 +22,19 @@ type NavbarLink = {
   subLinks?: NavbarSubLink[];
 };
 
-const NAV_LINKS: NavbarLink[] = [
-  {
-    title: 'Products',
-    href: '/our-products',
-    subLinks: [
-      { title: 'Cold Press Canola Oil', href: '/products/cold-press-canola-oil' },
-      { title: 'Olive Oil', href: '/products/olive-oil' },
-      { title: 'Mustard Oil', href: '/products/mustard-oil' },
-      { title: 'Wheatgrass Drink', href: '/products/wheatgrass-drink' },
-      { title: 'Pure Desi Ghee', href: '/products/pure-desi-ghee' },
-    ],
-  },
-  {
-    title: 'Our Essence',
-    href: '/our-essence',
-    subLinks: [
-      { title: 'The Story', href: '/our-essence/the-story' },
-      { title: 'Core Values', href: '/our-essence/core-values' },
-    ],
-  },
-  { title: 'Media', href: '/media' },
-  { title: 'Community', href: '/community' },
-];
-
 const HOME_LINK: NavbarLink = { title: 'Home', href: '/' };
 
 export type NavbarProps = {
   logoUrl?: string | null;
   logoAlt?: string | null;
+  links: NavbarLink[];
 };
 
-export function Navbar({ logoUrl, logoAlt }: NavbarProps) {
+export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
   const pathname = usePathname();
   const links = useMemo<NavbarLink[]>(
-    () => (pathname === '/' ? NAV_LINKS : [HOME_LINK, ...NAV_LINKS]),
-    [pathname],
+    () => (pathname === '/' ? navLinks : [HOME_LINK, ...navLinks]),
+    [pathname, navLinks],
   );
   const scrolled = useScroll(40);
   const [mobileOpen, setMobileOpen] = useState(false);

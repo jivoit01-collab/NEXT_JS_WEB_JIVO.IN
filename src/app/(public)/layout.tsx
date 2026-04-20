@@ -1,12 +1,25 @@
 import { Navbar, Footer } from '@/components/layout';
-import { getNavbarSetting } from '@/modules/navbar';
+import { getNavbarSetting, getVisibleNavLinks } from '@/modules/navbar';
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const navSetting = await getNavbarSetting();
+  const [navSetting, navLinks] = await Promise.all([
+    getNavbarSetting(),
+    getVisibleNavLinks(),
+  ]);
+
+  const links = navLinks.map((link) => ({
+    title: link.title,
+    href: link.href,
+    subLinks: link.subLinks.map((sub) => ({ title: sub.title, href: sub.href })),
+  }));
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar logoUrl={navSetting.logoUrl} logoAlt={navSetting.logoAlt} />
+      <Navbar
+        logoUrl={navSetting.logoUrl}
+        logoAlt={navSetting.logoAlt}
+        links={links}
+      />
       {children}
       <Footer />
     </div>
