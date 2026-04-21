@@ -46,8 +46,8 @@ export async function middleware(req: NextRequest) {
   const ip = clientIp(req);
 
   // ── 1. Rate limiting ──────────────────────────────────────────────
-  if (isAuthApi) {
-    // Login brute-force protection: 5 attempts per 15 min per IP
+  if (isAuthApi && isMutation) {
+    // Login brute-force protection — POST only (not GET /session, /csrf, /providers)
     const result = localRateLimit.auth(ip);
     if (!result.allowed) {
       return addSecurityHeaders(
