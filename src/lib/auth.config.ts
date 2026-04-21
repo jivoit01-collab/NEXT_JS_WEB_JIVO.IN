@@ -31,17 +31,17 @@ export const authConfig: NextAuthConfig = {
     },
     authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user;
+      const role = (auth?.user as { role?: string } | undefined)?.role;
+      const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
       const { pathname } = request.nextUrl;
 
-      // Public paths
       const isPublic =
-        !pathname.startsWith('/admin') ||
-        pathname === '/admin/login';
+        !pathname.startsWith('/admin') || pathname === '/admin/login';
 
       if (isPublic) return true;
 
-      // Admin area requires login
-      return isLoggedIn;
+      // Admin area requires login AND an admin role
+      return isLoggedIn && isAdmin;
     },
   },
 };

@@ -16,9 +16,13 @@ function createRateLimiter(prefix: string, requests: number, window: string) {
 }
 
 export const rateLimit = {
-  auth: createRateLimiter('auth', 5, '1 m'),
+  // Login brute-force: 5 attempts per 15 min per IP
+  auth: createRateLimiter('auth', 5, '15 m'),
   contact: createRateLimiter('contact', 3, '1 m'),
   payment: createRateLimiter('payment', 10, '1 m'),
   general: createRateLimiter('general', 60, '1 m'),
-  admin: createRateLimiter('admin', 120, '1 m'),
+  // Admin API mutations: 60 per min per IP
+  admin: createRateLimiter('admin', 60, '1 m'),
+  // File upload: 10 per min per IP
+  upload: createRateLimiter('upload', 10, '1 m'),
 };
