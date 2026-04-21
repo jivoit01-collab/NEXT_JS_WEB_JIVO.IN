@@ -1,13 +1,13 @@
 import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/require-admin';
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 
 /** Admin GET — returns ALL sections (including inactive). */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role ?? '')) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+  const guard = await requireAdmin();
+  if (guard) return guard;
 
   try {
     const sections = await prisma.ourEssenceCoreValues.findMany({
@@ -31,10 +31,8 @@ export async function GET() {
 
 /** Admin POST — upsert a section by key. */
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role ?? '')) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+  const guard = await requireAdmin();
+  if (guard) return guard;
 
   try {
     const { section, content } = await req.json();
