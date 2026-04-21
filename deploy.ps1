@@ -29,7 +29,9 @@ if ($LASTEXITCODE -ne 0) { throw "Build failed!" }
 
 # Step 5: Restart service
 Write-Host "[5/5] Restarting JivoWeb service..." -ForegroundColor Yellow
-nssm restart JivoWeb
+nssm stop JivoWeb
+Start-Sleep -Seconds 3
+nssm start JivoWeb
 Start-Sleep -Seconds 5
 
 # Health check
