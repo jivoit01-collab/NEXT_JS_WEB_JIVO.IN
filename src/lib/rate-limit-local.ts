@@ -17,7 +17,7 @@
  *
  * LIMITATION: not suitable for multi-instance / horizontally-scaled
  * deployments — each instance would have its own independent counter.
- * Use Redis-based limiting (Upstash) if you ever scale out.
+ * Use a shared Redis-backed limiter if you ever scale out.
  *
  * MEMORY
  * ───────
