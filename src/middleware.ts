@@ -50,9 +50,12 @@ export async function middleware(req: NextRequest) {
     // Login brute-force protection — POST only (not GET /session, /csrf, /providers)
     const result = localRateLimit.auth(ip);
     if (!result.allowed) {
+      // Return a NextAuth-compatible response so the client `signIn()` can
+      // read `result.error` instead of throwing on `new URL(data.url)`.
+      const loginUrl = `${req.nextUrl.origin}/admin/login?error=RateLimited`;
       return addSecurityHeaders(
         NextResponse.json(
-          { success: false, error: 'Too many requests — try again later' },
+          { url: loginUrl },
           { status: 429, headers: { 'Retry-After': String(result.retryAfter) } },
         ),
       );
@@ -126,7 +129,7 @@ export async function middleware(req: NextRequest) {
     if (!isLoginPage && !isLoggedIn) {
       const url = req.nextUrl.clone();
       url.pathname = '/admin/login';
-      url.searchParams.set('callbackUrl', pathname);
+      url.searchParams.set('callbackUrl', req.nextUrl.origin + pathname);
       return addSecurityHeaders(NextResponse.redirect(url));
     }
 
