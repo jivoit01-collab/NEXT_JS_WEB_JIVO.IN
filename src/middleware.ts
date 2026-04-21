@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { rateLimit } from '@/lib/rate-limit';
+import { localRateLimit } from '@/lib/rate-limit-local';
 
 const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY',
@@ -48,22 +48,23 @@ export async function middleware(req: NextRequest) {
   // ── 1. Rate limiting ──────────────────────────────────────────────
   if (isAuthApi) {
     // Login brute-force protection: 5 attempts per 15 min per IP
-    const { success } = await rateLimit.auth.limit(ip);
-    if (!success) {
+    const result = localRateLimit.auth(ip);
+    if (!result.allowed) {
       return addSecurityHeaders(
         NextResponse.json(
           { success: false, error: 'Too many requests — try again later' },
-          { status: 429 },
+          { status: 429, headers: { 'Retry-After': String(result.retryAfter) } },
         ),
       );
     }
   } else if ((isAdminApi || isAdminPage) && isMutation) {
-    const { success } = await rateLimit.admin.limit(ip);
-    if (!success) {
+    const limiter = pathname === '/api/upload' ? localRateLimit.upload : localRateLimit.admin;
+    const result = limiter(ip);
+    if (!result.allowed) {
       return addSecurityHeaders(
         NextResponse.json(
           { success: false, error: 'Too many requests' },
-          { status: 429 },
+          { status: 429, headers: { 'Retry-After': String(result.retryAfter) } },
         ),
       );
     }
