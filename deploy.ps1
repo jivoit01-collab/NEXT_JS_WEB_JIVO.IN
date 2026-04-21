@@ -12,25 +12,27 @@ Write-Host "[1/5] Pulling latest code..." -ForegroundColor Yellow
 git pull origin main
 if ($LASTEXITCODE -ne 0) { throw "Git pull failed!" }
 
-# Step 2: Install dependencies
-Write-Host "[2/5] Installing dependencies..." -ForegroundColor Yellow
+# Step 2: Stop service before touching node_modules
+Write-Host "[2/5] Stopping JivoWeb service..." -ForegroundColor Yellow
+nssm stop JivoWeb
+Start-Sleep -Seconds 3
+
+# Step 3: Install dependencies
+Write-Host "[3/5] Installing dependencies..." -ForegroundColor Yellow
 npm ci
 if ($LASTEXITCODE -ne 0) { throw "npm ci failed!" }
 
-# Step 3: Generate Prisma client
-Write-Host "[3/5] Generating Prisma client..." -ForegroundColor Yellow
+# Step 4: Generate Prisma client + Build Next.js
+Write-Host "[4/5] Generating Prisma client..." -ForegroundColor Yellow
 npx prisma generate
 if ($LASTEXITCODE -ne 0) { throw "Prisma generate failed!" }
 
-# Step 4: Build Next.js
-Write-Host "[4/5] Building Next.js production bundle..." -ForegroundColor Yellow
+Write-Host "      Building Next.js production bundle..." -ForegroundColor Yellow
 npm run build
 if ($LASTEXITCODE -ne 0) { throw "Build failed!" }
 
-# Step 5: Restart service
-Write-Host "[5/5] Restarting JivoWeb service..." -ForegroundColor Yellow
-nssm stop JivoWeb
-Start-Sleep -Seconds 3
+# Step 5: Start service
+Write-Host "[5/5] Starting JivoWeb service..." -ForegroundColor Yellow
 nssm start JivoWeb
 Start-Sleep -Seconds 5
 
