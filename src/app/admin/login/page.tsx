@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
       });
 
       if (result?.status === 429) {
-        router.replace('/');
+        router.replace('/?blocked=1');
       } else if (result?.error) {
         setError('Invalid email or password');
         setLoading(false);

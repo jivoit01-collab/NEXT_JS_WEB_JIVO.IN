@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Inter, Playfair_Display } from 'next/font/google';
 import localFont from 'next/font/local'
 import { Toaster } from 'sonner';
 import { AuthSessionProvider, ThemeProvider, QueryProvider } from '@/providers';
 import { ReduxProvider } from '@/store/provider';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
-import { OfflineIndicator } from '@/components/shared';
+import { OfflineIndicator, BlockedToast } from '@/components/shared';
 import './globals.css';
 
 const inter = Inter({
@@ -77,6 +78,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {children}
                 <OfflineIndicator />
                 <Toaster richColors position="top-right" />
+                <Suspense>
+                  <BlockedToast />
+                </Suspense>
               </QueryProvider>
             </ReduxProvider>
           </ThemeProvider>

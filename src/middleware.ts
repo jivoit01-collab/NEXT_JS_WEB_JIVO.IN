@@ -133,7 +133,7 @@ export async function middleware(req: NextRequest) {
     // Blocked IPs (exceeded auth attempts) cannot access any /admin page
     // until the 15-minute window expires.
     if (!isLoggedIn && isAuthBlocked(ip)) {
-      return addSecurityHeaders(NextResponse.redirect(new URL('/', req.url)));
+      return addSecurityHeaders(NextResponse.redirect(new URL('/?blocked=1', req.url)));
     }
 
     if (!isLoginPage && !isLoggedIn) {
