@@ -18,8 +18,11 @@ nssm stop JivoWeb
 Start-Sleep -Seconds 3
 
 # Step 3: Install dependencies
-Write-Host "[3/5] Installing dependencies..." -ForegroundColor Yellow
-npm ci
+# --include=dev ensures Tailwind/PostCSS devDeps are installed even when
+# NODE_ENV=production is set in the system environment (which npm ci would
+# otherwise use to skip devDependencies, breaking the CSS build).
+Write-Host "[3/5] Installing dependencies (including dev for build)..." -ForegroundColor Yellow
+npm ci --include=dev
 if ($LASTEXITCODE -ne 0) { throw "npm ci failed!" }
 
 # Step 4: Generate Prisma client + Build Next.js

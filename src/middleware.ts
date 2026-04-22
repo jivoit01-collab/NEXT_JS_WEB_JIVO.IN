@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { localRateLimit } from '@/lib/rate-limit-local';
+import { localRateLimit, isAuthBlocked } from '@/lib/rate-limit-local';
 
 const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY',
@@ -50,12 +50,13 @@ export async function middleware(req: NextRequest) {
     // Login brute-force protection — POST only (not GET /session, /csrf, /providers)
     const result = localRateLimit.auth(ip);
     if (!result.allowed) {
-      // Return a NextAuth-compatible response so the client `signIn()` can
-      // read `result.error` instead of throwing on `new URL(data.url)`.
-      const loginUrl = `${req.nextUrl.origin}/admin/login?error=RateLimited`;
+      // IP is now blocked — send them to homepage so the block persists
+      // across refreshes (middleware enforces it, not client state).
+      const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
+      const host = req.headers.get('host') ?? req.nextUrl.host;
       return addSecurityHeaders(
         NextResponse.json(
-          { url: loginUrl },
+          { url: `${proto}://${host}/` },
           { status: 429, headers: { 'Retry-After': String(result.retryAfter) } },
         ),
       );
@@ -129,6 +130,12 @@ export async function middleware(req: NextRequest) {
 
   // ── 3a. Admin pages — redirect flow ──────────────────────────────
   if (isAdminPage) {
+    // Blocked IPs (exceeded auth attempts) cannot access any /admin page
+    // until the 15-minute window expires.
+    if (!isLoggedIn && isAuthBlocked(ip)) {
+      return addSecurityHeaders(NextResponse.redirect(new URL('/', req.url)));
+    }
+
     if (!isLoginPage && !isLoggedIn) {
       const url = req.nextUrl.clone();
       url.pathname = '/admin/login';

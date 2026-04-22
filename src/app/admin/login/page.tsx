@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, ShieldAlert } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -13,7 +13,6 @@ export default function AdminLoginPage() {
   const [passwordError, setPasswordError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [rateLimited, setRateLimited] = useState(false);
   const router = useRouter();
 
   function validate(): boolean {
@@ -44,7 +43,6 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setError('');
 
-    if (rateLimited) return;
     if (!validate()) return;
 
     setLoading(true);
@@ -56,9 +54,8 @@ export default function AdminLoginPage() {
         redirect: false,
       });
 
-      if (result?.status === 429 || result?.error === 'RateLimited') {
-        setRateLimited(true);
-        setLoading(false);
+      if (result?.status === 429) {
+        router.replace('/');
       } else if (result?.error) {
         setError('Invalid email or password');
         setLoading(false);
@@ -71,26 +68,6 @@ export default function AdminLoginPage() {
       setError('Invalid email or password');
       setLoading(false);
     }
-  }
-
-  if (rateLimited) {
-    return (
-      <main className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-xl border border-destructive/30 bg-card p-8 shadow-xl text-center">
-          <ShieldAlert className="mx-auto mb-4 h-12 w-12 text-destructive" />
-          <h1 className="mb-2 text-2xl font-bold text-foreground">Access Blocked</h1>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Too many failed login attempts. This IP has been temporarily blocked.
-          </p>
-          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-            Try again after 48 hours
-          </p>
-          <p className="mt-6 text-xs text-muted-foreground">
-            If you believe this is a mistake, contact your system administrator.
-          </p>
-        </div>
-      </main>
-    );
   }
 
   return (
