@@ -110,14 +110,17 @@ export async function middleware(req: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
+  const isHttps =
+    req.headers.get('x-forwarded-proto') === 'https' ||
+    req.nextUrl.protocol === 'https:';
+
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET,
-    cookieName:
-      process.env.NODE_ENV === 'production'
-        ? '__Secure-authjs.session-token'
-        : 'authjs.session-token',
-    secureCookie: process.env.NODE_ENV === 'production',
+    cookieName: isHttps
+      ? '__Secure-authjs.session-token'
+      : 'authjs.session-token',
+    secureCookie: isHttps,
   });
 
   const isLoggedIn = !!token;
@@ -129,7 +132,9 @@ export async function middleware(req: NextRequest) {
     if (!isLoginPage && !isLoggedIn) {
       const url = req.nextUrl.clone();
       url.pathname = '/admin/login';
-      url.searchParams.set('callbackUrl', req.nextUrl.origin + pathname);
+      const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
+      const host = req.headers.get('host') ?? req.nextUrl.host;
+      url.searchParams.set('callbackUrl', `${proto}://${host}${pathname}`);
       return addSecurityHeaders(NextResponse.redirect(url));
     }
 
