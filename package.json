@@ -51,7 +51,9 @@
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
     "swiper": "^12.1.3",
+    "@tailwindcss/postcss": "^4",
     "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4",
     "tw-animate-css": "^1.4.0",
     "uploadthing": "^7.7.4",
     "zod": "^4.3.6"
@@ -59,7 +61,6 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.3",
     "@sentry/nextjs": "^10.48.0",
-    "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20",
@@ -72,7 +73,6 @@
     "prettier": "^3.8.2",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "prisma": "^7.7.0",
-    "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }

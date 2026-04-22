@@ -97,6 +97,20 @@ export function checkLimit(key: string, maxReqs: number, windowMs: number): Limi
   };
 }
 
+const AUTH_MAX = 5;
+const AUTH_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Returns true if the IP has exhausted its auth attempts and the block
+ * window has not yet expired. Used by middleware to gate /admin access.
+ */
+export function isAuthBlocked(ip: string): boolean {
+  const entry = store.get(`auth:${ip}`);
+  if (!entry) return false;
+  if (Date.now() > entry.resetAt) return false;
+  return entry.count >= AUTH_MAX;
+}
+
 /**
  * Pre-configured limiters matching the project's security policy.
  * Call the function with the client IP as the key.
@@ -107,7 +121,7 @@ export function checkLimit(key: string, maxReqs: number, windowMs: number): Limi
  */
 export const localRateLimit = {
   /** Login brute-force guard: 5 attempts per 15 minutes per IP. */
-  auth: (ip: string): LimitResult => checkLimit(`auth:${ip}`, 5, 15 * 60 * 1000),
+  auth: (ip: string): LimitResult => checkLimit(`auth:${ip}`, AUTH_MAX, AUTH_WINDOW_MS),
 
   /** Admin API mutations: 60 requests per minute per IP. */
   admin: (ip: string): LimitResult => checkLimit(`admin:${ip}`, 60, 60 * 1000),
