@@ -11,9 +11,12 @@ import type { HeroContent, HeroSlideData } from '../types';
 interface HeroSectionProps {
   data?: HeroContent;
   slides?: HeroSlideData[];
+  isLoading?: boolean;
 }
 
-export function HeroSection({ data, slides }: HeroSectionProps) {
+export function HeroSection({ data, slides, isLoading }: HeroSectionProps) {
+  if (isLoading) return <HeroSectionSkeleton />;
+
   const content = data ?? defaults;
   const logoSrc = content.logo || defaults.logo;
 
@@ -46,7 +49,8 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
           sizes="(max-width: 768px) 100vw, 1920px"
           className="object-cover object-[center_30%]"
         />
-        <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center gap-8 px-6 text-center text-white sm:gap-10 md:gap-12 lg:gap-14">
+        {/* Centered column — logo + text vertically & horizontally centered */}
+        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -58,27 +62,30 @@ export function HeroSection({ data, slides }: HeroSectionProps) {
               width={520}
               height={220}
               priority
-              quality={90}
-              sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 352px"
-              className="h-auto w-40 sm:w-52 md:w-60 lg:w-72"
+              quality={100}
+              sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, (max-width: 1024px) 320px, 400px"
+              className="h-auto w-24 sm:w-40 md:w-52 lg:w-64 xl:w-72"
             />
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            className="font-sans text-center text-3xl font-jost-bold uppercase  sm:text-4xl md:text-4xl lg:text-5xl xl:text-5xl"
-          >
-            {slide.headline}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="-mt-4 max-w-md text-md font-jost-light leading-relaxed text-white/80 sm:-mt-6 sm:text-1xl md:-mt-8 md:max-w-xl md:text-1xl lg:text-1xl"
-          >
-            {slide.subtitle}
-          </motion.p>
+
+          <div className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4">
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+              className="font-sans font-jost-bold uppercase leading-tight tracking-wide text-lg sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
+            >
+              {slide.headline}
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="max-w-65 text-[11px] font-jost-light leading-relaxed text-white/80 sm:max-w-md sm:text-sm md:max-w-xl md:text-base lg:text-lg"
+            >
+              {slide.subtitle}
+            </motion.p>
+          </div>
         </div>
       </section>
     );
@@ -141,23 +148,19 @@ function HeroCarousel({
         </div>
       </div>
 
-      {/* Fixed logo + animated text overlay */}
-      <div className="pointer-events-none absolute inset-0 z-10 mx-auto flex max-w-5xl flex-col items-center justify-center gap-8 px-6 text-center text-white sm:gap-10 md:gap-12 lg:gap-14">
-        {/* Logo — always visible, no animation on slide change */}
-        <div>
-          <SafeImage
-            src={logoSrc}
-            alt="Jivo Logo"
-            width={520}
-            height={220}
-            priority
-            quality={90}
-            sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 352px"
-            className="h-auto w-40 sm:w-52 md:w-60 lg:w-72"
-          />
-        </div>
+      {/* Centered column overlay — logo + text vertically & horizontally centered */}
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12">
+        <SafeImage
+          src={logoSrc}
+          alt="Jivo Logo"
+          width={520}
+          height={220}
+          priority
+          quality={100}
+          sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, (max-width: 1024px) 320px, 400px"
+          className="h-auto w-24 sm:w-40 md:w-52 lg:w-64 xl:w-72"
+        />
 
-        {/* Headline + subtitle — crossfade on slide change */}
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedIndex}
@@ -165,16 +168,36 @@ function HeroCarousel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center"
+            className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4"
           >
-            <h1 className="font-sans text-center text-3xl font-jost-bold uppercase tracking-widest sm:text-4xl md:text-4xl lg:text-5xl xl:text-5xl">
+            <h1 className="font-sans font-jost-bold uppercase leading-tight tracking-wide text-lg sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
               {slides[selectedIndex].headline}
             </h1>
-            <p className="mt-4 max-w-md text-sm font-jost-light leading-relaxed text-white/80 sm:mt-5 sm:text-base md:mt-6 md:max-w-xl md:text-lg lg:text-xl">
+            <p className="max-w-65 text-[11px] font-jost-light leading-relaxed text-white/80 sm:max-w-md sm:text-sm md:max-w-xl md:text-base lg:text-lg">
               {slides[selectedIndex].subtitle}
             </p>
           </motion.div>
         </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+
+// ---- Skeleton ----
+
+function HeroSectionSkeleton() {
+  return (
+    <section className="relative h-[60vh] w-full animate-pulse overflow-hidden bg-muted sm:h-[70vh] lg:h-screen lg:min-h-150">
+      <div className="flex h-full flex-col items-center justify-center gap-8 px-6 sm:gap-10 md:gap-12 lg:gap-14">
+        {/* Logo */}
+        <div className="h-16 w-40 rounded-lg bg-muted-foreground/20 sm:w-52 md:w-60 lg:w-72" />
+        {/* Headline */}
+        <div className="h-9 w-3/4 max-w-lg rounded-md bg-muted-foreground/20 sm:h-11 md:h-12" />
+        {/* Subtitle */}
+        <div className="-mt-4 flex flex-col items-center gap-2 sm:-mt-6 md:-mt-8">
+          <div className="h-4 w-80 rounded bg-muted-foreground/20 md:w-96" />
+          <div className="h-4 w-64 rounded bg-muted-foreground/20 md:w-72" />
+        </div>
       </div>
     </section>
   );

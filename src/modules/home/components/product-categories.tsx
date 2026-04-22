@@ -10,9 +10,12 @@ import { container, scaleIn, defaultViewport } from '@/lib/animation-variants';
 
 interface ProductCategoriesProps {
   data?: CategoriesContent;
+  isLoading?: boolean;
 }
 
-export function ProductCategories({ data }: ProductCategoriesProps) {
+export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
+  if (isLoading) return <ProductCategoriesSkeleton />;
+
   const heading = data?.heading ?? 'MADE FOR EVERYDAY LOVE';
   const categories = data?.items ?? defaults;
 
@@ -89,6 +92,25 @@ export function ProductCategories({ data }: ProductCategoriesProps) {
   );
 }
 
+
+// ---- Skeleton ----
+
+function ProductCategoriesSkeleton() {
+  return (
+    <section className="animate-pulse bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28">
+      <div className="container mx-auto max-w-7xl">
+        {/* Heading */}
+        <div className="mx-auto mb-10 h-8 w-80 rounded-md bg-white/25 sm:mb-12 sm:h-10 md:mb-14 md:h-12" />
+        {/* Grid — 4 cards matching aspect-3/4 cards */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="aspect-3/4 rounded-xl bg-white/20" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // 🔥 Tilt + Ripple (Optimized)
 function TiltCard({ children }: { children: React.ReactNode }) {
