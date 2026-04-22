@@ -40,18 +40,33 @@ const WhyJivo = dynamic(
 interface HomeMainProps {
   sections: Map<string, unknown>;
   heroSlides?: HeroSlideData[];
+  isLoading?: boolean;
 }
 
-export function HomeMain({ sections, heroSlides }: HomeMainProps) {
+export function HomeMain({ sections, heroSlides, isLoading }: HomeMainProps) {
   return (
     <main>
-      <HeroSection data={sections.get('hero') as HeroContent | undefined} slides={heroSlides} />
-      <ProductCategories data={sections.get('categories') as CategoriesContent | undefined} />
-      <VisionMission data={sections.get('vision_mission') as VisionMissionContent | undefined} />
+      <HeroSection
+        data={sections.get('hero') as HeroContent | undefined}
+        slides={heroSlides}
+        isLoading={isLoading}
+      />
+      <ProductCategories
+        data={sections.get('categories') as CategoriesContent | undefined}
+        isLoading={isLoading}
+      />
+      <VisionMission
+        data={sections.get('vision_mission') as VisionMissionContent | undefined}
+        isLoading={isLoading}
+      />
       <ProductsFoundation
         data={sections.get('products_foundation') as ProductsFoundationContent | undefined}
+        isLoading={isLoading}
       />
-      <WhyJivo data={sections.get('why_jivo') as WhyJivoContent | undefined} />
+      <WhyJivo
+        data={sections.get('why_jivo') as WhyJivoContent | undefined}
+        isLoading={isLoading}
+      />
     </main>
   );
 }

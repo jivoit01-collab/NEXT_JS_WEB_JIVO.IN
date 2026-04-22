@@ -11,9 +11,12 @@ import type { WhyJivoContent } from '../types';
 
 interface WhyJivoProps {
   data?: WhyJivoContent;
+  isLoading?: boolean;
 }
 
-export function WhyJivo({ data }: WhyJivoProps) {
+export function WhyJivo({ data, isLoading }: WhyJivoProps) {
+  if (isLoading) return <WhyJivoSkeleton />;
+
   const content = data
     ? {
         heading: data.heading,
@@ -110,6 +113,54 @@ export function WhyJivo({ data }: WhyJivoProps) {
           ))}
         </motion.div>
       </motion.div>
+    </section>
+  );
+}
+
+// ---- Skeleton ----
+
+function WhyJivoSkeleton() {
+  return (
+    <section
+      className="animate-pulse px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28"
+      style={{ backgroundColor: '#7b593e' }}
+    >
+      <div className="container mx-auto max-w-6xl">
+        {/* Top 2-column: heading/text left, paragraphs right */}
+        <div className="mb-16 grid grid-cols-1 gap-10 sm:mb-20 md:mb-24 md:grid-cols-2 md:gap-16 lg:gap-20">
+          {/* Left */}
+          <div className="space-y-5">
+            <div className="h-10 w-4/5 rounded-md bg-white/20" />
+            <div className="h-5 w-2/3 rounded bg-white/15" />
+            <div className="space-y-2 pt-2">
+              <div className="h-4 w-full rounded bg-white/10" />
+              <div className="h-4 w-5/6 rounded bg-white/10" />
+            </div>
+          </div>
+          {/* Right */}
+          <div className="flex flex-col space-y-5 md:pt-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-4 w-full rounded bg-white/10" />
+                <div className="h-4 w-5/6 rounded bg-white/10" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Value pillars — 6 columns */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-10 md:gap-y-12 lg:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-white/20 sm:h-12 sm:w-12" />
+              <div className="h-4 w-16 rounded bg-white/15" />
+              <div className="w-full space-y-1">
+                <div className="h-3 w-full rounded bg-white/10" />
+                <div className="h-3 w-4/5 rounded bg-white/10" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

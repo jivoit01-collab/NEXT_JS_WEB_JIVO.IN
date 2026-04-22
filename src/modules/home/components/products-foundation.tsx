@@ -9,6 +9,7 @@ import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
 
 interface ProductsFoundationProps {
   data?: ProductsFoundationContent;
+  isLoading?: boolean;
 }
 
 type BubbleState = 'rising' | 'popping';
@@ -29,7 +30,9 @@ interface Bubble {
 const MAX_BUBBLES = 14;
 const SPAWN_INTERVAL_MS = 650;
 
-export function ProductsFoundation({ data }: ProductsFoundationProps) {
+export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps) {
+  if (isLoading) return <ProductsFoundationSkeleton />;
+
   const content = data ?? defaults;
   const prefersReduced = useReducedMotion();
 
@@ -362,6 +365,34 @@ export function ProductsFoundation({ data }: ProductsFoundationProps) {
           </motion.div>
         </div>
       </motion.div>
+    </section>
+  );
+}
+
+// ---- Skeleton ----
+
+function ProductsFoundationSkeleton() {
+  return (
+    <section className="flex animate-pulse items-center bg-[#134b4c] py-16 sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28">
+      <div className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8">
+        {/* Product image placeholder */}
+        <div className="flex items-center justify-center">
+          <div className="aspect-3/4 w-full max-w-xs rounded-2xl bg-white/10 sm:max-w-sm md:max-w-md lg:max-w-lg" />
+        </div>
+        {/* Two text sections */}
+        <div className="flex flex-col justify-center space-y-6 md:space-y-8 lg:space-y-10">
+          {[0, 1].map((i) => (
+            <div key={i} className="space-y-4">
+              <div className="h-7 w-72 rounded-md bg-white/20 sm:h-8 md:h-9 lg:w-80" />
+              <div className="space-y-2">
+                <div className="h-4 w-full rounded bg-white/10" />
+                <div className="h-4 w-5/6 rounded bg-white/10" />
+                <div className="h-4 w-4/6 rounded bg-white/10" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

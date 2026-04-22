@@ -8,9 +8,12 @@ import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
 
 interface VisionMissionProps {
   data?: VisionMissionContent;
+  isLoading?: boolean;
 }
 
-export function VisionMission({ data }: VisionMissionProps) {
+export function VisionMission({ data, isLoading }: VisionMissionProps) {
+  if (isLoading) return <VisionMissionSkeleton />;
+
   const content = data ?? defaults;
 
   return (
@@ -84,6 +87,38 @@ export function VisionMission({ data }: VisionMissionProps) {
 
         </div>
       </motion.div>
+    </section>
+  );
+}
+
+// ---- Skeleton ----
+
+function VisionMissionSkeleton() {
+  return (
+    <section className="relative w-full animate-pulse overflow-hidden bg-muted py-16 sm:py-20 md:py-24 lg:py-28">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
+        {/* Heading */}
+        <div className="mx-auto mb-10 h-9 w-96 rounded-md bg-muted-foreground/20 sm:mb-12 md:mb-14 md:h-11" />
+        {/* Subtitle + intro lines */}
+        <div className="w-full space-y-3 md:w-3/4 lg:w-2/4">
+          <div className="h-5 w-full rounded bg-muted-foreground/20" />
+          <div className="h-4 w-5/6 rounded bg-muted-foreground/15" />
+          <div className="h-4 w-4/6 rounded bg-muted-foreground/15" />
+        </div>
+        {/* Vision + Mission 2-column */}
+        <div className="mt-14 grid grid-cols-1 gap-10 sm:mt-16 md:mt-20 md:grid-cols-2 md:gap-16 lg:gap-24">
+          {[0, 1].map((i) => (
+            <div key={i} className="max-w-md space-y-4">
+              <div className="h-8 w-32 rounded-md bg-muted-foreground/20 sm:h-10" />
+              <div className="space-y-2">
+                <div className="h-4 w-full rounded bg-muted-foreground/15" />
+                <div className="h-4 w-5/6 rounded bg-muted-foreground/15" />
+                <div className="h-4 w-4/6 rounded bg-muted-foreground/15" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
