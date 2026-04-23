@@ -1,79 +1,27 @@
-# name: Deploy to Production
+name: Deploy to Production
 
-# on:
-#   push:
-#     branches: [main]
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-#   # Allow manual trigger from GitHub UI
-#   workflow_dispatch:
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false   # never cancel a running deploy mid-flight
 
-# # Prevent multiple deployments running at the same time
-# concurrency:
-#   group: production-deploy
-#   cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
-# jobs:
-#   deploy:
-#     name: Build & Deploy
-#     runs-on: [self-hosted, windows, production]
-#     timeout-minutes: 15
-
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
-
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: 22
-#           cache: npm
-
-#       - name: Install dependencies
-#         run: npm ci
-
-#       - name: Generate Prisma client
-#         run: npx prisma generate
-
-#       - name: Run database migrations
-#         run: npx prisma db push --skip-generate
-
-#       - name: Build Next.js
-#         run: npm run build
-
-#       - name: Restart application service
-#         run: |
-#           nssm restart JivoWeb
-#           Start-Sleep -Seconds 5
-
-#       - name: Health check
-#         run: |
-#           $maxRetries = 5
-#           $retryCount = 0
-#           $success = $false
-
-#           while ($retryCount -lt $maxRetries -and -not $success) {
-#             try {
-#               $response = Invoke-WebRequest -Uri "http://localhost:3000" -UseBasicParsing -TimeoutSec 10
-#               if ($response.StatusCode -eq 200) {
-#                 Write-Host "Health check passed! Status: $($response.StatusCode)"
-#                 $success = $true
-#               }
-#             } catch {
-#               $retryCount++
-#               Write-Host "Attempt $retryCount/$maxRetries failed. Retrying in 5s..."
-#               Start-Sleep -Seconds 5
-#             }
-#           }
-
-#           if (-not $success) {
-#             Write-Error "Health check failed after $maxRetries attempts!"
-#             exit 1
-#           }
-
-#       - name: Deployment summary
-#         if: success()
-#         run: |
-#           Write-Host "Deployment successful!"
-#           Write-Host "Commit: ${{ github.sha }}"
-#           Write-Host "Branch: ${{ github.ref_name }}"
-#           Write-Host "Triggered by: ${{ github.actor }}"
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 15m   # covers npm ci + next build on slow servers
+          script_stop: true      # fail the step if deploy.ps1 exits non-zero
+          script: |
+            powershell -ExecutionPolicy Bypass -File D:\LiveProject\NEXT_JS_WEB_JIVO.IN\deploy.ps1
