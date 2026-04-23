@@ -7,12 +7,11 @@ $logFile = "$logDir\deploy_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 
-# Start-Transcript mirrors every Write-Host line to $logFile AND to stdout,
-# so GitHub Actions sees the same output that lands in the log file.
 Start-Transcript -Path $logFile -Append
 
 $deploySuccess = $false
 $previousCommit = $null
+$appWasStopped  = $false
 
 function Write-Step { param($msg) Write-Host ""; Write-Host $msg }
 
@@ -29,47 +28,51 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Could not read current commit hash" }
     Write-Host "Rollback point : $previousCommit"
 
-    # -- Backup current build for instant rollback (rename, not copy) ------
-    # Rename avoids disk I/O - same-drive rename is near-instant on NTFS.
+    # -- [1/6] Stop PM2 to release file locks on .next --------------------
+    Write-Step "[1/6] Stopping PM2 to release file locks..."
+    pm2 stop ecosystem.config.js
+    $appWasStopped = $true
+    Write-Host "PM2 stopped."
+
+    # -- Backup current build for rollback (rename is near-instant on NTFS)
     if (Test-Path $prevDir) { Remove-Item $prevDir -Recurse -Force }
     if (Test-Path $nextDir) {
         Rename-Item $nextDir $prevDir
         Write-Host "Build backup   : .next -> .next_prev"
     }
 
-    # -- [1/5] Pull latest code --------------------------------------------
-    Write-Step "[1/5] Pulling latest code..."
+    # -- [2/6] Pull latest code --------------------------------------------
+    Write-Step "[2/6] Pulling latest code..."
     git pull origin main
     if ($LASTEXITCODE -ne 0) { throw "git pull failed" }
 
-    # -- [2/5] Install dependencies ----------------------------------------
-    Write-Step "[2/5] Installing dependencies (including dev for build)..."
-    # --include=dev keeps Tailwind/PostCSS devDeps even when NODE_ENV=production
-    # is set at the system level, which would otherwise strip them.
+    # -- [3/6] Install dependencies ----------------------------------------
+    Write-Step "[3/6] Installing dependencies (including dev for build)..."
     npm ci --include=dev
     if ($LASTEXITCODE -ne 0) { throw "npm ci failed" }
 
-    # -- [3/5] Prisma generate ---------------------------------------------
-    Write-Step "[3/5] Generating Prisma client..."
+    # -- [4/6] Prisma generate ---------------------------------------------
+    Write-Step "[4/6] Generating Prisma client..."
     npx prisma generate
     if ($LASTEXITCODE -ne 0) { throw "Prisma generate failed" }
 
-    # -- [4/5] Next.js build -----------------------------------------------
-    Write-Step "[4/5] Building Next.js production bundle..."
+    # -- [5/6] Next.js build -----------------------------------------------
+    Write-Step "[5/6] Building Next.js production bundle..."
     npm run build
     if ($LASTEXITCODE -ne 0) { throw "Next.js build failed" }
 
-    # -- [4.5] Copy static assets to standalone directory ------------------
+    # -- Copy static assets to standalone directory ------------------------
     # Required for output:'standalone' - Next.js does NOT auto-copy these.
-    Write-Step "[4.5] Copying static assets to standalone directory..."
+    Write-Host "Copying static assets to standalone directory..."
     Copy-Item -Path "$nextDir\static" -Destination "$nextDir\standalone\.next\static" -Recurse -Force
     Copy-Item -Path "$appDir\public"  -Destination "$nextDir\standalone\public"       -Recurse -Force
-    Write-Host "Static assets copied to .next/standalone"
+    Write-Host "Static assets copied."
 
-    # -- [5/5] PM2 zero-downtime reload ------------------------------------
-    Write-Step "[5/5] Reloading app with PM2 (zero downtime)..."
-    pm2 reload ecosystem.config.js --update-env
-    if ($LASTEXITCODE -ne 0) { throw "PM2 reload failed" }
+    # -- [6/6] Start PM2 with new build ------------------------------------
+    Write-Step "[6/6] Starting app with PM2..."
+    pm2 startOrReload ecosystem.config.js --update-env
+    if ($LASTEXITCODE -ne 0) { throw "PM2 start failed" }
+    $appWasStopped = $false
     Start-Sleep -Seconds 5
 
     # -- Health check -------------------------------------------------------
@@ -93,7 +96,7 @@ try {
 
     if (-not $healthOk) { throw "Health check failed after $maxRetries attempts" }
 
-    # -- Success - remove stale build backup --------------------------------
+    # -- Remove stale backup -----------------------------------------------
     if (Test-Path $prevDir) { Remove-Item $prevDir -Recurse -Force }
 
     $deploySuccess = $true
@@ -113,22 +116,24 @@ try {
     if ($null -ne $previousCommit) {
         Write-Host ""
         Write-Host "--- Rollback: resetting to $previousCommit ---"
-
         git reset --hard $previousCommit
 
-        # Restore previous build so PM2 can serve immediately without a rebuild
+        # Restore previous build so PM2 can serve immediately
         if (Test-Path $prevDir) {
             if (Test-Path $nextDir) { Remove-Item $nextDir -Recurse -Force }
             Rename-Item $prevDir $nextDir
             Write-Host "Build restored : .next_prev -> .next"
         }
+    }
 
-        pm2 reload ecosystem.config.js --update-env
+    # Always try to bring PM2 back up if we stopped it
+    if ($appWasStopped) {
+        Write-Host "Restarting PM2 with previous build..."
+        pm2 startOrReload ecosystem.config.js --update-env
         Write-Host "Rollback complete."
     }
 
 } finally {
-    # Always dump recent PM2 logs so failures are diagnosable in GitHub Actions
     Write-Host ""
     Write-Host "--- PM2 logs: last 50 lines ---"
     pm2 logs jivo-web --lines 50 --nostream 2>&1
