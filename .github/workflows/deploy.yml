@@ -1,27 +1,27 @@
-name: Deploy to Production
+# name: Deploy to Production
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+# on:
+#   push:
+#     branches: [main]
+#   workflow_dispatch:
 
-concurrency:
-  group: production-deploy
-  cancel-in-progress: false   # never cancel a running deploy mid-flight
+# concurrency:
+#   group: production-deploy
+#   cancel-in-progress: false   # never cancel a running deploy mid-flight
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 20
 
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          command_timeout: 15m   # covers npm ci + next build on slow servers
-          script_stop: true      # fail the step if deploy.ps1 exits non-zero
-          script: |
-            powershell -ExecutionPolicy Bypass -File D:\LiveProject\NEXT_JS_WEB_JIVO.IN\deploy.ps1
+#     steps:
+#       - name: Deploy via SSH
+#         uses: appleboy/ssh-action@v1.0.3
+#         with:
+          # host: ${{ secrets.SERVER_IP }}
+#           username: ${{ secrets.SERVER_USER }}
+#           key: ${{ secrets.SSH_PRIVATE_KEY }}
+#           command_timeout: 15m   # covers npm ci + next build on slow servers
+#           script_stop: true      # fail the step if deploy.ps1 exits non-zero
+#           script: |
+#             powershell -ExecutionPolicy Bypass -File D:\LiveProject\NEXT_JS_WEB_JIVO.IN\deploy.ps1
