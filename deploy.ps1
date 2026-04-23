@@ -24,48 +24,48 @@ try {
     Write-Host "  $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     Write-Host "========================================"
 
-    # ── Capture rollback point ─────────────────────────────────────────────
+    # -- Capture rollback point --------------------------------------------
     $previousCommit = (git rev-parse HEAD 2>&1).Trim()
     if ($LASTEXITCODE -ne 0) { throw "Could not read current commit hash" }
     Write-Host "Rollback point : $previousCommit"
 
-    # ── Backup current build for instant rollback (rename, not copy) ───────
-    # Rename avoids disk I/O — same-drive rename is near-instant on NTFS.
+    # -- Backup current build for instant rollback (rename, not copy) ------
+    # Rename avoids disk I/O - same-drive rename is near-instant on NTFS.
     if (Test-Path $prevDir) { Remove-Item $prevDir -Recurse -Force }
     if (Test-Path $nextDir) {
         Rename-Item $nextDir $prevDir
         Write-Host "Build backup   : .next -> .next_prev"
     }
 
-    # ── [1/5] Pull latest code ─────────────────────────────────────────────
+    # -- [1/5] Pull latest code --------------------------------------------
     Write-Step "[1/5] Pulling latest code..."
     git pull origin main
     if ($LASTEXITCODE -ne 0) { throw "git pull failed" }
 
-    # ── [2/5] Install dependencies ─────────────────────────────────────────
+    # -- [2/5] Install dependencies ----------------------------------------
     Write-Step "[2/5] Installing dependencies (including dev for build)..."
     # --include=dev keeps Tailwind/PostCSS devDeps even when NODE_ENV=production
     # is set at the system level, which would otherwise strip them.
     npm ci --include=dev
     if ($LASTEXITCODE -ne 0) { throw "npm ci failed" }
 
-    # ── [3/5] Prisma generate ──────────────────────────────────────────────
+    # -- [3/5] Prisma generate ---------------------------------------------
     Write-Step "[3/5] Generating Prisma client..."
     npx prisma generate
     if ($LASTEXITCODE -ne 0) { throw "Prisma generate failed" }
 
-    # ── [4/5] Next.js build ────────────────────────────────────────────────
+    # -- [4/5] Next.js build -----------------------------------------------
     Write-Step "[4/5] Building Next.js production bundle..."
     npm run build
     if ($LASTEXITCODE -ne 0) { throw "Next.js build failed" }
 
-    # ── [5/5] PM2 zero-downtime reload ────────────────────────────────────
+    # -- [5/5] PM2 zero-downtime reload ------------------------------------
     Write-Step "[5/5] Reloading app with PM2 (zero downtime)..."
     pm2 reload jivo-web
     if ($LASTEXITCODE -ne 0) { throw "PM2 reload failed" }
     Start-Sleep -Seconds 5
 
-    # ── Health check ───────────────────────────────────────────────────────
+    # -- Health check -------------------------------------------------------
     Write-Step "Running health check on http://localhost:3001 ..."
     $maxRetries = 5
     $healthOk   = $false
@@ -79,14 +79,14 @@ try {
                 break
             }
         } catch {
-            Write-Host "  Attempt $i/$maxRetries failed — retrying in 5 s..."
+            Write-Host "  Attempt $i/$maxRetries failed - retrying in 5 s..."
             Start-Sleep -Seconds 5
         }
     }
 
     if (-not $healthOk) { throw "Health check failed after $maxRetries attempts" }
 
-    # ── Success — remove stale build backup ────────────────────────────────
+    # -- Success - remove stale build backup --------------------------------
     if (Test-Path $prevDir) { Remove-Item $prevDir -Recurse -Force }
 
     $deploySuccess = $true
