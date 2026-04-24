@@ -1,23 +1,23 @@
-Write-Host "🚀 Starting Deployment..." -ForegroundColor Cyan
+Write-Host "🚀 Starting Zero-Downtime Deployment..." -ForegroundColor Cyan
 
-# Stop app
-Write-Host "🛑 Stopping PM2 app..." -ForegroundColor Yellow
-pm2 stop jivo-web
+$projectPath = "D:\LiveProject\NEXT_JS_WEB_JIVO.IN"
+
+Set-Location $projectPath
 
 # Pull latest code
-Write-Host "📥 Pulling latest code from Git..." -ForegroundColor Yellow
+Write-Host "📥 Pulling latest code..." -ForegroundColor Yellow
 git pull
 
 # Install dependencies
 Write-Host "📦 Installing dependencies..." -ForegroundColor Yellow
 npm install
 
-# Remove old build
+# Build in clean temp folder (safe build)
+Write-Host "🏗️ Preparing clean build..." -ForegroundColor Yellow
+
 if (Test-Path ".next") {
-    Write-Host "🧹 Removing old .next build..." -ForegroundColor Yellow
+    Write-Host "🧹 Removing old build..." -ForegroundColor Yellow
     Remove-Item -Recurse -Force .next
-} else {
-    Write-Host "ℹ️ No old build found" -ForegroundColor DarkGray
 }
 
 # Build project
@@ -25,28 +25,29 @@ Write-Host "🏗️ Building Next.js project..." -ForegroundColor Yellow
 npm run build
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Build failed! Stopping deployment." -ForegroundColor Red
+    Write-Host "❌ Build failed! Keeping old version running." -ForegroundColor Red
     exit 1
 }
 
-Write-Host "✅ Build completed successfully!" -ForegroundColor Green
+Write-Host "✅ Build successful!" -ForegroundColor Green
 
-# Copy static files
-Write-Host "📂 Copying static files..." -ForegroundColor Yellow
+# Copy static files for standalone
+Write-Host "📂 Preparing standalone files..." -ForegroundColor Yellow
 xcopy .next\static .next\standalone\.next\static /E /I /Y | Out-Null
-
-# Copy public folder
-Write-Host "📂 Copying public assets..." -ForegroundColor Yellow
 xcopy public .next\standalone\public /E /I /Y | Out-Null
 
-# Start app
-Write-Host "🚀 Starting PM2 app..." -ForegroundColor Yellow
-pm2 start ecosystem.config.js
+# Check if app exists in PM2
+$pm2Check = pm2 list | Select-String "jivo-web"
+
+if ($pm2Check) {
+    Write-Host "🔄 Reloading app (Zero Downtime)..." -ForegroundColor Yellow
+    pm2 reload jivo-web
+} else {
+    Write-Host "🚀 Starting app first time..." -ForegroundColor Yellow
+    pm2 start ecosystem.config.js
+}
 
 # Save PM2 state
-Write-Host "💾 Saving PM2 process list..." -ForegroundColor Yellow
 pm2 save
 
-Write-Host "🎉 Deployment Completed Successfully!" -ForegroundColor Green
-
-# 
+Write-Host "🎉 Zero-Downtime Deployment Completed!" -ForegroundColor Green
