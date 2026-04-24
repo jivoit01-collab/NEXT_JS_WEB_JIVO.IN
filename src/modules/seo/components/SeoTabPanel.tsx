@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Save, Search, Image as ImageIcon, Globe, Code2 } from 'lucide-react';
+import { Loader2, Save, Search, Image as ImageIcon, Globe, Code2, Clipboard, Check } from 'lucide-react';
 import {
   Button,
   Input,
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { ImageUpload } from '@/components/shared';
 import type { SeoFormInput, TwitterCard, RobotsDirective } from '../types';
+import { SeoPreview } from './SeoPreview';
 
 interface SeoTabPanelProps {
   /** The unique page key — e.g., "home", "about", "products". */
@@ -38,6 +39,32 @@ const EMPTY: SeoFormInput = {
   structuredData: null,
   robots: 'index,follow',
 };
+
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    if (!value.trim()) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      toast.success('Copied!');
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error('Copy failed');
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title={copied ? 'Copied!' : 'Copy to clipboard'}
+      className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
+      disabled={!value.trim()}
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Clipboard className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
 
 export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps) {
   const [form, setForm] = useState<SeoFormInput>({ ...EMPTY, ...(moduleDefault ?? {}) });
@@ -125,14 +152,39 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
       });
       const data = await res.json();
       if (!data.success) {
-        toast.error(data.error ?? 'Failed to save SEO');
+        const fieldErrors = data.fieldErrors as Record<string, string[]> | undefined;
+        if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+          const lines = Object.entries(fieldErrors)
+            .map(([field, msgs]) => {
+              const label: Record<string, string> = {
+                metaTitle: 'Meta Title',
+                metaDescription: 'Meta Description',
+                keywords: 'Keywords',
+                ogTitle: 'OG Title',
+                ogDescription: 'OG Description',
+                ogImage: 'OG Image',
+                twitterCard: 'Twitter Card',
+                canonicalUrl: 'Canonical URL',
+                structuredData: 'JSON-LD',
+                robots: 'Robots',
+              };
+              return `${label[field] ?? field}: ${msgs[0]}`;
+            })
+            .join('\n');
+          toast.error('Validation error — please fix the fields below', {
+            description: lines,
+            duration: 6000,
+          });
+        } else {
+          toast.error(data.error ?? 'Failed to save SEO');
+        }
         return;
       }
       toast.success('SEO saved', {
         description: 'Refresh the public page to see the new metadata.',
       });
     } catch {
-      toast.error('Network error');
+      toast.error('Network error — could not reach the server. Check your connection.');
     } finally {
       setSaving(false);
     }
@@ -185,9 +237,12 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="seo-title">
-            Meta Title <span className="text-muted-foreground">({titleLen}/70)</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="seo-title">
+              Meta Title <span className="text-muted-foreground">({titleLen}/70)</span>
+            </Label>
+            <CopyButton value={form.metaTitle} />
+          </div>
           <Input
             id="seo-title"
             value={form.metaTitle}
@@ -195,12 +250,16 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
             placeholder="e.g. About Jivo Wellness | India's Largest Cold Press Canola Oil Seller"
             maxLength={70}
           />
+          <p className="text-xs text-muted-foreground">Shown as the blue link in Google search results. Keep under 70 characters.</p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="seo-desc">
-            Meta Description <span className="text-muted-foreground">({descLen}/180)</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="seo-desc">
+              Meta Description <span className="text-muted-foreground">({descLen}/180)</span>
+            </Label>
+            <CopyButton value={form.metaDescription ?? ''} />
+          </div>
           <Textarea
             id="seo-desc"
             value={form.metaDescription ?? ''}
@@ -209,27 +268,36 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
             rows={3}
             maxLength={180}
           />
+          <p className="text-xs text-muted-foreground">The snippet shown below the link in Google results. Keep under 180 characters.</p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="seo-keywords">Keywords (comma-separated)</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="seo-keywords">Keywords (comma-separated)</Label>
+            <CopyButton value={keywordsInput} />
+          </div>
           <Input
             id="seo-keywords"
             value={keywordsInput}
             onChange={(e) => setKeywordsInput(e.target.value)}
             placeholder="cold press oil, canola oil, jivo wellness"
           />
+          <p className="text-xs text-muted-foreground">Comma-separated words that describe the page. Google uses these as hints, not direct ranking signals.</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="seo-canonical">Canonical URL</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="seo-canonical">Canonical URL</Label>
+              <CopyButton value={form.canonicalUrl ?? ''} />
+            </div>
             <Input
               id="seo-canonical"
               value={form.canonicalUrl ?? ''}
               onChange={(e) => setForm({ ...form, canonicalUrl: e.target.value })}
               placeholder="https://jivo.in/about"
             />
+            <p className="text-xs text-muted-foreground">The official URL for this page. Prevents duplicate content issues.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="seo-robots">Robots</Label>
@@ -247,6 +315,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
                 <SelectItem value="noindex,nofollow">No-index, no-follow</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">Controls whether Google indexes this page and follows its links.</p>
           </div>
         </div>
       </section>
@@ -259,17 +328,24 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="og-title">OG Title</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="og-title">OG Title</Label>
+            <CopyButton value={form.ogTitle ?? ''} />
+          </div>
           <Input
             id="og-title"
             value={form.ogTitle ?? ''}
             onChange={(e) => setForm({ ...form, ogTitle: e.target.value })}
             placeholder="Falls back to Meta Title"
           />
+          <p className="text-xs text-muted-foreground">Title shown when someone shares this page on WhatsApp, Facebook, or Twitter. Falls back to Meta Title.</p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="og-desc">OG Description</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="og-desc">OG Description</Label>
+            <CopyButton value={form.ogDescription ?? ''} />
+          </div>
           <Textarea
             id="og-desc"
             value={form.ogDescription ?? ''}
@@ -277,6 +353,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
             placeholder="Falls back to Meta Description"
             rows={2}
           />
+          <p className="text-xs text-muted-foreground">Description shown in the social sharing card. Falls back to Meta Description.</p>
         </div>
 
         <div className="space-y-2">
@@ -286,6 +363,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
             onChange={(url) => setForm({ ...form, ogImage: url })}
             onRemove={() => setForm({ ...form, ogImage: '' })}
           />
+          <p className="text-xs text-muted-foreground">Image shown when sharing on WhatsApp or social media. Use 1200×630 px for best results.</p>
         </div>
 
         <div className="space-y-2">
@@ -302,6 +380,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
               <SelectItem value="summary">Summary</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">Controls the card size on Twitter/X. Large image is recommended for most pages.</p>
         </div>
       </section>
 
@@ -314,20 +393,49 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
           </h4>
         </div>
         <p className="text-xs text-muted-foreground">
-          Optional. Paste a JSON-LD object — schema.org wrapper is added automatically. Used
+          Optional. Paste a JSON-LD object — <code className="rounded bg-muted px-1 py-0.5 text-[10px]">@context</code> is added automatically. Used
           for rich-result eligibility (FAQ, Article, Product, Organization, …).
         </p>
-        <Textarea
-          value={structuredInput}
-          onChange={(e) => setStructuredInput(e.target.value)}
-          placeholder='{ "@type": "Organization", "name": "Jivo Wellness" }'
-          rows={8}
-          className="font-mono text-xs"
-        />
+        <div className="relative">
+          <Textarea
+            value={structuredInput}
+            onChange={(e) => setStructuredInput(e.target.value)}
+            placeholder={'{\n  "@type": "Organization",\n  "name": "Jivo Wellness"\n}'}
+            rows={8}
+            className="font-mono text-xs"
+          />
+          <button
+            type="button"
+            title="Copy JSON"
+            onClick={() => {
+              if (!structuredInput.trim()) return;
+              try {
+                const pretty = JSON.stringify(JSON.parse(structuredInput), null, 2);
+                void navigator.clipboard.writeText(pretty).then(() => toast.success('JSON copied!'));
+              } catch {
+                void navigator.clipboard.writeText(structuredInput).then(() => toast.success('Copied!'));
+              }
+            }}
+            className="absolute right-2 top-2 rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Clipboard className="h-3.5 w-3.5" />
+          </button>
+        </div>
         {structuredError && (
           <p className="text-xs text-destructive">{structuredError}</p>
         )}
+        <p className="text-xs text-muted-foreground">Structured data that helps Google understand your page (FAQ, Product, Article, etc.). Must be valid JSON.</p>
       </section>
+
+      {/* Live Preview */}
+      <SeoPreview
+        metaTitle={form.metaTitle}
+        metaDescription={form.metaDescription ?? ''}
+        canonicalUrl={form.canonicalUrl ?? ''}
+        ogTitle={form.ogTitle ?? ''}
+        ogDescription={form.ogDescription ?? ''}
+        ogImage={form.ogImage ?? ''}
+      />
 
       {/* Action bar */}
       <div className="sticky bottom-0 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">

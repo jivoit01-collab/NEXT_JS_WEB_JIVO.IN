@@ -3497,3 +3497,89 @@ Before shipping any new section or page, click through these at 320 px, 375 px, 
 ### §43.9 🎯 Authority
 
 When §43 conflicts with an earlier section's casual example, §43 wins. The scale tables in §43.2 and §43.3 are the single source of truth for sizing. Earlier sections' one-off class strings in code snippets are illustrative — always prefer the §43 scale.
+
+---
+
+## §44 — Sitemap Rules (MANDATORY)
+
+### §44.1 Overview
+
+The sitemap is generated at `src/app/sitemap.ts` and revalidated every hour (`export const revalidate = 3600`). It has three entry sources:
+
+| Source | File | Auto-updated? |
+| ------ | ---- | ------------- |
+| Static public pages | `src/config/routes.ts` | On deploy (add path here) |
+| Products | `prisma/schema/product.prisma` | Yes — DB query |
+| Blog posts | `prisma/schema/blog.prisma` | Yes — DB query |
+
+### §44.2 Adding a new static page
+
+When you create a new public page, add its path to `src/config/routes.ts`:
+
+```ts
+// src/config/routes.ts
+export const PUBLIC_ROUTES = [
+  '/',
+  '/our-essence/the-story',
+  // ...
+  '/about',   // ← add the new route here
+] as const;
+```
+
+That is the **only change needed** — `sitemap.ts` reads `PUBLIC_ROUTES` automatically.
+
+#### Example
+
+New page: `/about`
+
+1. Create `src/app/(public)/about/page.tsx`
+2. Add `'/about'` to `PUBLIC_ROUTES` in `src/config/routes.ts`
+3. Result: `https://jivo.in/about` is included in the next sitemap rebuild
+
+### §44.3 Dynamic pages (products & blog)
+
+Dynamic pages are picked up automatically from the database — **no manual sitemap edit needed**:
+
+- A `Product` row with `isActive: true` → `https://jivo.in/products/{slug}`
+- A `BlogPost` row with `isPublished: true` → `https://jivo.in/blog/{slug}`
+
+When adding a new product or blog page route in the app, ensure the corresponding Prisma model has `slug` (unique) and `isActive` / `isPublished` fields.
+
+### §44.4 Blocked paths (never include these)
+
+The following are filtered out even if accidentally added to `PUBLIC_ROUTES`:
+
+- `/admin/*`
+- `/api/*`
+- `/login`
+- `/cart`
+- `/checkout`
+
+### §44.5 Production domain
+
+Always use `SITE_URL` from `@/lib/constants` — never hardcode `http://localhost:3000` in the sitemap.
+
+```ts
+import { SITE_URL } from '@/lib/constants';
+// SITE_URL resolves to process.env.NEXT_PUBLIC_APP_URL ?? 'https://jivo.in'
+```
+
+### §44.6 After adding a new Prisma model with a slug
+
+Run these two commands before deploying:
+
+```bash
+npx prisma generate     # regenerates the TypeScript client
+npx prisma migrate dev  # creates the DB table
+```
+
+### §44.7 Rules (strict)
+
+| Rule | |
+| ---- | - |
+| ✅ Add new public paths to `src/config/routes.ts` | Single source of truth |
+| ✅ Use `SITE_URL` everywhere in sitemap | No localhost leakage |
+| ✅ Dynamic slugs come from DB — never hardcode them | Auto-managed |
+| ❌ Never add admin/api/auth/cart/checkout paths | They are blocked |
+| ❌ Never hardcode routes directly inside `sitemap.ts` | Use `routes.ts` |
+| ❌ Never use `localhost` in any sitemap URL | Production-only |

@@ -6,7 +6,7 @@
 //   import { getSeoByPage } from '@/modules/seo/data/queries';
 
 // Components (client)
-export { SeoTabPanel, SeoListTable } from './components';
+export { SeoTabPanel, SeoListTable, SeoGuide, SeoPreview } from './components';
 
 // Server actions ('use server' files — Next.js bundles them correctly
 // as RPC stubs in client code)
