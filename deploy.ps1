@@ -5,26 +5,29 @@ Write-Host "========================================" -ForegroundColor Cyan
 $projectPath = "D:\LiveProject\NEXT_JS_WEB_JIVO.IN"
 Set-Location $projectPath
 
-# 1. Stop app
+# STEP 1: Stop everything
 Write-Host "`n[1] Stopping app..." -ForegroundColor Yellow
 pm2 delete jivo-web 2>$null
 
-# 2. Pull latest code
-Write-Host "`n[2] Pulling latest code..." -ForegroundColor Yellow
+Write-Host "[2] Killing node processes..." -ForegroundColor Yellow
+taskkill /F /IM node.exe /T 2>$null
+Start-Sleep -Seconds 2
+
+# STEP 2: Pull + install
+Write-Host "`n[3] Pulling latest code..." -ForegroundColor Yellow
 git pull
 
-# 3. Install dependencies
-Write-Host "`n[3] Installing dependencies..." -ForegroundColor Yellow
+Write-Host "[4] Installing dependencies..." -ForegroundColor Yellow
 npm install
 
-# 4. Clean old build
-Write-Host "`n[4] Cleaning old build..." -ForegroundColor Yellow
+# STEP 3: Clean build
+Write-Host "`n[5] Cleaning old build..." -ForegroundColor Yellow
 if (Test-Path ".next") {
     cmd /c "rmdir /s /q .next"
 }
 
-# 5. Build
-Write-Host "`n[5] Building project..." -ForegroundColor Yellow
+# STEP 4: Build
+Write-Host "`n[6] Building project..." -ForegroundColor Yellow
 npm run build
 
 if ($LASTEXITCODE -ne 0) {
@@ -34,22 +37,39 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "✅ Build successful!" -ForegroundColor Green
 
-# 6. Start app
-Write-Host "`n[6] Starting app..." -ForegroundColor Yellow
+# STEP 5: Start app
+Write-Host "`n[7] Starting app..." -ForegroundColor Yellow
 pm2 start ecosystem.config.js
 
 Start-Sleep -Seconds 5
 
-# 7. Check port 3001
-Write-Host "`n[7] Checking app on port 3001..." -ForegroundColor Yellow
+# STEP 6: REAL HEALTH CHECK (PM2 STATUS)
+Write-Host "`n[8] Checking PM2 status..." -ForegroundColor Yellow
+
+$pm2Status = pm2 list | Select-String "jivo-web"
+
+if ($pm2Status -match "online") {
+    Write-Host "✅ App is ONLINE in PM2" -ForegroundColor Green
+} else {
+    Write-Host "❌ App is NOT running!" -ForegroundColor Red
+
+    Write-Host "`n🔍 Showing PM2 logs (last 30 lines):" -ForegroundColor Yellow
+    pm2 logs jivo-web --lines 30
+
+    Write-Host "`n🔍 Checking port usage:" -ForegroundColor Yellow
+    netstat -ano | findstr :3001
+
+    exit 1
+}
+
+# STEP 7: OPTIONAL PORT CHECK (secondary)
+Write-Host "`n[9] Verifying port 3001..." -ForegroundColor Yellow
 $portCheck = netstat -ano | findstr :3001
 
 if ($portCheck) {
-    Write-Host "✅ App running on port 3001" -ForegroundColor Green
+    Write-Host "✅ Port 3001 is active" -ForegroundColor Green
 } else {
-    Write-Host "❌ App NOT running!" -ForegroundColor Red
-    pm2 logs jivo-web --lines 20
-    exit 1
+    Write-Host "⚠️ App online but port not detected (check config)" -ForegroundColor Yellow
 }
 
 Write-Host "`n========================================" -ForegroundColor Green
