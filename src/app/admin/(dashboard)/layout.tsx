@@ -223,7 +223,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div
                   className={cn(
                     'overflow-hidden transition-all duration-250 ease-in-out',
-                    isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0',
+                    isOpen ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0',
                   )}
                 >
                   <div className="ml-4 border-l border-border/50 py-1 pl-3">
