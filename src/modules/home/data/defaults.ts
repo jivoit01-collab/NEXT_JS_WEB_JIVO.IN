@@ -30,6 +30,7 @@ export const defaultSeo = definePageSeo({
   canonicalUrl: SITE_URL,
   robots: 'index,follow',
   structuredData: {
+    '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Jivo Wellness',
     url: SITE_URL,

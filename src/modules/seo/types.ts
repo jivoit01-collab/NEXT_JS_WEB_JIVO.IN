@@ -12,7 +12,7 @@ export interface SeoData {
   ogImage: string | null;
   twitterCard: TwitterCard;
   canonicalUrl: string | null;
-  structuredData: Record<string, unknown> | null;
+  structuredData: Record<string, unknown> | Record<string, unknown>[] | null;
   robots: RobotsDirective;
 }
 
