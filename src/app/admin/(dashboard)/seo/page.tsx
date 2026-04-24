@@ -31,7 +31,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui';
-import { SeoTabPanel } from '@/modules/seo';
+import { SeoTabPanel, SeoGuide } from '@/modules/seo';
 
 interface SeoRow {
   id: string;
@@ -346,6 +346,9 @@ export default function AdminSeoPage() {
           Hover or tap a card to edit, visit, or delete.
         </p>
       )}
+
+      {/* ── SEO Guide ────────────────────────── */}
+      <SeoGuide />
 
       {/* ── Edit drawer ──────────────────────── */}
       <Sheet open={!!editingPage} onOpenChange={(open) => { if (!open) { setEditingPage(null); void load(); } }}>

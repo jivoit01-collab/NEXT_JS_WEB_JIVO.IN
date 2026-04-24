@@ -28,51 +28,40 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Could not read current commit hash" }
     Write-Host "Rollback point : $previousCommit"
 
-    # -- [1/6] Stop PM2 to release file locks on .next --------------------
-    Write-Step "[1/6] Stopping PM2 to release file locks..."
-    pm2 stop ecosystem.config.js
-    $appWasStopped = $true
-    Write-Host "PM2 stopped."
-
-    # -- Backup current build for rollback (rename is near-instant on NTFS)
+    # ── Backup current build for instant rollback (rename, not copy) ───────
+    # Rename avoids disk I/O — same-drive rename is near-instant on NTFS.
     if (Test-Path $prevDir) { Remove-Item $prevDir -Recurse -Force }
     if (Test-Path $nextDir) {
         Rename-Item $nextDir $prevDir
         Write-Host "Build backup   : .next -> .next_prev"
     }
 
-    # -- [2/6] Pull latest code --------------------------------------------
-    Write-Step "[2/6] Pulling latest code..."
+    # ── [1/5] Pull latest code ─────────────────────────────────────────────
+    Write-Step "[1/5] Pulling latest code..."
     git pull origin main
     if ($LASTEXITCODE -ne 0) { throw "git pull failed" }
 
-    # -- [3/6] Install dependencies ----------------------------------------
-    Write-Step "[3/6] Installing dependencies (including dev for build)..."
+    # ── [2/5] Install dependencies ─────────────────────────────────────────
+    Write-Step "[2/5] Installing dependencies (including dev for build)..."
+    # --include=dev keeps Tailwind/PostCSS devDeps even when NODE_ENV=production
+    # is set at the system level, which would otherwise strip them.
     npm ci --include=dev
     if ($LASTEXITCODE -ne 0) { throw "npm ci failed" }
 
-    # -- [4/6] Prisma generate ---------------------------------------------
-    Write-Step "[4/6] Generating Prisma client..."
+    # ── [3/5] Prisma generate ──────────────────────────────────────────────
+    Write-Step "[3/5] Generating Prisma client..."
     npx prisma generate
     if ($LASTEXITCODE -ne 0) { throw "Prisma generate failed" }
 
-    # -- [5/6] Next.js build -----------------------------------------------
-    Write-Step "[5/6] Building Next.js production bundle..."
+    # ── [4/5] Next.js build ────────────────────────────────────────────────
+    Write-Step "[4/5] Building Next.js production bundle..."
     npm run build
     if ($LASTEXITCODE -ne 0) { throw "Next.js build failed" }
 
-    # -- Copy static assets to standalone directory ------------------------
-    # Required for output:'standalone' - Next.js does NOT auto-copy these.
-    Write-Host "Copying static assets to standalone directory..."
-    Copy-Item -Path "$nextDir\static" -Destination "$nextDir\standalone\.next\static" -Recurse -Force
-    Copy-Item -Path "$appDir\public"  -Destination "$nextDir\standalone\public"       -Recurse -Force
-    Write-Host "Static assets copied."
-
-    # -- [6/6] Start PM2 with new build ------------------------------------
-    Write-Step "[6/6] Starting app with PM2..."
-    pm2 startOrReload ecosystem.config.js --update-env
-    if ($LASTEXITCODE -ne 0) { throw "PM2 start failed" }
-    $appWasStopped = $false
+    # ── [5/5] PM2 zero-downtime reload ────────────────────────────────────
+    Write-Step "[5/5] Reloading app with PM2 (zero downtime)..."
+    pm2 reload jivo-web
+    if ($LASTEXITCODE -ne 0) { throw "PM2 reload failed" }
     Start-Sleep -Seconds 5
 
     # -- Health check -------------------------------------------------------
@@ -96,7 +85,7 @@ try {
 
     if (-not $healthOk) { throw "Health check failed after $maxRetries attempts" }
 
-    # -- Remove stale backup -----------------------------------------------
+    # ── Success — remove stale build backup ────────────────────────────────
     if (Test-Path $prevDir) { Remove-Item $prevDir -Recurse -Force }
 
     $deploySuccess = $true

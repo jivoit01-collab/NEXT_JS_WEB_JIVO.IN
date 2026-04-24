@@ -3497,3 +3497,4 @@ Before shipping any new section or page, click through these at 320 px, 375 px, 
 ### §43.9 🎯 Authority
 
 When §43 conflicts with an earlier section's casual example, §43 wins. The scale tables in §43.2 and §43.3 are the single source of truth for sizing. Earlier sections' one-off class strings in code snippets are illustrative — always prefer the §43 scale.
+
