@@ -2,12 +2,14 @@ module.exports = {
   apps: [
     {
       name: "jivo-web",
-      script: ".next/standalone/server.js",
-      instances: "max",   // 🔥 IMPORTANT
-      exec_mode: "cluster",
+      script: "npm",
+      args: "start",
+      cwd: "D:/LiveProject/NEXT_JS_WEB_JIVO.IN",
+      instances: 1,
+      exec_mode: "fork",
       env: {
-        PORT: "3001",
-        NODE_ENV: "production"
+        NODE_ENV: "production",
+        PORT: "3001"
       }
     }
   ]
