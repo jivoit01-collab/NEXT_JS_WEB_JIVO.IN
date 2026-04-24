@@ -1,27 +1,52 @@
-# name: Deploy to Production
+name: 🚀 Deploy Next.js App
 
-# on:
-#   push:
-#     branches: [main]
-#   workflow_dispatch:
+on:
+  push:
+    branches:
+      - main   # or your deploy branch
 
-# concurrency:
-#   group: production-deploy
-#   cancel-in-progress: false   # never cancel a running deploy mid-flight
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-#     timeout-minutes: 20
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
 
-#     steps:
-#       - name: Deploy via SSH
-#         uses: appleboy/ssh-action@v1.0.3
-#         with:
-          # host: ${{ secrets.SERVER_IP }}
-#           username: ${{ secrets.SERVER_USER }}
-#           key: ${{ secrets.SSH_PRIVATE_KEY }}
-#           command_timeout: 15m   # covers npm ci + next build on slow servers
-#           script_stop: true      # fail the step if deploy.ps1 exits non-zero
-#           script: |
-#             powershell -ExecutionPolicy Bypass -File D:\LiveProject\NEXT_JS_WEB_JIVO.IN\deploy.ps1
+      - name: 🔐 Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 🚀 Deploy to Server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          
+          cd D:/LiveProject/NEXT_JS_WEB_JIVO.IN
+
+          echo "🛑 Stopping PM2..."
+          pm2 stop jivo-web
+
+          echo "📥 Pulling latest code..."
+          git pull
+
+          echo "📦 Installing dependencies..."
+          npm install
+
+          echo "🧹 Cleaning old build..."
+          if exist .next rmdir /s /q .next
+
+          echo "🏗️ Building project..."
+          npm run build
+
+          echo "📂 Copy static files..."
+          xcopy .next\static .next\standalone\.next\static /E /I /Y
+          xcopy public .next\standalone\public /E /I /Y
+
+          echo "🚀 Starting app..."
+          pm2 start ecosystem.config.js
+          pm2 save
+
+          echo "🎉 Deployment Done!"
+          exit
+          EOF
