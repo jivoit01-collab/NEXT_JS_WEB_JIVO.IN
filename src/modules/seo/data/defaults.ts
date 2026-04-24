@@ -21,17 +21,42 @@ export const siteDefaultSeo: Omit<SeoData, 'page'> = {
   ogImage: 'og-default.png',
   twitterCard: 'summary_large_image',
   canonicalUrl: SITE_URL,
-  structuredData: {
-    '@type': 'Organization',
-    name: SITE_NAME,
-    url: SITE_URL,
-  },
+  structuredData: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE_NAME,
+      url: SITE_URL,
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${SITE_URL}/products?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo.png`,
+      sameAs: [
+        'https://www.instagram.com/jivowellness',
+        'https://www.facebook.com/jivowellness',
+        'https://www.youtube.com/@jivowellness',
+      ],
+    },
+  ],
   robots: 'index,follow',
 };
 
 /**
- * Convenience helper to declare a page's defaults with strong fallbacks
- * to siteDefaultSeo. Use inside each module's data/defaults.ts.
+ * Convenience helper to declare a page's defaults.
+ *
+ * Robots guide for future pages:
+ *   - Public pages (home, products, about, blog) → 'index,follow'
+ *   - Auth pages (login, register, forgot-password) → 'noindex,nofollow'
+ *   - Commerce pages (cart, checkout, order-confirmation) → 'noindex,follow'
+ *   - Admin pages → 'noindex,nofollow' (enforced at layout level)
  */
 export function definePageSeo(overrides: SeoDefaults): SeoDefaults {
   return overrides;
