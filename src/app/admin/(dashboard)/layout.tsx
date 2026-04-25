@@ -163,18 +163,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         ref={sidebarRef}
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-card shadow-sm',
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-card shadow-sm 2xl:w-72',
           'transform transition-transform duration-300',
           mobileOpen ? 'translate-x-0' : '-translate-x-64',
           'md:translate-x-0',
         )}
       >
         {/* Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between border-b px-6">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b px-6 2xl:h-20 2xl:px-8">
           <Link href="/" title="Back to Website">
-            <ArrowLeft size={20} className="cursor-pointer hover:text-primary" />
+            <ArrowLeft size={20} className="cursor-pointer hover:text-primary 2xl:h-6 2xl:w-6" />
           </Link>
-          <span className="text-lg font-jost-bold">Admin Panel</span>
+          <span className="text-lg font-jost-bold 2xl:text-xl">Admin Panel</span>
           <button onClick={() => setMobileOpen(false)} className="cursor-pointer md:hidden" aria-label="Close sidebar">
             <X size={20} />
           </button>
@@ -201,7 +201,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <Link
                     href={section.href}
-                    className="flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm font-jost-medium"
+                    className="flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm font-jost-medium 2xl:py-3 2xl:pl-4 2xl:text-base"
                   >
                     <Icon size={18} className="shrink-0" />
                     <span className="truncate">{section.title}</span>
@@ -209,7 +209,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                   <button
                     onClick={() => toggle(section.title)}
-                    className="cursor-pointer px-3 py-2.5"
+                    className="cursor-pointer px-3 py-2.5 2xl:px-4 2xl:py-3"
                     aria-label={isOpen ? `Collapse ${section.title}` : `Expand ${section.title}`}
                   >
                     <ChevronDown
@@ -241,7 +241,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             key={childHref}
                             href={childHref}
                             className={cn(
-                              'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition',
+                              'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition 2xl:px-3 2xl:py-2.5 2xl:text-sm',
                               childActive
                                 ? 'bg-primary/15 font-jost-medium text-primary'
                                 : 'text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -260,13 +260,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="border-t p-4 text-xs text-muted-foreground">
+        <div className="border-t p-4 text-xs text-muted-foreground 2xl:p-5 2xl:text-sm">
           <p>Manage all pages from each section.</p>
         </div>
       </aside>
 
       {/* ── Main content ──────────────────────── */}
-      <div className="min-w-0 flex-1 md:ml-64">
+      <div className="min-w-0 flex-1 md:ml-64 2xl:ml-72">
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:hidden">
           <div className="flex items-center gap-4">
             <button onClick={() => setMobileOpen(true)} className="cursor-pointer" aria-label="Open menu">
@@ -289,7 +289,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <header className="sticky top-0 z-20 hidden h-16 items-center justify-end gap-3 border-b bg-background/95 px-6 backdrop-blur md:flex">
+        <header className="sticky top-0 z-20 hidden h-16 items-center justify-end gap-3 border-b bg-background/95 px-6 backdrop-blur md:flex 2xl:h-20 2xl:px-8 2xl:gap-4">
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-9 w-9">
             {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
@@ -303,7 +303,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Button>
         </header>
 
-        <main className="p-4 sm:p-6">{children}</main>
+        <main className="p-4 sm:p-6 2xl:p-10">{children}</main>
       </div>
 
       <style jsx global>{`

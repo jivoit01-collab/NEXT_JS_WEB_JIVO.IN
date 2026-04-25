@@ -332,14 +332,14 @@ export default function AdminFooterPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 2xl:max-w-7xl 2xl:space-y-8">
       {/* ── Header ─────────────────────────────────── */}
       <div>
         <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
           <PanelBottom className="h-3.5 w-3.5" /> Footer
         </div>
-        <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl">Footer Management</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl 2xl:text-4xl">Footer Management</h1>
+        <p className="mt-1 text-sm text-muted-foreground 2xl:text-base">
           Manage every footer column, link, and the bottom bar (logo + contact info).
         </p>
       </div>
@@ -885,7 +885,7 @@ function StatCard({
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-jost-bold ${
+        className={`mt-1 text-2xl font-jost-bold 2xl:text-3xl ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >
