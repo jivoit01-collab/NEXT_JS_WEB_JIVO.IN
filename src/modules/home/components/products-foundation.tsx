@@ -292,18 +292,18 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
   };
 
   return (
-    <section className="flex items-center bg-[#134b4c] py-16 text-white sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28">
+    <section className="flex items-center bg-[#134b4c] py-16 text-white sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28 2xl:py-36">
       <motion.div
         variants={container}
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8"
+        className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8 2xl:max-w-7xl 2xl:gap-20"
       >
         <motion.div variants={fadeUp} className="flex items-center justify-center">
           <div
             ref={wrapRef}
-            className="group relative aspect-3/4 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
+            className="group relative aspect-3/4 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg 2xl:max-w-xl"
           >
             <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-out will-change-transform group-hover:-translate-y-1 group-hover:scale-[1.02]">
               <SafeImage
@@ -329,17 +329,17 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
           </div>
         </motion.div>
 
-        <div className="flex flex-col justify-center space-y-6 md:space-y-8 lg:space-y-10">
+        <div className="flex flex-col justify-center space-y-6 md:space-y-8 lg:space-y-10 2xl:space-y-12">
           <motion.div variants={fadeUp}>
-            <h2 className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl">
+            <h2 className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl 2xl:text-5xl">
               <SplitWords text={content.section1.heading} inheritParent />
             </h2>
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-2 2xl:mt-5 2xl:space-y-3">
               {content.section1.paragraphs.map((p, i) => (
                 <motion.p
                   key={i}
                   variants={fadeUp}
-                  className="text-sm leading-relaxed text-white/75 md:text-base"
+                  className="text-sm leading-relaxed text-white/75 md:text-base 2xl:text-lg"
                 >
                   {p}
                 </motion.p>
@@ -348,15 +348,15 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
           </motion.div>
 
           <motion.div variants={fadeUp}>
-            <h2 className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl">
+            <h2 className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl 2xl:text-5xl">
               <SplitWords text={content.section2.heading} inheritParent />
             </h2>
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-2 2xl:mt-5 2xl:space-y-3">
               {content.section2.paragraphs.map((p, i) => (
                 <motion.p
                   key={i}
                   variants={fadeUp}
-                  className="text-sm leading-relaxed text-white/75 md:text-base"
+                  className="text-sm leading-relaxed text-white/75 md:text-base 2xl:text-lg"
                 >
                   {p}
                 </motion.p>
@@ -371,23 +371,23 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
 
 // ---- Skeleton ----
 
-function ProductsFoundationSkeleton() {
+export function ProductsFoundationSkeleton() {
   return (
-    <section className="flex animate-pulse items-center bg-[#134b4c] py-16 sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28">
-      <div className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8">
+    <section className="flex animate-pulse items-center bg-[#134b4c] py-16 sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28 2xl:py-36">
+      <div className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8 2xl:max-w-7xl 2xl:gap-20">
         {/* Product image placeholder */}
         <div className="flex items-center justify-center">
-          <div className="aspect-3/4 w-full max-w-xs rounded-2xl bg-white/10 sm:max-w-sm md:max-w-md lg:max-w-lg" />
+          <div className="aspect-3/4 w-full max-w-xs rounded-2xl bg-white/10 sm:max-w-sm md:max-w-md lg:max-w-lg 2xl:max-w-xl" />
         </div>
         {/* Two text sections */}
-        <div className="flex flex-col justify-center space-y-6 md:space-y-8 lg:space-y-10">
+        <div className="flex flex-col justify-center space-y-6 md:space-y-8 lg:space-y-10 2xl:space-y-12">
           {[0, 1].map((i) => (
             <div key={i} className="space-y-4">
-              <div className="h-7 w-72 rounded-md bg-white/20 sm:h-8 md:h-9 lg:w-80" />
-              <div className="space-y-2">
-                <div className="h-4 w-full rounded bg-white/10" />
-                <div className="h-4 w-5/6 rounded bg-white/10" />
-                <div className="h-4 w-4/6 rounded bg-white/10" />
+              <div className="h-7 w-72 rounded-md bg-white/20 sm:h-8 md:h-9 lg:w-80 2xl:h-12 2xl:w-96" />
+              <div className="space-y-2 2xl:space-y-3">
+                <div className="h-4 w-full rounded bg-white/10 2xl:h-5" />
+                <div className="h-4 w-5/6 rounded bg-white/10 2xl:h-5" />
+                <div className="h-4 w-4/6 rounded bg-white/10 2xl:h-5" />
               </div>
             </div>
           ))}
