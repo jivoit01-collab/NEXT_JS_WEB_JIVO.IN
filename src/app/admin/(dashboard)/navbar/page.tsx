@@ -376,17 +376,17 @@ export default function AdminNavbarManager() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 2xl:max-w-7xl 2xl:space-y-8">
       {/* ── Header ──────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
             <Navigation className="h-3.5 w-3.5" /> Navbar
           </div>
-          <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl">
+          <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl 2xl:text-4xl">
             Navbar Management
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground 2xl:text-base">
             Manage top navigation links and their hover dropdown sub-links.
           </p>
         </div>
@@ -988,7 +988,7 @@ function StatCard({
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-jost-bold ${
+        className={`mt-1 text-2xl font-jost-bold 2xl:text-3xl ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >

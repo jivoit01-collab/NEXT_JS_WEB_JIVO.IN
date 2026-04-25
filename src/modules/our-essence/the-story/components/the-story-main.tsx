@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
 import { TheStoryHero } from './hero-section';
-import { SectionSkeleton } from '@/components/shared';
+import { FounderSectionSkeleton } from './founder-section';
+import { VisionSectionSkeleton } from './vision-section';
 import type {
   TheStoryHeroContent,
   TheStoryFounderContent,
@@ -11,11 +12,11 @@ import type {
 // Below-the-fold sections use next/dynamic for JS code splitting.
 const FounderSection = dynamic(
   () => import('./founder-section').then((m) => m.FounderSection),
-  { loading: () => <SectionSkeleton height="lg" /> },
+  { loading: () => <FounderSectionSkeleton /> },
 );
 const VisionSection = dynamic(
   () => import('./vision-section').then((m) => m.VisionSection),
-  { loading: () => <SectionSkeleton height="md" /> },
+  { loading: () => <VisionSectionSkeleton /> },
 );
 
 interface TheStoryMainProps {

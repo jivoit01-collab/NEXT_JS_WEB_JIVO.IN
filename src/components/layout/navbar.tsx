@@ -82,7 +82,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
           : 'bg-transparent'
       )}
     >
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:h-16 lg:px-12">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:h-16 lg:px-12 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-20">
 
         {/* Logo */}
         <Link href="/" className="flex items-center" aria-label={altText}>
@@ -90,20 +90,20 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
             <Image
               src={toSrc(logoUrl)}
               alt={altText}
-              width={120}
-              height={40}
+              width={160}
+              height={56}
               priority
-              className="h-7 w-auto object-contain lg:h-9"
+              className="h-7 w-auto object-contain lg:h-9 2xl:h-12"
             />
           ) : (
-            <span className="text-xl font-bold tracking-tight text-white lg:text-2xl">
+            <span className="text-xl font-bold tracking-tight text-white lg:text-2xl 2xl:text-3xl">
               {altText}
             </span>
           )}
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-8 md:flex 2xl:gap-12">
           {links.map((link) => {
             const key = link.title;
             const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
@@ -125,7 +125,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                       e.stopPropagation();
                       setActiveDropdown((prev) => (prev === key ? null : key));
                     }}
-                    className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white"
+                    className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base"
                   >
                     <span className="relative">
                       {link.title}
@@ -139,7 +139,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
 
                     <ChevronDown
                       className={cn(
-                        'h-3.5 w-3.5 transition-transform duration-300',
+                        'h-3.5 w-3.5 transition-transform duration-300 2xl:h-4 2xl:w-4',
                         isActive && 'rotate-180'
                       )}
                     />
@@ -147,7 +147,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                 ) : (
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white"
+                    className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base"
                   >
                     <span className="relative">
                       {link.title}
@@ -164,16 +164,16 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 4 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full -left-6 z-50 pt-4"
+                      className="absolute top-full -left-6 z-50 pt-4 2xl:pt-5"
                     >
-                      <div className="min-w-[220px] rounded-2xl border border-white/40 bg-[#c0c0c0] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.25)]">
+                      <div className="min-w-[220px] rounded-2xl border border-white/40 bg-[#c0c0c0] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.25)] 2xl:min-w-65 2xl:p-3">
 
                         {link.subLinks?.map((sub) => (
                           <Link
                             key={sub.href + sub.title}
                             href={sub.href}
                             onClick={() => setActiveDropdown(null)}
-                            className="group block px-4 py-2.5 text-sm font-semibold text-black"
+                            className="group block px-4 py-2.5 text-sm font-semibold text-black 2xl:px-5 2xl:py-3 2xl:text-base"
                           >
                             <span className="relative inline-block">
                               {sub.title}
