@@ -20,11 +20,11 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
   const categories = data?.items ?? defaults;
 
   return (
-    <section className="bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28">
-      <div className="container mx-auto max-w-7xl">
+    <section className="bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28 2xl:py-36">
+      <div className="container mx-auto max-w-7xl 2xl:max-w-7xl">
 
         {/* Heading */}
-        <h2 className="mb-10 text-center font-sans text-2xl font-jost-extrabold uppercase tracking-[0.2em] text-white sm:mb-12 sm:text-3xl md:mb-14 md:text-4xl lg:text-5xl">
+        <h2 className="mb-10 text-center font-sans text-2xl font-jost-extrabold uppercase tracking-[0.2em] text-white sm:mb-12 sm:text-3xl md:mb-14 md:text-4xl lg:text-5xl 2xl:mb-16 2xl:text-6xl">
           <SplitWords text={heading} />
         </h2>
 
@@ -34,7 +34,7 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
           initial="hidden"
           whileInView="show"
           viewport={defaultViewport}
-          className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4"
+          className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4 2xl:gap-8"
         >
           {categories.map((category) => (
             <motion.div key={category.name} variants={scaleIn}>
@@ -44,7 +44,7 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
                     className={`
                       ${category.bgColor}
                       relative flex aspect-3/4 flex-col overflow-hidden rounded-xl p-3
-                      shadow-md transition-all duration-500 sm:p-4
+                      shadow-md transition-all duration-500 sm:p-4 2xl:rounded-2xl 2xl:p-6
                       group-hover:shadow-2xl group-hover:shadow-black/30
                     `}
                   >
@@ -65,7 +65,7 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
                     </div>
 
                     {/* Title */}
-                    <p className="mt-3 text-center font-sans text-xs font-jost-bold uppercase tracking-[0.2em] text-white transition-all duration-300 sm:text-sm md:text-base group-hover:tracking-[0.25em]">
+                    <p className="mt-3 text-center font-sans text-xs font-jost-bold uppercase tracking-[0.2em] text-white transition-all duration-300 sm:text-sm md:text-base 2xl:mt-4 2xl:text-lg group-hover:tracking-[0.25em]">
                       {category.name}
                     </p>
                   </div>
@@ -95,16 +95,16 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
 
 // ---- Skeleton ----
 
-function ProductCategoriesSkeleton() {
+export function ProductCategoriesSkeleton() {
   return (
-    <section className="animate-pulse bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28">
+    <section className="animate-pulse bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28 2xl:py-36">
       <div className="container mx-auto max-w-7xl">
         {/* Heading */}
-        <div className="mx-auto mb-10 h-8 w-80 rounded-md bg-white/25 sm:mb-12 sm:h-10 md:mb-14 md:h-12" />
+        <div className="mx-auto mb-10 h-8 w-80 rounded-md bg-white/25 sm:mb-12 sm:h-10 md:mb-14 md:h-12 2xl:mb-16 2xl:h-14 2xl:w-130" />
         {/* Grid — 4 cards matching aspect-3/4 cards */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4 2xl:gap-8">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="aspect-3/4 rounded-xl bg-white/20" />
+            <div key={i} className="aspect-3/4 rounded-xl bg-white/20 2xl:rounded-2xl" />
           ))}
         </div>
       </div>

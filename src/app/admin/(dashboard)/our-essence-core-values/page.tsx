@@ -94,14 +94,14 @@ export default function CoreValuesManager() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 2xl:space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
-          <h1 className="font-jost-bold text-xl sm:text-2xl md:text-3xl">
+          <h1 className="font-jost-bold text-xl sm:text-2xl md:text-3xl 2xl:text-4xl">
             Core Values — Page Manager
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm 2xl:text-base">
             Manage the Our Essence / Core Values page sections
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function CoreValuesManager() {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:px-6 sm:text-base"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-jost-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:px-6 sm:text-base 2xl:px-8 2xl:py-3 2xl:text-lg"
           >
             {loading ? (
               <>
@@ -131,7 +131,7 @@ export default function CoreValuesManager() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`whitespace-nowrap px-3 py-2.5 text-sm font-jost-medium transition-colors sm:px-4 sm:py-3 sm:text-base ${
+              className={`whitespace-nowrap px-3 py-2.5 text-sm font-jost-medium transition-colors sm:px-4 sm:py-3 sm:text-base 2xl:px-6 2xl:py-4 2xl:text-lg ${
                 activeTab === tab.key
                   ? 'border-b-2 border-primary text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -142,7 +142,7 @@ export default function CoreValuesManager() {
           ))}
         </div>
 
-        <div className="space-y-4 p-4 sm:space-y-6 sm:p-6">
+        <div className="space-y-4 p-4 sm:space-y-6 sm:p-6 2xl:space-y-8 2xl:p-8">
           {/* ── Hero Tab ───────────────────────────── */}
           {activeTab === 'hero' && (
             <div className="space-y-4">

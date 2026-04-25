@@ -15,7 +15,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ data, slides, isLoading }: HeroSectionProps) {
-  if (isLoading) return <HeroSectionSkeleton />;
+  if (isLoading) return <HeroSkeleton />;
 
   const content = data ?? defaults;
   const logoSrc = content.logo || defaults.logo;
@@ -50,7 +50,7 @@ export function HeroSection({ data, slides, isLoading }: HeroSectionProps) {
           className="object-cover object-[center_30%]"
         />
         {/* Centered column — logo + text vertically & horizontally centered */}
-        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12">
+        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12 2xl:gap-16">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,17 +63,17 @@ export function HeroSection({ data, slides, isLoading }: HeroSectionProps) {
               height={220}
               priority
               quality={100}
-              sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, (max-width: 1024px) 320px, 400px"
-              className="h-auto w-24 sm:w-40 md:w-52 lg:w-64 xl:w-72"
+              sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, (max-width: 1024px) 320px, (max-width: 1536px) 400px, 520px"
+              className="h-auto w-24 sm:w-40 md:w-52 lg:w-64 xl:w-72 2xl:w-96"
             />
           </motion.div>
 
-          <div className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4">
+          <div className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4 2xl:gap-6">
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15 }}
-              className="font-sans font-jost-bold uppercase leading-tight tracking-wide text-lg sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
+              className="font-sans font-jost-bold uppercase leading-tight tracking-wide text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl"
             >
               {slide.headline}
             </motion.h1>
@@ -81,7 +81,7 @@ export function HeroSection({ data, slides, isLoading }: HeroSectionProps) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="max-w-65 text-[11px] font-jost-light leading-relaxed text-white/80 sm:max-w-md sm:text-sm md:max-w-xl md:text-base lg:text-lg"
+              className="max-w-xs text-xs font-jost-light leading-relaxed text-white/80 sm:max-w-md sm:text-sm md:max-w-xl md:text-base lg:text-lg 2xl:max-w-2xl 2xl:text-xl"
             >
               {slide.subtitle}
             </motion.p>
@@ -149,7 +149,7 @@ function HeroCarousel({
       </div>
 
       {/* Centered column overlay — logo + text vertically & horizontally centered */}
-      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12">
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12 2xl:gap-16">
         <SafeImage
           src={logoSrc}
           alt="Jivo Logo"
@@ -157,8 +157,8 @@ function HeroCarousel({
           height={220}
           priority
           quality={100}
-          sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, (max-width: 1024px) 320px, 400px"
-          className="h-auto w-24 sm:w-40 md:w-52 lg:w-64 xl:w-72"
+          sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, (max-width: 1024px) 320px, (max-width: 1536px) 400px, 520px"
+          className="h-auto w-24 sm:w-40 md:w-52 lg:w-64 xl:w-72 2xl:w-96"
         />
 
         <AnimatePresence mode="wait">
@@ -168,12 +168,12 @@ function HeroCarousel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4"
+            className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4 2xl:gap-6"
           >
-            <h1 className="font-sans font-jost-bold uppercase leading-tight tracking-wide text-lg sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+            <h1 className="font-sans font-jost-bold uppercase leading-tight tracking-wide text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
               {slides[selectedIndex].headline}
             </h1>
-            <p className="max-w-65 text-[11px] font-jost-light leading-relaxed text-white/80 sm:max-w-md sm:text-sm md:max-w-xl md:text-base lg:text-lg">
+            <p className="max-w-xs text-xs font-jost-light leading-relaxed text-white/80 sm:max-w-md sm:text-sm md:max-w-xl md:text-base lg:text-lg 2xl:max-w-2xl 2xl:text-xl">
               {slides[selectedIndex].subtitle}
             </p>
           </motion.div>
@@ -185,18 +185,18 @@ function HeroCarousel({
 
 // ---- Skeleton ----
 
-function HeroSectionSkeleton() {
+export function HeroSkeleton() {
   return (
     <section className="relative h-[60vh] w-full animate-pulse overflow-hidden bg-muted sm:h-[70vh] lg:h-screen lg:min-h-150">
-      <div className="flex h-full flex-col items-center justify-center gap-8 px-6 sm:gap-10 md:gap-12 lg:gap-14">
+      <div className="flex h-full flex-col items-center justify-center gap-8 px-6 sm:gap-10 md:gap-12 lg:gap-14 2xl:gap-16">
         {/* Logo */}
-        <div className="h-16 w-40 rounded-lg bg-muted-foreground/20 sm:w-52 md:w-60 lg:w-72" />
+        <div className="h-16 w-40 rounded-lg bg-muted-foreground/20 sm:h-20 sm:w-52 md:w-60 lg:w-72 2xl:h-24 2xl:w-96" />
         {/* Headline */}
-        <div className="h-9 w-3/4 max-w-lg rounded-md bg-muted-foreground/20 sm:h-11 md:h-12" />
+        <div className="h-9 w-3/4 max-w-lg rounded-md bg-muted-foreground/20 sm:h-11 md:h-12 2xl:h-16 2xl:max-w-2xl" />
         {/* Subtitle */}
         <div className="-mt-4 flex flex-col items-center gap-2 sm:-mt-6 md:-mt-8">
-          <div className="h-4 w-80 rounded bg-muted-foreground/20 md:w-96" />
-          <div className="h-4 w-64 rounded bg-muted-foreground/20 md:w-72" />
+          <div className="h-4 w-80 rounded bg-muted-foreground/20 md:w-96 2xl:h-5 2xl:w-120" />
+          <div className="h-4 w-64 rounded bg-muted-foreground/20 md:w-72 2xl:h-5 2xl:w-96" />
         </div>
       </div>
     </section>

@@ -168,39 +168,39 @@ export default function AdminSeoPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl py-4 sm:py-8">
+    <div className="mx-auto max-w-5xl py-4 sm:py-8 2xl:max-w-7xl 2xl:py-10">
       {/* ── Header ──────────────────────────── */}
       <div className="mb-8 text-center sm:mb-10">
-        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm" style={{ color: ACCENT }}>
+        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm 2xl:text-base" style={{ color: ACCENT }}>
           SEO Manager
         </p>
-        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl">
+        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl 2xl:text-5xl">
           Search &amp; Social Metadata
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
+        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground 2xl:text-base 2xl:max-w-2xl">
           Manage how every page appears in Google, social previews, and rich-result search features.
         </p>
       </div>
 
       {/* ── Stats row ───────────────────────── */}
-      <div className="mb-6 grid grid-cols-3 gap-3 sm:gap-4">
-        <div className="rounded-xl border bg-card px-4 py-3">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
+      <div className="mb-6 grid grid-cols-3 gap-3 sm:gap-4 2xl:gap-5">
+        <div className="rounded-xl border bg-card px-4 py-3 2xl:px-6 2xl:py-4">
+          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground 2xl:text-sm">
             <Globe className="h-3.5 w-3.5" /> Total Pages
           </div>
-          <div className="mt-1 text-2xl font-jost-bold">{rows.length}</div>
+          <div className="mt-1 text-2xl font-jost-bold 2xl:text-3xl">{rows.length}</div>
         </div>
-        <div className="rounded-xl border bg-card px-4 py-3">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
+        <div className="rounded-xl border bg-card px-4 py-3 2xl:px-6 2xl:py-4">
+          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground 2xl:text-sm">
             <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Indexed
           </div>
-          <div className="mt-1 text-2xl font-jost-bold text-primary">{indexedCount}</div>
+          <div className="mt-1 text-2xl font-jost-bold text-primary 2xl:text-3xl">{indexedCount}</div>
         </div>
-        <div className="rounded-xl border bg-card px-4 py-3">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
+        <div className="rounded-xl border bg-card px-4 py-3 2xl:px-6 2xl:py-4">
+          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground 2xl:text-sm">
             <AlertTriangle className="h-3.5 w-3.5" /> No-Index
           </div>
-          <div className="mt-1 text-2xl font-jost-bold">{noIndexCount}</div>
+          <div className="mt-1 text-2xl font-jost-bold 2xl:text-3xl">{noIndexCount}</div>
         </div>
       </div>
 
