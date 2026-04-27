@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -83,7 +83,7 @@ export function SeoListTable() {
       else toast.error(data.error ?? 'Failed to load SEO list');
     } catch (err) {
       console.error('[SeoListTable.load]', err);
-      toast.error('Network error — could not load SEO list');
+      toast.error('Network error â€” could not load SEO list');
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export function SeoListTable() {
       return;
     }
     if (rows.some((r) => r.page === key)) {
-      setNewPageError(`SEO already exists for "${key}" — open it from the table below`);
+      setNewPageError(`SEO already exists for "${key}" â€” open it from the table below`);
       return;
     }
     setAddOpen(false);
@@ -149,7 +149,7 @@ export function SeoListTable() {
       await load();
     } catch (err) {
       console.error('[SeoListTable.delete]', err);
-      toast.error('Network error — delete failed');
+      toast.error('Network error â€” delete failed');
     } finally {
       setDeleting(false);
     }
@@ -165,14 +165,14 @@ export function SeoListTable() {
 
   return (
     <div className="space-y-5">
-      {/* ── Toolbar: search + add ─────────────── */}
+      {/* â”€â”€ Toolbar: search + add â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by page key or title…"
+            placeholder="Search by page key or titleâ€¦"
             className="pl-9 pr-9"
           />
           {query && (
@@ -192,7 +192,7 @@ export function SeoListTable() {
         </Button>
       </div>
 
-      {/* ── Table ─────────────────────────────── */}
+      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <Table>
           <TableHeader>
@@ -328,17 +328,17 @@ export function SeoListTable() {
         </Table>
       </div>
 
-      {/* ── Footer hint ───────────────────────── */}
+      {/* â”€â”€ Footer hint â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {rows.length > 0 && (
         <p className="px-1 text-xs text-muted-foreground">
           Showing {filtered.length} of {rows.length} page
           {rows.length === 1 ? '' : 's'}. Pages appear here when you build them and save
           SEO from their admin editor (e.g. <span className="font-mono">/admin/home</span>
-          &nbsp;→ SEO tab) or via the &quot;Add Page SEO&quot; button above.
+          &nbsp;â†’ SEO tab) or via the &quot;Add Page SEO&quot; button above.
         </p>
       )}
 
-      {/* ── Edit drawer ───────────────────────── */}
+      {/* â”€â”€ Edit drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Sheet
         open={!!editingPage}
         onOpenChange={(open) => {
@@ -348,10 +348,10 @@ export function SeoListTable() {
           }
         }}
       >
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
+        <SheetContent side="right" className="w-full overflow-x-hidden overflow-y-auto sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle>
-              SEO — <span className="font-mono text-sm">{editingPage}</span>
+              SEO â€” <span className="font-mono text-sm">{editingPage}</span>
             </SheetTitle>
           </SheetHeader>
           {editingPage && (
@@ -362,7 +362,7 @@ export function SeoListTable() {
         </SheetContent>
       </Sheet>
 
-      {/* ── Add-new dialog ────────────────────── */}
+      {/* â”€â”€ Add-new dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -404,7 +404,7 @@ export function SeoListTable() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete confirmation ───────────────── */}
+      {/* â”€â”€ Delete confirmation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Dialog
         open={!!deletingPage}
         onOpenChange={(open) => !open && setDeletingPage(null)}
@@ -431,3 +431,4 @@ export function SeoListTable() {
     </div>
   );
 }
+

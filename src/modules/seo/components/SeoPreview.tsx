@@ -32,11 +32,13 @@ function resolveImageSrc(value: string): string {
 
 /**
  * Returns true when next/image can serve the URL without extra config:
- * internal paths (start with /) or hostnames already in remotePatterns.
+ * external URLs on known hostnames only.
+ * Local /api/uploads/* paths are served via a plain <img> tag — next/image
+ * wraps them through /_next/image which can fail to self-fetch in production.
  */
 function isNextImageCompatible(src: string): boolean {
   if (!src) return false;
-  if (src.startsWith('/')) return true;
+  if (src.startsWith('/')) return false; // use plain <img> for all local API paths
   try {
     return ALLOWED_HOSTNAMES.has(new URL(src).hostname);
   } catch {
@@ -103,22 +105,22 @@ export function SeoPreview({
   const showImage = Boolean(resolvedSrc) && !imgError;
 
   return (
-    <div className="space-y-4 rounded-xl border bg-muted/20 p-5">
+    <div className="space-y-4  overflow-hidden rounded-xl border bg-muted/20 p-5">
       <p className="text-xs font-jost-bold uppercase tracking-widest text-muted-foreground">
         Live Preview
       </p>
 
       {/* ── Google SERP Preview ── */}
       <div className="space-y-2">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div className="flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
           <Search className="h-3 w-3" />
           <span>Google Search Result</span>
         </div>
-        <div className="rounded-xl border bg-card px-5 py-4 shadow-sm">
-          <p className="text-base font-medium leading-snug" style={{ color: '#1a0dab' }}>
+        <div className="overflow-hidden  cursor-pointer rounded-xl border bg-card px-5 py-4 shadow-sm">
+          <p className="truncate text-base font-medium leading-snug" style={{ color: '#1a0dab' }}>
             {googleTitle || <span className="italic text-muted-foreground">No title</span>}
           </p>
-          <p className="mt-0.5 text-[13px] leading-tight" style={{ color: '#006621' }}>
+          <p className="mt-0.5 truncate text-[13px] leading-tight" style={{ color: '#006621' }}>
             {googleUrl}
           </p>
           <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
@@ -129,7 +131,7 @@ export function SeoPreview({
 
       {/* ── WhatsApp / Social Card Preview ── */}
       <div className="space-y-2">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div className="flex w-fit items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-500">
           <MessageCircle className="h-3 w-3" />
           <span>WhatsApp / Social Card</span>
         </div>
@@ -137,7 +139,7 @@ export function SeoPreview({
         {/* Mimic a WhatsApp chat bubble with an embedded link preview */}
         <div className="flex justify-start rounded-xl bg-muted/30 p-4">
           {/* Card — fixed width matches a real WhatsApp preview (~320px) */}
-          <div className="w-full max-w-[320px] overflow-hidden rounded-lg border bg-card shadow-md">
+          <div className="w-full max-w-[320px]  cursor-pointer overflow-hidden rounded-lg border bg-card shadow-md">
 
             {/* Image — 16:9 aspect ratio, same as WhatsApp renders OG images */}
             <div className="relative aspect-video w-full">
@@ -158,7 +160,7 @@ export function SeoPreview({
                     key={resolvedSrc}
                     src={resolvedSrc}
                     alt={socialTitle}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain"
                     onError={() => setImgError(true)}
                   />
                 )

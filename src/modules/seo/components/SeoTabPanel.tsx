@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Save, Search, Image as ImageIcon, Globe, Code2, Clipboard, Check } from 'lucide-react';
+import { Loader2, Save, Search, Image as ImageIcon, Globe, Code2, Clipboard } from 'lucide-react';
 import {
   Button,
   Input,
@@ -40,30 +40,22 @@ const EMPTY: SeoFormInput = {
   robots: 'index,follow',
 };
 
-function CopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = async () => {
-    if (!value.trim()) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      toast.success('Copied!');
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      toast.error('Copy failed');
-    }
+/** Works on both HTTPS (production) and HTTP (localhost dev). */
+function copyText(text: string): void {
+  const fallback = () => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    Object.assign(el.style, { position: 'fixed', opacity: '0', pointerEvents: 'none' });
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
   };
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      title={copied ? 'Copied!' : 'Copy to clipboard'}
-      className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
-      disabled={!value.trim()}
-    >
-      {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Clipboard className="h-3.5 w-3.5" />}
-    </button>
-  );
+  if (navigator.clipboard && window.isSecureContext) {
+    void navigator.clipboard.writeText(text).catch(fallback);
+  } else {
+    fallback();
+  }
 }
 
 export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps) {
@@ -190,16 +182,6 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
     }
   };
 
-  const handleResetToDefaults = () => {
-    setForm({ ...EMPTY, ...(moduleDefault ?? {}) });
-    setKeywordsInput((moduleDefault?.keywords ?? []).join(', '));
-    setStructuredInput(
-      moduleDefault?.structuredData
-        ? JSON.stringify(moduleDefault.structuredData, null, 2)
-        : '',
-    );
-    toast.info('Reverted to module defaults (not yet saved)');
-  };
 
   if (loading) {
     return (
@@ -213,7 +195,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
   const descLen = (form.metaDescription ?? '').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-5">
       {/* Header */}
       <div className="rounded-xl border border-dashed bg-muted/30 p-4">
         <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
@@ -237,12 +219,9 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="seo-title">
-              Meta Title <span className="text-muted-foreground">({titleLen}/70)</span>
-            </Label>
-            <CopyButton value={form.metaTitle} />
-          </div>
+          <Label htmlFor="seo-title">
+            Meta Title <span className="text-muted-foreground">({titleLen}/70)</span>
+          </Label>
           <Input
             id="seo-title"
             value={form.metaTitle}
@@ -254,12 +233,9 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="seo-desc">
-              Meta Description <span className="text-muted-foreground">({descLen}/180)</span>
-            </Label>
-            <CopyButton value={form.metaDescription ?? ''} />
-          </div>
+          <Label htmlFor="seo-desc">
+            Meta Description <span className="text-muted-foreground">({descLen}/180)</span>
+          </Label>
           <Textarea
             id="seo-desc"
             value={form.metaDescription ?? ''}
@@ -272,10 +248,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="seo-keywords">Keywords (comma-separated)</Label>
-            <CopyButton value={keywordsInput} />
-          </div>
+          <Label htmlFor="seo-keywords">Keywords (comma-separated)</Label>
           <Input
             id="seo-keywords"
             value={keywordsInput}
@@ -287,10 +260,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="seo-canonical">Canonical URL</Label>
-              <CopyButton value={form.canonicalUrl ?? ''} />
-            </div>
+            <Label htmlFor="seo-canonical">Canonical URL</Label>
             <Input
               id="seo-canonical"
               value={form.canonicalUrl ?? ''}
@@ -328,10 +298,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="og-title">OG Title</Label>
-            <CopyButton value={form.ogTitle ?? ''} />
-          </div>
+          <Label htmlFor="og-title">OG Title</Label>
           <Input
             id="og-title"
             value={form.ogTitle ?? ''}
@@ -342,10 +309,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="og-desc">OG Description</Label>
-            <CopyButton value={form.ogDescription ?? ''} />
-          </div>
+          <Label htmlFor="og-desc">OG Description</Label>
           <Textarea
             id="og-desc"
             value={form.ogDescription ?? ''}
@@ -409,12 +373,12 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
             title="Copy JSON"
             onClick={() => {
               if (!structuredInput.trim()) return;
-              try {
-                const pretty = JSON.stringify(JSON.parse(structuredInput), null, 2);
-                void navigator.clipboard.writeText(pretty).then(() => toast.success('JSON copied!'));
-              } catch {
-                void navigator.clipboard.writeText(structuredInput).then(() => toast.success('Copied!'));
-              }
+              const text = (() => {
+                try { return JSON.stringify(JSON.parse(structuredInput), null, 2); }
+                catch { return structuredInput; }
+              })();
+              copyText(text);
+              toast.success('JSON copied!');
             }}
             className="absolute right-2 top-2 rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
@@ -438,10 +402,7 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
       />
 
       {/* Action bar */}
-      <div className="sticky bottom-0 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-        <Button variant="outline" onClick={handleResetToDefaults} disabled={saving}>
-          Reset to defaults
-        </Button>
+      <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save SEO

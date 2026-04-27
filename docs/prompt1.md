@@ -3498,3 +3498,262 @@ Before shipping any new section or page, click through these at 320 px, 375 px, 
 
 When §43 conflicts with an earlier section's casual example, §43 wins. The scale tables in §43.2 and §43.3 are the single source of truth for sizing. Earlier sections' one-off class strings in code snippets are illustrative — always prefer the §43 scale.
 
+---
+
+## §44 2xl Responsiveness + Section-Matched Skeletons (MANDATORY)
+
+> **Rule:** Every new page — public OR admin — must look great on a 1920 px / 2560 px monitor AND show a section-matched skeleton while loading. These are non-negotiable steps in the "create a page" workflow.
+
+---
+
+### §44.1 Why 2xl matters
+
+The Tailwind `2xl:` breakpoint fires at **≥ 1536 px**. Without it, text, images, and boxes stop growing at `lg:` (1024 px) and look tiny on large desktop monitors. The fix is always to add `2xl:` variants that continue the scaling progression.
+
+---
+
+### §44.2 2xl scale table — Public pages
+
+Apply these to every public-facing section component.
+
+| Element | lg: class | 2xl: class to add |
+|---|---|---|
+| Section vertical padding | `lg:py-28` | `2xl:py-36` or `2xl:py-40` |
+| Container max-width | `max-w-7xl` / `max-w-6xl` | `2xl:max-w-screen-2xl` |
+| Container horizontal padding | `lg:px-8` | `2xl:px-20` |
+| Hero padding-top | `lg:pt-40` | `2xl:pt-52` |
+| Hero padding-bottom | `lg:pb-24` | `2xl:pb-36` |
+| H1 heading | `xl:text-6xl` | `2xl:text-7xl` |
+| H2 section heading | `lg:text-5xl` | `2xl:text-6xl` |
+| H3 sub-heading | `lg:text-2xl` | `2xl:text-3xl` |
+| Body paragraph | `lg:text-xl` | `2xl:text-2xl` |
+| Small / meta text | `lg:text-base` | `2xl:text-lg` |
+| Top margin after heading | `lg:mt-6` | `2xl:mt-8` |
+| Paragraph max-width | `max-w-2xl` | `2xl:max-w-3xl` |
+| Grid gap | `lg:gap-16` | `2xl:gap-20` or `2xl:gap-28` |
+| Portrait / feature image | `lg:w-80` | `2xl:w-96` |
+
+`2xl:max-w-screen-2xl` is the canonical class for a full-width 2xl container (do not use arbitrary `2xl:max-w-[1920px]`).
+
+---
+
+### §44.3 2xl scale table — Admin panel
+
+Apply these to every admin layout element and page.
+
+| Element | Current | 2xl: to add |
+|---|---|---|
+| Sidebar width | `w-64` | `2xl:w-72` |
+| Main content left margin | `md:ml-64` | `2xl:ml-72` |
+| Sidebar header height | `h-16` | `2xl:h-20` |
+| Sidebar header padding | `px-6` | `2xl:px-8` |
+| Sidebar title | `text-lg` | `2xl:text-xl` |
+| Sidebar nav item (parent) | `py-2.5 pl-3 text-sm` | `2xl:py-3 2xl:pl-4 2xl:text-base` |
+| Sidebar nav item (child) | `text-[13px] px-2.5 py-2` | `2xl:text-sm 2xl:px-3 2xl:py-2.5` |
+| Sidebar footer | `p-4 text-xs` | `2xl:p-5 2xl:text-sm` |
+| Desktop topbar height | `h-16` | `2xl:h-20` |
+| Desktop topbar padding | `px-6` | `2xl:px-8` |
+| Main content padding | `sm:p-6` | `2xl:p-10` |
+| Page container (hub pages) | `max-w-5xl` | `2xl:max-w-7xl` |
+| Page container (CRUD pages) | `max-w-6xl` | `2xl:max-w-7xl` |
+| Page title | `md:text-3xl` | `2xl:text-4xl` |
+| Hub page H1 | `md:text-4xl` | `2xl:text-5xl` |
+| StatCard value | `text-2xl` | `2xl:text-3xl` |
+| Tab content padding | `sm:p-6` | `2xl:p-8` |
+| Tab button | `sm:px-4 sm:py-3 sm:text-base` | `2xl:px-6 2xl:py-4 2xl:text-lg` |
+| Save button | `sm:px-6 sm:text-base` | `2xl:px-8 2xl:py-3 2xl:text-lg` |
+| Card grid (hub pages) | `lg:grid-cols-4 sm:gap-5` | `2xl:grid-cols-5 2xl:gap-6` |
+| Card icon | `h-12 w-12 rounded-xl` | `2xl:h-14 2xl:w-14 2xl:rounded-2xl` |
+| Card label text | `text-sm` | `2xl:text-base` |
+
+---
+
+### §44.4 Tailwind canonical class warnings
+
+The Tailwind v4 linter flags arbitrary values. Always use canonical equivalents:
+
+| Wrong (linter will warn) | Correct canonical |
+|---|---|
+| `2xl:w-[480px]` | `2xl:w-120` |
+| `2xl:w-[520px]` | `2xl:w-130` |
+| `2xl:w-[512px]` | `2xl:w-lg` |
+| `2xl:w-[576px]` | `2xl:w-xl` |
+| `2xl:min-w-[260px]` | `2xl:min-w-65` |
+| `2xl:max-w-screen-xl` | `2xl:max-w-7xl` |
+| `2xl:w-[144px]` | `2xl:w-xl` |
+| `bg-gradient-to-br` | `bg-linear-to-br` |
+
+When you see a linter warning `"The class X can be written as Y"`, fix it before moving on.
+
+---
+
+### §44.5 Section-matched skeleton loaders (YouTube-style)
+
+Every section component file must export **two** things:
+1. The real component — `export function HeroSection`
+2. A matching skeleton — `export function HeroSectionSkeleton`
+
+The skeleton must mirror the **exact structure and proportions** of the real section: same background colour, same padding, same grid layout, placeholder blocks for text and images. Users should feel zero layout shift when real content replaces it.
+
+**Rule:** Never use the generic `<SectionSkeleton height="lg" />` for a new page. Always build a section-specific skeleton.
+
+---
+
+### §44.6 How to write a skeleton component
+
+```tsx
+// At the bottom of every section file, after the real component:
+
+export function HeroSectionSkeleton() {
+  return (
+    // 1. Same <section> with same background + min-height as the real section
+    <section className="relative flex min-h-[60vh] animate-pulse items-center overflow-hidden bg-muted sm:min-h-[70vh] lg:min-h-screen">
+      {/* 2. Identical container padding */}
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-28 lg:px-8 lg:pb-24 lg:pt-40 2xl:max-w-screen-2xl 2xl:px-20 2xl:pb-36 2xl:pt-52">
+        {/* 3. Heading placeholder — height matches real heading font-size */}
+        <div className="h-9 w-56 rounded-md bg-muted-foreground/20 sm:h-11 sm:w-72 lg:h-14 lg:w-96 2xl:h-16 2xl:w-120" />
+        {/* 4. Paragraph placeholder — same max-width and line count */}
+        <div className="mt-3 max-w-xl space-y-2 sm:mt-4 sm:max-w-2xl lg:mt-6 2xl:mt-8 2xl:max-w-3xl">
+          <div className="h-4 w-full rounded bg-muted-foreground/15 sm:h-5 2xl:h-6" />
+          <div className="h-4 w-5/6 rounded bg-muted-foreground/15 sm:h-5 2xl:h-6" />
+          <div className="h-4 w-3/4 rounded bg-muted-foreground/15 sm:h-5 2xl:h-6" />
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+**Key rules:**
+- `animate-pulse` goes on the outermost skeleton element only — not on every child div.
+- Skeleton section background = real section background but desaturated: use `bg-muted` for light sections; use the actual colour with reduced-opacity placeholders (`bg-white/20`, `bg-white/15`) for dark-background sections.
+- Placeholder heights mirror real font sizes: `h-7` small text → `h-9/h-10` medium → `h-12/h-14` large heading → `h-16` 2xl heading.
+- Placeholder widths use fractional Tailwind widths (`w-56`, `w-72`, `w-96`, `w-5/6`, `w-3/4`) that roughly match real text length.
+- Grid and image skeletons must match the **same grid template** as the real content (`grid md:grid-cols-2`, portrait `aspect-[3/3.8]`, etc.).
+- Skeleton components must include `2xl:` variants matching the real component's 2xl padding and sizes.
+
+---
+
+### §44.7 Skeleton colour guide by section background
+
+| Section background | Heading skeleton | Text line skeleton |
+|---|---|---|
+| White / `bg-background` | `bg-muted-foreground/20` | `bg-muted-foreground/15` |
+| Dark teal `bg-[#0a7362]` | `bg-white/20` | `bg-white/15` |
+| Green `bg-[#7eaf7e]` | `bg-white/25` | `bg-white/20` |
+| Hero with image + overlay | Whole section `bg-muted`; placeholders `bg-muted-foreground/20` | `bg-muted-foreground/15` |
+| Dark brown + image overlay | `bg-white/20` | `bg-white/15` |
+| Sunset / gradient bg | Keep the real gradient; use `bg-white/30` | `bg-white/20` |
+
+---
+
+### §44.8 Wiring skeletons into main.tsx and loading.tsx
+
+**Step 1 — Export from section file:**
+```tsx
+// src/modules/{page}/components/hero-section.tsx
+export function HeroSection({ data }) { /* ... */ }
+export function HeroSectionSkeleton() { /* ... */ }  // ← add this
+```
+
+**Step 2 — Use in main.tsx dynamic fallbacks:**
+```tsx
+// src/modules/{page}/components/main.tsx
+import { HeroSection } from './hero-section';
+import { MissionSectionSkeleton } from './mission-section';
+import { VisionSectionSkeleton } from './vision-section';
+
+const MissionSection = dynamic(
+  () => import('./mission-section').then(m => m.MissionSection),
+  { loading: () => <MissionSectionSkeleton /> },  // ← section-specific, never generic
+);
+const VisionSection = dynamic(
+  () => import('./vision-section').then(m => m.VisionSection),
+  { loading: () => <VisionSectionSkeleton /> },
+);
+```
+
+**Step 3 — Use in the route's loading.tsx:**
+```tsx
+// src/app/(public)/{page}/loading.tsx
+import { HeroSectionSkeleton } from '@/modules/{page}/components/hero-section';
+import { MissionSectionSkeleton } from '@/modules/{page}/components/mission-section';
+import { VisionSectionSkeleton } from '@/modules/{page}/components/vision-section';
+
+export default function PageLoading() {
+  return (
+    <main>
+      <HeroSectionSkeleton />
+      <MissionSectionSkeleton />
+      <VisionSectionSkeleton />
+    </main>
+  );
+}
+```
+
+---
+
+### §44.9 Critical routing rules for loading.tsx
+
+- `loading.tsx` only fires for the `page.tsx` in the **same directory level**. The home page lives at `src/app/(public)/page.tsx`, so its skeleton lives at `src/app/(public)/loading.tsx` — NOT at `src/app/(public)/home/loading.tsx`.
+- **Never include a Navbar skeleton** in any `loading.tsx`. The real Navbar is rendered by `(public)/layout.tsx` above the Suspense boundary and is always visible during loading. A fake navbar skeleton would show two navbars.
+- The root `src/app/loading.tsx` is a final fallback — keep it as a minimal blank div or spinner, never put page-specific skeletons there.
+
+---
+
+### §44.10 Admin loading.tsx — spinner only
+
+Admin pages use a simple centered spinner, not section-matched skeletons:
+
+```tsx
+// src/app/admin/(dashboard)/{page}/loading.tsx
+import { Loader2 } from 'lucide-react';
+
+export default function AdminPageLoading() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+```
+
+Admin pages that fetch their own data (the-story, core-values editors) handle their loading state inline with this same spinner — no separate `loading.tsx` needed.
+
+---
+
+### §44.11 Checklist — every new page
+
+Before marking a page "done", verify all of these:
+
+**Public page — 2xl responsiveness:**
+- [ ] All section containers use `2xl:max-w-screen-2xl 2xl:px-20`
+- [ ] All section paddings have `2xl:py-36` or larger
+- [ ] Hero heading has `2xl:text-7xl`, section headings have `2xl:text-6xl`
+- [ ] Paragraphs have `2xl:text-2xl`, subtitles `2xl:text-3xl`
+- [ ] Images/portraits have `2xl:w-96` or larger as appropriate
+- [ ] Grid gaps have `2xl:gap-20` to `2xl:gap-32`
+- [ ] No Tailwind linter warnings (no `w-[Npx]` arbitrary values)
+
+**Public page — skeletons:**
+- [ ] Every section file exports a `{SectionName}Skeleton` component
+- [ ] Skeleton matches the real section's background and min-height
+- [ ] Skeleton includes matching `2xl:` variants for padding and placeholder sizes
+- [ ] `main.tsx` dynamic imports use section-specific skeletons, not `<SectionSkeleton>`
+- [ ] `loading.tsx` is at the correct route directory level
+- [ ] `loading.tsx` lists all section skeletons in order, wrapped in `<main>`
+- [ ] `loading.tsx` has NO Navbar skeleton
+
+**Admin page — 2xl responsiveness:**
+- [ ] Container uses `2xl:max-w-7xl`
+- [ ] Page title has `2xl:text-4xl` or `2xl:text-5xl`
+- [ ] StatCard values have `2xl:text-3xl`
+- [ ] Tab content padding has `2xl:p-8`
+- [ ] Save button has `2xl:px-8 2xl:text-lg`
+
+---
+
+### §44.12 Authority
+
+§44 supersedes any earlier skeleton or responsive example that uses `<SectionSkeleton height="..." />` or stops scaling at `lg:`. When building a new page, always follow §44.
+

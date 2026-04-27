@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -169,7 +169,7 @@ export default function AdminSeoPage() {
 
   return (
     <div className="mx-auto max-w-5xl py-4 sm:py-8 2xl:max-w-7xl 2xl:py-10">
-      {/* ── Header ──────────────────────────── */}
+      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-8 text-center sm:mb-10">
         <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm 2xl:text-base" style={{ color: ACCENT }}>
           SEO Manager
@@ -182,7 +182,7 @@ export default function AdminSeoPage() {
         </p>
       </div>
 
-      {/* ── Stats row ───────────────────────── */}
+      {/* â”€â”€ Stats row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-6 grid grid-cols-3 gap-3 sm:gap-4 2xl:gap-5">
         <div className="rounded-xl border bg-card px-4 py-3 2xl:px-6 2xl:py-4">
           <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground 2xl:text-sm">
@@ -204,7 +204,7 @@ export default function AdminSeoPage() {
         </div>
       </div>
 
-      {/* ── Search + Add ────────────────────── */}
+      {/* â”€â”€ Search + Add â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -226,7 +226,7 @@ export default function AdminSeoPage() {
         </Button>
       </div>
 
-      {/* ── Section heading ──────────────────── */}
+      {/* â”€â”€ Section heading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-5 flex items-center gap-2">
         <Globe className="h-4 w-4" style={{ color: ACCENT }} />
         <h2 className="text-xs font-jost-bold uppercase tracking-widest text-muted-foreground">
@@ -234,7 +234,7 @@ export default function AdminSeoPage() {
         </h2>
       </div>
 
-      {/* ── Card grid ───────────────────────── */}
+      {/* â”€â”€ Card grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed bg-muted/20 py-16 text-center">
           <Inbox className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
@@ -298,7 +298,7 @@ export default function AdminSeoPage() {
                   </Badge>
                 </div>
 
-                {/* Action buttons — visible on hover (desktop) or tap (mobile) */}
+                {/* Action buttons â€” visible on hover (desktop) or tap (mobile) */}
                 <div className={`relative z-10 flex items-center gap-1 transition-opacity duration-200 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`}>
                   <button
                     onClick={(e) => {
@@ -339,7 +339,7 @@ export default function AdminSeoPage() {
         </div>
       )}
 
-      {/* ── Footer hint ──────────────────────── */}
+      {/* â”€â”€ Footer hint â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {rows.length > 0 && (
         <p className="mt-4 text-xs text-muted-foreground">
           Showing {filtered.length} of {rows.length} page{rows.length !== 1 ? 's' : ''}.
@@ -347,15 +347,15 @@ export default function AdminSeoPage() {
         </p>
       )}
 
-      {/* ── SEO Guide ────────────────────────── */}
+      {/* â”€â”€ SEO Guide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <SeoGuide />
 
-      {/* ── Edit drawer ──────────────────────── */}
+      {/* â”€â”€ Edit drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Sheet open={!!editingPage} onOpenChange={(open) => { if (!open) { setEditingPage(null); void load(); } }}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
+        <SheetContent side="right" className="w-full overflow-x-hidden overflow-y-auto sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle>
-              SEO — <span className="font-mono text-sm">{editingPage}</span>
+              SEO â€” <span className="font-mono text-sm">{editingPage}</span>
             </SheetTitle>
           </SheetHeader>
           {editingPage && (
@@ -366,7 +366,7 @@ export default function AdminSeoPage() {
         </SheetContent>
       </Sheet>
 
-      {/* ── Add-new dialog ───────────────────── */}
+      {/* â”€â”€ Add-new dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -397,7 +397,7 @@ export default function AdminSeoPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete confirmation ──────────────── */}
+      {/* â”€â”€ Delete confirmation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Dialog open={!!deletingPage} onOpenChange={(open) => !open && setDeletingPage(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -418,3 +418,4 @@ export default function AdminSeoPage() {
     </div>
   );
 }
+
