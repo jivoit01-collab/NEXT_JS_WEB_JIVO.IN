@@ -13,12 +13,24 @@ export default async function PublicLayout({ children }: { children: React.React
     subLinks: link.subLinks.map((sub) => ({ title: sub.title, href: sub.href })),
   }));
 
+  const fixedLinks = links.map(link => ({
+  ...link,
+  href: link.href ?? undefined,
+
+  subLinks: link.subLinks
+    ?.filter(sub => sub.href)  
+    .map(sub => ({
+      title: sub.title,
+      href: sub.href as string  
+    }))
+}));
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar
         logoUrl={navSetting.logoUrl}
         logoAlt={navSetting.logoAlt}
-        links={links}
+        links={fixedLinks}
       />
       {children}
       <Footer />
