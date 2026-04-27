@@ -77,7 +77,12 @@ export async function createNavLink(input: unknown): Promise<ActionResponse<NavL
     };
   }
 
-  const created = await prisma.navLink.create({ data: parsed.data });
+  const created = await prisma.navLink.create({
+  data: {
+    ...parsed.data,
+    href: parsed.data.href ?? ""  
+  }
+});
 
   revalidatePath('/', 'layout');
   revalidatePath('/');

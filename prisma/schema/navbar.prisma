@@ -23,7 +23,7 @@ model NavSubLink {
   navLinkId String
   navLink   NavLink  @relation(fields: [navLinkId], references: [id], onDelete: Cascade)
   title     String   // "The Story / Journey", "Canola Oil", etc.
-  href      String   // "/our-essence/story", "/products/canola-oil", etc.
+  href      String?   // "/our-essence/story", "/products/canola-oil", etc.
   sortOrder Int      @default(0)
   isVisible Boolean  @default(true)
   createdAt DateTime @default(now())
