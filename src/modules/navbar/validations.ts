@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const navLinkSchema = z.object({
   title: z.string().min(1, 'Title is required').max(60, 'Title too long'),
-  href: z.string().min(1, 'Link is required').max(200, 'Link too long'),
+  href: z.string().max(200).optional(),
   sortOrder: z.coerce.number().int().min(0).default(0),
   isVisible: z.boolean().default(true),
 });
