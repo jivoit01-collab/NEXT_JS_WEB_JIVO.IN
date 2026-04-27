@@ -18,7 +18,7 @@ type NavbarSubLink = {
 
 type NavbarLink = {
   title: string;
-  href: string;
+  href?: string;
   subLinks?: NavbarSubLink[];
 };
 
@@ -125,18 +125,9 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                       e.stopPropagation();
                       setActiveDropdown((prev) => (prev === key ? null : key));
                     }}
-                    className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base"
+                    className="flex cursor-default items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base"
                   >
-                    <span className="relative">
-                      {link.title}
-                      <span
-                        className={cn(
-                          'absolute -bottom-1 left-0 h-[1.5px] bg-white transition-all duration-300',
-                          isActive ? 'w-full' : 'w-0 group-hover:w-full'
-                        )}
-                      />
-                    </span>
-
+                    {link.title}
                     <ChevronDown
                       className={cn(
                         'h-3.5 w-3.5 transition-transform duration-300 2xl:h-4 2xl:w-4',
@@ -144,9 +135,9 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                       )}
                     />
                   </button>
-                ) : (
+                ) : link.href === '/' ? (
                   <Link
-                    href={link.href}
+                    href="/"
                     className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base"
                   >
                     <span className="relative">
@@ -154,6 +145,10 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                       <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
                     </span>
                   </Link>
+                ) : (
+                  <span className="flex cursor-default items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base">
+                    {link.title}
+                  </span>
                 )}
 
                 {/* DROPDOWN */}
@@ -220,22 +215,12 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                 return (
                   <div key={key}>
                     <div className="flex items-center">
-                      <Link
-                        href={link.href}
-                        onClick={() => setMobileOpen(false)}
-                        className="group flex-1 px-4 py-3 text-lg font-semibold text-white"
-                      >
-                        <span className="relative inline-block">
-                          {link.title}
-                          <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
-                        </span>
-                      </Link>
-
-                      {hasSubLinks && (
+                      {hasSubLinks ? (
                         <button
                           onClick={() => toggleMobileAccordion(key)}
-                          className="p-4 text-white"
+                          className="flex w-full cursor-default items-center justify-between px-4 py-3 text-lg font-semibold text-white"
                         >
+                          <span>{link.title}</span>
                           <ChevronDown
                             className={cn(
                               'h-5 w-5 transition-transform duration-300',
@@ -243,6 +228,21 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                             )}
                           />
                         </button>
+                      ) : link.href === '/' ? (
+                        <Link
+                          href="/"
+                          onClick={() => setMobileOpen(false)}
+                          className="group flex-1 px-4 py-3 text-lg font-semibold text-white"
+                        >
+                          <span className="relative inline-block">
+                            {link.title}
+                            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                          </span>
+                        </Link>
+                      ) : (
+                        <span className="flex-1 px-4 py-3 text-lg font-semibold text-white">
+                          {link.title}
+                        </span>
                       )}
                     </div>
 

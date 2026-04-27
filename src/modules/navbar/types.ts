@@ -1,7 +1,7 @@
 export interface NavLinkItem {
   id: string;
   title: string;
-  href: string;
+  href?: string | null;
   sortOrder: number;
   isVisible: boolean;
   createdAt: Date | string;
@@ -10,7 +10,7 @@ export interface NavLinkItem {
 
 export interface NavLinkInput {
   title: string;
-  href: string;
+  href?: string;
   sortOrder?: number;
   isVisible?: boolean;
 }

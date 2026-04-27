@@ -51,7 +51,7 @@ interface NavSubLinkRow {
 interface NavLinkRow {
   id: string;
   title: string;
-  href: string;
+  href?: string | null;
   sortOrder: number;
   isVisible: boolean;
   subLinks: NavSubLinkRow[];
@@ -80,7 +80,6 @@ export default function AdminNavbarManager() {
   const [editingLink, setEditingLink] = useState<NavLinkRow | null>(null);
   const [linkForm, setLinkForm] = useState({
     title: '',
-    href: '',
     sortOrder: 0,
     isVisible: true,
   });
@@ -188,7 +187,7 @@ export default function AdminNavbarManager() {
 
   const openCreateLink = () => {
     setEditingLink(null);
-    setLinkForm({ title: '', href: '', sortOrder: links.length, isVisible: true });
+    setLinkForm({ title: '', sortOrder: links.length, isVisible: true });
     setError('');
     setLinkDialogOpen(true);
   };
@@ -197,7 +196,6 @@ export default function AdminNavbarManager() {
     setEditingLink(link);
     setLinkForm({
       title: link.title,
-      href: link.href,
       sortOrder: link.sortOrder,
       isVisible: link.isVisible,
     });
@@ -588,9 +586,6 @@ export default function AdminNavbarManager() {
                 <span className="text-xs text-muted-foreground">
                   Order #{activeNavLink.sortOrder}
                 </span>
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                  {activeNavLink.href}
-                </code>
               </div>
 
               <div className="scrollbar-hide flex w-full items-center gap-2 overflow-x-auto sm:w-auto">
@@ -776,20 +771,6 @@ export default function AdminNavbarManager() {
               />
               <p className="text-xs text-muted-foreground">
                 The label shown in the navbar.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="nav-href">Link (href)</Label>
-              <Input
-                id="nav-href"
-                placeholder="e.g. /our-essence"
-                value={linkForm.href}
-                onChange={(e) => setLinkForm({ ...linkForm, href: e.target.value })}
-                maxLength={200}
-              />
-              <p className="text-xs text-muted-foreground">
-                Use an internal path like <code>/products</code> or a full URL.
               </p>
             </div>
 

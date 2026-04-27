@@ -83,7 +83,7 @@ export function SeoListTable() {
       else toast.error(data.error ?? 'Failed to load SEO list');
     } catch (err) {
       console.error('[SeoListTable.load]', err);
-      toast.error('Network error â€” could not load SEO list');
+      toast.error('Network error  could not load SEO list');
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export function SeoListTable() {
       return;
     }
     if (rows.some((r) => r.page === key)) {
-      setNewPageError(`SEO already exists for "${key}" â€” open it from the table below`);
+      setNewPageError(`SEO already exists for "${key}"  open it from the table below`);
       return;
     }
     setAddOpen(false);
@@ -149,7 +149,7 @@ export function SeoListTable() {
       await load();
     } catch (err) {
       console.error('[SeoListTable.delete]', err);
-      toast.error('Network error â€” delete failed');
+      toast.error('Network error  delete failed');
     } finally {
       setDeleting(false);
     }
@@ -351,7 +351,7 @@ export function SeoListTable() {
         <SheetContent side="right" className="w-full overflow-x-hidden overflow-y-auto sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle>
-              SEO â€” <span className="font-mono text-sm">{editingPage}</span>
+              SEO   <span className="font-mono text-sm">{editingPage}</span>
             </SheetTitle>
           </SheetHeader>
           {editingPage && (

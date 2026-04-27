@@ -8,7 +8,7 @@
 model NavLink {
   id        String       @id @default(cuid())
   title     String       // "Our Essence", "Our Products", "Jivo Media", "Community"
-  href      String       // "/our-essence", "/products", "/media", "/community"
+  href      String?      // Not used — parent links are dropdown triggers, not navigable
   sortOrder Int          @default(0)
   isVisible Boolean      @default(true)
   subLinks  NavSubLink[] // Dropdown sub-items shown on hover

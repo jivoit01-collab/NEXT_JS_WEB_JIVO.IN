@@ -298,7 +298,7 @@ export default function AdminSeoPage() {
                   </Badge>
                 </div>
 
-                {/* Action buttons â€” visible on hover (desktop) or tap (mobile) */}
+                {/* Action buttons  visible on hover (desktop) or tap (mobile) */}
                 <div className={`relative z-10 flex items-center gap-1 transition-opacity duration-200 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`}>
                   <button
                     onClick={(e) => {
@@ -355,7 +355,7 @@ export default function AdminSeoPage() {
         <SheetContent side="right" className="w-full overflow-x-hidden overflow-y-auto sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle>
-              SEO â€” <span className="font-mono text-sm">{editingPage}</span>
+              SEO - {editingPage}
             </SheetTitle>
           </SheetHeader>
           {editingPage && (
