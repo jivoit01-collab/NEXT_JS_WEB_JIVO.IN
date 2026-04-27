@@ -6,8 +6,107 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { toast } from 'sonner';
-import { ChevronDown, BookOpen, Copy, Check } from 'lucide-react';
+import { ChevronDown, BookOpen, Copy, Check, Search, MessageCircle, Image as ImageIcon } from 'lucide-react';
 import seoGuideContent from '../docs/seo-guide-content';
+
+/* ── Google Search Result mock card ─────────────────────────── */
+function GooglePreviewMock({
+  title,
+  url,
+  description,
+  highlight,
+  richResult,
+}: {
+  title: string;
+  url: string;
+  description: string;
+  highlight?: 'title' | 'url' | 'description';
+  richResult?: string;
+}) {
+  return (
+    <div className="my-3 space-y-2">
+      <div className="flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+        <Search className="h-3 w-3" />
+        <span>Google Search Result</span>
+      </div>
+      <div className="overflow-hidden rounded-xl border bg-card px-5 py-4 shadow-sm">
+        <p
+          className={`truncate text-base font-medium leading-snug ${highlight === 'title' ? 'rounded bg-primary/20 px-1' : ''}`}
+          style={{ color: '#1a0dab' }}
+        >
+          {title}
+        </p>
+        <p
+          className={`mt-0.5 truncate text-[13px] leading-tight ${highlight === 'url' ? 'rounded bg-primary/20 px-1' : ''}`}
+          style={{ color: '#006621' }}
+        >
+          {url}
+        </p>
+        <p
+          className={`mt-1 text-[13px] leading-relaxed ${highlight === 'description' ? 'rounded bg-primary/20 px-1 text-foreground' : 'text-muted-foreground'}`}
+        >
+          {description}
+        </p>
+        {richResult && (
+          <p className="mt-1 rounded bg-primary/20 px-1 text-[12px] font-medium text-primary">
+            {richResult}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── WhatsApp / Social Card mock ─────────────────────────────── */
+function SocialPreviewMock({
+  domain,
+  title,
+  description,
+  highlight,
+}: {
+  domain: string;
+  title: string;
+  description?: string;
+  highlight?: 'title' | 'description' | 'image';
+}) {
+  return (
+    <div className="my-3 space-y-2">
+      <div className="flex w-fit items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-500">
+        <MessageCircle className="h-3 w-3" />
+        <span>WhatsApp / Social Card</span>
+      </div>
+      <div className="flex justify-start rounded-xl bg-muted/30 p-4">
+        <div className="w-full max-w-[320px] overflow-hidden rounded-lg border bg-card shadow-md">
+          <div
+            className={`flex aspect-video w-full items-center justify-center bg-muted/60 ${highlight === 'image' ? 'ring-2 ring-inset ring-primary/60' : ''}`}
+          >
+            <div className="text-center text-muted-foreground/40">
+              <ImageIcon className="mx-auto mb-1.5 h-8 w-8" />
+              <p className="text-[11px]">1200 × 630 OG Image</p>
+            </div>
+          </div>
+          <div className="border-t bg-muted/20 px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+              {domain}
+            </p>
+            <p
+              className={`mt-0.5 line-clamp-2 text-[13px] font-semibold leading-snug ${highlight === 'title' ? 'rounded bg-primary/20 px-1 text-foreground' : 'text-foreground'}`}
+            >
+              {title}
+            </p>
+            {description && (
+              <p
+                className={`mt-0.5 line-clamp-2 text-[11px] leading-relaxed ${highlight === 'description' ? 'rounded bg-primary/20 px-1 text-foreground' : 'text-muted-foreground'}`}
+              >
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ── Code block with copy button ──────────────────────────── */
 function CodeBlock({ language, code }: { language: string; code: string }) {
@@ -88,11 +187,11 @@ export function SeoGuide() {
 
       {/* Collapsible content */}
       {open && (
-        <div className="border-t px-5 py-6 sm:px-8">
+        <div className="overflow-x-hidden border-t px-5 py-6 sm:px-8">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              /* ── Headings — each level gets its own colour + size ── */
+              /* ── Headings ── */
               h1({ children }) {
                 return (
                   <h1 className="mb-4 mt-0 text-xl font-jost-bold text-primary">
@@ -128,6 +227,13 @@ export function SeoGuide() {
               strong({ children }) {
                 return <strong className="font-jost-bold text-foreground">{children}</strong>;
               },
+              del({ children }) {
+                return (
+                  <span className="rounded-sm bg-primary/20 px-0.5 font-medium text-primary">
+                    {children}
+                  </span>
+                );
+              },
 
               /* ── Lists ── */
               ul({ children }) {
@@ -144,16 +250,39 @@ export function SeoGuide() {
                 );
               },
 
-              /* ── Inline code ── */
+              /* ── Code blocks — special preview types + syntax highlighter ── */
               code({ className, children }) {
-                const match = /language-(\w+)/.exec(className ?? '');
+                const match = /language-([\w-]+)/.exec(className ?? '');
                 if (match) {
-                  return (
-                    <CodeBlock
-                      language={match[1]}
-                      code={String(children).replace(/\n$/, '')}
-                    />
-                  );
+                  const lang = match[1];
+                  const raw = String(children).replace(/\n$/, '');
+
+                  if (lang === 'google-preview') {
+                    try {
+                      const data = JSON.parse(raw) as {
+                        title: string;
+                        url: string;
+                        description: string;
+                        highlight?: 'title' | 'url' | 'description';
+                        richResult?: string;
+                      };
+                      return <GooglePreviewMock {...data} />;
+                    } catch { /* fall through to syntax highlighter */ }
+                  }
+
+                  if (lang === 'social-preview') {
+                    try {
+                      const data = JSON.parse(raw) as {
+                        domain: string;
+                        title: string;
+                        description?: string;
+                        highlight?: 'title' | 'description' | 'image';
+                      };
+                      return <SocialPreviewMock {...data} />;
+                    } catch { /* fall through to syntax highlighter */ }
+                  }
+
+                  return <CodeBlock language={lang} code={raw} />;
                 }
                 return (
                   <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs text-primary">
@@ -182,9 +311,7 @@ export function SeoGuide() {
                 return <tbody className="divide-y divide-border">{children}</tbody>;
               },
               tr({ children }) {
-                return (
-                  <tr className="transition-colors hover:bg-muted/20">{children}</tr>
-                );
+                return <tr className="transition-colors hover:bg-muted/20">{children}</tr>;
               },
               th({ children }) {
                 return (

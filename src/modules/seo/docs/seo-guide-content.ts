@@ -22,6 +22,17 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 
 **What it does:** This is the big blue link people see in Google search results. It is also shown in the browser tab.
 
+\`\`\`google-preview
+{
+  "title": "Jivo Wellness — India's Largest Cold Press Canola Oil Seller",
+  "url": "shop.jivo.in › Super Oils",
+  "description": "Best Indian cooking experience with cold-pressed canola oil, low in saturated fat...",
+  "highlight": "title"
+}
+\`\`\`
+
+*↑ The highlighted blue title above is your* **Meta Title**
+
 **Real example:**
 \`Jivo Wellness — India's Largest Cold Press Canola Oil Seller\`
 
@@ -36,6 +47,17 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 ### 2. Meta Description
 
 **What it does:** This is the short paragraph shown below the blue link in Google results. Google may rewrite it, but a good description improves click rates.
+
+\`\`\`google-preview
+{
+  "title": "Jivo Cold-Pressed Canola Oil",
+  "url": "shop.jivo.in › Super Oils",
+  "description": "Best Indian cooking experience with cold-pressed canola oil, low in saturated fat. Chemical-free, vitamin-fortified, naturally extracted to retain nutrients.",
+  "highlight": "description"
+}
+\`\`\`
+
+*↑ The highlighted text above is your* **Meta Description**
 
 **Real example:**
 \`Premium cold press canola oil, wheatgrass juice, and superfoods — crafted with truth and devotion. Free shipping on orders above ₹499.\`
@@ -66,6 +88,17 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 ### 4. Canonical URL
 
 **What it does:** Tells Google which URL is the "official" address for this page. This prevents duplicate content issues when the same page can be reached from multiple URLs.
+
+\`\`\`google-preview
+{
+  "title": "Jivo Cold-Pressed Canola Oil",
+  "url": "jivo.in › our-products › super-oils",
+  "description": "Best Indian cooking experience with cold-pressed canola oil...",
+  "highlight": "url"
+}
+\`\`\`
+
+*↑ The highlighted green URL path above is your* **Canonical URL**
 
 **Real example:**
 \`https://jivo.in/our-essence/the-story\`
@@ -100,6 +133,17 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 
 **What it does:** The title shown when someone shares this page on WhatsApp, Facebook, LinkedIn, or Twitter. If left empty, it falls back to the Meta Title.
 
+\`\`\`social-preview
+{
+  "domain": "jivo.in",
+  "title": "Jivo Wellness — Pure Cold Press Canola Oil",
+  "description": "Cold press oils and superfoods born from a mission of service.",
+  "highlight": "title"
+}
+\`\`\`
+
+*↑ The highlighted bold title above is your* **OG Title**
+
 **Real example:**
 \`Jivo Wellness — Pure Cold Press Canola Oil\`
 
@@ -113,6 +157,17 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 
 **What it does:** The description shown in the WhatsApp or social media card preview when someone shares the link. Falls back to Meta Description if empty.
 
+\`\`\`social-preview
+{
+  "domain": "jivo.in",
+  "title": "Jivo Wellness — Pure Cold Press Canola Oil",
+  "description": "Cold press oils and superfoods born from a mission of service. Honest ingredients, honest price.",
+  "highlight": "description"
+}
+\`\`\`
+
+*↑ The highlighted summary text above is your* **OG Description**
+
 **Real example:**
 \`Cold press oils and superfoods born from a mission of service. Honest ingredients, honest price.\`
 
@@ -125,6 +180,17 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 ### 8. OG Image
 
 **What it does:** The image shown in the social sharing card when someone sends your link on WhatsApp or posts it on social media. This is the most important visual element of a shared link.
+
+\`\`\`social-preview
+{
+  "domain": "jivo.in",
+  "title": "Jivo Wellness — Pure Cold Press Canola Oil",
+  "description": "Cold press oils and superfoods...",
+  "highlight": "image"
+}
+\`\`\`
+
+*↑ Your* **OG Image** *fills the highlighted image area above*
 
 **Real example:** A 1200×630 pixel image showing your product, brand logo, or a lifestyle photo.
 
@@ -153,6 +219,17 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 
 **What it does:** Special invisible code that tells Google extra details about your page — like whether it is a product, an article, an FAQ, or an organisation. Google uses this for **rich results** like star ratings, FAQ dropdowns, and breadcrumbs in search.
 
+\`\`\`google-preview
+{
+  "title": "Jivo Cold-Pressed Canola Oil",
+  "url": "shop.jivo.in › Super Oils",
+  "description": "Best Indian cooking experience with cold-pressed canola oil, low in saturated fat...",
+  "richResult": "₹249.00 to ₹1,199.00 · In stock · Free delivery · 15-day returns"
+}
+\`\`\`
+
+*↑ The highlighted rich result line above is added by your* **JSON-LD** *field*
+
 **Real example for a product page:**
 \`\`\`json
 {
@@ -168,7 +245,7 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 \`\`\`
 
 **Best practice:**
-- The \`@context\` field is added automatically — do not add it yourself
+- The \`@context\` field (\`https://schema.org\`) is added automatically — do not add it yourself
 - Must be valid JSON — use the Copy button and paste it into [jsonlint.com](https://jsonlint.com) to check
 - Leave empty if you are not sure — it is optional
 
@@ -184,7 +261,7 @@ Google **shows the page** in search results and **follows all links** on it to d
 ---
 
 ### noindex, follow
-Google does **not show the page** in results, but it **still follows links** on it.
+Google does **not show the page** in results, but it **still follows links** on it. Useful for pages you want Google to crawl through but not rank.
 
 **Use when:** Cart page, Checkout page, Order confirmation, Thank-you page.
 
@@ -193,7 +270,7 @@ Google does **not show the page** in results, but it **still follows links** on 
 ### index, nofollow
 Google **shows the page** but **does not follow** links on it. Rarely needed.
 
-**Use when:** Pages with lots of external links you do not want to pass authority to.
+**Use when:** Pages with lots of user-generated links you do not want to pass authority to.
 
 ---
 
@@ -208,10 +285,9 @@ Google **completely ignores** the page — does not show it and does not follow 
 
 ### 1. Using localhost in the Canonical URL
 **Wrong:** \`http://localhost:3000/about\`
-
 **Right:** \`https://jivo.in/about\`
 
-Google cannot access localhost — it is only your computer. Always use the live domain.
+Google cannot access \`localhost\` — it is only your computer. If your canonical URL points to localhost, Google will ignore it or show an error.
 
 ---
 
@@ -221,17 +297,17 @@ If no OG image is set, WhatsApp and Facebook will either show a blank card or pi
 ---
 
 ### 3. Wrong Robots Setting
-Setting \`noindex\` on a page you want Google to rank means Google will **never show it**. Double-check the robots field for all public pages.
+Setting \`noindex\` on a page you want Google to rank (like the home page or product pages) means Google will **never show it**. Double-check the robots field for all public pages.
 
 ---
 
 ### 4. Title or Description Too Long
-If your Meta Title is over 70 characters, Google cuts it off with \`…\` in results. The same happens with descriptions over 180 characters. Keep within the character limit shown in the counter.
+If your Meta Title is over 70 characters, Google will cut it off with \`...\` in the results. The same happens with descriptions over 180 characters. Keep them within the character limit shown in the counter.
 
 ---
 
 ### 5. Duplicate Titles Across Pages
-Every page should have a unique title. If all pages share the same title, Google cannot tell them apart and may rank none of them well.
+Every page should have a unique title. If all pages share the same title like \`Jivo Wellness\`, Google cannot tell them apart and may rank none of them.
 
 ---
 
