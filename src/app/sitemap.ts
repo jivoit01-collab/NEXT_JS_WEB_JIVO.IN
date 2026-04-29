@@ -1,36 +1,28 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
 
+/**
+ * Sitemap - Only real pages with existing route files.
+ *
+ * Pages without route files (e.g., /products, /media, /community as main routes)
+ * are EXCLUDED because they cause 404 crawl waste.
+ *
+ * Dropdown parent nav items (Products, Media, Community) have no page URLs
+ * and therefore do NOT appear in sitemap.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
-    '',
-    '/our-essence/the-story',
-    '/our-essence/core-values',
-    '/who-we-are',
-    '/our-values',
-    '/why-jivo',
-    '/contact',
-    '/canola-oil',
-    '/olive-oil',
-    '/wheatgrass',
-    '/natural-minerals',
-    '/shop',
-    '/blog',
-    '/privacy-policy',
-    '/terms-and-conditions',
-    '/refund-policy',
+    { path: '', priority: 1 as const, changefreq: 'daily' as const },
+    { path: '/our-essence/the-story', priority: 0.8 as const, changefreq: 'weekly' as const },
+    { path: '/our-essence/core-values', priority: 0.8 as const, changefreq: 'weekly' as const },
   ];
 
-  const staticEntries: MetadataRoute.Sitemap = staticPages.map((path) => ({
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map(({ path, priority, changefreq }) => ({
     url: `${SITE_URL}${path}`,
     lastModified: new Date(),
-    changeFrequency: path === '' ? 'daily' : 'weekly',
-    priority: path === '' ? 1 : 0.8,
+    changeFrequency: changefreq,
+    priority,
   }));
-
-  // TODO: Add dynamic product and blog post URLs from database
-  // const products = await prisma.product.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } });
-  // const blogPosts = await prisma.blogPost.findMany({ where: { isPublished: true }, select: { slug: true, updatedAt: true } });
 
   return [...staticEntries];
 }
