@@ -41,3 +41,19 @@ export type {
   CoreValueBlock,
   CoreValuesSectionKey,
 } from './core-values';
+
+export {
+  BaruSahibAssociationHero,
+  BaruSahibAssociationMain,
+  CinematicVideoSection,
+  HumanitySection,
+  defaultSeo as baruSahibAssociationDefaultSeo,
+  getBaruSahibAssociationSections,
+} from './baru-sahib-association';
+
+export type {
+  BaruSahibAssociationHeroContent,
+  BaruSahibAssociationHumanityContent,
+  BaruSahibAssociationSectionKey,
+  BaruSahibAssociationVideoContent,
+} from './baru-sahib-association';

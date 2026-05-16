@@ -21,6 +21,7 @@ import {
   Users,
   BookOpen,
   Compass,
+  Landmark,
   ChevronDown,
   LogOut,
   ArrowLeft,
@@ -65,6 +66,11 @@ const SIDEBAR: NavSection[] = [
     children: [
       { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen },
       { title: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass },
+      {
+        title: 'Baru Sahib Association',
+        href: '/admin/our-essence-baru-sahib-association',
+        icon: Landmark,
+      },
     ],
   },
   {
@@ -93,6 +99,12 @@ const SIDEBAR: NavSection[] = [
       { title: 'Home', href: '/admin/home', icon: Home, tab: 'seo' },
       { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen, tab: 'seo' },
       { title: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass, tab: 'seo' },
+      {
+        title: 'Baru Sahib Association',
+        href: '/admin/our-essence-baru-sahib-association',
+        icon: Landmark,
+        tab: 'seo',
+      },
     ],
   },
 ];
@@ -109,8 +121,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setMounted(true), []);
-  useEffect(() => setMobileOpen(false), [pathname]);
+  useEffect(() => {
+    const id = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(id);
+  }, []);
+  useEffect(() => {
+    const id = window.setTimeout(() => setMobileOpen(false), 0);
+    return () => window.clearTimeout(id);
+  }, [pathname]);
 
   // Auto-expand the section that contains the active page
   useEffect(() => {
@@ -122,7 +140,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       });
       const isSelfActive = pathname === section.href;
       if (hasActiveChild || isSelfActive) {
-        setExpanded((prev) => ({ ...prev, [section.title]: true }));
+        window.setTimeout(() => {
+          setExpanded((prev) => ({ ...prev, [section.title]: true }));
+        }, 0);
       }
     }
   }, [pathname, tabParam]);
@@ -153,16 +173,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     pathname === section.href || section.children.some((c) => isChildActive(c));
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="bg-background flex min-h-screen">
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setMobileOpen(false)} />
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
       {/* ── Sidebar ───────────────────────────── */}
       <aside
         ref={sidebarRef}
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-card shadow-sm',
+          'bg-card fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r shadow-sm',
           'transform transition-transform duration-300',
           mobileOpen ? 'translate-x-0' : '-translate-x-64',
           'md:translate-x-0',
@@ -171,10 +194,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Header */}
         <div className="flex h-16 shrink-0 items-center justify-between border-b px-6">
           <Link href="/" title="Back to Website">
-            <ArrowLeft size={20} className="cursor-pointer hover:text-primary" />
+            <ArrowLeft size={20} className="hover:text-primary cursor-pointer" />
           </Link>
-          <span className="text-lg font-jost-bold">Admin Panel</span>
-          <button onClick={() => setMobileOpen(false)} className="cursor-pointer md:hidden" aria-label="Close sidebar">
+          <span className="font-jost-bold text-lg">Admin Panel</span>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="cursor-pointer md:hidden"
+            aria-label="Close sidebar"
+          >
             <X size={20} />
           </button>
           <div className="hidden w-5 md:block" />
@@ -200,7 +227,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <Link
                     href={section.href}
-                    className="flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm font-jost-medium"
+                    className="font-jost-medium flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm"
                   >
                     <Icon size={18} className="shrink-0" />
                     <span className="truncate">{section.title}</span>
@@ -225,9 +252,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0',
                   )}
                 >
-                  <div className="ml-4 border-l border-border/50 py-1 pl-3">
+                  <div className="border-border/50 ml-4 border-l py-1 pl-3">
                     {section.children.length === 0 ? (
-                      <span className="block py-2 text-[11px] italic text-muted-foreground/50">
+                      <span className="text-muted-foreground/50 block py-2 text-[11px] italic">
                         No pages yet
                       </span>
                     ) : (
@@ -259,35 +286,67 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="border-t p-4 text-xs text-muted-foreground">
+        <div className="text-muted-foreground border-t p-4 text-xs">
           <p>Manage all pages from each section.</p>
         </div>
       </aside>
 
       {/* ── Main content ──────────────────────── */}
       <div className="min-w-0 flex-1 md:ml-64">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:hidden">
+        <header className="bg-background/95 sticky top-0 z-20 flex h-14 items-center justify-between border-b px-4 backdrop-blur md:hidden">
           <div className="flex items-center gap-4">
-            <button onClick={() => setMobileOpen(true)} className="cursor-pointer" aria-label="Open menu">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="cursor-pointer"
+              aria-label="Open menu"
+            >
               <Menu size={24} />
             </button>
-            <h1 className="truncate text-sm font-jost-bold">Admin Panel</h1>
+            <h1 className="font-jost-bold truncate text-sm">Admin Panel</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-9 w-9">
-              {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="h-9 w-9"
+            >
+              {mounted && theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              className="gap-2"
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </header>
 
-        <header className="sticky top-0 z-20 hidden h-12 items-center justify-end gap-3 border-b bg-background/95 px-6 backdrop-blur md:flex">
-          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-9 w-9">
-            {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        <header className="bg-background/95 sticky top-0 z-20 hidden h-12 items-center justify-end gap-3 border-b px-6 backdrop-blur md:flex">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="h-9 w-9"
+          >
+            {mounted && theme === 'dark' ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            className="gap-2"
+          >
             <LogOut className="h-4 w-4" /> Logout
           </Button>
         </header>

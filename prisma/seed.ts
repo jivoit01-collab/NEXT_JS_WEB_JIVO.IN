@@ -86,10 +86,30 @@ async function main() {
       content: {
         heading: 'MADE FOR EVERYDAY LOVE',
         items: [
-          { name: 'Cooking Oil', image: PLACEHOLDER, href: '/products?category=cooking-oil', bgColor: 'bg-jivo-green' },
-          { name: 'Wheatgrass Juice', image: PLACEHOLDER, href: '/products?category=wheatgrass-juice', bgColor: 'bg-jivo-sage' },
-          { name: 'Water', image: PLACEHOLDER, href: '/products?category=water', bgColor: 'bg-jivo-blue' },
-          { name: 'Super Foods', image: PLACEHOLDER, href: '/products?category=super-foods', bgColor: 'bg-jivo-maroon' },
+          {
+            name: 'Cooking Oil',
+            image: PLACEHOLDER,
+            href: '/products?category=cooking-oil',
+            bgColor: 'bg-jivo-green',
+          },
+          {
+            name: 'Wheatgrass Juice',
+            image: PLACEHOLDER,
+            href: '/products?category=wheatgrass-juice',
+            bgColor: 'bg-jivo-sage',
+          },
+          {
+            name: 'Water',
+            image: PLACEHOLDER,
+            href: '/products?category=water',
+            bgColor: 'bg-jivo-blue',
+          },
+          {
+            name: 'Super Foods',
+            image: PLACEHOLDER,
+            href: '/products?category=super-foods',
+            bgColor: 'bg-jivo-maroon',
+          },
         ],
       },
     },
@@ -101,9 +121,12 @@ async function main() {
         backgroundImage: PLACEHOLDER,
         heading: 'LET NATURE RECLAIM YOU',
         subtitle: 'Our foundation is truth, our motive is service.',
-        intro: 'Jivo exists to prove that business can be a pure expression of service. Every product we make and every decision we take is guided by this single idea: wellness is a duty, not a market.',
-        vision: 'To create a world where wellness is accessible to all — through products rooted in truth, purity, and a deep respect for nature. Jivo envisions a future where every individual can reclaim their health and vitality through honest, natural solutions.',
-        mission: 'To serve humanity by offering the very best wellness products and services, crafted with integrity and guided by the principles of Truth, Devotion, and Sewa. Every Jivo product is a step toward universal well-being.',
+        intro:
+          'Jivo exists to prove that business can be a pure expression of service. Every product we make and every decision we take is guided by this single idea: wellness is a duty, not a market.',
+        vision:
+          'To create a world where wellness is accessible to all — through products rooted in truth, purity, and a deep respect for nature. Jivo envisions a future where every individual can reclaim their health and vitality through honest, natural solutions.',
+        mission:
+          'To serve humanity by offering the very best wellness products and services, crafted with integrity and guided by the principles of Truth, Devotion, and Sewa. Every Jivo product is a step toward universal well-being.',
       },
     },
     {
@@ -137,19 +160,45 @@ async function main() {
       content: {
         heading: 'SO, WHY JIVO EXACTLY?',
         subheading: 'Because our motive is different.',
-        leftText: 'Jivo was started to serve all of humanity, beginning with products and services that support health and wellbeing.',
+        leftText:
+          'Jivo was started to serve all of humanity, beginning with products and services that support health and wellbeing.',
         rightParagraphs: [
           'When you engage with Jivo — as a customer, a partner, or a team member — you are doing more than a transaction.',
           'You are participating in a cycle of service.',
           'Jivo exists to prove that a business built on Truth, Devotion, and Sewa can be a powerful force for the wellbeing of humanity.',
         ],
         valuePillars: [
-          { icon: 'Users', title: 'People', description: 'The organization is built with people who strive to embody these principles.' },
-          { icon: 'Scale', title: 'Truth', description: 'Honesty, transparency, and personal integrity.' },
-          { icon: 'Heart', title: 'Devotion', description: 'A motivation that comes from selfless service to the mission.' },
-          { icon: 'HandHeart', title: 'Sewa', description: 'A spirit of selfless service, seeing all work as an offering.' },
-          { icon: 'Lightbulb', title: 'Intelligence', description: 'People who are curious, learn from facts, and seek to understand.' },
-          { icon: 'ShieldCheck', title: 'Integrity & Dedication', description: 'An unwavering commitment to these principles.' },
+          {
+            icon: 'Users',
+            title: 'People',
+            description:
+              'The organization is built with people who strive to embody these principles.',
+          },
+          {
+            icon: 'Scale',
+            title: 'Truth',
+            description: 'Honesty, transparency, and personal integrity.',
+          },
+          {
+            icon: 'Heart',
+            title: 'Devotion',
+            description: 'A motivation that comes from selfless service to the mission.',
+          },
+          {
+            icon: 'HandHeart',
+            title: 'Sewa',
+            description: 'A spirit of selfless service, seeing all work as an offering.',
+          },
+          {
+            icon: 'Lightbulb',
+            title: 'Intelligence',
+            description: 'People who are curious, learn from facts, and seek to understand.',
+          },
+          {
+            icon: 'ShieldCheck',
+            title: 'Integrity & Dedication',
+            description: 'An unwavering commitment to these principles.',
+          },
         ],
       },
     },
@@ -160,7 +209,13 @@ async function main() {
     await prisma.homePage.deleteMany();
     for (const s of homeSections) {
       await prisma.homePage.create({
-        data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
       });
     }
     created += homeSections.length;
@@ -173,7 +228,13 @@ async function main() {
         skipped++;
       } else {
         await prisma.homePage.create({
-          data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
         });
         created++;
       }
@@ -183,8 +244,18 @@ async function main() {
 
   // ── Hero carousel slides ───────────────────────────────────
   const heroSlides = [
-    { backgroundImage: PLACEHOLDER, headline: 'SMALL MOMENTS OF JOY', subtitle: "India's largest seller of cold press canola oil.", sortOrder: 1 },
-    { backgroundImage: PLACEHOLDER, headline: 'LEADING THE WAY TOUCHING LIVES', subtitle: 'A pure brand, built on the values of service.', sortOrder: 2 },
+    {
+      backgroundImage: PLACEHOLDER,
+      headline: 'SMALL MOMENTS OF JOY',
+      subtitle: "India's largest seller of cold press canola oil.",
+      sortOrder: 1,
+    },
+    {
+      backgroundImage: PLACEHOLDER,
+      headline: 'LEADING THE WAY TOUCHING LIVES',
+      subtitle: 'A pure brand, built on the values of service.',
+      sortOrder: 2,
+    },
   ];
 
   if (FORCE_RESET) {
@@ -222,7 +293,9 @@ async function main() {
     if (existing) {
       skipped++;
     } else {
-      await prisma.navLink.create({ data: { title: l.title, href: l.href, sortOrder: l.sortOrder, isVisible: true } });
+      await prisma.navLink.create({
+        data: { title: l.title, href: l.href, sortOrder: l.sortOrder, isVisible: true },
+      });
       created++;
     }
   }
@@ -231,17 +304,19 @@ async function main() {
   // ── Footer columns + links ─────────────────────────────────
   const footerColumns = [
     {
-      title: 'OUR ESSENCE', sortOrder: 0,
+      title: 'OUR ESSENCE',
+      sortOrder: 0,
       links: [
         { title: 'Our Story', href: '/our-essence/the-story' },
         { title: 'Our Values', href: '/our-values' },
         { title: 'Why Jivo', href: '/why-jivo' },
         { title: 'Social Initiatives', href: '/social-initiatives' },
-        { title: 'Barusahib Association', href: '/barusahib-association' },
+        { title: 'Baru Sahib Association', href: '/our-essence/baru-sahib-association' },
       ],
     },
     {
-      title: 'OUR PRODUCTS', sortOrder: 1,
+      title: 'OUR PRODUCTS',
+      sortOrder: 1,
       links: [
         { title: 'Jivo Cold Press Canola Oil', href: '/products/cold-press-canola-oil' },
         { title: 'Jivo Olive Oil', href: '/products/olive-oil' },
@@ -252,7 +327,8 @@ async function main() {
       ],
     },
     {
-      title: 'JIVO MEDIA', sortOrder: 2,
+      title: 'JIVO MEDIA',
+      sortOrder: 2,
       links: [
         { title: 'What is Canola', href: '/media/what-is-canola' },
         { title: 'Health Benefit of Canola', href: '/media/health-benefit-of-canola' },
@@ -261,7 +337,8 @@ async function main() {
       ],
     },
     {
-      title: 'COMMUNITY', sortOrder: 3,
+      title: 'COMMUNITY',
+      sortOrder: 3,
       links: [
         { title: 'What is Wheatgrass', href: '/community/what-is-wheatgrass' },
         { title: 'Health Benefit of Wheatgrass', href: '/community/health-benefit-of-wheatgrass' },
@@ -269,7 +346,8 @@ async function main() {
       ],
     },
     {
-      title: 'QUICK LINKS', sortOrder: 4,
+      title: 'QUICK LINKS',
+      sortOrder: 4,
       links: [
         { title: 'Careers', href: '/careers' },
         { title: 'Contact us', href: '/contact' },
@@ -284,9 +362,17 @@ async function main() {
     await prisma.footerLink.deleteMany();
     await prisma.footerColumn.deleteMany();
     for (const col of footerColumns) {
-      const c = await prisma.footerColumn.create({ data: { title: col.title, sortOrder: col.sortOrder, isVisible: true } });
+      const c = await prisma.footerColumn.create({
+        data: { title: col.title, sortOrder: col.sortOrder, isVisible: true },
+      });
       await prisma.footerLink.createMany({
-        data: col.links.map((link, i) => ({ columnId: c.id, title: link.title, href: link.href, sortOrder: i, isVisible: true })),
+        data: col.links.map((link, i) => ({
+          columnId: c.id,
+          title: link.title,
+          href: link.href,
+          sortOrder: i,
+          isVisible: true,
+        })),
       });
     }
     console.log(`✓ Footer: RESET (${footerColumns.length} columns)`);
@@ -294,9 +380,17 @@ async function main() {
     const colCount = await prisma.footerColumn.count();
     if (colCount === 0) {
       for (const col of footerColumns) {
-        const c = await prisma.footerColumn.create({ data: { title: col.title, sortOrder: col.sortOrder, isVisible: true } });
+        const c = await prisma.footerColumn.create({
+          data: { title: col.title, sortOrder: col.sortOrder, isVisible: true },
+        });
         await prisma.footerLink.createMany({
-          data: col.links.map((link, i) => ({ columnId: c.id, title: link.title, href: link.href, sortOrder: i, isVisible: true })),
+          data: col.links.map((link, i) => ({
+            columnId: c.id,
+            title: link.title,
+            href: link.href,
+            sortOrder: i,
+            isVisible: true,
+          })),
         });
       }
       console.log(`✓ Footer: ${footerColumns.length} columns created (table was empty)`);
@@ -353,10 +447,19 @@ async function main() {
     {
       page: 'home',
       metaTitle: "Jivo Wellness — India's Largest Cold Press Canola Oil Seller",
-      metaDescription: 'Premium cold press canola oil, wheatgrass juice, natural minerals & superfoods.',
-      keywords: ['jivo wellness', 'cold press canola oil', 'canola oil india', 'wheatgrass juice', 'cooking oil', 'super foods'],
+      metaDescription:
+        'Premium cold press canola oil, wheatgrass juice, natural minerals & superfoods.',
+      keywords: [
+        'jivo wellness',
+        'cold press canola oil',
+        'canola oil india',
+        'wheatgrass juice',
+        'cooking oil',
+        'super foods',
+      ],
       ogTitle: 'Jivo Wellness — Pure, Honest, Wellness-First Products',
-      ogDescription: 'Cold press oils, wheatgrass juice, superfoods & wellness products born from a mission of service.',
+      ogDescription:
+        'Cold press oils, wheatgrass juice, superfoods & wellness products born from a mission of service.',
       ogImage: 'og-default.png',
       twitterCard: 'summary_large_image',
       canonicalUrl: BASE,
@@ -366,28 +469,81 @@ async function main() {
     {
       page: 'our-essence-the-story',
       metaTitle: 'The Story of Jivo Wellness | Inspired by Seva & Baba Iqbal Singh Ji',
-      metaDescription: "Discover the journey of Jivo Wellness — rooted in the vision of Baba Iqbal Singh Ji.",
-      keywords: ['jivo wellness story', 'baba iqbal singh ji', 'jivo journey', 'seva wellness', 'kirat karmai'],
+      metaDescription:
+        'Discover the journey of Jivo Wellness — rooted in the vision of Baba Iqbal Singh Ji.',
+      keywords: [
+        'jivo wellness story',
+        'baba iqbal singh ji',
+        'jivo journey',
+        'seva wellness',
+        'kirat karmai',
+      ],
       ogTitle: 'The Jivo Journey — Wellness Rooted in Seva',
       ogDescription: "From selfless service to wellness for all — the story behind Jivo's mission.",
       ogImage: 'og-default.png',
       twitterCard: 'summary_large_image',
       canonicalUrl: `${BASE}/our-essence/the-story`,
       robots: 'index,follow',
-      structuredData: { '@type': 'AboutPage', name: 'The Story of Jivo Wellness', url: `${BASE}/our-essence/the-story` },
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'The Story of Jivo Wellness',
+        url: `${BASE}/our-essence/the-story`,
+      },
     },
     {
       page: 'our-essence-core-values',
       metaTitle: 'Core Values | Our Essence | Jivo Wellness',
-      metaDescription: 'Truth, Devotion, Sewa, Intelligence, Integrity — the five principles that shape every action at Jivo Wellness.',
-      keywords: ['jivo core values', 'jivo essence', 'truth devotion sewa', 'sewa selfless service', 'intelligence integrity', 'jivo wellness values', 'essence in action', 'truth as foundation'],
+      metaDescription:
+        'Truth, Devotion, Sewa, Intelligence, Integrity — the five principles that shape every action at Jivo Wellness.',
+      keywords: [
+        'jivo core values',
+        'jivo essence',
+        'truth devotion sewa',
+        'sewa selfless service',
+        'intelligence integrity',
+        'jivo wellness values',
+        'essence in action',
+        'truth as foundation',
+      ],
       ogTitle: 'Our Core Values — Essence in Action',
-      ogDescription: 'Truth, Devotion, Sewa, Intelligence, Integrity — the principles behind every action at Jivo.',
+      ogDescription:
+        'Truth, Devotion, Sewa, Intelligence, Integrity — the principles behind every action at Jivo.',
       ogImage: 'og-default.png',
       twitterCard: 'summary_large_image',
       canonicalUrl: `${BASE}/our-essence/core-values`,
       robots: 'index,follow',
-      structuredData: { '@type': 'AboutPage', name: 'Core Values of Jivo Wellness', url: `${BASE}/our-essence/core-values` },
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'Core Values of Jivo Wellness',
+        url: `${BASE}/our-essence/core-values`,
+      },
+    },
+    {
+      page: 'our-essence-baru-sahib-association',
+      metaTitle: 'Baru Sahib Association | Jivo Wellness',
+      metaDescription:
+        'Explore the spiritual journey, humanitarian mission, and wellness philosophy behind Baru Sahib Association.',
+      keywords: [
+        'baru sahib association',
+        'jivo wellness',
+        'our essence',
+        'spiritual journey',
+        'humanitarian mission',
+        'wellness philosophy',
+        'value based education',
+      ],
+      ogTitle: 'Baru Sahib Association | Jivo Wellness',
+      ogDescription:
+        'Explore the spiritual journey, humanitarian mission, and wellness philosophy behind Baru Sahib Association.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/baru-sahib-association`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'Baru Sahib Association',
+        url: `${BASE}/our-essence/baru-sahib-association`,
+      },
     },
   ];
 
@@ -408,29 +564,39 @@ async function main() {
   // ── Our Essence — The Story sections ───────────────────────
   const theStorySections = [
     {
-      section: 'hero', title: 'Hero', sortOrder: 0,
+      section: 'hero',
+      title: 'Hero',
+      sortOrder: 0,
       content: {
         heading: 'JIVO JOURNEY',
-        paragraph: "Inspired by Baba Iqbal Singh ji's vision, Jivo blends integrity, compassion, and innovation to promote health, uplift communities, and empower humanity.",
+        paragraph:
+          "Inspired by Baba Iqbal Singh ji's vision, Jivo blends integrity, compassion, and innovation to promote health, uplift communities, and empower humanity.",
         backgroundImage: PLACEHOLDER,
       },
     },
     {
-      section: 'founder', title: 'Founder', sortOrder: 1,
+      section: 'founder',
+      title: 'Founder',
+      sortOrder: 1,
       content: {
         sectionHeading: 'FOR HUMANITY, WITH PURPOSE',
         title: 'WELLNESS ROOTED IN SEVA',
-        paragraph: 'Our founding father, Baba Iqbal Singh ji, offered his entire life to selfless service (sewa).',
+        paragraph:
+          'Our founding father, Baba Iqbal Singh ji, offered his entire life to selfless service (sewa).',
         founderImage: PLACEHOLDER,
       },
     },
     {
-      section: 'vision', title: 'Vision', sortOrder: 2,
+      section: 'vision',
+      title: 'Vision',
+      sortOrder: 2,
       content: {
         sectionHeading: 'WHERE PURPOSE BECOMES WELLNESS',
         title: 'VISION OF SEVA & GROWTH',
-        leftColumn: "He envisioned that the organization should also be supported by the principle of 'kirat karmai'.",
-        rightColumn: 'Jivo was started to fulfill this vision. Its purpose is to serve all of humanity.',
+        leftColumn:
+          "He envisioned that the organization should also be supported by the principle of 'kirat karmai'.",
+        rightColumn:
+          'Jivo was started to fulfill this vision. Its purpose is to serve all of humanity.',
       },
     },
   ];
@@ -439,7 +605,13 @@ async function main() {
     await prisma.ourEssenceTheStory.deleteMany();
     for (const s of theStorySections) {
       await prisma.ourEssenceTheStory.create({
-        data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
       });
     }
     console.log(`✓ The Story: RESET (${theStorySections.length} sections)`);
@@ -450,7 +622,13 @@ async function main() {
         console.log(`  The Story "${s.section}": skipped`);
       } else {
         await prisma.ourEssenceTheStory.create({
-          data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
         });
         console.log(`  The Story "${s.section}": created`);
       }
@@ -460,33 +638,60 @@ async function main() {
   // ── Our Essence — Core Values sections ─────────────────────
   const coreValuesSections = [
     {
-      section: 'hero', title: 'Hero', sortOrder: 0,
+      section: 'hero',
+      title: 'Hero',
+      sortOrder: 0,
       content: {
         heading: 'ESSENCE IN ACTION',
         subtitle: 'Where values transform into everyday actions that serve humanity.',
-        paragraph: 'These principles are not ideas—they are lived, practiced, and expressed in every action we take.',
+        paragraph:
+          'These principles are not ideas—they are lived, practiced, and expressed in every action we take.',
         backgroundImage: PLACEHOLDER,
       },
     },
     {
-      section: 'foundation', title: 'Truth as Foundation', sortOrder: 1,
+      section: 'foundation',
+      title: 'Truth as Foundation',
+      sortOrder: 1,
       content: {
         heading: 'TRUTH AS FOUNDATION',
         backgroundImage: PLACEHOLDER,
         blocks: [
-          { label: 'TRUTH', description: 'Truth is the recognition of the fundamental origin and unity in all things and all beings. This guides all actions toward absolute honesty, transparency, and integrity.' },
-          { label: 'DEVOTION', description: 'Work is approached as an expression of Devotion. This means tasks are undertaken selflessly, not for personal ambition, but as an all-inclusive expression of service to humanity. It is understood that in this state of devotion—devoid of self—a far greater intelligence, or grace, finds its expression.' },
+          {
+            label: 'TRUTH',
+            description:
+              'Truth is the recognition of the fundamental origin and unity in all things and all beings. This guides all actions toward absolute honesty, transparency, and integrity.',
+          },
+          {
+            label: 'DEVOTION',
+            description:
+              'Work is approached as an expression of Devotion. This means tasks are undertaken selflessly, not for personal ambition, but as an all-inclusive expression of service to humanity. It is understood that in this state of devotion—devoid of self—a far greater intelligence, or grace, finds its expression.',
+          },
         ],
       },
     },
     {
-      section: 'principles', title: 'Principles', sortOrder: 2,
+      section: 'principles',
+      title: 'Principles',
+      sortOrder: 2,
       content: {
         backgroundImage: PLACEHOLDER,
         blocks: [
-          { label: 'SEWA (SELFLESS SERVICE)', description: 'All work is an absolute offering. Sewa is the practical, moment-to-moment action of Devotion and the chosen path to realizing the ultimate Truth.' },
-          { label: 'INTELLIGENCE', description: 'Intelligence is Truth manifest. This principle guides the organization to understand the fundamental "why" and "how" (cause and effect) in its work, to learn from facts, and to act with clarity.' },
-          { label: 'INTEGRITY', description: 'Integrity is defined as an absolute and unwavering commitment to the core principles of Truth, Devotion, Sewa, and Intelligence in every decision.' },
+          {
+            label: 'SEWA (SELFLESS SERVICE)',
+            description:
+              'All work is an absolute offering. Sewa is the practical, moment-to-moment action of Devotion and the chosen path to realizing the ultimate Truth.',
+          },
+          {
+            label: 'INTELLIGENCE',
+            description:
+              'Intelligence is Truth manifest. This principle guides the organization to understand the fundamental "why" and "how" (cause and effect) in its work, to learn from facts, and to act with clarity.',
+          },
+          {
+            label: 'INTEGRITY',
+            description:
+              'Integrity is defined as an absolute and unwavering commitment to the core principles of Truth, Devotion, Sewa, and Intelligence in every decision.',
+          },
         ],
       },
     },
@@ -496,20 +701,107 @@ async function main() {
     await prisma.ourEssenceCoreValues.deleteMany();
     for (const s of coreValuesSections) {
       await prisma.ourEssenceCoreValues.create({
-        data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
       });
     }
     console.log(`✓ Core Values: RESET (${coreValuesSections.length} sections)`);
   } else {
     for (const s of coreValuesSections) {
-      const exists = await prisma.ourEssenceCoreValues.findUnique({ where: { section: s.section } });
+      const exists = await prisma.ourEssenceCoreValues.findUnique({
+        where: { section: s.section },
+      });
       if (exists) {
         console.log(`  Core Values "${s.section}": skipped`);
       } else {
         await prisma.ourEssenceCoreValues.create({
-          data: { section: s.section, title: s.title, content: s.content, sortOrder: s.sortOrder, isActive: true },
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
         });
         console.log(`  Core Values "${s.section}": created`);
+      }
+    }
+  }
+
+  const baruSahibAssociationSections = [
+    {
+      section: 'hero',
+      title: 'Hero',
+      sortOrder: 0,
+      content: {
+        title: 'BARU SAHIB ASSOCIATION',
+        description:
+          'Just as a tiny banyan seed grows into a huge tree, this place will develop into a great centre of spiritual and high quality scientific education.',
+        image: '',
+      },
+    },
+    {
+      section: 'video',
+      title: 'Video Section',
+      sortOrder: 1,
+      content: {
+        video: '',
+      },
+    },
+    {
+      section: 'humanity',
+      title: 'Humanity Section',
+      sortOrder: 2,
+      content: {
+        title: 'BRINGING GRACE TO HUMAN RACE',
+        description:
+          'Baru Sahib has been working tirelessly towards transforming the lives of rural children through the tool of value-based education. At the same time, the Trust has placed equal focus on empowering women, providing health care, and ensuring social welfare for the vulnerable people in society. With the firm belief that everyone deserves to lead a life of dignity, each initiative is embedded in the core thought of bringing grace to the human race.',
+        image: '',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.pageContent.deleteMany({ where: { page: 'baru-sahib-association' } });
+    for (const s of baruSahibAssociationSections) {
+      await prisma.pageContent.create({
+        data: {
+          page: 'baru-sahib-association',
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(
+      `✓ Baru Sahib Association: RESET (${baruSahibAssociationSections.length} sections)`,
+    );
+  } else {
+    for (const s of baruSahibAssociationSections) {
+      const exists = await prisma.pageContent.findUnique({
+        where: { page_section: { page: 'baru-sahib-association', section: s.section } },
+      });
+      if (exists) {
+        console.log(`  Baru Sahib Association "${s.section}": skipped`);
+      } else {
+        await prisma.pageContent.create({
+          data: {
+            page: 'baru-sahib-association',
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  Baru Sahib Association "${s.section}": created`);
       }
     }
   }

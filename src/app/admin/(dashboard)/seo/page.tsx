@@ -12,7 +12,6 @@ import {
   ShieldOff,
   ExternalLink,
   Inbox,
-  X,
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
@@ -44,6 +43,11 @@ interface SeoRow {
 
 function publicHref(pageKey: string): string {
   if (pageKey === 'home') return '/';
+  if (pageKey === 'our-essence-the-story') return '/our-essence/the-story';
+  if (pageKey === 'our-essence-core-values') return '/our-essence/core-values';
+  if (pageKey === 'our-essence-baru-sahib-association') {
+    return '/our-essence/baru-sahib-association';
+  }
   if (pageKey.includes(':')) {
     const [prefix, slug] = pageKey.split(':');
     return `/${prefix}/${slug}`;
@@ -52,9 +56,7 @@ function publicHref(pageKey: string): string {
 }
 
 function pageLabel(pageKey: string): string {
-  return pageKey
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return pageKey.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 // Gradient colors for cards
@@ -97,7 +99,9 @@ export default function AdminSeoPage() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -113,11 +117,18 @@ export default function AdminSeoPage() {
   const indexedCount = rows.filter((r) => !r.robots.includes('noindex')).length;
   const noIndexCount = rows.length - indexedCount;
 
-  const openAdd = () => { setNewPageKey(''); setNewPageError(null); setAddOpen(true); };
+  const openAdd = () => {
+    setNewPageKey('');
+    setNewPageError(null);
+    setAddOpen(true);
+  };
 
   const handleAddNext = () => {
     const key = newPageKey.trim().toLowerCase();
-    if (!key) { setNewPageError('Page key is required'); return; }
+    if (!key) {
+      setNewPageError('Page key is required');
+      return;
+    }
     if (!/^[a-z0-9:_/\-]+$/.test(key)) {
       setNewPageError('Lowercase letters, numbers, hyphens and / : _ only');
       return;
@@ -134,9 +145,14 @@ export default function AdminSeoPage() {
     if (!deletingPage) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/seo/${encodeURIComponent(deletingPage)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/seo/${encodeURIComponent(deletingPage)}`, {
+        method: 'DELETE',
+      });
       const data = await res.json();
-      if (!data.success) { toast.error(data.error ?? 'Delete failed'); return; }
+      if (!data.success) {
+        toast.error(data.error ?? 'Delete failed');
+        return;
+      }
       toast.success(`SEO removed for "${deletingPage}"`);
       setDeletingPage(null);
       await load();
@@ -151,7 +167,7 @@ export default function AdminSeoPage() {
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -160,57 +176,63 @@ export default function AdminSeoPage() {
     <div className="mx-auto max-w-5xl py-4 sm:py-8">
       {/* ── Header ──────────────────────────── */}
       <div className="mb-8 text-center sm:mb-10">
-        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm" style={{ color: ACCENT }}>
+        <p
+          className="font-jost-bold mb-3 text-xs tracking-widest uppercase sm:text-sm"
+          style={{ color: ACCENT }}
+        >
           SEO Manager
         </p>
-        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl">
+        <h1 className="font-jost-bold text-2xl sm:text-3xl md:text-4xl">
           Search &amp; Social Metadata
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
+        <p className="text-muted-foreground mx-auto mt-3 max-w-xl text-sm">
           Manage how every page appears in Google, social previews, and rich-result search features.
         </p>
       </div>
 
       {/* ── Stats row ───────────────────────── */}
       <div className="mb-6 grid grid-cols-3 gap-3 sm:gap-4">
-        <div className="rounded-xl border bg-card px-4 py-3">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
+        <div className="bg-card rounded-xl border px-4 py-3">
+          <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase">
             <Globe className="h-3.5 w-3.5" /> Total Pages
           </div>
-          <div className="mt-1 text-2xl font-jost-bold">{rows.length}</div>
+          <div className="font-jost-bold mt-1 text-2xl">{rows.length}</div>
         </div>
-        <div className="rounded-xl border bg-card px-4 py-3">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Indexed
+        <div className="bg-card rounded-xl border px-4 py-3">
+          <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase">
+            <CheckCircle2 className="text-primary h-3.5 w-3.5" /> Indexed
           </div>
-          <div className="mt-1 text-2xl font-jost-bold text-primary">{indexedCount}</div>
+          <div className="font-jost-bold text-primary mt-1 text-2xl">{indexedCount}</div>
         </div>
-        <div className="rounded-xl border bg-card px-4 py-3">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
+        <div className="bg-card rounded-xl border px-4 py-3">
+          <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase">
             <AlertTriangle className="h-3.5 w-3.5" /> No-Index
           </div>
-          <div className="mt-1 text-2xl font-jost-bold">{noIndexCount}</div>
+          <div className="font-jost-bold mt-1 text-2xl">{noIndexCount}</div>
         </div>
       </div>
 
       {/* ── Search + Add ────────────────────── */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search pages..."
-            className="w-full rounded-xl border bg-card py-2.5 pl-10 pr-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="bg-card focus:border-primary focus:ring-primary/20 w-full rounded-xl border py-2.5 pr-4 pl-10 text-sm transition-colors focus:ring-2 focus:outline-none"
           />
           {query && (
-            <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => setQuery('')}
+              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 text-xs"
+            >
               Clear
             </button>
           )}
         </div>
-        <Button onClick={openAdd} className="gap-2 shrink-0">
+        <Button onClick={openAdd} className="shrink-0 gap-2">
           <Plus className="h-4 w-4" /> Add Page SEO
         </Button>
       </div>
@@ -218,28 +240,28 @@ export default function AdminSeoPage() {
       {/* ── Section heading ──────────────────── */}
       <div className="mb-5 flex items-center gap-2">
         <Globe className="h-4 w-4" style={{ color: ACCENT }} />
-        <h2 className="text-xs font-jost-bold uppercase tracking-widest text-muted-foreground">
+        <h2 className="font-jost-bold text-muted-foreground text-xs tracking-widest uppercase">
           Pages
         </h2>
       </div>
 
       {/* ── Card grid ───────────────────────── */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed bg-muted/20 py-16 text-center">
-          <Inbox className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+        <div className="bg-muted/20 rounded-2xl border border-dashed py-16 text-center">
+          <Inbox className="text-muted-foreground/30 mx-auto mb-3 h-10 w-10" />
           {rows.length === 0 ? (
             <>
-              <p className="font-semibold text-muted-foreground">No SEO entries yet</p>
-              <p className="mt-1 text-xs text-muted-foreground/70">
-                Click "Add Page SEO" or save SEO from any page's admin editor.
+              <p className="text-muted-foreground font-semibold">No SEO entries yet</p>
+              <p className="text-muted-foreground/70 mt-1 text-xs">
+                Click &quot;Add Page SEO&quot; or save SEO from any page&apos;s admin editor.
               </p>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">No pages match "{query}"</p>
+            <p className="text-muted-foreground text-sm">No pages match &quot;{query}&quot;</p>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
           {filtered.map((row, i) => {
             const isNoIndex = row.robots.includes('noindex');
             const href = publicHref(row.page);
@@ -248,13 +270,15 @@ export default function AdminSeoPage() {
             return (
               <div
                 key={row.id}
-                className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border bg-card p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg"
+                className="group bg-card hover:border-primary/30 relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg"
               >
                 {/* Gradient hover bg */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+                />
 
                 {/* Icon */}
-                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+                <div className="bg-primary/10 group-hover:bg-primary/20 relative z-10 flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110">
                   {isNoIndex ? (
                     <ShieldOff size={22} className="text-muted-foreground" />
                   ) : (
@@ -264,10 +288,10 @@ export default function AdminSeoPage() {
 
                 {/* Title + description */}
                 <div className="relative z-10">
-                  <span className="text-sm font-semibold text-foreground transition-colors duration-200 group-hover:text-primary">
+                  <span className="text-foreground group-hover:text-primary text-sm font-semibold transition-colors duration-200">
                     {pageLabel(row.page)}
                   </span>
-                  <p className="mt-0.5 line-clamp-1 text-[11px] leading-tight text-muted-foreground">
+                  <p className="text-muted-foreground mt-0.5 line-clamp-1 text-[11px] leading-tight">
                     {row.metaTitle}
                   </p>
                 </div>
@@ -286,7 +310,7 @@ export default function AdminSeoPage() {
                 <div className="relative z-10 flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                   <button
                     onClick={() => setEditingPage(row.page)}
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg p-1.5 transition-colors"
                     title="Edit SEO"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -295,14 +319,14 @@ export default function AdminSeoPage() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg p-1.5 transition-colors"
                     title={`Visit ${href}`}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                   <button
                     onClick={() => setDeletingPage(row.page)}
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg p-1.5 transition-colors"
                     title="Delete SEO"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -316,14 +340,22 @@ export default function AdminSeoPage() {
 
       {/* ── Footer hint ──────────────────────── */}
       {rows.length > 0 && (
-        <p className="mt-4 text-xs text-muted-foreground">
-          Showing {filtered.length} of {rows.length} page{rows.length !== 1 ? 's' : ''}.
-          Hover a card to edit, visit, or delete.
+        <p className="text-muted-foreground mt-4 text-xs">
+          Showing {filtered.length} of {rows.length} page{rows.length !== 1 ? 's' : ''}. Hover a
+          card to edit, visit, or delete.
         </p>
       )}
 
       {/* ── Edit drawer ──────────────────────── */}
-      <Sheet open={!!editingPage} onOpenChange={(open) => { if (!open) { setEditingPage(null); void load(); } }}>
+      <Sheet
+        open={!!editingPage}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingPage(null);
+            void load();
+          }
+        }}
+      >
         <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle>
@@ -343,7 +375,7 @@ export default function AdminSeoPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-4 w-4 text-primary" /> Add SEO for a page
+              <Plus className="text-primary h-4 w-4" /> Add SEO for a page
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -353,17 +385,23 @@ export default function AdminSeoPage() {
                 id="new-page"
                 autoFocus
                 value={newPageKey}
-                onChange={(e) => { setNewPageKey(e.target.value); setNewPageError(null); }}
+                onChange={(e) => {
+                  setNewPageKey(e.target.value);
+                  setNewPageError(null);
+                }}
                 placeholder="e.g. about, products, blog"
               />
-              <p className="text-xs text-muted-foreground">
-                The slug of the public route. Use <span className="font-mono">home</span> for the homepage.
+              <p className="text-muted-foreground text-xs">
+                The slug of the public route. Use <span className="font-mono">home</span> for the
+                homepage.
               </p>
-              {newPageError && <p className="text-xs text-destructive">{newPageError}</p>}
+              {newPageError && <p className="text-destructive text-xs">{newPageError}</p>}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleAddNext}>Continue</Button>
           </DialogFooter>
         </DialogContent>
@@ -375,11 +413,13 @@ export default function AdminSeoPage() {
           <DialogHeader>
             <DialogTitle>Delete SEO for &quot;{deletingPage}&quot;?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             The page will fall back to its module default SEO. This cannot be undone.
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeletingPage(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDeletingPage(null)}>
+              Cancel
+            </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
               {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Yes, delete
