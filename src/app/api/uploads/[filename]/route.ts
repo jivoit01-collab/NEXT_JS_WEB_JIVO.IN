@@ -15,21 +15,17 @@ const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.svg': 'image/svg+xml',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.ogg': 'video/ogg',
+  '.ogv': 'video/ogg',
 };
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ filename: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
   const { filename } = await params;
 
   // Block directory traversal
-  if (
-    !filename ||
-    filename.includes('/') ||
-    filename.includes('\\') ||
-    filename.includes('..')
-  ) {
+  if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
     return new NextResponse('Bad request', { status: 400 });
   }
 
@@ -49,12 +45,37 @@ export async function GET(
 
   try {
     const buffer = await readFile(filePath);
+    const responseContentType = filePath === PLACEHOLDER_PATH ? 'image/png' : contentType;
+
+    if (responseContentType.startsWith('video/')) {
+      const range = req.headers.get('range');
+
+      if (range) {
+        const match = range.match(/bytes=(\d*)-(\d*)/);
+        const start = match?.[1] ? Number(match[1]) : 0;
+        const end = match?.[2] ? Number(match[2]) : buffer.length - 1;
+        const safeEnd = Math.min(end, buffer.length - 1);
+        const chunk = buffer.subarray(start, safeEnd + 1);
+
+        return new NextResponse(chunk, {
+          status: 206,
+          headers: {
+            'Content-Type': responseContentType,
+            'Content-Length': String(chunk.length),
+            'Content-Range': `bytes ${start}-${safeEnd}/${buffer.length}`,
+            'Accept-Ranges': 'bytes',
+            'Cache-Control': 'public, max-age=86400, s-maxage=604800',
+          },
+        });
+      }
+    }
 
     return new NextResponse(buffer, {
       status: 200,
       headers: {
-        'Content-Type': filePath === PLACEHOLDER_PATH ? 'image/png' : contentType,
+        'Content-Type': responseContentType,
         'Content-Length': String(buffer.length),
+        ...(responseContentType.startsWith('video/') && { 'Accept-Ranges': 'bytes' }),
         'Cache-Control': 'public, max-age=86400, s-maxage=604800',
       },
     });

@@ -1,12 +1,12 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 /* Custom dark variant */
 @custom-variant dark (&:is(.dark *));
 
 /* Ensure all interactive elements show pointer cursor */
 button,
-[role="button"] {
+[role='button'] {
   cursor: pointer;
 }
 
@@ -107,33 +107,33 @@ button,
   --accent: oklch(0.94 0.02 100);
   --accent-foreground: oklch(0.22 0.02 80);
 
-  --border: oklch(0.90 0.008 90);
-  --input: oklch(0.90 0.008 90);
+  --border: oklch(0.9 0.008 90);
+  --input: oklch(0.9 0.008 90);
 
   --destructive: oklch(0.58 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
 
   /* Brand */
-  --primary: oklch(0.52 0.13 140);        /* Jivo green */
+  --primary: oklch(0.52 0.13 140); /* Jivo green */
   --primary-foreground: oklch(0.99 0.01 120);
   --ring: oklch(0.58 0.13 140);
 
-  --secondary: oklch(0.93 0.04 95);       /* Soft cream/beige */
+  --secondary: oklch(0.93 0.04 95); /* Soft cream/beige */
   --secondary-foreground: oklch(0.22 0.03 80);
 
-  --gold: oklch(0.72 0.13 80);            /* Jivo gold accent */
+  --gold: oklch(0.72 0.13 80); /* Jivo gold accent */
   --gold-foreground: oklch(0.19 0.02 80);
 
   /* Jivo section backgrounds — exact brand hex codes */
-  --jivo-olive: #cbc995;      /* "MADE FOR EVERYDAY LOVE" cream bg */
+  --jivo-olive: #cbc995; /* "MADE FOR EVERYDAY LOVE" cream bg */
   --jivo-cream: oklch(0.95 0.03 95);
-  --jivo-brown: oklch(0.28 0.03 70);      /* "SO, WHY JIVO EXACTLY?" bg */
+  --jivo-brown: oklch(0.28 0.03 70); /* "SO, WHY JIVO EXACTLY?" bg */
 
   /* Category cards — ordered as shown in screenshot (left → right) */
-  --jivo-green: #1f5437;      /* Cooking Oil — dark green */
-  --jivo-sage: #80ae7d;       /* Wheatgrass Juice — sage green */
-  --jivo-blue: #47bbe4;       /* Water — sky blue */
-  --jivo-maroon: #8b2547;     /* Super Foods — maroon */
+  --jivo-green: #1f5437; /* Cooking Oil — dark green */
+  --jivo-sage: #80ae7d; /* Wheatgrass Juice — sage green */
+  --jivo-blue: #47bbe4; /* Water — sky blue */
+  --jivo-maroon: #8b2547; /* Super Foods — maroon */
 
   /* Shadow + Transition */
   --shadow-soft: 0 1px 3px oklch(0 0 0 / 6%);
@@ -188,7 +188,7 @@ button,
    Use these instead of generic font-bold / font-light etc.
 ================================================ */
 @utility font-jost-light {
-  font-family: var(--font-jost), system-ui ;
+  font-family: var(--font-jost), system-ui;
   font-weight: 300;
 }
 @utility font-jost-regular {
@@ -218,17 +218,19 @@ button,
 
   body {
     @apply bg-background text-foreground antialiased;
-    transition: background-color var(--transition-normal), color var(--transition-normal);
+    transition:
+      background-color var(--transition-normal),
+      color var(--transition-normal);
   }
 
   h1 {
-    @apply text-3xl sm:text-4xl md:text-5xl font-jost-bold tracking-tight;
+    @apply font-jost-bold text-3xl tracking-tight sm:text-4xl md:text-5xl;
   }
   h2 {
-    @apply text-2xl sm:text-3xl font-jost-bold;
+    @apply font-jost-bold text-2xl sm:text-3xl;
   }
   h3 {
-    @apply text-lg sm:text-xl font-jost-bold;
+    @apply font-jost-bold text-lg sm:text-xl;
   }
   p {
     @apply leading-relaxed;
@@ -277,8 +279,8 @@ button,
    SCROLLBAR — fully hidden everywhere (still scrolls)
 ================================================ */
 * {
-  scrollbar-width: none;          /* Firefox */
-  -ms-overflow-style: none;       /* legacy Edge / IE */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge / IE */
 }
 
 *::-webkit-scrollbar,
@@ -317,4 +319,41 @@ html {
 }
 .animate-fadeIn {
   animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes cinematicShimmer {
+  0% {
+    background-position: 140% 0;
+  }
+  100% {
+    background-position: -140% 0;
+  }
+}
+
+@keyframes cinematicGrain {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(-0.6%, 0.4%, 0);
+  }
+  50% {
+    transform: translate3d(0.4%, -0.5%, 0);
+  }
+  75% {
+    transform: translate3d(-0.3%, -0.4%, 0);
+  }
+}
+
+.cinematic-grain {
+  background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.45) 1px, transparent 0);
+  background-size: 18px 18px;
+  animation: cinematicGrain 9s steps(4, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-grain {
+    animation: none;
+  }
 }

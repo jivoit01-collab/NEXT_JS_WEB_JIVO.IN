@@ -5,7 +5,9 @@ export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://jivo.in';
 
 export const FREE_SHIPPING_THRESHOLD = 499;
 export const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
+export const MAX_VIDEO_UPLOAD_SIZE = 400 * 1024 * 1024; // 400MB
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+export const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/ogg'];
 
 export const ITEMS_PER_PAGE = {
   products: 12,

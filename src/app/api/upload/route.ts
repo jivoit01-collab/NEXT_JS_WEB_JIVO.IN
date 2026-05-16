@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/require-admin';
-import { MAX_UPLOAD_SIZE, ALLOWED_IMAGE_TYPES } from '@/lib/constants';
+import {
+  ALLOWED_IMAGE_TYPES,
+  ALLOWED_VIDEO_TYPES,
+  MAX_UPLOAD_SIZE,
+  MAX_VIDEO_UPLOAD_SIZE,
+} from '@/lib/constants';
 import sharp from 'sharp';
 import path from 'path';
 import { writeFile, mkdir, unlink } from 'fs/promises';
@@ -12,13 +17,23 @@ export const runtime = 'nodejs';
 /** Root-level uploads directory (outside /public) */
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'images');
 
-function sanitizeFilename(name: string): string {
-  return name
-    .replace(/\.[^/.]+$/, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60) || 'image';
+function sanitizeFilename(name: string, fallback = 'media'): string {
+  return (
+    name
+      .replace(/\.[^/.]+$/, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || fallback
+  );
+}
+
+function getSafeExtension(name: string, type: string) {
+  const ext = path.extname(name).toLowerCase();
+  if (type === 'video/mp4') return '.mp4';
+  if (type === 'video/webm') return '.webm';
+  if (type === 'video/ogg') return ext === '.ogv' ? '.ogv' : '.ogg';
+  return ext;
 }
 
 // ── POST /api/upload ────────────────────────────────────────────
@@ -31,30 +46,57 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File | null;
 
     if (!file || !(file instanceof File)) {
-      return NextResponse.json(
-        { success: false, error: 'No file provided' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
     }
 
-    if (file.size > MAX_UPLOAD_SIZE) {
+    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+    const maxAllowedSize = isVideo ? MAX_VIDEO_UPLOAD_SIZE : MAX_UPLOAD_SIZE;
+
+    if (file.size > maxAllowedSize) {
       return NextResponse.json(
         {
           success: false,
-          error: `File too large. Max size: ${MAX_UPLOAD_SIZE / 1024 / 1024}MB`,
+          error: `File too large. Max size: ${maxAllowedSize / 1024 / 1024}MB`,
         },
         { status: 400 },
       );
     }
 
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    if (!isImage && !isVideo) {
       return NextResponse.json(
-        { success: false, error: 'File type not allowed. Accepted: JPEG, PNG, WebP' },
+        {
+          success: false,
+          error: 'File type not allowed. Accepted: JPEG, PNG, WebP, MP4, WebM, OGG',
+        },
         { status: 400 },
       );
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    if (!existsSync(UPLOAD_DIR)) {
+      await mkdir(UPLOAD_DIR, { recursive: true });
+    }
+
+    if (isVideo) {
+      const safeName = sanitizeFilename(file.name, 'video');
+      const filename = `${Date.now()}-${safeName}${getSafeExtension(file.name, file.type)}`;
+      const filePath = path.join(UPLOAD_DIR, filename);
+
+      await writeFile(filePath, buffer);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          filename,
+          originalName: file.name,
+          size: buffer.length,
+          width: 0,
+          height: 0,
+        },
+      });
+    }
 
     // Sharp: resize + re-encode to WebP (also strips EXIF for privacy)
     const webpBuffer = await sharp(buffer)
@@ -68,10 +110,6 @@ export async function POST(req: NextRequest) {
     const safeName = sanitizeFilename(file.name);
     const filename = `${Date.now()}-${safeName}.webp`;
     const filePath = path.join(UPLOAD_DIR, filename);
-
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-    }
 
     await writeFile(filePath, webpBuffer);
 
@@ -88,10 +126,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('[upload] POST error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Upload failed' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Upload failed' }, { status: 500 });
   }
 }
 
@@ -104,36 +139,24 @@ export async function DELETE(req: NextRequest) {
     const { filename } = (await req.json()) as { filename?: string };
 
     if (!filename || typeof filename !== 'string') {
-      return NextResponse.json(
-        { success: false, error: 'Invalid filename' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'Invalid filename' }, { status: 400 });
     }
 
     // Prevent directory traversal — filename must be a bare name, no slashes
     if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid filename' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'Invalid filename' }, { status: 400 });
     }
 
     const filePath = path.join(UPLOAD_DIR, filename);
 
     if (!existsSync(filePath)) {
-      return NextResponse.json(
-        { success: false, error: 'File not found' },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, error: 'File not found' }, { status: 404 });
     }
 
     await unlink(filePath);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[upload] DELETE error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Delete failed' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Delete failed' }, { status: 500 });
   }
 }
