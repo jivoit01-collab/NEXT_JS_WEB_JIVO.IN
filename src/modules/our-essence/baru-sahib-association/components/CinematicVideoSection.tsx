@@ -139,16 +139,9 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
             hasEntered || !resolvedVideoSrc ? 'translate-y-0 opacity-100' : 'translate-y-6',
           )}
         >
-          <p className="font-jost-medium text-xs tracking-[0.34em] text-[#d6c08d]/75 uppercase sm:text-sm">
-            Documentary Showcase
-          </p>
-          <h2 className="font-jost-extrabold mt-4 text-4xl leading-none text-balance text-white uppercase sm:text-5xl lg:text-6xl 2xl:text-7xl">
-            Baru Sahib In Motion
+          <h2 className="font-jost-extrabold text-4xl leading-none text-balance text-[#d6c08d]/75 uppercase sm:text-5xl lg:text-6xl 2xl:text-7xl">
+            Baru Sahib
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-pretty text-white/68 sm:text-base lg:text-lg">
-            A quiet cinematic window into the spiritual and humanitarian journey behind the
-            association.
-          </p>
         </div>
 
         <div
