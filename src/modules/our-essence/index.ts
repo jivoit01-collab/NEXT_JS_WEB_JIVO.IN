@@ -57,3 +57,21 @@ export type {
   BaruSahibAssociationSectionKey,
   BaruSahibAssociationVideoContent,
 } from './baru-sahib-association';
+
+export {
+  SocialInitiativesHero,
+  SocialInitiativesMain,
+  SplitStorySection,
+  EducateEmpowerSection,
+  SocialInitiativesCtaSection,
+  defaultSeo as socialInitiativesDefaultSeo,
+  getSocialInitiativesSections,
+} from './social-initiatives';
+
+export type {
+  SocialInitiativesCtaContent,
+  SocialInitiativesEducateContent,
+  SocialInitiativesHeroContent,
+  SocialInitiativesSectionKey,
+  SocialInitiativesSplitContent,
+} from './social-initiatives';

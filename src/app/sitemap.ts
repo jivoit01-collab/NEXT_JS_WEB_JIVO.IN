@@ -7,6 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/our-essence/the-story',
     '/our-essence/core-values',
     '/our-essence/baru-sahib-association',
+    '/our-essence/social-initiatives',
     '/who-we-are',
     '/our-values',
     '/why-jivo',

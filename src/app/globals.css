@@ -321,6 +321,15 @@ html {
   animation: fadeIn 0.4s ease-out;
 }
 
+@keyframes socialHeroZoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.045);
+  }
+}
+
 @keyframes cinematicShimmer {
   0% {
     background-position: 140% 0;

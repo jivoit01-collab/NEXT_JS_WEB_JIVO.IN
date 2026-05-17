@@ -1,0 +1,13 @@
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.41:3000
+- Environments: .env.local
+✓ Ready in 4.5s
+Creating turbopack project {
+  dir: 'C:\\Users\\Rohit Rathod\\Desktop\\jivo-website\\NEXT_JS_WEB_JIVO.IN',
+  testMode: true
+}
+- Experiments (use with caution):
+  · optimizePackageImports
+  · serverActions
+

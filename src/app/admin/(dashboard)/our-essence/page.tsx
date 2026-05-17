@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, BookOpen, Compass, Landmark } from 'lucide-react';
+import { Search, Sparkles, BookOpen, Compass, Landmark, Users } from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -33,6 +33,13 @@ const SECTION_PAGES: PageEntry[] = [
     icon: Landmark,
     description: 'Hero, cinematic video & humanity story',
     color: 'from-emerald-500/20 to-emerald-600/5',
+  },
+  {
+    label: 'Social Initiatives',
+    href: '/admin/our-essence-social-initiatives',
+    icon: Users,
+    description: 'Mission, impact, empowerment & CTA',
+    color: 'from-rose-500/20 to-rose-600/5',
   },
 ];
 

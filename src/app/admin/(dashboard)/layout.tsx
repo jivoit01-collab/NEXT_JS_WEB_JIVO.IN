@@ -71,6 +71,11 @@ const SIDEBAR: NavSection[] = [
         href: '/admin/our-essence-baru-sahib-association',
         icon: Landmark,
       },
+      {
+        title: 'Social Initiatives',
+        href: '/admin/our-essence-social-initiatives',
+        icon: Users,
+      },
     ],
   },
   {
@@ -103,6 +108,12 @@ const SIDEBAR: NavSection[] = [
         title: 'Baru Sahib Association',
         href: '/admin/our-essence-baru-sahib-association',
         icon: Landmark,
+        tab: 'seo',
+      },
+      {
+        title: 'Social Initiatives',
+        href: '/admin/our-essence-social-initiatives',
+        icon: Users,
         tab: 'seo',
       },
     ],

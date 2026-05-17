@@ -48,6 +48,9 @@ function publicHref(pageKey: string): string {
   if (pageKey === 'our-essence-baru-sahib-association') {
     return '/our-essence/baru-sahib-association';
   }
+  if (pageKey === 'our-essence-social-initiatives') {
+    return '/our-essence/social-initiatives';
+  }
   if (pageKey.includes(':')) {
     const [prefix, slug] = pageKey.split(':');
     return `/${prefix}/${slug}`;
