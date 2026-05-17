@@ -310,7 +310,7 @@ async function main() {
         { title: 'Our Story', href: '/our-essence/the-story' },
         { title: 'Our Values', href: '/our-values' },
         { title: 'Why Jivo', href: '/why-jivo' },
-        { title: 'Social Initiatives', href: '/social-initiatives' },
+        { title: 'Social Initiatives', href: '/our-essence/social-initiatives' },
         { title: 'Baru Sahib Association', href: '/our-essence/baru-sahib-association' },
       ],
     },
@@ -543,6 +543,33 @@ async function main() {
         '@type': 'AboutPage',
         name: 'Baru Sahib Association',
         url: `${BASE}/our-essence/baru-sahib-association`,
+      },
+    },
+    {
+      page: 'our-essence-social-initiatives',
+      metaTitle: 'Social Initiatives | Jivo Wellness',
+      metaDescription:
+        'Explore Jivo Wellness social initiatives focused on education, empowerment, wellness, and human-centered service.',
+      keywords: [
+        'social initiatives',
+        'jivo wellness',
+        'community empowerment',
+        'wellness initiatives',
+        'education support',
+        'human-centered service',
+        'social upliftment',
+      ],
+      ogTitle: 'Social Initiatives | Jivo Wellness',
+      ogDescription:
+        'Discover mission-driven social initiatives that empower communities through wellness, education, and service.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/social-initiatives`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'Social Initiatives',
+        url: `${BASE}/our-essence/social-initiatives`,
       },
     },
   ];
@@ -807,6 +834,107 @@ async function main() {
   }
 
   // ── Summary ────────────────────────────────────────────────
+  const socialInitiativesSections = [
+    {
+      section: 'hero',
+      title: 'Hero Section',
+      sortOrder: 0,
+      content: {
+        title: 'SOCIAL INITIATIVES',
+        subtitle: 'Empowering communities through wellness, education, and human-centered service.',
+        image: '',
+      },
+    },
+    {
+      section: 'alignment',
+      title: 'Alignment Section',
+      sortOrder: 1,
+      content: {
+        backgroundImage: '',
+        leftTitle: 'ALIGNMENT & INCENTIVES',
+        leftDescription:
+          'The primary incentive is the shared mission toward wellness, service, and human upliftment. Every effort remains aligned with the purpose of meaningful social impact.',
+        rightTitle: 'GOAL',
+        rightDescription:
+          'To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment.',
+      },
+    },
+    {
+      section: 'responsibilities',
+      title: 'Responsibilities Section',
+      sortOrder: 2,
+      content: {
+        backgroundImage: '',
+        leftTitle: 'RESPONSIBILITIES',
+        leftDescription:
+          'The organization remains committed to serving humanity through wellness initiatives, education support, and sustainable community development.',
+        rightTitle: 'POLICY',
+        rightDescription:
+          'Policies are designed to encourage action, responsibility, and long-term social growth while keeping the mission centered on humanity.',
+      },
+    },
+    {
+      section: 'educate',
+      title: 'Educate Empower Section',
+      sortOrder: 3,
+      content: {
+        heading: 'EDUCATE. ENSHRINE. EMPOWER.',
+        paragraph:
+          'We are committed to creating sustainable transformation through education, wellness support, and community-led initiatives that uplift lives with dignity and long-term impact.',
+        image: '',
+      },
+    },
+    {
+      section: 'cta',
+      title: 'CTA Section',
+      sortOrder: 4,
+      content: {
+        heading: 'Join hands in building a healthier and more empowered future for communities.',
+        primaryLabel: 'Explore Initiatives',
+        primaryHref: '/our-essence/social-initiatives',
+        secondaryLabel: 'Contact Us',
+        secondaryHref: '/contact',
+        backgroundImage: '',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceSocialInitiatives.deleteMany();
+    for (const s of socialInitiativesSections) {
+      await prisma.ourEssenceSocialInitiatives.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`Social Initiatives: RESET (${socialInitiativesSections.length} sections)`);
+  } else {
+    for (const s of socialInitiativesSections) {
+      const exists = await prisma.ourEssenceSocialInitiatives.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  Social Initiatives "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceSocialInitiatives.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  Social Initiatives "${s.section}": created`);
+      }
+    }
+  }
+
   console.log('\n========================================');
   if (FORCE_RESET) {
     console.log('⚠️  RESET complete — all data restored to defaults.');

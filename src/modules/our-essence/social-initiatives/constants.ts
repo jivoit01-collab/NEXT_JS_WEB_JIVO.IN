@@ -1,0 +1,9 @@
+export const SOCIAL_INITIATIVES_ROUTE = '/our-essence/social-initiatives';
+
+export const SOCIAL_INITIATIVES_ADMIN_ROUTE = '/admin/our-essence-social-initiatives';
+
+export const SOCIAL_INITIATIVES_SEO_PAGE = 'our-essence-social-initiatives';
+
+export const SOCIAL_INITIATIVES_PAGE_TITLE = 'SOCIAL INITIATIVES';
+
+export const SOCIAL_INITIATIVES_FALLBACK_IMAGE = 'placeholder.png';

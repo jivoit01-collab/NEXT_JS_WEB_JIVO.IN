@@ -1,0 +1,19 @@
+// ==========================================
+// OUR ESSENCE - SOCIAL INITIATIVES page
+// Route: /our-essence/social-initiatives
+// Admin: /admin/our-essence-social-initiatives
+// Sections: hero, alignment, responsibilities, educate, cta
+// ==========================================
+
+model OurEssenceSocialInitiatives {
+  id        String   @id @default(cuid())
+  section   String   @unique
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
