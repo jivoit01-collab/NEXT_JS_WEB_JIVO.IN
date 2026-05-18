@@ -43,7 +43,9 @@ export function OfflineIndicator() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    setIsOffline(!navigator.onLine);
+    const initialStatusTimer = window.setTimeout(() => {
+      setIsOffline(!navigator.onLine);
+    }, 0);
 
     const handleOnline = () => {
       verify();
@@ -54,6 +56,7 @@ export function OfflineIndicator() {
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      window.clearTimeout(initialStatusTimer);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -66,8 +69,8 @@ export function OfflineIndicator() {
         intervalRef.current = null;
       }
       sinceStartRef.current = 0;
-      setSinceMs(0);
-      return;
+      const resetTimer = window.setTimeout(() => setSinceMs(0), 0);
+      return () => window.clearTimeout(resetTimer);
     }
 
     sinceStartRef.current = Date.now();
@@ -127,7 +130,10 @@ export function OfflineIndicator() {
                   'conic-gradient(from 0deg, rgba(239,68,68,0.0), rgba(239,68,68,0.35), rgba(20,184,166,0.25), rgba(239,68,68,0.0))',
               }}
             />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/10" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-white/10 ring-inset"
+            />
 
             <div className="relative">
               <div className="mb-5 flex items-center justify-center">
@@ -159,18 +165,15 @@ export function OfflineIndicator() {
                 </motion.div>
               </div>
 
-              <h2
-                id="offline-title"
-                className="text-center font-jost-bold text-xl md:text-2xl"
-              >
+              <h2 id="offline-title" className="font-jost-bold text-center text-xl md:text-2xl">
                 You are offline
               </h2>
               <p
                 id="offline-desc"
                 className="mx-auto mt-2 max-w-sm text-center text-sm leading-relaxed text-white/70"
               >
-                Check your internet connection. We&apos;ll reconnect automatically
-                as soon as you are back online.
+                Check your internet connection. We&apos;ll reconnect automatically as soon as you
+                are back online.
               </p>
 
               <div className="mt-5 flex items-center justify-center gap-2 text-xs text-white/60">
@@ -194,13 +197,7 @@ export function OfflineIndicator() {
   );
 }
 
-function RetryButton({
-  onRetry,
-  isChecking,
-}: {
-  onRetry: () => void;
-  isChecking: boolean;
-}) {
+function RetryButton({ onRetry, isChecking }: { onRetry: () => void; isChecking: boolean }) {
   return (
     <motion.button
       type="button"
@@ -209,7 +206,7 @@ function RetryButton({
       whileHover={isChecking ? undefined : { scale: 1.02, y: -1 }}
       whileTap={isChecking ? undefined : { scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-      className="group/btn relative mt-6 inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-white px-4 py-3 font-jost-bold text-[#134b4c] shadow-[0_8px_24px_-8px_rgba(255,255,255,0.35)] transition-shadow duration-300 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.55)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-60"
+      className="group/btn font-jost-bold relative mt-6 inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-white px-4 py-3 text-[#134b4c] shadow-[0_8px_24px_-8px_rgba(255,255,255,0.35)] transition-shadow duration-300 hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.55)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <span
         aria-hidden="true"
@@ -237,12 +234,12 @@ function FloatingOrbs() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       <motion.span
-        className="absolute left-[15%] top-[20%] h-40 w-40 rounded-full bg-red-500/10 blur-3xl"
+        className="absolute top-[20%] left-[15%] h-40 w-40 rounded-full bg-red-500/10 blur-3xl"
         animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.span
-        className="absolute bottom-[18%] right-[12%] h-56 w-56 rounded-full bg-teal-400/10 blur-3xl"
+        className="absolute right-[12%] bottom-[18%] h-56 w-56 rounded-full bg-teal-400/10 blur-3xl"
         animate={{ y: [0, 20, 0], x: [0, -15, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
       />

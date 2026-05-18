@@ -63,9 +63,12 @@ export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
 
   // Reset state when the prop changes (admin uploads a new image)
   useEffect(() => {
-    setPhase('initial');
-    setCurrentSrc(initial);
     reportedRef.current = false;
+    const resetTimer = window.setTimeout(() => {
+      setPhase('initial');
+      setCurrentSrc(initial);
+    }, 0);
+    return () => window.clearTimeout(resetTimer);
   }, [initial]);
 
   const isFallback = phase === 'fallback';
@@ -80,9 +83,7 @@ export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
         onError={() => {
           if (phase === 'initial') {
             // Transient failure? Try once more with a cache-buster.
-            console.warn(
-              `[SafeImage] Load failed for "${src}" (resolved: ${initial}) — retrying…`,
-            );
+            console.warn(`[SafeImage] Load failed for "${src}" (resolved: ${initial}) — retrying…`);
             setPhase('retry');
             setCurrentSrc(`${initial}${initial.includes('?') ? '&' : '?'}_r=${Date.now()}`);
             return;
@@ -108,7 +109,7 @@ export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
       {/* Dev-only: visible indicator when an image that SHOULD exist is missing */}
       {process.env.NODE_ENV !== 'production' && isRealImage && isFallback && (
         <span
-          className="absolute left-1 top-1 z-50 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold uppercase leading-tight text-white shadow"
+          className="absolute top-1 left-1 z-50 rounded bg-red-600 px-1.5 py-0.5 text-[10px] leading-tight font-bold text-white uppercase shadow"
           title={`Missing: ${src}`}
         >
           MISSING

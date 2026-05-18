@@ -13,6 +13,12 @@ interface ProductCategoriesProps {
   isLoading?: boolean;
 }
 
+interface Ripple {
+  x: number;
+  y: number;
+  id: number;
+}
+
 export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
   if (isLoading) return <ProductCategoriesSkeleton />;
 
@@ -22,9 +28,8 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
   return (
     <section className="bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28 2xl:py-36">
       <div className="container mx-auto max-w-7xl 2xl:max-w-7xl">
-
         {/* Heading */}
-        <h2 className="mb-10 text-center font-sans text-2xl font-jost-extrabold uppercase tracking-[0.2em] text-white sm:mb-12 sm:text-3xl md:mb-14 md:text-4xl lg:text-5xl 2xl:mb-16 2xl:text-6xl">
+        <h2 className="font-jost-extrabold mb-10 text-center font-sans text-2xl tracking-[0.2em] text-white uppercase sm:mb-12 sm:text-3xl md:mb-14 md:text-4xl lg:text-5xl 2xl:mb-16 2xl:text-6xl">
           <SplitWords text={heading} />
         </h2>
 
@@ -41,20 +46,15 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
               <TiltCard>
                 <Link href={category.href} className="group block h-full">
                   <div
-                    className={`
-                      ${category.bgColor}
-                      relative flex aspect-3/4 flex-col overflow-hidden rounded-xl p-3
-                      shadow-md transition-all duration-500 sm:p-4 2xl:rounded-2xl 2xl:p-6
-                      group-hover:shadow-2xl group-hover:shadow-black/30
-                    `}
+                    className={` ${category.bgColor} relative flex aspect-3/4 flex-col overflow-hidden rounded-xl p-3 shadow-md transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-black/30 sm:p-4 2xl:rounded-2xl 2xl:p-6`}
                   >
                     {/* Gradient Glow */}
                     <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
-                      <div className="absolute inset-0 animate-gradient bg-[linear-gradient(120deg,rgba(255,255,255,0.08),rgba(255,255,255,0.18),rgba(255,255,255,0.08))]" />
+                      <div className="animate-gradient absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.08),rgba(255,255,255,0.18),rgba(255,255,255,0.08))]" />
                     </div>
 
                     {/* Image */}
-                    <div className="flex flex-1 items-center justify-center rounded-md overflow-hidden">
+                    <div className="flex flex-1 items-center justify-center overflow-hidden rounded-md">
                       <SafeImage
                         src={category.image}
                         alt={category.name}
@@ -65,7 +65,7 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
                     </div>
 
                     {/* Title */}
-                    <p className="mt-3 text-center font-sans text-xs font-jost-bold uppercase tracking-[0.2em] text-white transition-all duration-300 sm:text-sm md:text-base 2xl:mt-4 2xl:text-lg group-hover:tracking-[0.25em]">
+                    <p className="font-jost-bold mt-3 text-center font-sans text-xs tracking-[0.2em] text-white uppercase transition-all duration-300 group-hover:tracking-[0.25em] sm:text-sm md:text-base 2xl:mt-4 2xl:text-lg">
                       {category.name}
                     </p>
                   </div>
@@ -83,21 +83,26 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
           animation: gradientMove 5s ease infinite;
         }
         @keyframes gradientMove {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
         }
       `}</style>
     </section>
   );
 }
 
-
 // ---- Skeleton ----
 
 export function ProductCategoriesSkeleton() {
   return (
-    <section className="animate-pulse bg-jivo-olive px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28 2xl:py-36">
+    <section className="bg-jivo-olive animate-pulse px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28 2xl:py-36">
       <div className="container mx-auto max-w-7xl">
         {/* Heading */}
         <div className="mx-auto mb-10 h-8 w-80 rounded-md bg-white/25 sm:mb-12 sm:h-10 md:mb-14 md:h-12 2xl:mb-16 2xl:h-14 2xl:w-130" />
@@ -115,7 +120,7 @@ export function ProductCategoriesSkeleton() {
 // 🔥 Tilt + Ripple (Optimized)
 function TiltCard({ children }: { children: React.ReactNode }) {
   const [style, setStyle] = useState<React.CSSProperties>({});
-  const [ripples, setRipples] = useState<any[]>([]);
+  const [ripples, setRipples] = useState<Ripple[]>([]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -163,7 +168,7 @@ function TiltCard({ children }: { children: React.ReactNode }) {
       {ripples.map((r) => (
         <span
           key={r.id}
-          className="absolute rounded-full bg-white/25 animate-ping pointer-events-none"
+          className="pointer-events-none absolute animate-ping rounded-full bg-white/25"
           style={{
             width: 80,
             height: 80,

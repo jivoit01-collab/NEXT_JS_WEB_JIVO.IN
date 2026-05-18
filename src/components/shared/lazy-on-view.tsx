@@ -44,8 +44,8 @@ export function LazyOnView({
     // No IntersectionObserver (very old browsers / certain test envs)
     // → just show children after mount.
     if (typeof IntersectionObserver === 'undefined') {
-      setVisible(true);
-      return;
+      const fallbackTimer = window.setTimeout(() => setVisible(true), 0);
+      return () => window.clearTimeout(fallbackTimer);
     }
 
     const io = new IntersectionObserver(

@@ -31,8 +31,6 @@ const MAX_BUBBLES = 14;
 const SPAWN_INTERVAL_MS = 650;
 
 export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps) {
-  if (isLoading) return <ProductsFoundationSkeleton />;
-
   const content = data ?? defaults;
   const prefersReduced = useReducedMotion();
 
@@ -45,6 +43,7 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
     active: false,
   });
   const rafRef = useRef<number | null>(null);
+  const loopRef = useRef<(t: number) => void>(() => undefined);
   const lastSpawnRef = useRef(0);
   const lastTimeRef = useRef(0);
   const visibleRef = useRef(true);
@@ -71,97 +70,87 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
     });
   }, []);
 
-  const drawBubble = useCallback(
-    (ctx: CanvasRenderingContext2D, b: Bubble) => {
-      const { x, y, r, alpha } = b;
+  const drawBubble = useCallback((ctx: CanvasRenderingContext2D, b: Bubble) => {
+    const { x, y, r, alpha } = b;
 
-      if (b.state === 'popping') {
-        const p = b.popProgress;
-        const ringR = r * (1 + p * 1.8);
-        ctx.save();
-        ctx.globalAlpha = alpha * (1 - p);
-        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-        ctx.lineWidth = Math.max(0.5, 2 * (1 - p));
-        ctx.beginPath();
-        ctx.arc(x, y, ringR, 0, Math.PI * 2);
-        ctx.stroke();
-
-        const drops = 6;
-        for (let i = 0; i < drops; i++) {
-          const a = (i / drops) * Math.PI * 2;
-          const dist = r * (0.5 + p * 1.4);
-          const dr = Math.max(0.5, r * 0.18 * (1 - p));
-          ctx.globalAlpha = alpha * (1 - p) * 0.9;
-          ctx.fillStyle = 'rgba(255,255,255,0.75)';
-          ctx.beginPath();
-          ctx.arc(x + Math.cos(a) * dist, y + Math.sin(a) * dist, dr, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-        return;
-      }
-
-      // Rising glass bubble
+    if (b.state === 'popping') {
+      const p = b.popProgress;
+      const ringR = r * (1 + p * 1.8);
       ctx.save();
-      ctx.globalAlpha = alpha;
-
-      // Outer soft glow
-      const glow = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 1.3);
-      glow.addColorStop(0, 'rgba(255,255,255,0.18)');
-      glow.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = glow;
+      ctx.globalAlpha = alpha * (1 - p);
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = Math.max(0.5, 2 * (1 - p));
       ctx.beginPath();
-      ctx.arc(x, y, r * 1.3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Bubble body — glass refraction
-      const body = ctx.createRadialGradient(
-        x - r * 0.35,
-        y - r * 0.45,
-        r * 0.1,
-        x,
-        y,
-        r,
-      );
-      body.addColorStop(0, 'rgba(255,255,255,0.55)');
-      body.addColorStop(0.35, 'rgba(255,255,255,0.18)');
-      body.addColorStop(0.75, 'rgba(220,240,240,0.08)');
-      body.addColorStop(1, 'rgba(255,255,255,0.18)');
-      ctx.fillStyle = body;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Rim
-      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-      ctx.lineWidth = 1;
+      ctx.arc(x, y, ringR, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Primary highlight (top-left)
-      const hx = x - r * 0.4;
-      const hy = y - r * 0.45;
-      const hr = r * 0.32;
-      const hi = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
-      hi.addColorStop(0, 'rgba(255,255,255,0.95)');
-      hi.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = hi;
-      ctx.beginPath();
-      ctx.arc(hx, hy, hr, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Small secondary highlight (bottom-right)
-      const sx = x + r * 0.45;
-      const sy = y + r * 0.4;
-      const sr = r * 0.14;
-      ctx.fillStyle = 'rgba(255,255,255,0.65)';
-      ctx.beginPath();
-      ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-      ctx.fill();
-
+      const drops = 6;
+      for (let i = 0; i < drops; i++) {
+        const a = (i / drops) * Math.PI * 2;
+        const dist = r * (0.5 + p * 1.4);
+        const dr = Math.max(0.5, r * 0.18 * (1 - p));
+        ctx.globalAlpha = alpha * (1 - p) * 0.9;
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(a) * dist, y + Math.sin(a) * dist, dr, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
-    },
-    [],
-  );
+      return;
+    }
+
+    // Rising glass bubble
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Outer soft glow
+    const glow = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 1.3);
+    glow.addColorStop(0, 'rgba(255,255,255,0.18)');
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 1.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bubble body — glass refraction
+    const body = ctx.createRadialGradient(x - r * 0.35, y - r * 0.45, r * 0.1, x, y, r);
+    body.addColorStop(0, 'rgba(255,255,255,0.55)');
+    body.addColorStop(0.35, 'rgba(255,255,255,0.18)');
+    body.addColorStop(0.75, 'rgba(220,240,240,0.08)');
+    body.addColorStop(1, 'rgba(255,255,255,0.18)');
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rim
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Primary highlight (top-left)
+    const hx = x - r * 0.4;
+    const hy = y - r * 0.45;
+    const hr = r * 0.32;
+    const hi = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+    hi.addColorStop(0, 'rgba(255,255,255,0.95)');
+    hi.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = hi;
+    ctx.beginPath();
+    ctx.arc(hx, hy, hr, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Small secondary highlight (bottom-right)
+    const sx = x + r * 0.45;
+    const sy = y + r * 0.4;
+    const sr = r * 0.14;
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }, []);
 
   const loop = useCallback(
     (t: number) => {
@@ -222,10 +211,14 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
         for (const b of bubbles) drawBubble(ctx, b);
       }
 
-      rafRef.current = requestAnimationFrame(loop);
+      rafRef.current = requestAnimationFrame(loopRef.current);
     },
     [drawBubble, spawnBubble],
   );
+
+  useEffect(() => {
+    loopRef.current = loop;
+  }, [loop]);
 
   useEffect(() => {
     if (prefersReduced) return;
@@ -290,6 +283,8 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
   const clearPointer = () => {
     pointerRef.current = { x: -9999, y: -9999, active: false };
   };
+
+  if (isLoading) return <ProductsFoundationSkeleton />;
 
   return (
     <section className="flex items-center bg-[#134b4c] py-16 text-white sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28 2xl:py-36">

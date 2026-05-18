@@ -326,7 +326,7 @@ export default function AdminFooterPage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -335,11 +335,13 @@ export default function AdminFooterPage() {
     <div className="mx-auto max-w-6xl space-y-6 2xl:max-w-7xl 2xl:space-y-8">
       {/* ── Header ─────────────────────────────────── */}
       <div>
-        <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
+        <div className="font-jost-bold text-primary mb-1 flex items-center gap-2 text-xs tracking-widest uppercase">
           <PanelBottom className="h-3.5 w-3.5" /> Footer
         </div>
-        <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl 2xl:text-4xl">Footer Management</h1>
-        <p className="mt-1 text-sm text-muted-foreground 2xl:text-base">
+        <h1 className="font-jost-bold text-2xl tracking-tight md:text-3xl 2xl:text-4xl">
+          Footer Management
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm 2xl:text-base">
           Manage every footer column, link, and the bottom bar (logo + contact info).
         </p>
       </div>
@@ -352,16 +354,12 @@ export default function AdminFooterPage() {
           value={columns.length}
         />
         <StatCard
-          icon={<Eye className="h-4 w-4 text-primary" />}
+          icon={<Eye className="text-primary h-4 w-4" />}
           label="Active columns"
           value={activeColumnsCount}
           tone="primary"
         />
-        <StatCard
-          icon={<Layers className="h-4 w-4" />}
-          label="Total links"
-          value={totalLinks}
-        />
+        <StatCard icon={<Layers className="h-4 w-4" />} label="Total links" value={totalLinks} />
         <StatCard
           icon={<EyeOff className="h-4 w-4" />}
           label="Hidden"
@@ -372,9 +370,9 @@ export default function AdminFooterPage() {
       {/* ══════════════════════════════════════════════ */}
       {/* SETTINGS  (singleton)                         */}
       {/* ══════════════════════════════════════════════ */}
-      <div className="rounded-xl border bg-card shadow-sm">
+      <div className="bg-card rounded-xl border shadow-sm">
         <div className="flex items-center justify-between border-b px-5 py-3">
-          <h2 className="text-sm font-jost-bold">Brand &amp; Contact (bottom bar)</h2>
+          <h2 className="font-jost-bold text-sm">Brand &amp; Contact (bottom bar)</h2>
           <Button onClick={saveSettings} disabled={savingSettings} size="sm" className="gap-2">
             {savingSettings ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -399,9 +397,7 @@ export default function AdminFooterPage() {
               <Label>Logo alt text</Label>
               <Input
                 value={settingsForm.logoAlt}
-                onChange={(e) =>
-                  setSettingsForm({ ...settingsForm, logoAlt: e.target.value })
-                }
+                onChange={(e) => setSettingsForm({ ...settingsForm, logoAlt: e.target.value })}
                 placeholder="Jivo"
               />
               <Label className="pt-2">Copyright text</Label>
@@ -431,9 +427,7 @@ export default function AdminFooterPage() {
               <Input
                 type="email"
                 value={settingsForm.email}
-                onChange={(e) =>
-                  setSettingsForm({ ...settingsForm, email: e.target.value })
-                }
+                onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
                 placeholder="info@jivo.in"
               />
             </div>
@@ -441,9 +435,7 @@ export default function AdminFooterPage() {
               <Label>Phone</Label>
               <Input
                 value={settingsForm.phone}
-                onChange={(e) =>
-                  setSettingsForm({ ...settingsForm, phone: e.target.value })
-                }
+                onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
                 placeholder="1800 137 4433"
               />
             </div>
@@ -451,9 +443,7 @@ export default function AdminFooterPage() {
               <Label>Phone label</Label>
               <Input
                 value={settingsForm.phoneLabel}
-                onChange={(e) =>
-                  setSettingsForm({ ...settingsForm, phoneLabel: e.target.value })
-                }
+                onChange={(e) => setSettingsForm({ ...settingsForm, phoneLabel: e.target.value })}
                 placeholder="(TOLL FREE)"
               />
             </div>
@@ -464,12 +454,12 @@ export default function AdminFooterPage() {
       {/* ══════════════════════════════════════════════ */}
       {/* COLUMNS — TAB ROW                              */}
       {/* ══════════════════════════════════════════════ */}
-      <div className="rounded-xl border bg-card shadow-sm">
+      <div className="bg-card rounded-xl border shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
           <div>
-            <h2 className="text-sm font-jost-bold">Link Columns</h2>
-            <p className="text-xs text-muted-foreground">
-              Click a tab to manage that column's links.
+            <h2 className="font-jost-bold text-sm">Link Columns</h2>
+            <p className="text-muted-foreground text-xs">
+              Click a tab to manage that column&apos;s links.
             </p>
           </div>
           <Button onClick={openCreateColumn} size="sm" className="gap-2">
@@ -478,9 +468,9 @@ export default function AdminFooterPage() {
         </div>
 
         {/* Tab strip — horizontal scrollable list of columns */}
-        <div className="scrollbar-hide flex gap-2 overflow-x-auto border-b bg-muted/20 px-5 py-3">
+        <div className="scrollbar-hide bg-muted/20 flex gap-2 overflow-x-auto border-b px-5 py-3">
           {columns.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No columns yet.</p>
+            <p className="text-muted-foreground text-xs">No columns yet.</p>
           ) : (
             columns.map((col) => {
               const isActive = col.id === activeColumnId;
@@ -506,9 +496,7 @@ export default function AdminFooterPage() {
                   <span className="font-jost-medium">{col.title}</span>
                   <span
                     className={`rounded-full px-1.5 text-[10px] ${
-                      isActive
-                        ? 'bg-primary-foreground/20'
-                        : 'bg-muted text-muted-foreground'
+                      isActive ? 'bg-primary-foreground/20' : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {col.links.length}
@@ -525,16 +513,14 @@ export default function AdminFooterPage() {
             {/* Active column header — title + actions on the column itself */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <h3 className="text-base font-jost-bold">{activeColumn.title}</h3>
+                <h3 className="font-jost-bold text-base">{activeColumn.title}</h3>
                 <Badge
                   variant={activeColumn.isVisible ? 'default' : 'secondary'}
-                  className={
-                    activeColumn.isVisible ? 'bg-primary/15 text-primary' : ''
-                  }
+                  className={activeColumn.isVisible ? 'bg-primary/15 text-primary' : ''}
                 >
                   {activeColumn.isVisible ? 'Active' : 'Hidden'}
                 </Badge>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   Order #{activeColumn.sortOrder}
                 </span>
               </div>
@@ -574,7 +560,7 @@ export default function AdminFooterPage() {
                       title: activeColumn.title,
                     })
                   }
-                  className="shrink-0 gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive shrink-0 gap-2"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Delete column
                 </Button>
@@ -601,7 +587,7 @@ export default function AdminFooterPage() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="py-12 text-center text-sm text-muted-foreground"
+                        className="text-muted-foreground py-12 text-center text-sm"
                       >
                         No links yet. Click <b>Add Link</b> to create one.
                       </TableCell>
@@ -609,13 +595,11 @@ export default function AdminFooterPage() {
                   ) : (
                     activeColumn.links.map((link) => (
                       <TableRow key={link.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
+                        <TableCell className="text-muted-foreground font-mono text-xs">
                           #{link.sortOrder}
                         </TableCell>
                         <TableCell className="font-jost-medium">{link.title}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {link.href}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">{link.href}</TableCell>
                         <TableCell>
                           <button
                             onClick={() => toggleLinkVisibility(link)}
@@ -688,7 +672,7 @@ export default function AdminFooterPage() {
             </div>
           </div>
         ) : (
-          <div className="p-12 text-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground p-12 text-center text-sm">
             {columns.length === 0
               ? 'Add your first column above to get started.'
               : 'Select a column tab to manage its links.'}
@@ -770,7 +754,7 @@ export default function AdminFooterPage() {
             <div className="space-y-2">
               <Label>Column</Label>
               <select
-                className="h-9 w-full cursor-pointer rounded-md border border-border bg-background px-3 text-sm"
+                className="border-border bg-background h-9 w-full cursor-pointer rounded-md border px-3 text-sm"
                 value={linkForm.columnId}
                 onChange={(e) => setLinkForm({ ...linkForm, columnId: e.target.value })}
               >
@@ -842,7 +826,7 @@ export default function AdminFooterPage() {
           <DialogHeader>
             <DialogTitle>Delete {deleteTarget?.type}?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Are you sure you want to delete <b>{deleteTarget?.title}</b>?
             {deleteTarget?.type === 'column' &&
               ' This will also delete all links inside this column.'}{' '}
@@ -880,12 +864,12 @@ function StatCard({
   tone?: 'default' | 'primary';
 }) {
   return (
-    <div className="rounded-xl border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
+    <div className="bg-card rounded-xl border px-4 py-3 shadow-sm">
+      <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase">
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-jost-bold 2xl:text-3xl ${
+        className={`font-jost-bold mt-1 text-2xl 2xl:text-3xl ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >
