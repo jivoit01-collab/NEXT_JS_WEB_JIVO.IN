@@ -23,11 +23,7 @@ logs/
 # production
 /build
 
-# Uploaded images (dynamic, not committed)
-/uploads/images/*
 
-# But DO NOT ignore the .gitkeep file
-!/uploads/images/.gitkeep
 # misc
 .DS_Store
 *.pem

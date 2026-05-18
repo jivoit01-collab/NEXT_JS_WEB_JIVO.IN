@@ -22,6 +22,7 @@ import {
   BookOpen,
   Compass,
   Landmark,
+  Scale,
   ChevronDown,
   LogOut,
   ArrowLeft,
@@ -77,6 +78,11 @@ const SIDEBAR: NavSection[] = [
         href: '/admin/our-essence-social-initiatives',
         icon: Users,
       },
+      {
+        title: 'Our Fair Share',
+        href: '/admin/our-essence-our-fair-share',
+        icon: Scale,
+      },
     ],
   },
   {
@@ -115,6 +121,12 @@ const SIDEBAR: NavSection[] = [
         title: 'Social Initiatives',
         href: '/admin/our-essence-social-initiatives',
         icon: Users,
+        tab: 'seo',
+      },
+      {
+        title: 'Our Fair Share',
+        href: '/admin/our-essence-our-fair-share',
+        icon: Scale,
         tab: 'seo',
       },
     ],
@@ -197,7 +209,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         ref={sidebarRef}
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-card shadow-sm 2xl:w-72',
+          'bg-card fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r shadow-sm 2xl:w-72',
           'transform transition-transform duration-300',
           mobileOpen ? 'translate-x-0' : '-translate-x-64',
           'md:translate-x-0',
@@ -206,10 +218,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Header */}
         <div className="flex h-16 shrink-0 items-center justify-between border-b px-6 2xl:h-20 2xl:px-8">
           <Link href="/" title="Back to Website">
-            <ArrowLeft size={20} className="cursor-pointer hover:text-primary 2xl:h-6 2xl:w-6" />
+            <ArrowLeft size={20} className="hover:text-primary cursor-pointer 2xl:h-6 2xl:w-6" />
           </Link>
-          <span className="text-lg font-jost-bold 2xl:text-xl">Admin Panel</span>
-          <button onClick={() => setMobileOpen(false)} className="cursor-pointer md:hidden" aria-label="Close sidebar">
+          <span className="font-jost-bold text-lg 2xl:text-xl">Admin Panel</span>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="cursor-pointer md:hidden"
+            aria-label="Close sidebar"
+          >
             <X size={20} />
           </button>
           <div className="hidden w-5 md:block" />
@@ -235,7 +251,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <Link
                     href={section.href}
-                    className="flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm font-jost-medium 2xl:py-3 2xl:pl-4 2xl:text-base"
+                    className="font-jost-medium flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm 2xl:py-3 2xl:pl-4 2xl:text-base"
                   >
                     <Icon size={18} className="shrink-0" />
                     <span className="truncate">{section.title}</span>
@@ -294,14 +310,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="border-t p-4 text-xs text-muted-foreground 2xl:p-5 2xl:text-sm">
+        <div className="text-muted-foreground border-t p-4 text-xs 2xl:p-5 2xl:text-sm">
           <p>Manage all pages from each section.</p>
         </div>
       </aside>
 
       {/* ── Main content ──────────────────────── */}
       <div className="min-w-0 flex-1 md:ml-64 2xl:ml-72">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:hidden">
+        <header className="bg-background/95 sticky top-0 z-20 flex h-14 items-center justify-between border-b px-4 backdrop-blur md:hidden">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileOpen(true)}
@@ -330,22 +346,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              className="gap-2"
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </header>
 
-        <header className="sticky top-0 z-20 hidden h-16 items-center justify-end gap-3 border-b bg-background/95 px-6 backdrop-blur md:flex 2xl:h-20 2xl:px-8 2xl:gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-9 w-9">
-            {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        <header className="bg-background/95 sticky top-0 z-20 hidden h-16 items-center justify-end gap-3 border-b px-6 backdrop-blur md:flex 2xl:h-20 2xl:gap-4 2xl:px-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="h-9 w-9"
+          >
+            {mounted && theme === 'dark' ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </Button>
           <Button asChild variant="outline" size="sm" className="gap-2">
             <a href="/" target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-4 w-4" /> View Live Site
             </a>
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            className="gap-2"
+          >
             <LogOut className="h-4 w-4" /> Logout
           </Button>
         </header>

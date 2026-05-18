@@ -1,0 +1,19 @@
+// ==========================================
+// OUR ESSENCE - OUR FAIR SHARE page
+// Route: /our-essence/our-fair-share
+// Admin: /admin/our-essence-our-fair-share
+// Sections: hero, healthcare, women
+// ==========================================
+
+model OurEssenceOurFairShare {
+  id        String   @id @default(cuid())
+  section   String   @unique
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

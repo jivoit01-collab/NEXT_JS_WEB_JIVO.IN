@@ -572,6 +572,34 @@ async function main() {
         url: `${BASE}/our-essence/social-initiatives`,
       },
     },
+    {
+      page: 'our-essence-our-fair-share',
+      metaTitle: 'Our Fair Share | Jivo Wellness',
+      metaDescription:
+        'Explore Jivo Wellness initiatives in value-based education, healthcare, and women empowerment through immersive storytelling.',
+      keywords: [
+        'our fair share',
+        'jivo wellness',
+        'value based education',
+        'vidya',
+        'healthcare service',
+        'women empowerment',
+        'spiritual values',
+        'humanitarian care',
+      ],
+      ogTitle: 'Our Fair Share | Jivo Wellness',
+      ogDescription:
+        'Discover value-based education, loving medical care, and women empowerment through Jivo Wellness storytelling.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/our-fair-share`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'Our Fair Share',
+        url: `${BASE}/our-essence/our-fair-share`,
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {
@@ -910,6 +938,82 @@ async function main() {
           },
         });
         console.log(`  Social Initiatives "${s.section}": created`);
+      }
+    }
+  }
+
+  const ourFairShareSections = [
+    {
+      section: 'hero',
+      title: 'Hero Section',
+      sortOrder: 0,
+      content: {
+        title: 'Value Based Education : Vidya',
+        subtitle: 'BLEND OF MODERN EDUCATION WITH SPIRITUAL VALUES',
+        description:
+          'We have an obligation to be empathic, principled and considerate, even in our pursuit of material gratification. A compassionate mind and sustainable lifestyle is nurtured through knowledge and action that works in synchronicity with good human values',
+        image: '',
+      },
+    },
+    {
+      section: 'healthcare',
+      title: 'Healthcare Section',
+      sortOrder: 1,
+      content: {
+        title: 'Restoring Health and Happiness through Divinity & Loving Medical Care',
+        paragraph1:
+          'Free-of-cost healthcare facilities are provided to underprivileged rural and hilly people, locally at their doorsteps.',
+        paragraph2:
+          'The Akal Charitable Hospital organizes 4-5 free medical camps a year. Medical specialists from across the world volunteer to offer their services at these camps. People from all castes, creeds, colours, and religions are welcome to the camp and receive free medical checkups and treatments, dental care, surgical procedures and post-operative medical care. All patients and their accompanying family members receive free accommodations and meals.',
+        image: '',
+      },
+    },
+    {
+      section: 'women',
+      title: 'Women Empowerment Section',
+      sortOrder: 2,
+      content: {
+        title: 'WOMEN EMPOWERMENT',
+        subtitle: 'EMPOWERING WOMEN FOR BUILDING NATION',
+        description:
+          'The Kalgidhar Society has introduced this program AIRWE which provides education and employment opportunities to women so that they can lead a respectable and independent life. In addition to that, rehabilitation of women in very vulnerable situations so that they can lead a life of dignity.',
+        image: '',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceOurFairShare.deleteMany();
+    for (const s of ourFairShareSections) {
+      await prisma.ourEssenceOurFairShare.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`Our Fair Share: RESET (${ourFairShareSections.length} sections)`);
+  } else {
+    for (const s of ourFairShareSections) {
+      const exists = await prisma.ourEssenceOurFairShare.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  Our Fair Share "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceOurFairShare.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  Our Fair Share "${s.section}": created`);
       }
     }
   }

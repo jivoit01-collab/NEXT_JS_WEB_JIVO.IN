@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, BookOpen, Compass, Landmark, Users } from 'lucide-react';
+import { Search, Sparkles, BookOpen, Compass, Landmark, Users, Scale } from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -41,6 +41,13 @@ const SECTION_PAGES: PageEntry[] = [
     description: 'Hero mission, responsibilities & empowerment',
     color: 'from-rose-500/20 to-rose-600/5',
   },
+  {
+    label: 'Our Fair Share',
+    href: '/admin/our-essence-our-fair-share',
+    icon: Scale,
+    description: 'Education, healthcare & women empowerment',
+    color: 'from-cyan-500/20 to-cyan-600/5',
+  },
 ];
 
 const ACCENT = '#0a7362';
@@ -60,20 +67,23 @@ export default function OurEssenceHubPage() {
     <div className="mx-auto max-w-5xl py-4 sm:py-8 2xl:max-w-7xl 2xl:py-10">
       {/* Header */}
       <div className="mb-8 text-center sm:mb-10">
-        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm 2xl:text-base" style={{ color: ACCENT }}>
+        <p
+          className="font-jost-bold mb-3 text-xs tracking-widest uppercase sm:text-sm 2xl:text-base"
+          style={{ color: ACCENT }}
+        >
           Our Essence
         </p>
-        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl 2xl:text-5xl">
+        <h1 className="font-jost-bold text-2xl sm:text-3xl md:text-4xl 2xl:text-5xl">
           Manage Our Essence Pages
         </h1>
-        <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground 2xl:text-base 2xl:max-w-xl">
+        <p className="text-muted-foreground mx-auto mt-3 max-w-lg text-sm 2xl:max-w-xl 2xl:text-base">
           The story, values, and identity of Jivo Wellness.
         </p>
       </div>
 
       {/* Search */}
       <div className="relative mx-auto mb-8 max-w-md 2xl:max-w-lg">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <input
           type="text"
           value={searchQuery}
@@ -113,17 +123,19 @@ export default function OurEssenceHubPage() {
               <Link
                 key={page.href}
                 href={page.href}
-                className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border bg-card p-6 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg 2xl:p-8 2xl:gap-4"
+                className="group bg-card hover:border-primary/30 relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border p-6 text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg 2xl:gap-4 2xl:p-8"
               >
-                <div className={`absolute inset-0 bg-linear-to-br ${page.color} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
-                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20 2xl:h-14 2xl:w-14 2xl:rounded-2xl">
+                <div
+                  className={`absolute inset-0 bg-linear-to-br ${page.color} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+                />
+                <div className="bg-primary/10 group-hover:bg-primary/20 relative z-10 flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 2xl:h-14 2xl:w-14 2xl:rounded-2xl">
                   <Icon size={24} className="text-primary" />
                 </div>
                 <div className="relative z-10">
-                  <span className="text-sm font-semibold text-foreground transition-colors duration-200 group-hover:text-primary 2xl:text-base">
+                  <span className="text-foreground group-hover:text-primary text-sm font-semibold transition-colors duration-200 2xl:text-base">
                     {page.label}
                   </span>
-                  <p className="mt-1 text-[11px] leading-tight text-muted-foreground 2xl:text-xs">
+                  <p className="text-muted-foreground mt-1 text-[11px] leading-tight 2xl:text-xs">
                     {page.description}
                   </p>
                 </div>

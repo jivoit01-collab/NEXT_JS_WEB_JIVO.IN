@@ -51,6 +51,9 @@ function publicHref(pageKey: string): string {
   if (pageKey === 'our-essence-social-initiatives') {
     return '/our-essence/social-initiatives';
   }
+  if (pageKey === 'our-essence-our-fair-share') {
+    return '/our-essence/our-fair-share';
+  }
   if (pageKey.includes(':')) {
     const [prefix, slug] = pageKey.split(':');
     return `/${prefix}/${slug}`;
@@ -190,36 +193,41 @@ export default function AdminSeoPage() {
     <div className="mx-auto max-w-5xl py-4 sm:py-8 2xl:max-w-7xl 2xl:py-10">
       {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-8 text-center sm:mb-10">
-        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest sm:text-sm 2xl:text-base" style={{ color: ACCENT }}>
+        <p
+          className="font-jost-bold mb-3 text-xs tracking-widest uppercase sm:text-sm 2xl:text-base"
+          style={{ color: ACCENT }}
+        >
           SEO Manager
         </p>
-        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl 2xl:text-5xl">
+        <h1 className="font-jost-bold text-2xl sm:text-3xl md:text-4xl 2xl:text-5xl">
           Search &amp; Social Metadata
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground 2xl:text-base 2xl:max-w-2xl">
+        <p className="text-muted-foreground mx-auto mt-3 max-w-xl text-sm 2xl:max-w-2xl 2xl:text-base">
           Manage how every page appears in Google, social previews, and rich-result search features.
         </p>
       </div>
 
       {/* â”€â”€ Stats row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-6 grid grid-cols-3 gap-3 sm:gap-4 2xl:gap-5">
-        <div className="rounded-xl border bg-card px-4 py-3 2xl:px-6 2xl:py-4">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground 2xl:text-sm">
+        <div className="bg-card rounded-xl border px-4 py-3 2xl:px-6 2xl:py-4">
+          <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase 2xl:text-sm">
             <Globe className="h-3.5 w-3.5" /> Total Pages
           </div>
-          <div className="mt-1 text-2xl font-jost-bold 2xl:text-3xl">{rows.length}</div>
+          <div className="font-jost-bold mt-1 text-2xl 2xl:text-3xl">{rows.length}</div>
         </div>
-        <div className="rounded-xl border bg-card px-4 py-3 2xl:px-6 2xl:py-4">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground 2xl:text-sm">
-            <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Indexed
+        <div className="bg-card rounded-xl border px-4 py-3 2xl:px-6 2xl:py-4">
+          <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase 2xl:text-sm">
+            <CheckCircle2 className="text-primary h-3.5 w-3.5" /> Indexed
           </div>
-          <div className="mt-1 text-2xl font-jost-bold text-primary 2xl:text-3xl">{indexedCount}</div>
+          <div className="font-jost-bold text-primary mt-1 text-2xl 2xl:text-3xl">
+            {indexedCount}
+          </div>
         </div>
-        <div className="rounded-xl border bg-card px-4 py-3 2xl:px-6 2xl:py-4">
-          <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground 2xl:text-sm">
+        <div className="bg-card rounded-xl border px-4 py-3 2xl:px-6 2xl:py-4">
+          <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase 2xl:text-sm">
             <AlertTriangle className="h-3.5 w-3.5" /> No-Index
           </div>
-          <div className="mt-1 text-2xl font-jost-bold 2xl:text-3xl">{noIndexCount}</div>
+          <div className="font-jost-bold mt-1 text-2xl 2xl:text-3xl">{noIndexCount}</div>
         </div>
       </div>
 
@@ -286,26 +294,28 @@ export default function AdminSeoPage() {
                   e.stopPropagation();
                   setActiveCardId((prev) => (prev === row.id ? null : row.id));
                 }}
-                className={`group relative flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border bg-card p-3 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg sm:gap-3 sm:p-5 ${isCardActive ? '-translate-y-1.5 border-primary/30 shadow-lg' : ''}`}
+                className={`group bg-card hover:border-primary/30 relative flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border p-3 text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg sm:gap-3 sm:p-5 ${isCardActive ? 'border-primary/30 -translate-y-1.5 shadow-lg' : ''}`}
               >
                 {/* Gradient hover/active bg */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} transition-opacity duration-300 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`} />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${gradient} transition-opacity duration-300 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`}
+                />
 
                 {/* Icon */}
-                <div className="relative z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20 sm:h-12 sm:w-12">
+                <div className="bg-primary/10 group-hover:bg-primary/20 relative z-10 flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 sm:h-12 sm:w-12">
                   {isNoIndex ? (
-                    <ShieldOff className="h-4 w-4 text-muted-foreground sm:h-[22px] sm:w-[22px]" />
+                    <ShieldOff className="text-muted-foreground h-4 w-4 sm:h-[22px] sm:w-[22px]" />
                   ) : (
-                    <Globe className="h-4 w-4 text-primary sm:h-[22px] sm:w-[22px]" />
+                    <Globe className="text-primary h-4 w-4 sm:h-[22px] sm:w-[22px]" />
                   )}
                 </div>
 
                 {/* Title + description */}
                 <div className="relative z-10">
-                  <span className="text-xs font-semibold text-foreground transition-colors duration-200 group-hover:text-primary sm:text-sm">
+                  <span className="text-foreground group-hover:text-primary text-xs font-semibold transition-colors duration-200 sm:text-sm">
                     {pageLabel(row.page)}
                   </span>
-                  <p className="mt-0.5 line-clamp-1 text-[10px] leading-tight text-muted-foreground sm:text-[11px]">
+                  <p className="text-muted-foreground mt-0.5 line-clamp-1 text-[10px] leading-tight sm:text-[11px]">
                     {row.metaTitle}
                   </p>
                 </div>
@@ -321,14 +331,16 @@ export default function AdminSeoPage() {
                 </div>
 
                 {/* Action buttons  visible on hover (desktop) or tap (mobile) */}
-                <div className={`relative z-10 flex items-center gap-1 transition-opacity duration-200 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`}>
+                <div
+                  className={`relative z-10 flex items-center gap-1 transition-opacity duration-200 group-hover:opacity-100 ${isCardActive ? 'opacity-100' : 'opacity-0'}`}
+                >
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveCardId(null);
                       setEditingPage(row.page);
                     }}
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg p-1.5 transition-colors"
                     title="Edit SEO"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -338,7 +350,7 @@ export default function AdminSeoPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg p-1.5 transition-colors"
                     title={`Visit ${href}`}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
@@ -349,7 +361,7 @@ export default function AdminSeoPage() {
                       setActiveCardId(null);
                       setDeletingPage(row.page);
                     }}
-                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg p-1.5 transition-colors"
                     title="Delete SEO"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -363,9 +375,9 @@ export default function AdminSeoPage() {
 
       {/* â”€â”€ Footer hint â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {rows.length > 0 && (
-        <p className="mt-4 text-xs text-muted-foreground">
-          Showing {filtered.length} of {rows.length} page{rows.length !== 1 ? 's' : ''}.
-          Hover or tap a card to edit, visit, or delete.
+        <p className="text-muted-foreground mt-4 text-xs">
+          Showing {filtered.length} of {rows.length} page{rows.length !== 1 ? 's' : ''}. Hover or
+          tap a card to edit, visit, or delete.
         </p>
       )}
 
@@ -373,12 +385,21 @@ export default function AdminSeoPage() {
       <SeoGuide />
 
       {/* â”€â”€ Edit drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <Sheet open={!!editingPage} onOpenChange={(open) => { if (!open) { setEditingPage(null); void load(); } }}>
-        <SheetContent side="right" className="w-full overflow-x-hidden overflow-y-auto sm:max-w-2xl">
+      <Sheet
+        open={!!editingPage}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingPage(null);
+            void load();
+          }
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-full overflow-x-hidden overflow-y-auto sm:max-w-2xl"
+        >
           <SheetHeader>
-            <SheetTitle>
-              SEO - {editingPage}
-            </SheetTitle>
+            <SheetTitle>SEO - {editingPage}</SheetTitle>
           </SheetHeader>
           {editingPage && (
             <div className="mt-6">
@@ -448,4 +469,3 @@ export default function AdminSeoPage() {
     </div>
   );
 }
-
