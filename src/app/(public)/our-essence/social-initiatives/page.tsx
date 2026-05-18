@@ -25,10 +25,8 @@ export default async function SocialInitiativesPage() {
 
   const sectionMap = new Map<string, unknown>([
     ['hero', defaultSections.hero],
-    ['alignment', defaultSections.alignment],
     ['responsibilities', defaultSections.responsibilities],
     ['educate', defaultSections.educate],
-    ['cta', defaultSections.cta],
   ]);
 
   for (const section of sections) {

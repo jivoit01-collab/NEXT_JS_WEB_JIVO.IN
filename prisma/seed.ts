@@ -843,19 +843,11 @@ async function main() {
         title: 'SOCIAL INITIATIVES',
         subtitle: 'Empowering communities through wellness, education, and human-centered service.',
         image: '',
-      },
-    },
-    {
-      section: 'alignment',
-      title: 'Alignment Section',
-      sortOrder: 1,
-      content: {
-        backgroundImage: '',
-        leftTitle: 'ALIGNMENT & INCENTIVES',
-        leftDescription:
+        alignmentTitle: 'ALIGNMENT & INCENTIVES',
+        alignmentDescription:
           'The primary incentive is the shared mission toward wellness, service, and human upliftment. Every effort remains aligned with the purpose of meaningful social impact.',
-        rightTitle: 'GOAL',
-        rightDescription:
+        goalTitle: 'GOAL',
+        goalDescription:
           'To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment.',
       },
     },
@@ -876,25 +868,12 @@ async function main() {
     {
       section: 'educate',
       title: 'Educate Empower Section',
-      sortOrder: 3,
+      sortOrder: 2,
       content: {
         heading: 'EDUCATE. ENSHRINE. EMPOWER.',
         paragraph:
           'We are committed to creating sustainable transformation through education, wellness support, and community-led initiatives that uplift lives with dignity and long-term impact.',
         image: '',
-      },
-    },
-    {
-      section: 'cta',
-      title: 'CTA Section',
-      sortOrder: 4,
-      content: {
-        heading: 'Join hands in building a healthier and more empowered future for communities.',
-        primaryLabel: 'Explore Initiatives',
-        primaryHref: '/our-essence/social-initiatives',
-        secondaryLabel: 'Contact Us',
-        secondaryHref: '/contact',
-        backgroundImage: '',
       },
     },
   ];

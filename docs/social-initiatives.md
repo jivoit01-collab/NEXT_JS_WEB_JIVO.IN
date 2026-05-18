@@ -35,19 +35,11 @@ Hero:
 {
   "title": "SOCIAL INITIATIVES",
   "subtitle": "Empowering communities through wellness, education, and human-centered service.",
-  "image": "uploaded-hero.webp"
-}
-```
-
-Alignment:
-
-```json
-{
-  "backgroundImage": "uploaded-alignment.webp",
-  "leftTitle": "ALIGNMENT & INCENTIVES",
-  "leftDescription": "The primary incentive is the shared mission toward wellness, service, and human upliftment.",
-  "rightTitle": "GOAL",
-  "rightDescription": "To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment."
+  "image": "uploaded-hero.webp",
+  "alignmentTitle": "ALIGNMENT & INCENTIVES",
+  "alignmentDescription": "The primary incentive is the shared mission toward wellness, service, and human upliftment.",
+  "goalTitle": "GOAL",
+  "goalDescription": "To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment."
 }
 ```
 
@@ -70,19 +62,6 @@ Educate Empower:
   "heading": "EDUCATE. ENSHRINE. EMPOWER.",
   "paragraph": "We are committed to creating sustainable transformation through education, wellness support, and community-led initiatives.",
   "image": "uploaded-human.webp"
-}
-```
-
-CTA:
-
-```json
-{
-  "heading": "Join hands in building a healthier and more empowered future for communities.",
-  "primaryLabel": "Explore Initiatives",
-  "primaryHref": "/our-essence/social-initiatives",
-  "secondaryLabel": "Contact Us",
-  "secondaryHref": "/contact",
-  "backgroundImage": "uploaded-cta.webp"
 }
 ```
 
@@ -120,7 +99,11 @@ Body:
   "content": {
     "title": "SOCIAL INITIATIVES",
     "subtitle": "Empowering communities through wellness, education, and human-centered service.",
-    "image": "uploaded-hero.webp"
+    "image": "uploaded-hero.webp",
+    "alignmentTitle": "ALIGNMENT & INCENTIVES",
+    "alignmentDescription": "The primary incentive is the shared mission toward wellness, service, and human upliftment.",
+    "goalTitle": "GOAL",
+    "goalDescription": "To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment."
   }
 }
 ```
@@ -164,14 +147,15 @@ Content-Type: application/json
 Cookie: next-auth.session-token={{session}}
 
 {
-  "section": "cta",
+  "section": "hero",
   "content": {
-    "heading": "Join hands in building a healthier and more empowered future for communities.",
-    "primaryLabel": "Explore Initiatives",
-    "primaryHref": "/our-essence/social-initiatives",
-    "secondaryLabel": "Contact Us",
-    "secondaryHref": "/contact",
-    "backgroundImage": ""
+    "title": "SOCIAL INITIATIVES",
+    "subtitle": "Empowering communities through wellness, education, and human-centered service.",
+    "image": "",
+    "alignmentTitle": "ALIGNMENT & INCENTIVES",
+    "alignmentDescription": "The primary incentive is the shared mission toward wellness, service, and human upliftment.",
+    "goalTitle": "GOAL",
+    "goalDescription": "To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment."
   }
 }
 ```

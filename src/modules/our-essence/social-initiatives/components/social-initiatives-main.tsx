@@ -3,15 +3,8 @@ import { LazyOnView } from '@/components/shared';
 import { SocialInitiativesHero } from './hero-section';
 import { SplitStorySectionSkeleton } from './split-story-section';
 import { EducateEmpowerSectionSkeleton } from './educate-empower-section';
-import { SocialInitiativesCtaSectionSkeleton } from './cta-section';
-import {
-  defaultAlignmentContent,
-  defaultCtaContent,
-  defaultEducateContent,
-  defaultResponsibilitiesContent,
-} from '../data/defaults';
+import { defaultResponsibilitiesContent } from '../data/defaults';
 import type {
-  SocialInitiativesCtaContent,
   SocialInitiativesEducateContent,
   SocialInitiativesHeroContent,
   SocialInitiativesSplitContent,
@@ -27,11 +20,6 @@ const EducateEmpowerSection = dynamic(
   { loading: () => <EducateEmpowerSectionSkeleton /> },
 );
 
-const SocialInitiativesCtaSection = dynamic(
-  () => import('./cta-section').then((mod) => mod.SocialInitiativesCtaSection),
-  { loading: () => <SocialInitiativesCtaSectionSkeleton /> },
-);
-
 interface SocialInitiativesMainProps {
   sections: Map<string, unknown>;
 }
@@ -44,12 +32,6 @@ export function SocialInitiativesMain({ sections }: SocialInitiativesMainProps) 
       />
       <LazyOnView rootMargin="300px" fallback={<SplitStorySectionSkeleton />} minHeight="620px">
         <SplitStorySection
-          data={sections.get('alignment') as SocialInitiativesSplitContent | undefined}
-          fallbackData={defaultAlignmentContent}
-        />
-      </LazyOnView>
-      <LazyOnView rootMargin="300px" fallback={<SplitStorySectionSkeleton />} minHeight="620px">
-        <SplitStorySection
           data={sections.get('responsibilities') as SocialInitiativesSplitContent | undefined}
           fallbackData={defaultResponsibilitiesContent}
           tone="ocean"
@@ -58,15 +40,6 @@ export function SocialInitiativesMain({ sections }: SocialInitiativesMainProps) 
       <LazyOnView rootMargin="300px" fallback={<EducateEmpowerSectionSkeleton />} minHeight="620px">
         <EducateEmpowerSection
           data={sections.get('educate') as SocialInitiativesEducateContent | undefined}
-        />
-      </LazyOnView>
-      <LazyOnView
-        rootMargin="300px"
-        fallback={<SocialInitiativesCtaSectionSkeleton />}
-        minHeight="420px"
-      >
-        <SocialInitiativesCtaSection
-          data={sections.get('cta') as SocialInitiativesCtaContent | undefined}
         />
       </LazyOnView>
     </main>

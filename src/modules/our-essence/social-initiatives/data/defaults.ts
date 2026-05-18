@@ -6,7 +6,6 @@ import {
   SOCIAL_INITIATIVES_ROUTE,
 } from '../constants';
 import type {
-  SocialInitiativesCtaContent,
   SocialInitiativesEducateContent,
   SocialInitiativesHeroContent,
   SocialInitiativesSectionKey,
@@ -17,15 +16,11 @@ export const defaultHeroContent: SocialInitiativesHeroContent = {
   title: SOCIAL_INITIATIVES_PAGE_TITLE,
   subtitle: 'Empowering communities through wellness, education, and human-centered service.',
   image: '',
-};
-
-export const defaultAlignmentContent: SocialInitiativesSplitContent = {
-  backgroundImage: '',
-  leftTitle: 'ALIGNMENT & INCENTIVES',
-  leftDescription:
+  alignmentTitle: 'ALIGNMENT & INCENTIVES',
+  alignmentDescription:
     'The primary incentive is the shared mission toward wellness, service, and human upliftment. Every effort remains aligned with the purpose of meaningful social impact.',
-  rightTitle: 'GOAL',
-  rightDescription:
+  goalTitle: 'GOAL',
+  goalDescription:
     'To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment.',
 };
 
@@ -46,37 +41,22 @@ export const defaultEducateContent: SocialInitiativesEducateContent = {
   image: '',
 };
 
-export const defaultCtaContent: SocialInitiativesCtaContent = {
-  heading: 'Join hands in building a healthier and more empowered future for communities.',
-  primaryLabel: 'Explore Initiatives',
-  primaryHref: '/our-essence/social-initiatives',
-  secondaryLabel: 'Contact Us',
-  secondaryHref: '/contact',
-  backgroundImage: '',
-};
-
 export const defaultSections = {
   hero: defaultHeroContent,
-  alignment: defaultAlignmentContent,
   responsibilities: defaultResponsibilitiesContent,
   educate: defaultEducateContent,
-  cta: defaultCtaContent,
 } as const;
 
 export const sectionTitles: Record<SocialInitiativesSectionKey, string> = {
   hero: 'Hero Section',
-  alignment: 'Alignment Section',
   responsibilities: 'Responsibilities Section',
   educate: 'Educate Empower Section',
-  cta: 'CTA Section',
 };
 
 export const sectionSortOrder: Record<SocialInitiativesSectionKey, number> = {
   hero: 0,
-  alignment: 1,
-  responsibilities: 2,
-  educate: 3,
-  cta: 4,
+  responsibilities: 1,
+  educate: 2,
 };
 
 export const sectionKeys = Object.keys(defaultSections) as SocialInitiativesSectionKey[];

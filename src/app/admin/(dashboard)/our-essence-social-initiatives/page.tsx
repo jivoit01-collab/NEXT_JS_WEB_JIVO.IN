@@ -9,14 +9,11 @@ import { SeoTabPanel } from '@/modules/seo';
 import { upsertSocialInitiativesSectionAction } from '@/modules/our-essence/social-initiatives/actions';
 import { SOCIAL_INITIATIVES_SEO_PAGE } from '@/modules/our-essence/social-initiatives/constants';
 import {
-  defaultAlignmentContent,
-  defaultCtaContent,
   defaultEducateContent,
   defaultHeroContent,
   defaultResponsibilitiesContent,
 } from '@/modules/our-essence/social-initiatives/data/defaults';
 import type {
-  SocialInitiativesCtaContent,
   SocialInitiativesEducateContent,
   SocialInitiativesHeroContent,
   SocialInitiativesSectionKey,
@@ -27,10 +24,8 @@ type TabKey = SocialInitiativesSectionKey | 'seo';
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'hero', label: 'Hero' },
-  { key: 'alignment', label: 'Alignment' },
   { key: 'responsibilities', label: 'Responsibilities' },
   { key: 'educate', label: 'Educate Empower' },
-  { key: 'cta', label: 'CTA' },
   { key: 'seo', label: 'SEO' },
 ];
 
@@ -38,10 +33,8 @@ interface ApiResponse {
   success: boolean;
   data?: {
     hero?: Partial<SocialInitiativesHeroContent>;
-    alignment?: Partial<SocialInitiativesSplitContent>;
     responsibilities?: Partial<SocialInitiativesSplitContent>;
     educate?: Partial<SocialInitiativesEducateContent>;
-    cta?: Partial<SocialInitiativesCtaContent>;
   };
   error?: string;
 }
@@ -56,13 +49,10 @@ export default function SocialInitiativesManager() {
   const [loadError, setLoadError] = useState('');
 
   const [hero, setHero] = useState<SocialInitiativesHeroContent>(defaultHeroContent);
-  const [alignment, setAlignment] =
-    useState<SocialInitiativesSplitContent>(defaultAlignmentContent);
   const [responsibilities, setResponsibilities] = useState<SocialInitiativesSplitContent>(
     defaultResponsibilitiesContent,
   );
   const [educate, setEducate] = useState<SocialInitiativesEducateContent>(defaultEducateContent);
-  const [cta, setCta] = useState<SocialInitiativesCtaContent>(defaultCtaContent);
 
   useEffect(() => {
     (async () => {
@@ -75,9 +65,6 @@ export default function SocialInitiativesManager() {
         }
 
         if (json.data?.hero) setHero({ ...defaultHeroContent, ...json.data.hero });
-        if (json.data?.alignment) {
-          setAlignment({ ...defaultAlignmentContent, ...json.data.alignment });
-        }
         if (json.data?.responsibilities) {
           setResponsibilities({
             ...defaultResponsibilitiesContent,
@@ -85,7 +72,6 @@ export default function SocialInitiativesManager() {
           });
         }
         if (json.data?.educate) setEducate({ ...defaultEducateContent, ...json.data.educate });
-        if (json.data?.cta) setCta({ ...defaultCtaContent, ...json.data.cta });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to load page data';
         setLoadError(message);
@@ -100,7 +86,7 @@ export default function SocialInitiativesManager() {
     if (activeTab === 'seo') return;
 
     setLoading(true);
-    const contentMap = { hero, alignment, responsibilities, educate, cta };
+    const contentMap = { hero, responsibilities, educate };
     const result = await upsertSocialInitiativesSectionAction(activeTab, contentMap[activeTab]);
 
     if (result.success) {
@@ -109,7 +95,7 @@ export default function SocialInitiativesManager() {
       toast.error(result.error || 'Failed to save section');
     }
     setLoading(false);
-  }, [activeTab, alignment, cta, educate, hero, responsibilities]);
+  }, [activeTab, educate, hero, responsibilities]);
 
   if (loadingData) {
     return (
@@ -127,7 +113,7 @@ export default function SocialInitiativesManager() {
             Social Initiatives - Page Manager
           </h1>
           <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-            Manage cinematic storytelling sections, CTA content, images, and SEO settings.
+            Manage the hero story, responsibilities, educate section, images, and SEO settings.
           </p>
         </div>
         {activeTab !== 'seo' && <SaveButton loading={loading} onClick={handleSave} />}
@@ -176,15 +162,31 @@ export default function SocialInitiativesManager() {
                 value={hero.image}
                 onChange={(image) => setHero({ ...hero, image })}
               />
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextField
+                  label="Alignment Title"
+                  value={hero.alignmentTitle}
+                  onChange={(alignmentTitle) => setHero({ ...hero, alignmentTitle })}
+                />
+                <TextField
+                  label="Goal Title"
+                  value={hero.goalTitle}
+                  onChange={(goalTitle) => setHero({ ...hero, goalTitle })}
+                />
+                <TextAreaField
+                  label="Alignment Description"
+                  rows={5}
+                  value={hero.alignmentDescription}
+                  onChange={(alignmentDescription) => setHero({ ...hero, alignmentDescription })}
+                />
+                <TextAreaField
+                  label="Goal Description"
+                  rows={5}
+                  value={hero.goalDescription}
+                  onChange={(goalDescription) => setHero({ ...hero, goalDescription })}
+                />
+              </div>
             </div>
-          )}
-
-          {activeTab === 'alignment' && (
-            <SplitEditor
-              data={alignment}
-              imageLabel="Alignment Background Image"
-              onChange={setAlignment}
-            />
           )}
 
           {activeTab === 'responsibilities' && (
@@ -212,44 +214,6 @@ export default function SocialInitiativesManager() {
                 label="Human Image"
                 value={educate.image}
                 onChange={(image) => setEducate({ ...educate, image })}
-              />
-            </div>
-          )}
-
-          {activeTab === 'cta' && (
-            <div className="space-y-4">
-              <TextAreaField
-                label="CTA Heading"
-                rows={3}
-                value={cta.heading}
-                onChange={(heading) => setCta({ ...cta, heading })}
-              />
-              <div className="grid gap-4 md:grid-cols-2">
-                <TextField
-                  label="Primary Button Text"
-                  value={cta.primaryLabel}
-                  onChange={(primaryLabel) => setCta({ ...cta, primaryLabel })}
-                />
-                <TextField
-                  label="Primary Button Link"
-                  value={cta.primaryHref}
-                  onChange={(primaryHref) => setCta({ ...cta, primaryHref })}
-                />
-                <TextField
-                  label="Secondary Button Text"
-                  value={cta.secondaryLabel}
-                  onChange={(secondaryLabel) => setCta({ ...cta, secondaryLabel })}
-                />
-                <TextField
-                  label="Secondary Button Link"
-                  value={cta.secondaryHref}
-                  onChange={(secondaryHref) => setCta({ ...cta, secondaryHref })}
-                />
-              </div>
-              <ImageField
-                label="CTA Background Image"
-                value={cta.backgroundImage}
-                onChange={(backgroundImage) => setCta({ ...cta, backgroundImage })}
               />
             </div>
           )}

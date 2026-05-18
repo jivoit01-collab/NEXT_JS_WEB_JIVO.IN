@@ -38,7 +38,7 @@ const SECTION_PAGES: PageEntry[] = [
     label: 'Social Initiatives',
     href: '/admin/our-essence-social-initiatives',
     icon: Users,
-    description: 'Mission, impact, empowerment & CTA',
+    description: 'Hero mission, responsibilities & empowerment',
     color: 'from-rose-500/20 to-rose-600/5',
   },
 ];

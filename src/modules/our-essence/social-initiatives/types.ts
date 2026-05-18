@@ -2,6 +2,10 @@ export interface SocialInitiativesHeroContent {
   title: string;
   subtitle: string;
   image: string;
+  alignmentTitle: string;
+  alignmentDescription: string;
+  goalTitle: string;
+  goalDescription: string;
 }
 
 export interface SocialInitiativesSplitContent {
@@ -18,21 +22,7 @@ export interface SocialInitiativesEducateContent {
   image: string;
 }
 
-export interface SocialInitiativesCtaContent {
-  heading: string;
-  primaryLabel: string;
-  primaryHref: string;
-  secondaryLabel: string;
-  secondaryHref: string;
-  backgroundImage: string;
-}
-
-export type SocialInitiativesSectionKey =
-  | 'hero'
-  | 'alignment'
-  | 'responsibilities'
-  | 'educate'
-  | 'cta';
+export type SocialInitiativesSectionKey = 'hero' | 'responsibilities' | 'educate';
 
 export interface SocialInitiativesSectionRow {
   id: string;
@@ -41,8 +31,7 @@ export interface SocialInitiativesSectionRow {
   content:
     | SocialInitiativesHeroContent
     | SocialInitiativesSplitContent
-    | SocialInitiativesEducateContent
-    | SocialInitiativesCtaContent;
+    | SocialInitiativesEducateContent;
   sortOrder: number;
   isActive: boolean;
 }

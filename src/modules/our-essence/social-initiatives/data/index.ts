@@ -1,6 +1,4 @@
 export {
-  defaultAlignmentContent,
-  defaultCtaContent,
   defaultEducateContent,
   defaultHeroContent,
   defaultResponsibilitiesContent,

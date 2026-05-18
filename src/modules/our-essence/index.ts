@@ -63,13 +63,11 @@ export {
   SocialInitiativesMain,
   SplitStorySection,
   EducateEmpowerSection,
-  SocialInitiativesCtaSection,
   defaultSeo as socialInitiativesDefaultSeo,
   getSocialInitiativesSections,
 } from './social-initiatives';
 
 export type {
-  SocialInitiativesCtaContent,
   SocialInitiativesEducateContent,
   SocialInitiativesHeroContent,
   SocialInitiativesSectionKey,
