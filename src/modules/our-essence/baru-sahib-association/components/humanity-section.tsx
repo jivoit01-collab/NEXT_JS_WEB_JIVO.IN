@@ -24,8 +24,8 @@ export function HumanitySection({ data }: HumanitySectionProps) {
     if (!section) return;
 
     if (typeof IntersectionObserver === 'undefined') {
-      setIsVisible(true);
-      return;
+      const fallbackTimer = window.setTimeout(() => setIsVisible(true), 0);
+      return () => window.clearTimeout(fallbackTimer);
     }
 
     const observer = new IntersectionObserver(
@@ -58,7 +58,7 @@ export function HumanitySection({ data }: HumanitySectionProps) {
       />
       <div className="absolute inset-0 bg-linear-to-r from-black/18 via-black/8 to-transparent" />
 
-      <div className="relative z-10 flex min-h-[80vh]  px-4 py-24 sm:px-6 sm:py-16 md:min-h-[520px] lg:h-[80vh] lg:px-8 lg:py-20 2xl:h-[720px] 2xl:px-20 2xl:py-28">
+      <div className="relative z-10 flex min-h-[80vh] px-4 py-24 sm:px-6 sm:py-16 md:min-h-[520px] lg:h-[80vh] lg:px-8 lg:py-20 2xl:h-[720px] 2xl:px-20 2xl:py-28">
         <div className="w-full max-w-7xl 2xl:max-w-screen-2xl">
           <div className="max-w-[760px] min-w-0 2xl:max-w-[940px]">
             <h2

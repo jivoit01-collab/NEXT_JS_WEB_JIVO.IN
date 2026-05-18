@@ -80,23 +80,26 @@ export function SeoPreview({
   ogDescription,
   ogImage,
 }: SeoPreviewProps) {
-  const resolvedSrc    = useMemo(() => resolveImageSrc(ogImage), [ogImage]);
-  const useNextImage   = useMemo(() => isNextImageCompatible(resolvedSrc), [resolvedSrc]);
+  const resolvedSrc = useMemo(() => resolveImageSrc(ogImage), [ogImage]);
+  const useNextImage = useMemo(() => isNextImageCompatible(resolvedSrc), [resolvedSrc]);
   const [imgError, setImgError] = useState(false);
 
-  useEffect(() => { setImgError(false); }, [resolvedSrc]);
+  useEffect(() => {
+    const resetTimer = window.setTimeout(() => setImgError(false), 0);
+    return () => window.clearTimeout(resetTimer);
+  }, [resolvedSrc]);
 
-  const googleTitle  = useMemo(() => truncate(metaTitle || 'Page Title', 60), [metaTitle]);
-  const googleUrl    = useMemo(() => resolveDisplayUrl(canonicalUrl), [canonicalUrl]);
-  const googleDesc   = useMemo(
+  const googleTitle = useMemo(() => truncate(metaTitle || 'Page Title', 60), [metaTitle]);
+  const googleUrl = useMemo(() => resolveDisplayUrl(canonicalUrl), [canonicalUrl]);
+  const googleDesc = useMemo(
     () => truncate(metaDescription || 'No description provided.', 160),
     [metaDescription],
   );
-  const socialTitle  = useMemo(
+  const socialTitle = useMemo(
     () => truncate(ogTitle || metaTitle || 'Page Title', 70),
     [ogTitle, metaTitle],
   );
-  const socialDesc   = useMemo(
+  const socialDesc = useMemo(
     () => truncate(ogDescription || metaDescription || '', 120),
     [ogDescription, metaDescription],
   );
@@ -105,25 +108,25 @@ export function SeoPreview({
   const showImage = Boolean(resolvedSrc) && !imgError;
 
   return (
-    <div className="space-y-4  overflow-hidden rounded-xl border bg-muted/20 p-5">
-      <p className="text-xs font-jost-bold uppercase tracking-widest text-muted-foreground">
+    <div className="bg-muted/20 space-y-4 overflow-hidden rounded-xl border p-5">
+      <p className="font-jost-bold text-muted-foreground text-xs tracking-widest uppercase">
         Live Preview
       </p>
 
       {/* ── Google SERP Preview ── */}
       <div className="space-y-2">
-        <div className="flex w-fit items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+        <div className="bg-primary/10 text-primary flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
           <Search className="h-3 w-3" />
           <span>Google Search Result</span>
         </div>
-        <div className="overflow-hidden  cursor-pointer rounded-xl border bg-card px-5 py-4 shadow-sm">
-          <p className="truncate text-base font-medium leading-snug" style={{ color: '#1a0dab' }}>
-            {googleTitle || <span className="italic text-muted-foreground">No title</span>}
+        <div className="bg-card cursor-pointer overflow-hidden rounded-xl border px-5 py-4 shadow-sm">
+          <p className="truncate text-base leading-snug font-medium" style={{ color: '#1a0dab' }}>
+            {googleTitle || <span className="text-muted-foreground italic">No title</span>}
           </p>
           <p className="mt-0.5 truncate text-[13px] leading-tight" style={{ color: '#006621' }}>
             {googleUrl}
           </p>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-[13px] leading-relaxed">
             {googleDesc || <span className="italic">No description</span>}
           </p>
         </div>
@@ -137,10 +140,9 @@ export function SeoPreview({
         </div>
 
         {/* Mimic a WhatsApp chat bubble with an embedded link preview */}
-        <div className="flex justify-start rounded-xl bg-muted/30 p-4">
+        <div className="bg-muted/30 flex justify-start rounded-xl p-4">
           {/* Card — fixed width matches a real WhatsApp preview (~320px) */}
-          <div className="w-full max-w-[320px]  cursor-pointer overflow-hidden rounded-lg border bg-card shadow-md">
-
+          <div className="bg-card w-full max-w-[320px] cursor-pointer overflow-hidden rounded-lg border shadow-md">
             {/* Image — 16:9 aspect ratio, same as WhatsApp renders OG images */}
             <div className="relative aspect-video w-full">
               {showImage ? (
@@ -165,8 +167,8 @@ export function SeoPreview({
                   />
                 )
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-muted/60">
-                  <div className="text-center text-muted-foreground/40">
+                <div className="bg-muted/60 flex h-full w-full items-center justify-center">
+                  <div className="text-muted-foreground/40 text-center">
                     <ImageIcon className="mx-auto mb-1.5 h-8 w-8" />
                     <p className="text-[11px]">
                       {resolvedSrc && imgError ? 'Image failed to load' : 'No OG image'}
@@ -177,20 +179,19 @@ export function SeoPreview({
             </div>
 
             {/* Text body — matches WhatsApp link preview layout */}
-            <div className="border-t bg-muted/20 px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            <div className="bg-muted/20 border-t px-3 py-2.5">
+              <p className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
                 {socialDomain}
               </p>
-              <p className="mt-0.5 line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">
-                {socialTitle || <span className="italic text-muted-foreground">No title</span>}
+              <p className="text-foreground mt-0.5 line-clamp-2 text-[13px] leading-snug font-semibold">
+                {socialTitle || <span className="text-muted-foreground italic">No title</span>}
               </p>
               {socialDesc && (
-                <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="text-muted-foreground mt-0.5 line-clamp-2 text-[11px] leading-relaxed">
                   {socialDesc}
                 </p>
               )}
             </div>
-
           </div>
         </div>
       </div>

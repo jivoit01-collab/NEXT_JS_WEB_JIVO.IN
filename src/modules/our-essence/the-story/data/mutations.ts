@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import type { Prisma } from '@prisma/client';
 
 /** Upsert a section by key. Used by admin save actions. */
 export async function upsertTheStorySection(
@@ -6,10 +7,12 @@ export async function upsertTheStorySection(
   content: unknown,
   title?: string | null,
 ) {
+  const jsonContent = content as Prisma.InputJsonValue;
+
   return prisma.ourEssenceTheStory.upsert({
     where: { section },
-    update: { content: content as any, title, updatedAt: new Date() },
-    create: { section, content: content as any, title },
+    update: { content: jsonContent, title, updatedAt: new Date() },
+    create: { section, content: jsonContent, title },
   });
 }
 

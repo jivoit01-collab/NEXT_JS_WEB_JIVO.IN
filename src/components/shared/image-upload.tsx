@@ -3,7 +3,6 @@
 import { useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { Upload, X, Loader2, ImagePlus } from 'lucide-react';
-import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
@@ -66,12 +65,7 @@ async function deleteFile(filename: string): Promise<void> {
 }
 
 // ── Single Image Upload ─────────────────────────────────────────
-export function ImageUpload({
-  value,
-  onChange,
-  onRemove,
-  className,
-}: ImageUploadProps) {
+export function ImageUpload({ value, onChange, onRemove, className }: ImageUploadProps) {
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
@@ -119,17 +113,12 @@ export function ImageUpload({
   if (value && value !== 'placeholder.png') {
     return (
       <div className={cn('relative inline-block', className)}>
-        <div className="group relative h-40 w-40 overflow-hidden rounded-lg border border-border">
-          <Image
-            src={toSrc(value)}
-            alt="Uploaded"
-            fill
-            className="object-cover"
-          />
+        <div className="group border-border relative h-40 w-40 overflow-hidden rounded-lg border">
+          <Image src={toSrc(value)} alt="Uploaded" fill className="object-cover" />
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+            className="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -156,16 +145,12 @@ export function ImageUpload({
         )}
       >
         {loading ? (
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
         ) : (
           <>
-            <Upload className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              Drag & drop or click to upload
-            </p>
-            <p className="text-xs text-muted-foreground/60">
-              JPEG, PNG, WebP (max 10MB)
-            </p>
+            <Upload className="text-muted-foreground h-8 w-8" />
+            <p className="text-muted-foreground text-sm">Drag & drop or click to upload</p>
+            <p className="text-muted-foreground/60 text-xs">JPEG, PNG, WebP (max 10MB)</p>
           </>
         )}
       </div>
@@ -212,13 +197,9 @@ export function MultiImageUpload({
       setLoading(true);
 
       try {
-        const results = await Promise.all(
-          filesToUpload.map((file) => uploadFile(file)),
-        );
+        const results = await Promise.all(filesToUpload.map((file) => uploadFile(file)));
 
-        const newUrls = results
-          .filter((r) => r.success && r.data)
-          .map((r) => r.data!.filename);
+        const newUrls = results.filter((r) => r.success && r.data).map((r) => r.data!.filename);
 
         const firstError = results.find((r) => !r.success);
         if (firstError?.error) setError(firstError.error);
@@ -262,13 +243,13 @@ export function MultiImageUpload({
           {value.map((url) => (
             <div
               key={url}
-              className="group relative h-24 w-24 overflow-hidden rounded-lg border border-border"
+              className="group border-border relative h-24 w-24 overflow-hidden rounded-lg border"
             >
               <Image src={toSrc(url)} alt="Uploaded" fill className="object-cover" />
               <button
                 type="button"
                 onClick={() => handleRemove(url)}
-                className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                className="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -296,11 +277,11 @@ export function MultiImageUpload({
             )}
           >
             {loading ? (
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
             ) : (
               <>
-                <ImagePlus className="h-6 w-6 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
+                <ImagePlus className="text-muted-foreground h-6 w-6" />
+                <p className="text-muted-foreground text-xs">
                   Add images ({value.length}/{maxImages})
                 </p>
               </>

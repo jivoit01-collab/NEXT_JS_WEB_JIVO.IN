@@ -93,9 +93,12 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
     if (!section || !resolvedVideoSrc) return;
 
     if (typeof IntersectionObserver === 'undefined') {
-      setHasEntered(true);
+      const fallbackTimer = window.setTimeout(() => setHasEntered(true), 0);
       playWithPreferredAudio();
-      return () => pauseAndMuteVideo(false);
+      return () => {
+        window.clearTimeout(fallbackTimer);
+        pauseAndMuteVideo(false);
+      };
     }
 
     const observer = new IntersectionObserver(
