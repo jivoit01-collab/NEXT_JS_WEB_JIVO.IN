@@ -7,7 +7,6 @@ import {
 } from '@/modules/our-essence/social-initiatives/data/defaults';
 import { getAllSocialInitiativesSections } from '@/modules/our-essence/social-initiatives/data/queries';
 import type {
-  SocialInitiativesCtaContent,
   SocialInitiativesEducateContent,
   SocialInitiativesHeroContent,
   SocialInitiativesSectionKey,
@@ -18,10 +17,8 @@ export const runtime = 'nodejs';
 
 type SocialInitiativesApiData = {
   hero: SocialInitiativesHeroContent;
-  alignment: SocialInitiativesSplitContent;
   responsibilities: SocialInitiativesSplitContent;
   educate: SocialInitiativesEducateContent;
-  cta: SocialInitiativesCtaContent;
 };
 
 function isSectionKey(value: string): value is SocialInitiativesSectionKey {
@@ -36,12 +33,6 @@ function mergeSection(
   if (section === 'hero') {
     data.hero = { ...data.hero, ...(content as Partial<SocialInitiativesHeroContent>) };
   }
-  if (section === 'alignment') {
-    data.alignment = {
-      ...data.alignment,
-      ...(content as Partial<SocialInitiativesSplitContent>),
-    };
-  }
   if (section === 'responsibilities') {
     data.responsibilities = {
       ...data.responsibilities,
@@ -54,9 +45,6 @@ function mergeSection(
       ...(content as Partial<SocialInitiativesEducateContent>),
     };
   }
-  if (section === 'cta') {
-    data.cta = { ...data.cta, ...(content as Partial<SocialInitiativesCtaContent>) };
-  }
 }
 
 export async function GET() {
@@ -67,10 +55,8 @@ export async function GET() {
     const sections = await getAllSocialInitiativesSections();
     const data: SocialInitiativesApiData = {
       hero: { ...defaultSections.hero },
-      alignment: { ...defaultSections.alignment },
       responsibilities: { ...defaultSections.responsibilities },
       educate: { ...defaultSections.educate },
-      cta: { ...defaultSections.cta },
     };
 
     for (const section of sections) {

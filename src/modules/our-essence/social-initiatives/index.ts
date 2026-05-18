@@ -1,8 +1,6 @@
 export {
   EducateEmpowerSection,
   EducateEmpowerSectionSkeleton,
-  SocialInitiativesCtaSection,
-  SocialInitiativesCtaSectionSkeleton,
   SocialInitiativesHero,
   SocialInitiativesHeroSkeleton,
   SocialInitiativesMain,
@@ -11,8 +9,6 @@ export {
 } from './components';
 
 export {
-  defaultAlignmentContent,
-  defaultCtaContent,
   defaultEducateContent,
   defaultHeroContent,
   defaultResponsibilitiesContent,
@@ -40,7 +36,6 @@ export {
 } from './actions';
 
 export {
-  socialInitiativesCtaSchema,
   socialInitiativesEducateSchema,
   socialInitiativesHeroSchema,
   socialInitiativesSectionSchemas,
@@ -48,7 +43,6 @@ export {
 } from './validations';
 
 export type {
-  SocialInitiativesCtaContent,
   SocialInitiativesEducateContent,
   SocialInitiativesHeroContent,
   SocialInitiativesSectionKey,
