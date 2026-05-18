@@ -36,6 +36,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ file
 
   // Fall back to the placeholder when the requested file doesn't exist
   if (!existsSync(filePath)) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[UPLOAD API] Missing file:', filename);
+    }
     if (existsSync(PLACEHOLDER_PATH)) {
       filePath = PLACEHOLDER_PATH;
     } else {

@@ -1,71 +1,77 @@
-$ErrorActionPreference = "Stop"
-$appDir = "D:\LiveProject\NEXT_JS_WEB_JIVO.IN"
-
-Set-Location $appDir
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Jivo.in Production Deployment" -ForegroundColor Cyan
+Write-Host " Jivo Web Deployment Started" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
 
-# Step 1: Pull latest code
-Write-Host "[1/5] Pulling latest code..." -ForegroundColor Yellow
-git pull origin main
-if ($LASTEXITCODE -ne 0) { throw "Git pull failed!" }
+$projectPath = "D:\LiveProject\NEXT_JS_WEB_JIVO.IN"
+Set-Location $projectPath
 
-# Step 2: Install dependencies
-Write-Host "[2/5] Installing dependencies..." -ForegroundColor Yellow
-npm ci
-if ($LASTEXITCODE -ne 0) { throw "npm ci failed!" }
+# STEP 1: Stop everything
+Write-Host "`n[1] Stopping app..." -ForegroundColor Yellow
+pm2 delete jivo-web 2>$null
 
-# Step 3: Generate Prisma client
-Write-Host "[3/5] Generating Prisma client..." -ForegroundColor Yellow
-npx prisma generate
-if ($LASTEXITCODE -ne 0) { throw "Prisma generate failed!" }
+Write-Host "[2] Killing node processes..." -ForegroundColor Yellow
+taskkill /F /IM node.exe /T 2>$null
+Start-Sleep -Seconds 2
 
-# Step 4: Build Next.js
-Write-Host "[4/5] Building Next.js production bundle..." -ForegroundColor Yellow
-npm run build
-if ($LASTEXITCODE -ne 0) { throw "Build failed!" }
+# STEP 2: Pull + install
+Write-Host "`n[3] Pulling latest code..." -ForegroundColor Yellow
+git pull
 
-# Step 5: Restart service
-Write-Host "[5/5] Restarting JivoWeb service..." -ForegroundColor Yellow
-nssm restart JivoWeb
-Start-Sleep -Seconds 5
+Write-Host "[4] Installing dependencies..." -ForegroundColor Yellow
+npm install
 
-# Health check
-Write-Host ""
-Write-Host "Running health check..." -ForegroundColor Yellow
-$maxRetries = 5
-$success = $false
-
-for ($i = 1; $i -le $maxRetries; $i++) {
-    try {
-        $response = Invoke-WebRequest -Uri "http://localhost:3001" -UseBasicParsing -TimeoutSec 10
-        if ($response.StatusCode -eq 200) {
-            Write-Host ""
-            Write-Host "========================================" -ForegroundColor Green
-            Write-Host "  Deployment successful!" -ForegroundColor Green
-            Write-Host "  Status: $($response.StatusCode)" -ForegroundColor Green
-            Write-Host "========================================" -ForegroundColor Green
-            $success = $true
-            break
-        }
-    } catch {
-        Write-Host "  Attempt $i/$maxRetries failed. Retrying in 5s..." -ForegroundColor Gray
-        Start-Sleep -Seconds 5
-    }
+# STEP 3: Clean build
+Write-Host "`n[5] Cleaning old build..." -ForegroundColor Yellow
+if (Test-Path ".next") {
+    cmd /c "rmdir /s /q .next"
 }
 
-if (-not $success) {
-    Write-Host ""
-    Write-Host "========================================" -ForegroundColor Red
-    Write-Host "  Health check failed!" -ForegroundColor Red
-    Write-Host "  Check logs: type D:\LiveProject\NEXT_JS_WEB_JIVO.IN\logs\stderr.log" -ForegroundColor Red
-    Write-Host "========================================" -ForegroundColor Red
+# STEP 4: Build
+Write-Host "`n[6] Building project..." -ForegroundColor Yellow
+npm run build
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Build FAILED!" -ForegroundColor Red
     exit 1
 }
 
+Write-Host "✅ Build successful!" -ForegroundColor Green
 
+# STEP 5: Start app
+Write-Host "`n[7] Starting app..." -ForegroundColor Yellow
+pm2 start ecosystem.config.js
 
-# run command
-# powershell -ExecutionPolicy Bypass -File D:\LiveProject\NEXT_JS_WEB_JIVO.IN\deploy.ps1
+Start-Sleep -Seconds 5
+
+# STEP 6: REAL HEALTH CHECK (PM2 STATUS)
+Write-Host "`n[8] Checking PM2 status..." -ForegroundColor Yellow
+
+$pm2Status = pm2 list | Select-String "jivo-web"
+
+if ($pm2Status -match "online") {
+    Write-Host "✅ App is ONLINE in PM2" -ForegroundColor Green
+} else {
+    Write-Host "❌ App is NOT running!" -ForegroundColor Red
+
+    Write-Host "`n🔍 Showing PM2 logs (last 30 lines):" -ForegroundColor Yellow
+    pm2 logs jivo-web --lines 30
+
+    Write-Host "`n🔍 Checking port usage:" -ForegroundColor Yellow
+    netstat -ano | findstr :3001
+
+    exit 1
+}
+
+# STEP 7: OPTIONAL PORT CHECK (secondary)
+Write-Host "`n[9] Verifying port 3001..." -ForegroundColor Yellow
+$portCheck = netstat -ano | findstr :3001
+
+if ($portCheck) {
+    Write-Host "✅ Port 3001 is active" -ForegroundColor Green
+} else {
+    Write-Host "⚠️ App online but port not detected (check config)" -ForegroundColor Yellow
+}
+
+Write-Host "`n========================================" -ForegroundColor Green
+Write-Host " Deployment Completed Successfully!" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Green

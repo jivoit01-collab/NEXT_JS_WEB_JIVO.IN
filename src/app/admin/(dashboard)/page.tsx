@@ -36,23 +36,23 @@ export default function AdminDashboardPage() {
   }, [searchQuery]);
 
   return (
-    <div className="mx-auto max-w-5xl py-4 sm:py-8">
+    <div className="mx-auto max-w-5xl py-4 sm:py-8 2xl:max-w-7xl 2xl:py-10">
       {/* Header */}
       <div className="mb-8 text-center sm:mb-10">
-        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest text-gold sm:text-sm">
+        <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest text-gold sm:text-sm 2xl:text-base">
           Admin Dashboard
         </p>
-        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl lg:text-5xl">
+        <h1 className="text-2xl font-jost-bold sm:text-3xl md:text-4xl lg:text-5xl 2xl:text-6xl">
           <span className="text-foreground">Welcome to</span>{' '}
           <span className="admin-gradient-text">Jivo Wellness</span>
         </h1>
-        <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
+        <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground 2xl:text-base 2xl:max-w-xl">
           Manage your website content. Use the sidebar to navigate sections, or search below.
         </p>
       </div>
 
       {/* Search */}
-      <div className="relative mx-auto mb-8 max-w-md">
+      <div className="relative mx-auto mb-8 max-w-md 2xl:max-w-lg">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
@@ -86,24 +86,24 @@ export default function AdminDashboardPage() {
           <p className="text-sm text-muted-foreground">No pages match your search.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 2xl:grid-cols-5 2xl:gap-6">
           {filtered.map((page) => {
             const Icon = page.icon;
             return (
               <Link
                 key={page.href}
                 href={page.href}
-                className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border bg-card p-6 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg"
+                className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border bg-card p-6 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg 2xl:p-8 2xl:gap-4"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${page.color} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
-                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+                <div className={`absolute inset-0 bg-linear-to-br ${page.color} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20 2xl:h-14 2xl:w-14 2xl:rounded-2xl">
                   <Icon size={24} className="text-primary" />
                 </div>
                 <div className="relative z-10">
-                  <span className="text-sm font-semibold text-foreground transition-colors duration-200 group-hover:text-primary">
+                  <span className="text-sm font-semibold text-foreground transition-colors duration-200 group-hover:text-primary 2xl:text-base">
                     {page.label}
                   </span>
-                  <p className="mt-1 text-[11px] leading-tight text-muted-foreground">
+                  <p className="mt-1 text-[11px] leading-tight text-muted-foreground 2xl:text-xs">
                     {page.description}
                   </p>
                 </div>

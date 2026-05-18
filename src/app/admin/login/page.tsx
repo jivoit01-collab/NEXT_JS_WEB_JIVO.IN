@@ -47,18 +47,26 @@ export default function AdminLoginPage() {
 
     setLoading(true);
 
-    const result = await signIn('credentials', {
-      email: email.trim().toLowerCase(),
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('credentials', {
+        email: email.trim().toLowerCase(),
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
+      if (result?.status === 429) {
+        router.replace('/?blocked=1');
+      } else if (result?.error) {
+        setError('Invalid email or password');
+        setLoading(false);
+      } else {
+        setLoading(false);
+        router.push('/admin');
+        router.refresh();
+      }
+    } catch {
       setError('Invalid email or password');
       setLoading(false);
-    } else {
-      router.push('/admin');
-      router.refresh();
     }
   }
 

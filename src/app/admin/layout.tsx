@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Admin Panel | Jivo Wellness',
+    default: 'Admin Dashboard',
     template: '%s | Jivo Admin',
   },
   robots: { index: false, follow: false },

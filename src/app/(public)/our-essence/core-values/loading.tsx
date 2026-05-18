@@ -1,11 +1,13 @@
-import { SectionSkeleton } from '@/components/shared';
+import { CoreValuesHeroSkeleton } from '@/modules/our-essence/core-values/components/hero-section';
+import { FoundationSectionSkeleton } from '@/modules/our-essence/core-values/components/foundation-section';
+import { PrinciplesSectionSkeleton } from '@/modules/our-essence/core-values/components/principles-section';
 
 export default function CoreValuesLoading() {
   return (
-    <div>
-      <SectionSkeleton height="hero" />
-      <SectionSkeleton height="lg" />
-      <SectionSkeleton height="lg" />
-    </div>
+    <main>
+      <CoreValuesHeroSkeleton />
+      <FoundationSectionSkeleton />
+      <PrinciplesSectionSkeleton />
+    </main>
   );
 }

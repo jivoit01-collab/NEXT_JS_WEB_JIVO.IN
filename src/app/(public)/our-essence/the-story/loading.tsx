@@ -1,11 +1,13 @@
-import { SectionSkeleton } from '@/components/shared';
+import { TheStoryHeroSkeleton } from '@/modules/our-essence/the-story/components/hero-section';
+import { FounderSectionSkeleton } from '@/modules/our-essence/the-story/components/founder-section';
+import { VisionSectionSkeleton } from '@/modules/our-essence/the-story/components/vision-section';
 
 export default function TheStoryLoading() {
   return (
-    <div>
-      <SectionSkeleton height="hero" />
-      <SectionSkeleton height="lg" />
-      <SectionSkeleton height="md" />
-    </div>
+    <main>
+      <TheStoryHeroSkeleton />
+      <FounderSectionSkeleton />
+      <VisionSectionSkeleton />
+    </main>
   );
 }

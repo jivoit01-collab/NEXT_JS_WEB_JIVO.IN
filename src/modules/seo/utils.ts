@@ -103,16 +103,26 @@ export async function resolveSeo(
 /**
  * Returns the JSON-LD object (or null) so a page can render
  * <JsonLd data={getStructuredData(...)} /> in the body.
+ * Always injects "@context": "https://schema.org" if missing.
  */
 export async function getStructuredData(
   page: string,
   moduleDefault?: SeoDefaults,
-): Promise<Record<string, unknown> | null> {
+): Promise<Record<string, unknown> | Record<string, unknown>[] | null> {
   const dbSeo = await getSeoByPage(page).catch(() => null);
-  return (
+  const raw =
     (dbSeo?.structuredData as Record<string, unknown> | null) ??
     moduleDefault?.structuredData ??
     siteDefaultSeo.structuredData ??
-    null
-  );
+    null;
+
+  if (!raw) return null;
+
+  const SCHEMA_CONTEXT = 'https://schema.org';
+  if (Array.isArray(raw)) {
+    return (raw as Record<string, unknown>[]).map((item) =>
+      item['@context'] ? item : { '@context': SCHEMA_CONTEXT, ...item },
+    );
+  }
+  return raw['@context'] ? raw : { '@context': SCHEMA_CONTEXT, ...raw };
 }

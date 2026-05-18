@@ -26,11 +26,10 @@ export const seoFormSchema = z.object({
   ogDescription: z.string().max(200).nullable().optional().transform((v) => v ?? null),
   ogImage: z
     .string()
-    .url('OG image must be a URL')
-    .or(z.string().startsWith('/', 'OG image must be a URL or a path starting with /'))
+    .max(2048, 'OG image path is too long')
     .nullable()
     .optional()
-    .transform((v) => v ?? null),
+    .transform((v) => (v?.trim() ? v.trim() : null)),
   twitterCard: twitterCardSchema.default('summary_large_image'),
   canonicalUrl: z
     .string()
