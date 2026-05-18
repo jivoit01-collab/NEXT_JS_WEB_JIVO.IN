@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
 import { CoreValuesHero } from './hero-section';
-import { SectionSkeleton } from '@/components/shared';
+import { FoundationSectionSkeleton } from './foundation-section';
+import { PrinciplesSectionSkeleton } from './principles-section';
 import type {
   CoreValuesHeroContent,
   CoreValuesFoundationContent,
@@ -11,11 +12,11 @@ import type {
 // Below-the-fold sections use next/dynamic for JS code splitting.
 const FoundationSection = dynamic(
   () => import('./foundation-section').then((m) => m.FoundationSection),
-  { loading: () => <SectionSkeleton height="lg" /> },
+  { loading: () => <FoundationSectionSkeleton /> },
 );
 const PrinciplesSection = dynamic(
   () => import('./principles-section').then((m) => m.PrinciplesSection),
-  { loading: () => <SectionSkeleton height="lg" /> },
+  { loading: () => <PrinciplesSectionSkeleton /> },
 );
 
 interface CoreValuesMainProps {

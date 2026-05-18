@@ -27,6 +27,7 @@ import {
   ArrowLeft,
   Moon,
   Sun,
+  ExternalLink,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
@@ -196,23 +197,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         ref={sidebarRef}
         className={cn(
-          'bg-card fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r shadow-sm',
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-card shadow-sm 2xl:w-72',
           'transform transition-transform duration-300',
           mobileOpen ? 'translate-x-0' : '-translate-x-64',
           'md:translate-x-0',
         )}
       >
         {/* Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between border-b px-6">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b px-6 2xl:h-20 2xl:px-8">
           <Link href="/" title="Back to Website">
-            <ArrowLeft size={20} className="hover:text-primary cursor-pointer" />
+            <ArrowLeft size={20} className="cursor-pointer hover:text-primary 2xl:h-6 2xl:w-6" />
           </Link>
-          <span className="font-jost-bold text-lg">Admin Panel</span>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="cursor-pointer md:hidden"
-            aria-label="Close sidebar"
-          >
+          <span className="text-lg font-jost-bold 2xl:text-xl">Admin Panel</span>
+          <button onClick={() => setMobileOpen(false)} className="cursor-pointer md:hidden" aria-label="Close sidebar">
             <X size={20} />
           </button>
           <div className="hidden w-5 md:block" />
@@ -238,7 +235,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <Link
                     href={section.href}
-                    className="font-jost-medium flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm"
+                    className="flex flex-1 cursor-pointer items-center gap-3 py-2.5 pl-3 text-sm font-jost-medium 2xl:py-3 2xl:pl-4 2xl:text-base"
                   >
                     <Icon size={18} className="shrink-0" />
                     <span className="truncate">{section.title}</span>
@@ -246,7 +243,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                   <button
                     onClick={() => toggle(section.title)}
-                    className="cursor-pointer px-3 py-2.5"
+                    className="cursor-pointer px-3 py-2.5 2xl:px-4 2xl:py-3"
                     aria-label={isOpen ? `Collapse ${section.title}` : `Expand ${section.title}`}
                   >
                     <ChevronDown
@@ -260,7 +257,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div
                   className={cn(
                     'overflow-hidden transition-all duration-250 ease-in-out',
-                    isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0',
+                    isOpen ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0',
                   )}
                 >
                   <div className="border-border/50 ml-4 border-l py-1 pl-3">
@@ -278,7 +275,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             key={childHref}
                             href={childHref}
                             className={cn(
-                              'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition',
+                              'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition 2xl:px-3 2xl:py-2.5 2xl:text-sm',
                               childActive
                                 ? 'bg-primary/15 font-jost-medium text-primary'
                                 : 'text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -297,14 +294,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="text-muted-foreground border-t p-4 text-xs">
+        <div className="border-t p-4 text-xs text-muted-foreground 2xl:p-5 2xl:text-sm">
           <p>Manage all pages from each section.</p>
         </div>
       </aside>
 
       {/* ── Main content ──────────────────────── */}
-      <div className="min-w-0 flex-1 md:ml-64">
-        <header className="bg-background/95 sticky top-0 z-20 flex h-14 items-center justify-between border-b px-4 backdrop-blur md:hidden">
+      <div className="min-w-0 flex-1 md:ml-64 2xl:ml-72">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:hidden">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileOpen(true)}
@@ -328,41 +325,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Moon className="h-4 w-4" />
               )}
             </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => signOut({ callbackUrl: '/admin/login' })}
-              className="gap-2"
-            >
+            <Button asChild variant="outline" size="icon" className="h-9 w-9">
+              <a href="/" target="_blank" rel="noopener noreferrer" aria-label="View Live Site">
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+            <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </header>
 
-        <header className="bg-background/95 sticky top-0 z-20 hidden h-12 items-center justify-end gap-3 border-b px-6 backdrop-blur md:flex">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="h-9 w-9"
-          >
-            {mounted && theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
+        <header className="sticky top-0 z-20 hidden h-16 items-center justify-end gap-3 border-b bg-background/95 px-6 backdrop-blur md:flex 2xl:h-20 2xl:px-8 2xl:gap-4">
+          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="h-9 w-9">
+            {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => signOut({ callbackUrl: '/admin/login' })}
-            className="gap-2"
-          >
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <a href="/" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4" /> View Live Site
+            </a>
+          </Button>
+          <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
             <LogOut className="h-4 w-4" /> Logout
           </Button>
         </header>
 
-        <main className="p-4 sm:p-6">{children}</main>
+        <main className="p-4 sm:p-6 2xl:p-10">{children}</main>
       </div>
 
       <style jsx global>{`

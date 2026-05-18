@@ -20,7 +20,7 @@ import {
   DialogFooter,
   Badge,
 } from '@/components/ui';
-import { ImageUpload, toSrc } from '@/components/shared';
+import { ImageUpload, SafeImage } from '@/components/shared';
 import {
   Plus,
   Pencil,
@@ -30,7 +30,6 @@ import {
   EyeOff,
   Navigation,
   Link2,
-  ExternalLink,
   X,
   CheckCircle2,
   Save,
@@ -52,7 +51,7 @@ interface NavSubLinkRow {
 interface NavLinkRow {
   id: string;
   title: string;
-  href: string;
+  href?: string | null;
   sortOrder: number;
   isVisible: boolean;
   subLinks: NavSubLinkRow[];
@@ -81,7 +80,6 @@ export default function AdminNavbarManager() {
   const [editingLink, setEditingLink] = useState<NavLinkRow | null>(null);
   const [linkForm, setLinkForm] = useState({
     title: '',
-    href: '',
     sortOrder: 0,
     isVisible: true,
   });
@@ -189,7 +187,7 @@ export default function AdminNavbarManager() {
 
   const openCreateLink = () => {
     setEditingLink(null);
-    setLinkForm({ title: '', href: '', sortOrder: links.length, isVisible: true });
+    setLinkForm({ title: '', sortOrder: links.length, isVisible: true });
     setError('');
     setLinkDialogOpen(true);
   };
@@ -198,7 +196,6 @@ export default function AdminNavbarManager() {
     setEditingLink(link);
     setLinkForm({
       title: link.title,
-      href: link.href,
       sortOrder: link.sortOrder,
       isVisible: link.isVisible,
     });
@@ -377,27 +374,21 @@ export default function AdminNavbarManager() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 2xl:max-w-7xl 2xl:space-y-8">
       {/* ── Header ──────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
             <Navigation className="h-3.5 w-3.5" /> Navbar
           </div>
-          <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl">
+          <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl 2xl:text-4xl">
             Navbar Management
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground 2xl:text-base">
             Manage top navigation links and their hover dropdown sub-links.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline" className="gap-2">
-            <a href="/" target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4" />
-              View Live Site
-            </a>
-          </Button>
           <Button onClick={openCreateLink} className="gap-2">
             <Plus className="h-4 w-4" />
             Add Link
@@ -480,10 +471,11 @@ export default function AdminNavbarManager() {
               </Label>
               <div className="flex h-16 items-center justify-between rounded-md bg-gradient-to-br from-[#3d4f2f] to-[#2a3a1f] px-4">
                 {logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={toSrc(logoUrl)}
+                  <SafeImage
+                    src={logoUrl}
                     alt={logoAlt || 'Logo preview'}
+                    width={120}
+                    height={28}
                     className="h-7 w-auto object-contain"
                   />
                 ) : (
@@ -594,17 +586,14 @@ export default function AdminNavbarManager() {
                 <span className="text-xs text-muted-foreground">
                   Order #{activeNavLink.sortOrder}
                 </span>
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                  {activeNavLink.href}
-                </code>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="scrollbar-hide flex w-full items-center gap-2 overflow-x-auto sm:w-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => toggleLinkVisibility(activeNavLink)}
-                  className="gap-2"
+                  className="shrink-0 gap-2"
                 >
                   {activeNavLink.isVisible ? (
                     <>
@@ -620,7 +609,7 @@ export default function AdminNavbarManager() {
                   variant="outline"
                   size="sm"
                   onClick={() => openEditLink(activeNavLink)}
-                  className="gap-2"
+                  className="shrink-0 gap-2"
                 >
                   <Pencil className="h-3.5 w-3.5" /> Edit link
                 </Button>
@@ -634,11 +623,11 @@ export default function AdminNavbarManager() {
                       title: activeNavLink.title,
                     })
                   }
-                  className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="shrink-0 gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Delete link
                 </Button>
-                <Button onClick={openCreateSubLink} size="sm" className="gap-2">
+                <Button onClick={openCreateSubLink} size="sm" className="shrink-0 gap-2">
                   <Plus className="h-4 w-4" /> Add Sub-Link
                 </Button>
               </div>
@@ -782,20 +771,6 @@ export default function AdminNavbarManager() {
               />
               <p className="text-xs text-muted-foreground">
                 The label shown in the navbar.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="nav-href">Link (href)</Label>
-              <Input
-                id="nav-href"
-                placeholder="e.g. /our-essence"
-                value={linkForm.href}
-                onChange={(e) => setLinkForm({ ...linkForm, href: e.target.value })}
-                maxLength={200}
-              />
-              <p className="text-xs text-muted-foreground">
-                Use an internal path like <code>/products</code> or a full URL.
               </p>
             </div>
 
@@ -994,7 +969,7 @@ function StatCard({
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-jost-bold ${
+        className={`mt-1 text-2xl font-jost-bold 2xl:text-3xl ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >
