@@ -13,6 +13,8 @@ const fallbackVideoContent: BaruSahibAssociationVideoContent = {
   video: '',
 };
 
+const loadingSpinnerSegments = Array.from({ length: 12 }, (_, index) => index);
+
 function resolveMediaSrc(value: string) {
   if (!value) return '';
   if (
@@ -40,9 +42,11 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playFrameRef = useRef<number | null>(null);
   const preferredMutedRef = useRef(false);
+  const resolvedVideoSrc = useMemo(() => resolveMediaSrc(video), [video]);
   const [isMuted, setIsMuted] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
-  const resolvedVideoSrc = useMemo(() => resolveMediaSrc(video), [video]);
+  const [isVideoLoading, setIsVideoLoading] = useState(() => Boolean(resolvedVideoSrc));
+  const [hasVideoError, setHasVideoError] = useState(false);
 
   const cancelPendingPlay = useCallback(() => {
     if (playFrameRef.current === null) return;
@@ -166,16 +170,37 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
                 {resolvedVideoSrc ? (
                   <>
                     <video
+                      key={resolvedVideoSrc}
                       ref={videoRef}
-                      className="h-full w-full object-cover"
+                      className={cn(
+                        'h-full w-full object-cover transition-opacity duration-500',
+                        isVideoLoading || hasVideoError ? 'opacity-0' : 'opacity-100',
+                      )}
                       muted={isMuted}
                       playsInline
                       loop
                       preload="metadata"
                       aria-label="Baru Sahib Association documentary video"
+                      onLoadStart={() => {
+                        setHasVideoError(false);
+                        setIsVideoLoading(true);
+                      }}
+                      onWaiting={() => setIsVideoLoading(true)}
+                      onStalled={() => setIsVideoLoading(true)}
+                      onLoadedData={() => setIsVideoLoading(false)}
+                      onCanPlay={() => setIsVideoLoading(false)}
+                      onPlaying={() => setIsVideoLoading(false)}
+                      onError={() => {
+                        setIsVideoLoading(false);
+                        setHasVideoError(true);
+                      }}
                     >
                       <source src={resolvedVideoSrc} type={getVideoType(resolvedVideoSrc)} />
                     </video>
+
+                    {isVideoLoading && !hasVideoError && <VideoLoadingOverlay />}
+
+                    {hasVideoError && <VideoErrorOverlay />}
 
                     <button
                       type="button"
@@ -208,7 +233,72 @@ function VideoFrameSkeleton() {
       <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.12),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015))]" />
       <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/25 to-transparent" />
       <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.08)_42%,transparent_58%)] bg-[length:220%_100%] motion-safe:animate-[cinematicShimmer_2.4s_ease-in-out_infinite]" />
+      <VideoLoadingOverlay />
       <div className="absolute right-5 bottom-5 size-12 animate-pulse rounded-full border border-white/12 bg-white/8 sm:right-6 sm:bottom-6 sm:size-14" />
+    </div>
+  );
+}
+
+function VideoLoadingOverlay() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.1),rgba(0,0,0,0.18)_34%,rgba(0,0,0,0.34)_100%)]"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="relative flex flex-col items-center gap-5 rounded-[1.4rem] border border-white/12 bg-black/34 px-8 py-7 text-white shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-md">
+        <span className="absolute inset-0 rounded-[1.4rem] bg-linear-to-br from-white/10 via-transparent to-[#d8c187]/10" />
+        <SegmentedLoadingSpinner />
+        <span className="font-jost-medium relative inline-flex items-center gap-1 text-xs tracking-[0.24em] text-white/78 uppercase">
+          Loading video
+          <span className="inline-flex w-5 justify-start gap-0.5" aria-hidden="true">
+            {[0, 1, 2].map((dot) => (
+              <span
+                key={dot}
+                className="size-1 rounded-full bg-[#d8c187] motion-safe:animate-pulse"
+                style={{ animationDelay: `${dot * 180}ms` }}
+              />
+            ))}
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SegmentedLoadingSpinner() {
+  return (
+    <div
+      className="relative size-11 animate-spin sm:size-12"
+      aria-hidden="true"
+      style={{ animationDuration: '950ms' }}
+    >
+      {loadingSpinnerSegments.map((segment) => (
+        <span
+          key={segment}
+          className="absolute top-1/2 left-1/2 h-2.5 w-1 -translate-x-1/2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.34)] sm:h-3"
+          style={{
+            opacity: 0.18 + segment * 0.065,
+            transform: `translate(-50%, -50%) rotate(${segment * 30}deg) translateY(-1.15rem)`,
+            transformOrigin: '50% 1.15rem',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function VideoErrorOverlay() {
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.1),rgba(0,0,0,0.24)_42%,rgba(0,0,0,0.42)_100%)]">
+      <div className="max-w-sm rounded-2xl border border-white/12 bg-black/32 px-6 py-5 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-md">
+        <p className="font-jost-bold text-sm tracking-[0.18em] text-[#d8c187] uppercase">
+          Video unavailable
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-white/70">
+          The video could not load right now.
+        </p>
+      </div>
     </div>
   );
 }
