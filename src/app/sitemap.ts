@@ -26,6 +26,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changefreq: 'weekly' as const,
     },
     { path: '/our-essence/our-fair-share', priority: 0.8 as const, changefreq: 'weekly' as const },
+    {
+      path: '/our-essence/for-mother-earth',
+      priority: 0.8 as const,
+      changefreq: 'weekly' as const,
+    },
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPages.map(

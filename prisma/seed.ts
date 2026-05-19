@@ -600,6 +600,34 @@ async function main() {
         url: `${BASE}/our-essence/our-fair-share`,
       },
     },
+    {
+      page: 'our-essence-for-mother-earth',
+      metaTitle: 'For Mother Earth | Jivo Wellness',
+      metaDescription:
+        'Explore Jivo Wellness environmental initiatives for clean villages, tree plantation, disaster support, and Mother Earth.',
+      keywords: [
+        'for mother earth',
+        'jivo wellness',
+        'environment initiatives',
+        'clean village',
+        'tree plantation',
+        'disaster support',
+        'green earth clean earth',
+        'solar energy',
+      ],
+      ogTitle: 'For Mother Earth | Jivo Wellness',
+      ogDescription:
+        'Discover cinematic storytelling around environmental care, tree plantation, clean villages, and disaster relief.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/for-mother-earth`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'For Mother Earth',
+        url: `${BASE}/our-essence/for-mother-earth`,
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {
@@ -1014,6 +1042,83 @@ async function main() {
           },
         });
         console.log(`  Our Fair Share "${s.section}": created`);
+      }
+    }
+  }
+
+  const forMotherEarthSections = [
+    {
+      section: 'hero',
+      title: 'Hero Section',
+      sortOrder: 0,
+      content: {
+        title: 'THINGS WE DO FOR THE PLANET - FOR MOTHER EARTH',
+        quote: '“Air is the Guru, Water is the Father, and Earth is the Great Mother of all.”',
+        quoteAuthor: 'Guru Nanak Dev Ji',
+        description:
+          'The Kalgidhar Society has always taken the initiative to keep the environment clean and green and the large solar energy plants are proof of this. Multiple initiatives taken by the Society, such as Solar energy plants, waste management and plantation drives speak volumes about the commitment of the organization towards the environment and saving Mother Earth.',
+        image: '',
+      },
+    },
+    {
+      section: 'cleanTree',
+      title: 'Clean Village + Tree Plantation Section',
+      sortOrder: 1,
+      content: {
+        image: '',
+        cleanTitle: 'Most Cleanest Village of Himachal Pradesh',
+        cleanDescription:
+          'Waste management has become a major concern today in India. But this small village panchayat named Lana Bhalta in Himachal Pradesh under the guidance of Baru Sahib has solved this menacing issue.',
+        treeTitle: 'Tree Plantation in Rural Villages',
+        treeDescription:
+          'Students of Akal Academies are shouldering their responsibilities towards nature and contributing their bit towards a green environment. Tree Plantation drive is conducted each year in all Akal Academies. The students plant saplings of fruits, flower-bearing trees and also shade-giving trees. The motto of this drive is to educate kids to Plant a Tree and follow the principle of “Green Earth, Clean Earth!”',
+      },
+    },
+    {
+      section: 'disaster',
+      title: 'Disaster Support Section',
+      sortOrder: 2,
+      content: {
+        title: 'When Disaster Strikes',
+        description:
+          'The Kalgidhar Society is at the forefront of providing support at the time of any disaster across the country, including Punjab Floods, Kerala floods, Kashmir earthquake, Covid-19 pandemic etc. The services are activated at short notice with the objective of providing long-term relief.',
+        image: '',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceForMotherEarth.deleteMany();
+    for (const s of forMotherEarthSections) {
+      await prisma.ourEssenceForMotherEarth.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`For Mother Earth: RESET (${forMotherEarthSections.length} sections)`);
+  } else {
+    for (const s of forMotherEarthSections) {
+      const exists = await prisma.ourEssenceForMotherEarth.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  For Mother Earth "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceForMotherEarth.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  For Mother Earth "${s.section}": created`);
       }
     }
   }

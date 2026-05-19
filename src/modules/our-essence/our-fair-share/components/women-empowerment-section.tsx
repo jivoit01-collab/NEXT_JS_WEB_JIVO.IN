@@ -20,7 +20,7 @@ export function WomenEmpowermentSection({ data }: WomenEmpowermentSectionProps) 
         alt=""
         fill
         loading="lazy"
-        className="object-cover object-center"
+        className="object-cover object-top"
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-linear-to-b from-black/24 via-black/6 to-black/18" />

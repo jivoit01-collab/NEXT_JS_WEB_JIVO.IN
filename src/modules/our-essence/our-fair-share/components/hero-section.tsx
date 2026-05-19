@@ -25,7 +25,7 @@ export function OurFairShareHeroSection({ data }: OurFairShareHeroSectionProps) 
         priority
         placeholder="blur"
         blurDataURL={HERO_BLUR}
-        className="object-cover object-center motion-safe:animate-[socialHeroZoom_14s_ease-out_forwards]"
+        className="object-cover motion-safe:animate-[socialHeroZoom_14s_ease-out_forwards]"
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-linear-to-r from-black/18 via-black/8 to-black/34" />

@@ -23,6 +23,7 @@ import {
   Compass,
   Landmark,
   Scale,
+  Leaf,
   ChevronDown,
   LogOut,
   ArrowLeft,
@@ -83,6 +84,11 @@ const SIDEBAR: NavSection[] = [
         href: '/admin/our-essence-our-fair-share',
         icon: Scale,
       },
+      {
+        title: 'For Mother Earth',
+        href: '/admin/our-essence-for-mother-earth',
+        icon: Leaf,
+      },
     ],
   },
   {
@@ -127,6 +133,12 @@ const SIDEBAR: NavSection[] = [
         title: 'Our Fair Share',
         href: '/admin/our-essence-our-fair-share',
         icon: Scale,
+        tab: 'seo',
+      },
+      {
+        title: 'For Mother Earth',
+        href: '/admin/our-essence-for-mother-earth',
+        icon: Leaf,
         tab: 'seo',
       },
     ],

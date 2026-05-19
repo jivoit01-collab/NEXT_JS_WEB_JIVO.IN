@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, BookOpen, Compass, Landmark, Users, Scale } from 'lucide-react';
+import { Search, Sparkles, BookOpen, Compass, Landmark, Users, Scale, Leaf } from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -47,6 +47,13 @@ const SECTION_PAGES: PageEntry[] = [
     icon: Scale,
     description: 'Education, healthcare & women empowerment',
     color: 'from-cyan-500/20 to-cyan-600/5',
+  },
+  {
+    label: 'For Mother Earth',
+    href: '/admin/our-essence-for-mother-earth',
+    icon: Leaf,
+    description: 'Planet care, clean villages & disaster support',
+    color: 'from-lime-500/20 to-lime-600/5',
   },
 ];
 

@@ -54,6 +54,9 @@ function publicHref(pageKey: string): string {
   if (pageKey === 'our-essence-our-fair-share') {
     return '/our-essence/our-fair-share';
   }
+  if (pageKey === 'our-essence-for-mother-earth') {
+    return '/our-essence/for-mother-earth';
+  }
   if (pageKey.includes(':')) {
     const [prefix, slug] = pageKey.split(':');
     return `/${prefix}/${slug}`;
