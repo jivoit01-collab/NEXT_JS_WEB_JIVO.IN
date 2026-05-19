@@ -20,14 +20,23 @@ git pull
 Write-Host "[4] Installing dependencies..." -ForegroundColor Yellow
 npm install
 
-# STEP 3: Clean build
-Write-Host "`n[5] Cleaning old build..." -ForegroundColor Yellow
+# STEP 3: Generate Prisma client before TypeScript/build checks
+Write-Host "`n[5] Generating Prisma client..." -ForegroundColor Yellow
+npx prisma generate
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Prisma generate FAILED!" -ForegroundColor Red
+    exit 1
+}
+
+# STEP 4: Clean build
+Write-Host "`n[6] Cleaning old build..." -ForegroundColor Yellow
 if (Test-Path ".next") {
     cmd /c "rmdir /s /q .next"
 }
 
-# STEP 4: Build
-Write-Host "`n[6] Building project..." -ForegroundColor Yellow
+# STEP 5: Build
+Write-Host "`n[7] Building project..." -ForegroundColor Yellow
 npm run build
 
 if ($LASTEXITCODE -ne 0) {
@@ -37,14 +46,14 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "✅ Build successful!" -ForegroundColor Green
 
-# STEP 5: Start app
-Write-Host "`n[7] Starting app..." -ForegroundColor Yellow
+# STEP 6: Start app
+Write-Host "`n[8] Starting app..." -ForegroundColor Yellow
 pm2 start ecosystem.config.js
 
 Start-Sleep -Seconds 5
 
-# STEP 6: REAL HEALTH CHECK (PM2 STATUS)
-Write-Host "`n[8] Checking PM2 status..." -ForegroundColor Yellow
+# STEP 7: REAL HEALTH CHECK (PM2 STATUS)
+Write-Host "`n[9] Checking PM2 status..." -ForegroundColor Yellow
 
 $pm2Status = pm2 list | Select-String "jivo-web"
 
@@ -62,8 +71,8 @@ if ($pm2Status -match "online") {
     exit 1
 }
 
-# STEP 7: OPTIONAL PORT CHECK (secondary)
-Write-Host "`n[9] Verifying port 3001..." -ForegroundColor Yellow
+# STEP 8: OPTIONAL PORT CHECK (secondary)
+Write-Host "`n[10] Verifying port 3001..." -ForegroundColor Yellow
 $portCheck = netstat -ano | findstr :3001
 
 if ($portCheck) {
