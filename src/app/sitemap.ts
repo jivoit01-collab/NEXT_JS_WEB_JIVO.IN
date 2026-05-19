@@ -15,14 +15,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '', priority: 1 as const, changefreq: 'daily' as const },
     { path: '/our-essence/the-story', priority: 0.8 as const, changefreq: 'weekly' as const },
     { path: '/our-essence/core-values', priority: 0.8 as const, changefreq: 'weekly' as const },
+    {
+      path: '/our-essence/baru-sahib-association',
+      priority: 0.8 as const,
+      changefreq: 'weekly' as const,
+    },
+    {
+      path: '/our-essence/social-initiatives',
+      priority: 0.8 as const,
+      changefreq: 'weekly' as const,
+    },
+    { path: '/our-essence/our-fair-share', priority: 0.8 as const, changefreq: 'weekly' as const },
+    {
+      path: '/our-essence/for-mother-earth',
+      priority: 0.8 as const,
+      changefreq: 'weekly' as const,
+    },
   ];
 
-  const staticEntries: MetadataRoute.Sitemap = staticPages.map(({ path, priority, changefreq }) => ({
-    url: `${SITE_URL}${path}`,
-    lastModified: new Date(),
-    changeFrequency: changefreq,
-    priority,
-  }));
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map(
+    ({ path, priority, changefreq }) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified: new Date(),
+      changeFrequency: changefreq,
+      priority,
+    }),
+  );
 
   return [...staticEntries];
 }

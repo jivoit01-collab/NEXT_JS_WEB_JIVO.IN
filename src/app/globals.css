@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@plugin "@tailwindcss/typography";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin '@tailwindcss/typography';
 
 /* Custom dark variant */
 @custom-variant dark (&:is(.dark *));
@@ -328,6 +328,15 @@ html {
   }
   to {
     transform: scale(1.045);
+  }
+}
+
+@keyframes cinematicZoomOut {
+  from {
+    transform: scale(1.025);
+  }
+  to {
+    transform: scale(1);
   }
 }
 

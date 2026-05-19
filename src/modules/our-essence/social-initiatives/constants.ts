@@ -4,6 +4,6 @@ export const SOCIAL_INITIATIVES_ADMIN_ROUTE = '/admin/our-essence-social-initiat
 
 export const SOCIAL_INITIATIVES_SEO_PAGE = 'our-essence-social-initiatives';
 
-export const SOCIAL_INITIATIVES_PAGE_TITLE = 'SOCIAL INITIATIVES';
+export const SOCIAL_INITIATIVES_PAGE_TITLE = 'THE JIVO PROMISE';
 
 export const SOCIAL_INITIATIVES_FALLBACK_IMAGE = 'placeholder.png';

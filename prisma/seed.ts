@@ -572,6 +572,62 @@ async function main() {
         url: `${BASE}/our-essence/social-initiatives`,
       },
     },
+    {
+      page: 'our-essence-our-fair-share',
+      metaTitle: 'Our Fair Share | Jivo Wellness',
+      metaDescription:
+        'Explore Jivo Wellness initiatives in value-based education, healthcare, and women empowerment through immersive storytelling.',
+      keywords: [
+        'our fair share',
+        'jivo wellness',
+        'value based education',
+        'vidya',
+        'healthcare service',
+        'women empowerment',
+        'spiritual values',
+        'humanitarian care',
+      ],
+      ogTitle: 'Our Fair Share | Jivo Wellness',
+      ogDescription:
+        'Discover value-based education, loving medical care, and women empowerment through Jivo Wellness storytelling.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/our-fair-share`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'Our Fair Share',
+        url: `${BASE}/our-essence/our-fair-share`,
+      },
+    },
+    {
+      page: 'our-essence-for-mother-earth',
+      metaTitle: 'For Mother Earth | Jivo Wellness',
+      metaDescription:
+        'Explore Jivo Wellness environmental initiatives for clean villages, tree plantation, disaster support, and Mother Earth.',
+      keywords: [
+        'for mother earth',
+        'jivo wellness',
+        'environment initiatives',
+        'clean village',
+        'tree plantation',
+        'disaster support',
+        'green earth clean earth',
+        'solar energy',
+      ],
+      ogTitle: 'For Mother Earth | Jivo Wellness',
+      ogDescription:
+        'Discover cinematic storytelling around environmental care, tree plantation, clean villages, and disaster relief.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/for-mother-earth`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'For Mother Earth',
+        url: `${BASE}/our-essence/for-mother-earth`,
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {
@@ -840,29 +896,29 @@ async function main() {
       title: 'Hero Section',
       sortOrder: 0,
       content: {
-        title: 'SOCIAL INITIATIVES',
-        subtitle: 'Empowering communities through wellness, education, and human-centered service.',
+        title: 'THE JIVO PROMISE',
+        subtitle: 'The structure is not a rigid hierarchy but a dynamic, mission-driven network.',
         image: '',
-        alignmentTitle: 'ALIGNMENT & INCENTIVES',
+        alignmentTitle: 'ALIGNMENT & INCENTIVES:',
         alignmentDescription:
-          'The primary incentive is the shared mission toward wellness, service, and human upliftment. Every effort remains aligned with the purpose of meaningful social impact.',
-        goalTitle: 'GOAL',
+          'The primary incentive is the shared “why” — a devotion to wellness and Sewa. The structure removes barriers so every effort stays aligned with the mission.',
+        goalTitle: 'GOAL:',
         goalDescription:
-          'To build sustainable community systems where every individual can grow through education, support, wellness, and empowerment.',
+          'To create a structure where every person acts as an owner, accountable for their “micro-levers” and aligned with the organization’s macro-goal: to serve.',
       },
     },
     {
       section: 'responsibilities',
       title: 'Responsibilities Section',
-      sortOrder: 2,
+      sortOrder: 1,
       content: {
         backgroundImage: '',
         leftTitle: 'RESPONSIBILITIES',
         leftDescription:
-          'The organization remains committed to serving humanity through wellness initiatives, education support, and sustainable community development.',
+          'As an expression of these principles, the organization is responsible for: Offering the very best products and services that contribute to wellness.Being in service to all of humanity through its work.\n\nDevoting its earnings back into this same purpose of service and wellness.',
         rightTitle: 'POLICY',
         rightDescription:
-          'Policies are designed to encourage action, responsibility, and long-term social growth while keeping the mission centered on humanity.',
+          'Policies are not a set of rigid rules, but simple, clear guidelines derived directly from our Operating Principles. Their purpose is to enable mission-focused action and speed, not to create bureaucracy.\n\nPolicy of Mission-First: If a policy and the mission ever conflict, the mission comes first.',
       },
     },
     {
@@ -872,7 +928,7 @@ async function main() {
       content: {
         heading: 'EDUCATE. ENSHRINE. EMPOWER.',
         paragraph:
-          'We are committed to creating sustainable transformation through education, wellness support, and community-led initiatives that uplift lives with dignity and long-term impact.',
+          'We are working towards a long-term and sustainable transformation in communities by addressing the root causes. We are working towards social change, which is a constant and complex phenomenon. It requires a slow, gradual and long term process through a strong policy framework as it involves changes in traditions, customs.',
         image: '',
       },
     },
@@ -910,6 +966,159 @@ async function main() {
           },
         });
         console.log(`  Social Initiatives "${s.section}": created`);
+      }
+    }
+  }
+
+  const ourFairShareSections = [
+    {
+      section: 'hero',
+      title: 'Hero Section',
+      sortOrder: 0,
+      content: {
+        title: 'Value Based Education : Vidya',
+        subtitle: 'BLEND OF MODERN EDUCATION WITH SPIRITUAL VALUES',
+        description:
+          'We have an obligation to be empathic, principled and considerate, even in our pursuit of material gratification. A compassionate mind and sustainable lifestyle is nurtured through knowledge and action that works in synchronicity with good human values',
+        image: '',
+      },
+    },
+    {
+      section: 'healthcare',
+      title: 'Healthcare Section',
+      sortOrder: 1,
+      content: {
+        title: 'Restoring Health and Happiness through Divinity & Loving Medical Care',
+        paragraph1:
+          'Free-of-cost healthcare facilities are provided to underprivileged rural and hilly people, locally at their doorsteps.',
+        paragraph2:
+          'The Akal Charitable Hospital organizes 4-5 free medical camps a year. Medical specialists from across the world volunteer to offer their services at these camps. People from all castes, creeds, colours, and religions are welcome to the camp and receive free medical checkups and treatments, dental care, surgical procedures and post-operative medical care. All patients and their accompanying family members receive free accommodations and meals.',
+        image: '',
+      },
+    },
+    {
+      section: 'women',
+      title: 'Women Empowerment Section',
+      sortOrder: 2,
+      content: {
+        title: 'WOMEN EMPOWERMENT',
+        subtitle: 'EMPOWERING WOMEN FOR BUILDING NATION',
+        description:
+          'The Kalgidhar Society has introduced this program AIRWE which provides education and employment opportunities to women so that they can lead a respectable and independent life. In addition to that, rehabilitation of women in very vulnerable situations so that they can lead a life of dignity.',
+        image: '',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceOurFairShare.deleteMany();
+    for (const s of ourFairShareSections) {
+      await prisma.ourEssenceOurFairShare.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`Our Fair Share: RESET (${ourFairShareSections.length} sections)`);
+  } else {
+    for (const s of ourFairShareSections) {
+      const exists = await prisma.ourEssenceOurFairShare.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  Our Fair Share "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceOurFairShare.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  Our Fair Share "${s.section}": created`);
+      }
+    }
+  }
+
+  const forMotherEarthSections = [
+    {
+      section: 'hero',
+      title: 'Hero Section',
+      sortOrder: 0,
+      content: {
+        title: 'THINGS WE DO FOR THE PLANET - FOR MOTHER EARTH',
+        quote: '“Air is the Guru, Water is the Father, and Earth is the Great Mother of all.”',
+        quoteAuthor: 'Guru Nanak Dev Ji',
+        description:
+          'The Kalgidhar Society has always taken the initiative to keep the environment clean and green and the large solar energy plants are proof of this. Multiple initiatives taken by the Society, such as Solar energy plants, waste management and plantation drives speak volumes about the commitment of the organization towards the environment and saving Mother Earth.',
+        image: '',
+      },
+    },
+    {
+      section: 'cleanTree',
+      title: 'Clean Village + Tree Plantation Section',
+      sortOrder: 1,
+      content: {
+        image: '',
+        cleanTitle: 'Most Cleanest Village of Himachal Pradesh',
+        cleanDescription:
+          'Waste management has become a major concern today in India. But this small village panchayat named Lana Bhalta in Himachal Pradesh under the guidance of Baru Sahib has solved this menacing issue.',
+        treeTitle: 'Tree Plantation in Rural Villages',
+        treeDescription:
+          'Students of Akal Academies are shouldering their responsibilities towards nature and contributing their bit towards a green environment. Tree Plantation drive is conducted each year in all Akal Academies. The students plant saplings of fruits, flower-bearing trees and also shade-giving trees. The motto of this drive is to educate kids to Plant a Tree and follow the principle of “Green Earth, Clean Earth!”',
+      },
+    },
+    {
+      section: 'disaster',
+      title: 'Disaster Support Section',
+      sortOrder: 2,
+      content: {
+        title: 'When Disaster Strikes',
+        description:
+          'The Kalgidhar Society is at the forefront of providing support at the time of any disaster across the country, including Punjab Floods, Kerala floods, Kashmir earthquake, Covid-19 pandemic etc. The services are activated at short notice with the objective of providing long-term relief.',
+        image: '',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceForMotherEarth.deleteMany();
+    for (const s of forMotherEarthSections) {
+      await prisma.ourEssenceForMotherEarth.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`For Mother Earth: RESET (${forMotherEarthSections.length} sections)`);
+  } else {
+    for (const s of forMotherEarthSections) {
+      const exists = await prisma.ourEssenceForMotherEarth.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  For Mother Earth "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceForMotherEarth.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  For Mother Earth "${s.section}": created`);
       }
     }
   }

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Inter, Playfair_Display } from 'next/font/google';
-import localFont from 'next/font/local'
+import localFont from 'next/font/local';
 import { Toaster } from 'sonner';
-import { AuthSessionProvider, ThemeProvider, QueryProvider } from '@/providers';
+import { ThemeProvider, QueryProvider } from '@/providers';
 import { ReduxProvider } from '@/store/provider';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
 import { OfflineIndicator, BlockedToast } from '@/components/shared';
@@ -34,9 +34,7 @@ const jost = localFont({
   ],
   variable: '--font-jost',
   display: 'swap',
-})
-
-
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -71,20 +69,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${inter.variable} ${playfair.variable} ${jost.variable} font-sans antialiased`}
       >
-        <AuthSessionProvider>
-          <ThemeProvider>
-            <ReduxProvider>
-              <QueryProvider>
-                {children}
-                <OfflineIndicator />
-                <Toaster richColors position="top-right" />
-                <Suspense>
-                  <BlockedToast />
-                </Suspense>
-              </QueryProvider>
-            </ReduxProvider>
-          </ThemeProvider>
-        </AuthSessionProvider>
+        <ThemeProvider>
+          <ReduxProvider>
+            <QueryProvider>
+              {children}
+              <OfflineIndicator />
+              <Toaster richColors position="top-right" />
+              <Suspense>
+                <BlockedToast />
+              </Suspense>
+            </QueryProvider>
+          </ReduxProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

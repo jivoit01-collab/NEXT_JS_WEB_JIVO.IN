@@ -1,0 +1,19 @@
+// ==========================================
+// OUR ESSENCE - FOR MOTHER EARTH page
+// Route: /our-essence/for-mother-earth
+// Admin: /admin/our-essence-for-mother-earth
+// Sections: hero, clean_village_tree, disaster
+// ==========================================
+
+model OurEssenceForMotherEarth {
+  id        String   @id @default(cuid())
+  section   String   @unique
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

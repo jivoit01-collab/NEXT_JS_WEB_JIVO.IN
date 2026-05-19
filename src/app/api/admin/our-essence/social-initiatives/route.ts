@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/require-admin';
 import { upsertSocialInitiativesSectionAction } from '@/modules/our-essence/social-initiatives/actions';
 import {
   defaultSections,
+  normalizeSocialInitiativesSection,
   sectionKeys,
 } from '@/modules/our-essence/social-initiatives/data/defaults';
 import { getAllSocialInitiativesSections } from '@/modules/our-essence/social-initiatives/data/queries';
@@ -31,18 +32,30 @@ function mergeSection(
   content: unknown,
 ) {
   if (section === 'hero') {
-    data.hero = { ...data.hero, ...(content as Partial<SocialInitiativesHeroContent>) };
+    data.hero = {
+      ...data.hero,
+      ...(normalizeSocialInitiativesSection(
+        section,
+        content,
+      ) as Partial<SocialInitiativesHeroContent>),
+    };
   }
   if (section === 'responsibilities') {
     data.responsibilities = {
       ...data.responsibilities,
-      ...(content as Partial<SocialInitiativesSplitContent>),
+      ...(normalizeSocialInitiativesSection(
+        section,
+        content,
+      ) as Partial<SocialInitiativesSplitContent>),
     };
   }
   if (section === 'educate') {
     data.educate = {
       ...data.educate,
-      ...(content as Partial<SocialInitiativesEducateContent>),
+      ...(normalizeSocialInitiativesSection(
+        section,
+        content,
+      ) as Partial<SocialInitiativesEducateContent>),
     };
   }
 }
