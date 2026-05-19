@@ -3757,3 +3757,186 @@ Before marking a page "done", verify all of these:
 
 §44 supersedes any earlier skeleton or responsive example that uses `<SectionSkeleton height="..." />` or stops scaling at `lg:`. When building a new page, always follow §44.
 
+---
+
+## STRICT UI/UX IMPLEMENTATION ACCURACY RULES
+
+IMPORTANT:
+Many future pages will be designed first by a professional UI/UX designer and shared as reference screenshots.
+
+When implementing those designs into the web application:
+
+YOU MUST MATCH THE PROVIDED DESIGN REFERENCES AS CLOSELY AS POSSIBLE.
+
+This is NOT a creative redesign task.
+
+This is:
+PRECISE UI IMPLEMENTATION.
+
+==================================================
+MANDATORY DESIGN ACCURACY RULES
+===============================
+
+For every provided UI screenshot/reference:
+
+YOU MUST MATCH:
+
+* exact section spacing
+* exact text positioning
+* exact alignment
+* exact typography hierarchy
+* exact content width
+* exact padding and margins
+* exact visual composition
+* exact overlay balance
+* exact editorial spacing
+* exact section proportions
+* exact image visibility ratio
+* exact desktop layout structure
+
+DO NOT:
+
+* redesign layouts creatively
+* reposition content randomly
+* add unnecessary cards
+* change section structure
+* modify typography hierarchy
+* center text when design uses left/right alignment
+* create generic modern layouts
+* improvise spacing systems
+
+==================================================
+TEXT CONTENT RULES
+==================
+
+If screenshots contain text:
+
+DO NOT CHANGE:
+
+* wording
+* capitalization
+* punctuation
+* paragraph structure
+* quote formatting
+* spacing intent
+
+The text must remain EXACTLY as provided in the UI references unless explicitly instructed otherwise.
+
+==================================================
+VISUAL HIERARCHY RULES
+======================
+
+Typography hierarchy is EXTREMELY IMPORTANT.
+
+Maintain:
+
+* exact heading dominance
+* paragraph sizing ratios
+* subtitle scale
+* uppercase usage
+* line-height feel
+* text block proportions
+* cinematic editorial rhythm
+
+==================================================
+SECTION COMPOSITION RULES
+=========================
+
+All sections must preserve:
+
+* cinematic composition
+* breathing space
+* editorial storytelling layout
+* premium luxury spacing
+* immersive visual flow
+
+Never compress layouts unnaturally.
+
+==================================================
+BACKGROUND IMAGE RULES
+======================
+
+If a design uses full background imagery:
+
+You MUST:
+
+* preserve image visibility
+* avoid over-dark overlays
+* maintain focal subject visibility
+* preserve cinematic atmosphere
+* use optimized overlays for readability
+
+==================================================
+RESPONSIVE IMPLEMENTATION RULES
+===============================
+
+Desktop implementation must match screenshot as closely as possible.
+
+Mobile adaptation should:
+
+* preserve hierarchy
+* preserve alignment intent
+* preserve cinematic composition
+* preserve spacing rhythm
+
+DO NOT destroy the original design language on responsive screens.
+
+==================================================
+CMS + FALLBACK RULES
+====================
+
+All new pages must continue following existing architecture:
+
+* CMS-driven rendering
+* typed module structure
+* SEO integration
+* fallback images
+* loading skeletons
+* modular sections
+* SafeImage usage
+* optimized next/image patterns
+
+If CMS data is missing:
+
+* use premium fallback placeholders
+* NEVER break layouts
+* NEVER show empty sections
+
+==================================================
+ANIMATION RULES
+===============
+
+Use ONLY subtle cinematic motion.
+
+Allowed:
+
+* fade reveal
+* opacity transitions
+* slow zoom
+* parallax
+* stagger reveal
+
+DO NOT:
+
+* over animate
+* use flashy motion
+* bounce elements
+* use aggressive transforms
+
+==================================================
+FINAL IMPLEMENTATION GOAL
+=========================
+
+Every implemented page should feel:
+
+* premium
+* cinematic
+* editorial
+* immersive
+* luxury
+* emotionally designed
+* professionally art directed
+
+Most important:
+THE IMPLEMENTED WEB PAGE SHOULD VISUALLY MATCH THE PROVIDED UI/UX DESIGN REFERENCES AS CLOSELY AS POSSIBLE.
+

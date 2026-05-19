@@ -7,6 +7,7 @@ import {
 import {
   defaultSections,
   defaultSeo,
+  normalizeSocialInitiativesSection,
 } from '@/modules/our-essence/social-initiatives/data/defaults';
 import { getSocialInitiativesSections } from '@/modules/our-essence/social-initiatives/data/queries';
 import { getStructuredData, resolveSeo } from '@/modules/seo/utils';
@@ -30,10 +31,12 @@ export default async function SocialInitiativesPage() {
   ]);
 
   for (const section of sections) {
+    if (!sectionMap.has(section.section)) continue;
+    const sectionKey = section.section as keyof typeof defaultSections;
     const existing = sectionMap.get(section.section);
     sectionMap.set(section.section, {
       ...(typeof existing === 'object' && existing ? existing : {}),
-      ...(section.content as object),
+      ...normalizeSocialInitiativesSection(sectionKey, section.content),
     });
   }
 

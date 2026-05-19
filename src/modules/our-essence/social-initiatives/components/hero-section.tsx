@@ -25,7 +25,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
   } = data ?? defaultHeroContent;
 
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden bg-[#060b08]">
+    <section className="relative min-h-[100svh] overflow-hidden bg-[#060b08]">
       <SafeImage
         src={imageWithFallback(image)}
         alt=""
@@ -36,38 +36,50 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
         className="object-cover object-center motion-safe:animate-[socialHeroZoom_14s_ease-out_forwards]"
         sizes="100vw"
       />
-      <div className="absolute" />
-      <div className="absolute" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/24 via-black/8 to-black/28" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-4 pt-28 pb-16 text-center sm:px-6 sm:pt-32 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20">
-        <div className="animate-fadeIn ml-auto max-w-3xl min-w-0 lg:w-[54%] lg:text-right">
-          <p className="font-jost-medium text-xs tracking-[0.34em] text-white/70 uppercase sm:text-sm">
-            Our Essence
-          </p>
-          <h1 className="font-jost-extrabold mt-4 text-4xl leading-none text-balance text-white uppercase sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col justify-center px-5 pt-28 pb-16 text-center sm:px-6 sm:pt-32 lg:block lg:px-8 2xl:max-w-screen-2xl 2xl:px-20">
+        <div className="animate-fadeIn mx-auto max-w-xl min-w-0 lg:absolute lg:top-[31%] lg:right-[8.5%] lg:w-[38vw] lg:max-w-[430px] 2xl:right-[10%] 2xl:max-w-[520px]">
+          <h1 className="font-jost-extrabold text-[clamp(1.7rem,3.2vw,3.55rem)] leading-[1.04] text-balance text-white uppercase drop-shadow-[0_3px_16px_rgba(0,0,0,0.35)]">
             {title}
           </h1>
-          <p className="mt-5 text-base leading-relaxed text-pretty text-white/88 sm:text-lg lg:text-xl 2xl:text-2xl">
+          <p className="mx-auto mt-3 max-w-[350px] text-[clamp(0.78rem,1.2vw,1.2rem)] leading-snug text-pretty text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.34)] 2xl:max-w-[430px]">
             {subtitle}
           </p>
         </div>
 
-        <div className="mt-16 grid gap-9 md:grid-cols-2 md:gap-12 lg:mt-24 lg:gap-24">
-          <HeroStoryBlock title={alignmentTitle} description={alignmentDescription} />
-          <HeroStoryBlock title={goalTitle} description={goalDescription} />
+        <div className="mt-14 grid gap-10 md:grid-cols-2 lg:contents">
+          <HeroStoryBlock
+            title={alignmentTitle}
+            description={alignmentDescription}
+            className="lg:absolute lg:bottom-[20%] lg:left-[7%] lg:w-[34vw] lg:max-w-[380px] 2xl:left-[9%] 2xl:max-w-[450px]"
+          />
+          <HeroStoryBlock
+            title={goalTitle}
+            description={goalDescription}
+            className="lg:absolute lg:right-[8%] lg:bottom-[20%] lg:w-[35vw] lg:max-w-[420px] 2xl:right-[10%] 2xl:max-w-[500px]"
+          />
         </div>
       </div>
     </section>
   );
 }
 
-function HeroStoryBlock({ title, description }: { title: string; description: string }) {
+function HeroStoryBlock({
+  title,
+  description,
+  className = '',
+}: {
+  title: string;
+  description: string;
+  className?: string;
+}) {
   return (
-    <div className="animate-fadeIn mx-auto max-w-xl md:mx-0">
-      <h2 className="font-jost-bold text-base tracking-[0.14em] text-white uppercase sm:text-lg lg:text-xl">
+    <div className={`animate-fadeIn mx-auto max-w-xl text-center md:mx-0 ${className}`}>
+      <h2 className="font-jost-bold text-[clamp(0.92rem,1.55vw,1.45rem)] tracking-[0.08em] text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]">
         {title}
       </h2>
-      <p className="mt-3 text-sm leading-relaxed text-pretty text-white/84 sm:text-base lg:text-lg">
+      <p className="mt-2 text-[clamp(0.78rem,1.12vw,1rem)] leading-snug text-pretty text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]">
         {description}
       </p>
     </div>
@@ -81,21 +93,27 @@ export function SocialInitiativesHeroSkeleton() {
       className="relative flex min-h-screen animate-pulse items-center overflow-hidden bg-[#060b08]"
     >
       <div className="absolute inset-0 bg-white/10" />
-      <div className="absolute inset-0 bg-linear-to-r from-black/55 via-black/28 to-black/62" />
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-4 pt-28 pb-16 sm:px-6 sm:pt-32 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20">
-        <div className="ml-auto w-full max-w-3xl lg:w-[54%]">
-          <div className="ml-auto h-4 w-40 rounded bg-white/20" />
-          <div className="mt-5 ml-auto h-14 w-full rounded bg-white/25 sm:h-18 lg:h-24" />
-          <div className="mt-5 ml-auto h-5 w-4/5 rounded bg-white/18" />
+      <div className="absolute inset-0 bg-black/26" />
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-5 pt-28 pb-16 sm:px-6 sm:pt-32 lg:block lg:px-8 2xl:max-w-screen-2xl 2xl:px-20">
+        <div className="mx-auto w-full max-w-xl lg:absolute lg:top-[31%] lg:right-[8.5%] lg:w-[38vw] lg:max-w-[430px]">
+          <div className="mx-auto h-10 w-4/5 rounded bg-white/25 sm:h-14" />
+          <div className="mx-auto mt-4 h-5 w-3/4 rounded bg-white/18" />
         </div>
-        <div className="mt-16 grid gap-9 md:grid-cols-2 lg:mt-24 lg:gap-24">
+        <div className="mt-14 grid gap-10 md:grid-cols-2 lg:contents">
           {[0, 1].map((item) => (
-            <div key={item} className="mx-auto w-full max-w-xl md:mx-0">
-              <div className="h-5 w-56 rounded bg-white/22" />
+            <div
+              key={item}
+              className={
+                item === 0
+                  ? 'mx-auto w-full max-w-xl text-center md:mx-0 lg:absolute lg:bottom-[20%] lg:left-[7%] lg:w-[34vw] lg:max-w-[380px]'
+                  : 'mx-auto w-full max-w-xl text-center md:mx-0 lg:absolute lg:right-[8%] lg:bottom-[20%] lg:w-[35vw] lg:max-w-[420px]'
+              }
+            >
+              <div className="mx-auto h-5 w-56 rounded bg-white/22" />
               <div className="mt-3 space-y-2">
                 <div className="h-4 w-full rounded bg-white/14" />
-                <div className="h-4 w-5/6 rounded bg-white/14" />
-                <div className="h-4 w-2/3 rounded bg-white/14" />
+                <div className="mx-auto h-4 w-5/6 rounded bg-white/14" />
+                <div className="mx-auto h-4 w-2/3 rounded bg-white/14" />
               </div>
             </div>
           ))}

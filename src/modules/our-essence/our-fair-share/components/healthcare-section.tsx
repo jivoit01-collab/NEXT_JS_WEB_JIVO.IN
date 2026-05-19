@@ -27,8 +27,8 @@ export function HealthcareSection({ data }: HealthcareSectionProps) {
       <div className="absolute inset-0 bg-linear-to-b from-black/12 via-transparent to-black/18" />
 
       <div className="relative z-10 mx-auto flex min-h-[560px] w-full max-w-7xl items-start px-4 py-12 sm:px-6 md:min-h-[620px] lg:min-h-[660px] lg:px-8 lg:py-16 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-20">
-        <div className="animate-fadeIn w-full max-w-[520px] text-left text-white 2xl:max-w-[640px]">
-          <h2 className="font-jost-extrabold text-3xl leading-[1.12] text-balance drop-shadow-[0_3px_14px_rgba(0,0,0,0.34)] sm:text-4xl lg:text-5xl 2xl:text-6xl">
+        <div className="animate-fadeIn w-full max-w-[520px] text-left  text-white 2xl:max-w-1/2">
+          <h2 className="font-jost-bold text-3xl leading-[1.12] text-balance drop-shadow-[0_3px_14px_rgba(0,0,0,0.34)] sm:text-4xl lg:text-5xl 2xl:text-6xl">
             {title}
           </h2>
           <p className="mt-5 text-sm leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)] sm:text-base 2xl:text-lg">

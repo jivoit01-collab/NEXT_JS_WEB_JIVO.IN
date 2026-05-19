@@ -5,6 +5,7 @@ export {
   defaultSections,
   defaultSeo,
   fallbackImage,
+  normalizeSocialInitiativesSection,
   sectionKeys,
   sectionSortOrder,
   sectionTitles,
