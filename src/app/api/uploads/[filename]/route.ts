@@ -25,6 +25,7 @@ const MIME_TYPES: Record<string, string> = {
 
 function createAbortSafeFileStream(filePath: string, start: number, end: number) {
   let fileHandle: FileHandle | null = null;
+  let openingPromise: Promise<void> | null = null;
   let offset = start;
   let cancelled = false;
 
@@ -35,36 +36,58 @@ function createAbortSafeFileStream(filePath: string, start: number, end: number)
     await handle.close().catch(() => undefined);
   }
 
+  async function ensureOpen() {
+    if (fileHandle || cancelled) return;
+
+    openingPromise ??= open(filePath, 'r').then(async (handle) => {
+      if (cancelled) {
+        await handle.close().catch(() => undefined);
+        return;
+      }
+
+      fileHandle = handle;
+    });
+
+    await openingPromise;
+  }
+
   return new ReadableStream<Uint8Array>({
-    async start() {
-      fileHandle = await open(filePath, 'r');
-    },
     async pull(controller) {
+      await ensureOpen();
       if (cancelled || !fileHandle) return;
 
-      const remaining = end - offset + 1;
-      if (remaining <= 0) {
+      try {
+        const remaining = end - offset + 1;
+        if (remaining <= 0) {
+          await closeFile();
+          if (!cancelled) controller.close();
+          return;
+        }
+
+        const buffer = Buffer.allocUnsafe(Math.min(STREAM_READ_SIZE, remaining));
+        const { bytesRead } = await fileHandle.read(buffer, 0, buffer.length, offset);
+
+        if (cancelled) {
+          await closeFile();
+          return;
+        }
+
+        if (bytesRead <= 0) {
+          await closeFile();
+          if (!cancelled) controller.close();
+          return;
+        }
+
+        offset += bytesRead;
+        controller.enqueue(buffer.subarray(0, bytesRead));
+      } catch (error) {
         await closeFile();
-        if (!cancelled) controller.close();
-        return;
+        if (!cancelled) controller.error(error);
       }
-
-      const buffer = Buffer.allocUnsafe(Math.min(STREAM_READ_SIZE, remaining));
-      const { bytesRead } = await fileHandle.read(buffer, 0, buffer.length, offset);
-
-      if (cancelled) return;
-
-      if (bytesRead <= 0) {
-        await closeFile();
-        if (!cancelled) controller.close();
-        return;
-      }
-
-      offset += bytesRead;
-      controller.enqueue(buffer.subarray(0, bytesRead));
     },
     async cancel() {
       cancelled = true;
+      await openingPromise?.catch(() => undefined);
       await closeFile();
     },
   });
