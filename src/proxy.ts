@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server';
+﻿import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { localRateLimit, isAuthBlocked } from '@/lib/rate-limit-local';
 
@@ -13,10 +13,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 function addSecurityHeaders(res: NextResponse): NextResponse {
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.headers.set(k, v);
   if (process.env.NODE_ENV === 'production') {
-    res.headers.set(
-      'Strict-Transport-Security',
-      'max-age=63072000; includeSubDomains; preload',
-    );
+    res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   }
   return res;
 }
@@ -29,28 +26,27 @@ function clientIp(req: NextRequest): string {
   );
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const method = req.method;
 
-  // ── Route classification ──────────────────────────────────────────
+  // â”€â”€ Route classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const isAdminPage = pathname.startsWith('/admin');
   const isLoginPage = pathname === '/admin/login';
   const isAuthApi = pathname.startsWith('/api/auth/');
   // /api/upload has no trailing path but must always be admin-only
-  const isAdminApi =
-    pathname.startsWith('/api/admin/') || pathname === '/api/upload';
+  const isAdminApi = pathname.startsWith('/api/admin/') || pathname === '/api/upload';
   const isApiRoute = pathname.startsWith('/api/');
   const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
 
   const ip = clientIp(req);
 
-  // ── 1. Rate limiting ──────────────────────────────────────────────
+  // â”€â”€ 1. Rate limiting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (isAuthApi && isMutation) {
-    // Login brute-force protection — POST only (not GET /session, /csrf, /providers)
+    // Login brute-force protection â€” POST only (not GET /session, /csrf, /providers)
     const result = localRateLimit.auth(ip);
     if (!result.allowed) {
-      // IP is now blocked — send them to homepage so the block persists
+      // IP is now blocked â€” send them to homepage so the block persists
       // across refreshes (middleware enforces it, not client state).
       const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
       const host = req.headers.get('host') ?? req.nextUrl.host;
@@ -74,7 +70,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ── 2. CSRF origin check for all API mutations ────────────────────
+  // â”€â”€ 2. CSRF origin check for all API mutations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // NextAuth handles its own CSRF; skip that path.
   // If an Origin header is present it must match this server's host.
   if (isApiRoute && !isAuthApi && isMutation) {
@@ -97,30 +93,24 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ── 3. Auth + role enforcement ────────────────────────────────────
+  // â”€â”€ 3. Auth + role enforcement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Routes that require an authenticated ADMIN/SUPER_ADMIN session:
-  //   • All /admin/* pages
-  //   • All /api/admin/* routes and /api/upload
-  //   • Any mutation on other API routes covered by this matcher
-  const needsAuth =
-    isAdminPage ||
-    isAdminApi ||
-    (isApiRoute && isMutation && !isAuthApi);
+  //   â€¢ All /admin/* pages
+  //   â€¢ All /api/admin/* routes and /api/upload
+  //   â€¢ Any mutation on other API routes covered by this matcher
+  const needsAuth = isAdminPage || isAdminApi || (isApiRoute && isMutation && !isAuthApi);
 
   if (!needsAuth) {
     return addSecurityHeaders(NextResponse.next());
   }
 
   const isHttps =
-    req.headers.get('x-forwarded-proto') === 'https' ||
-    req.nextUrl.protocol === 'https:';
+    req.headers.get('x-forwarded-proto') === 'https' || req.nextUrl.protocol === 'https:';
 
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET,
-    cookieName: isHttps
-      ? '__Secure-authjs.session-token'
-      : 'authjs.session-token',
+    cookieName: isHttps ? '__Secure-authjs.session-token' : 'authjs.session-token',
     secureCookie: isHttps,
   });
 
@@ -128,7 +118,7 @@ export async function middleware(req: NextRequest) {
   const role = token?.role as string | undefined;
   const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
 
-  // ── 3a. Admin pages — redirect flow ──────────────────────────────
+  // â”€â”€ 3a. Admin pages â€” redirect flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (isAdminPage) {
     // Blocked IPs (exceeded auth attempts) cannot access any /admin page
     // until the 15-minute window expires.
@@ -160,7 +150,7 @@ export async function middleware(req: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
-  // ── 3b. Admin API routes — JSON responses ─────────────────────────
+  // â”€â”€ 3b. Admin API routes â€” JSON responses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (!isLoggedIn) {
     return addSecurityHeaders(
       NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 }),
@@ -188,7 +178,7 @@ export const config = {
     '/api/navbar/:path*',
     '/api/footer/:path*',
     '/api/hero-slides/:path*',
-    // Auth routes — rate limiting only
+    // Auth routes â€” rate limiting only
     '/api/auth/:path*',
   ],
 };

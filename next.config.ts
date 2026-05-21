@@ -1,6 +1,8 @@
-import type { NextConfig } from 'next';
+﻿import type { NextConfig } from 'next';
 
 const isProd = process.env.NODE_ENV === 'production';
+const MAX_VIDEO_UPLOAD_MB = 400;
+const MULTIPART_OVERHEAD_MB = 20;
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -12,15 +14,18 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'uploadthing.com' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
+    // Allow explicit quality={100} for full-bleed CMS hero images without Next rejecting the request.
+    qualities: [75, 90, 100],
+    // Large full-screen sections need high-resolution candidates on lg/2xl displays.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600, 1920, 2048, 2560, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
   experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      '@tanstack/react-query',
-      'framer-motion',
-      'date-fns',
-    ],
+    optimizePackageImports: ['lucide-react', '@tanstack/react-query', 'framer-motion', 'date-fns'],
+    // Keep the route-level video limit exactly 400MB, while allowing multipart overhead
+    // so the request body is not truncated before /api/upload receives the file.
+    proxyClientMaxBodySize: `${MAX_VIDEO_UPLOAD_MB + MULTIPART_OVERHEAD_MB}mb`,
     // Allow up to ~10MB uploads through Server Actions (default is 1MB)
     serverActions: {
       bodySizeLimit: '12mb',
@@ -28,7 +33,7 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
-    // Base security headers — always on.
+    // Base security headers - always on.
     const securityHeaders = [
       { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'X-Content-Type-Options', value: 'nosniff' },

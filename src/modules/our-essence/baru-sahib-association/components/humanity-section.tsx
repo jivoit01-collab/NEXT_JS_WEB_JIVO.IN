@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import { SafeImage } from '@/components/shared';
@@ -9,6 +9,8 @@ import type { BaruSahibAssociationHumanityContent } from '../types';
 interface HumanitySectionProps {
   data?: BaruSahibAssociationHumanityContent;
 }
+
+const FULL_BLEED_IMAGE_SIZES = '(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 2560px';
 
 function imageWithFallback(image: string) {
   return image || fallbackImage;
@@ -53,9 +55,11 @@ export function HumanitySection({ data }: HumanitySectionProps) {
         alt=""
         fill
         loading="lazy"
-        className="object-cover"
-        sizes="100vw"
+        quality={100}
+        className="object-cover object-center"
+        sizes={FULL_BLEED_IMAGE_SIZES}
       />
+      {/* Keep the overlay simple so the browser spends pixels on the image, not repaint-heavy effects. */}
       <div className="absolute inset-0 bg-linear-to-r from-black/18 via-black/8 to-transparent" />
 
       <div className="relative z-10 flex min-h-[80vh] px-4 py-24 sm:px-6 sm:py-16 md:min-h-[520px] lg:h-[80vh] lg:px-8 lg:py-20 2xl:h-[720px] 2xl:px-20 2xl:py-28">

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/require-admin';
 import {
   ALLOWED_IMAGE_TYPES,
@@ -8,14 +8,19 @@ import {
 } from '@/lib/constants';
 import sharp from 'sharp';
 import path from 'path';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import { existsSync } from 'fs';
+import { mkdir, unlink, writeFile } from 'fs/promises';
+import { createWriteStream, existsSync } from 'fs';
+import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
+import type { ReadableStream as WebReadableStream } from 'stream/web';
 
 // Force Node runtime (sharp + fs are not edge-compatible)
 export const runtime = 'nodejs';
 
 /** Root-level uploads directory (outside /public) */
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'images');
+const MAX_IMAGE_DIMENSION = 3200;
+const IMAGE_WEBP_QUALITY = 95;
 
 function sanitizeFilename(name: string, fallback = 'media'): string {
   return (
@@ -36,7 +41,7 @@ function getSafeExtension(name: string, type: string) {
   return ext;
 }
 
-// ── POST /api/upload ────────────────────────────────────────────
+// POST /api/upload
 export async function POST(req: NextRequest) {
   const guard = await requireAdmin();
   if (guard) return guard;
@@ -73,8 +78,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-
     if (!existsSync(UPLOAD_DIR)) {
       await mkdir(UPLOAD_DIR, { recursive: true });
     }
@@ -84,25 +87,31 @@ export async function POST(req: NextRequest) {
       const filename = `${Date.now()}-${safeName}${getSafeExtension(file.name, file.type)}`;
       const filePath = path.join(UPLOAD_DIR, filename);
 
-      await writeFile(filePath, buffer);
+      // Stream large videos to disk instead of creating an extra 300-400MB Buffer copy in memory.
+      await pipeline(
+        Readable.fromWeb(file.stream() as unknown as WebReadableStream<Uint8Array>),
+        createWriteStream(filePath),
+      );
 
       return NextResponse.json({
         success: true,
         data: {
           filename,
           originalName: file.name,
-          size: buffer.length,
+          size: file.size,
           width: 0,
           height: 0,
         },
       });
     }
 
-    // Sharp: resize + re-encode to WebP (also strips EXIF for privacy)
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Preserve enough pixels for full-bleed lg/2xl sections while still emitting optimized WebP.
     const webpBuffer = await sharp(buffer)
-      .rotate() // honor EXIF orientation
-      .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 100 })
+      .rotate()
+      .resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: IMAGE_WEBP_QUALITY })
       .toBuffer();
 
     const metadata = await sharp(webpBuffer).metadata();
@@ -113,7 +122,6 @@ export async function POST(req: NextRequest) {
 
     await writeFile(filePath, webpBuffer);
 
-    // Return ONLY the filename — frontend constructs /api/uploads/<filename>
     return NextResponse.json({
       success: true,
       data: {
@@ -130,7 +138,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ── DELETE /api/upload ───────────────────────────────────────────
+// DELETE /api/upload
 export async function DELETE(req: NextRequest) {
   const guard = await requireAdmin();
   if (guard) return guard;
@@ -142,7 +150,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid filename' }, { status: 400 });
     }
 
-    // Prevent directory traversal — filename must be a bare name, no slashes
+    // Prevent directory traversal - filename must be a bare name, no slashes.
     if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
       return NextResponse.json({ success: false, error: 'Invalid filename' }, { status: 400 });
     }

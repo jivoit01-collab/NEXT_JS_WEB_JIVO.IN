@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
+import { SafeImage } from '@/components/shared';
 import { cn } from '@/lib/utils';
 import type { BaruSahibAssociationVideoContent } from '../types';
 
@@ -9,13 +10,23 @@ interface CinematicVideoSectionProps {
   data?: BaruSahibAssociationVideoContent;
 }
 
+interface VideoSource {
+  src: string;
+  type: string;
+}
+
 const fallbackVideoContent: BaruSahibAssociationVideoContent = {
   video: '',
+  videoWebm: '',
+  poster: '',
 };
 
 const loadingSpinnerSegments = Array.from({ length: 12 }, (_, index) => index);
+const VIDEO_VIEW_THRESHOLD = 0.18;
+const VISIBILITY_DEBOUNCE_MS = 90;
+const VIDEO_FRAME_SIZES = '(max-width: 768px) 100vw, (max-width: 1536px) 92vw, 1500px';
 
-function resolveMediaSrc(value: string) {
+function resolveMediaSrc(value?: string) {
   if (!value) return '';
   if (
     value.startsWith('http://') ||
@@ -36,49 +47,102 @@ function getVideoType(src: string) {
   return 'video/mp4';
 }
 
+function buildVideoSources(content: BaruSahibAssociationVideoContent) {
+  const sources: VideoSource[] = [];
+  const webmSource = resolveMediaSrc(content.videoWebm);
+  const primarySource = resolveMediaSrc(content.video);
+
+  if (webmSource) {
+    sources.push({ src: webmSource, type: 'video/webm' });
+  }
+
+  if (primarySource && !sources.some((source) => source.src === primarySource)) {
+    sources.push({ src: primarySource, type: getVideoType(primarySource) });
+  }
+
+  return sources;
+}
+
 export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
-  const { video } = data ?? fallbackVideoContent;
+  const content = data ?? fallbackVideoContent;
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const playFrameRef = useRef<number | null>(null);
-  const preferredMutedRef = useRef(false);
-  const resolvedVideoSrc = useMemo(() => resolveMediaSrc(video), [video]);
-  const [isMuted, setIsMuted] = useState(false);
-  const [hasEntered, setHasEntered] = useState(false);
-  const [isVideoLoading, setIsVideoLoading] = useState(() => Boolean(resolvedVideoSrc));
+  const visibilityTimerRef = useRef<number | null>(null);
+  const playPromiseRef = useRef<Promise<void> | null>(null);
+  const preferredMutedRef = useRef(true);
+  const isInPlayableViewRef = useRef(false);
+  const isPlayingRef = useRef(false);
+
+  const videoSources = useMemo(() => buildVideoSources(content), [content]);
+  const sourceKey = useMemo(
+    () => videoSources.map((source) => source.src).join('|'),
+    [videoSources],
+  );
+  const posterSrc = useMemo(() => resolveMediaSrc(content.poster), [content.poster]);
+  const hasVideo = videoSources.length > 0;
+
+  const [isMuted, setIsMuted] = useState(true);
+  const [hasMountedVideo, setHasMountedVideo] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [hasVideoError, setHasVideoError] = useState(false);
 
-  const cancelPendingPlay = useCallback(() => {
-    if (playFrameRef.current === null) return;
-    window.cancelAnimationFrame(playFrameRef.current);
-    playFrameRef.current = null;
+  const syncMutedState = useCallback((nextMuted: boolean) => {
+    setIsMuted((current) => (current === nextMuted ? current : nextMuted));
   }, []);
 
-  const pauseAndMuteVideo = useCallback(
-    (syncState = true) => {
-      const currentVideo = videoRef.current;
-      if (!currentVideo) return;
+  const clearVisibilityTimer = useCallback(() => {
+    if (visibilityTimerRef.current === null) return;
+    window.clearTimeout(visibilityTimerRef.current);
+    visibilityTimerRef.current = null;
+  }, []);
 
-      cancelPendingPlay();
-      if (!currentVideo.paused) currentVideo.pause();
-      currentVideo.muted = true;
-      if (syncState) setIsMuted(true);
-    },
-    [cancelPendingPlay],
-  );
-
-  const playWithPreferredAudio = useCallback(() => {
+  const pauseAndMuteVideo = useCallback(() => {
     const currentVideo = videoRef.current;
+    isPlayingRef.current = false;
+
     if (!currentVideo) return;
 
-    cancelPendingPlay();
-    playFrameRef.current = window.requestAnimationFrame(() => {
-      playFrameRef.current = null;
-      currentVideo.muted = preferredMutedRef.current;
-      setIsMuted(preferredMutedRef.current);
-      currentVideo.play().catch(() => undefined);
-    });
-  }, [cancelPendingPlay]);
+    // Pausing and muting outside the viewport stops decode pressure and prevents hidden audio.
+    if (!currentVideo.paused) currentVideo.pause();
+    currentVideo.muted = true;
+    syncMutedState(true);
+  }, [syncMutedState]);
+
+  const playWithAutoplayPolicy = useCallback(() => {
+    const currentVideo = videoRef.current;
+    if (!currentVideo || playPromiseRef.current || isPlayingRef.current) return;
+
+    // Browser autoplay is reliable only when playback starts muted. If the user unmuted earlier,
+    // restore that preference after play() succeeds and the section is still visible.
+    const mutedAfterStart = preferredMutedRef.current;
+    currentVideo.muted = true;
+    syncMutedState(true);
+
+    const playPromise = currentVideo.play();
+    playPromiseRef.current = playPromise;
+
+    playPromise
+      .then(() => {
+        playPromiseRef.current = null;
+        isPlayingRef.current = true;
+
+        if (!isInPlayableViewRef.current) {
+          pauseAndMuteVideo();
+          return;
+        }
+
+        currentVideo.muted = mutedAfterStart;
+        syncMutedState(mutedAfterStart);
+      })
+      .catch(() => {
+        playPromiseRef.current = null;
+        isPlayingRef.current = false;
+        currentVideo.muted = true;
+        preferredMutedRef.current = true;
+        syncMutedState(true);
+      });
+  }, [pauseAndMuteVideo, syncMutedState]);
 
   const toggleMute = useCallback(() => {
     const nextMuted = !preferredMutedRef.current;
@@ -89,34 +153,69 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
       currentVideo.muted = nextMuted;
     }
 
-    setIsMuted(nextMuted);
-  }, []);
+    syncMutedState(nextMuted);
+  }, [syncMutedState]);
+
+  useEffect(() => {
+    isInPlayableViewRef.current = false;
+    isPlayingRef.current = false;
+    playPromiseRef.current = null;
+
+    const resetTimer = window.setTimeout(() => {
+      setHasMountedVideo(false);
+      setIsVideoReady(false);
+      setIsVideoLoading(false);
+      setHasVideoError(false);
+    }, 0);
+
+    return () => window.clearTimeout(resetTimer);
+  }, [sourceKey]);
 
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section || !resolvedVideoSrc) return;
+    if (!section || !hasVideo) return;
 
     if (typeof IntersectionObserver === 'undefined') {
-      const fallbackTimer = window.setTimeout(() => setHasEntered(true), 0);
-      playWithPreferredAudio();
+      const fallbackTimer = window.setTimeout(() => {
+        setHasMountedVideo(true);
+        isInPlayableViewRef.current = true;
+        playWithAutoplayPolicy();
+      }, 0);
+
       return () => {
         window.clearTimeout(fallbackTimer);
-        pauseAndMuteVideo(false);
+        pauseAndMuteVideo();
       };
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.15) {
-          setHasEntered(true);
-          playWithPreferredAudio();
-        } else {
-          pauseAndMuteVideo();
+        const shouldPlay = entry.isIntersecting && entry.intersectionRatio >= VIDEO_VIEW_THRESHOLD;
+
+        if (entry.isIntersecting) {
+          // Mount near the viewport so metadata is ready, but keep preload at metadata to avoid pulling a 400MB file early.
+          setHasMountedVideo((current) => current || true);
         }
+
+        isInPlayableViewRef.current = shouldPlay;
+        clearVisibilityTimer();
+
+        visibilityTimerRef.current = window.setTimeout(
+          () => {
+            visibilityTimerRef.current = null;
+
+            if (shouldPlay) {
+              playWithAutoplayPolicy();
+            } else {
+              pauseAndMuteVideo();
+            }
+          },
+          shouldPlay ? VISIBILITY_DEBOUNCE_MS : 0,
+        );
       },
       {
-        rootMargin: '0px',
-        threshold: [0, 0.15, 0.2],
+        rootMargin: '220px 0px',
+        threshold: [0, 0.15, VIDEO_VIEW_THRESHOLD, 0.35],
       },
     );
 
@@ -124,26 +223,36 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
 
     return () => {
       observer.disconnect();
-      pauseAndMuteVideo(false);
-      cancelPendingPlay();
+      clearVisibilityTimer();
+      isInPlayableViewRef.current = false;
+      pauseAndMuteVideo();
     };
-  }, [cancelPendingPlay, pauseAndMuteVideo, playWithPreferredAudio, resolvedVideoSrc]);
+  }, [clearVisibilityTimer, hasVideo, pauseAndMuteVideo, playWithAutoplayPolicy]);
+
+  useEffect(() => {
+    if (!hasMountedVideo || !isInPlayableViewRef.current) return;
+
+    const playTimer = window.setTimeout(() => playWithAutoplayPolicy(), 0);
+    return () => window.clearTimeout(playTimer);
+  }, [hasMountedVideo, playWithAutoplayPolicy]);
 
   return (
     <section
       ref={sectionRef}
       className="relative overflow-hidden bg-[#030504] px-4 py-16 sm:px-6 sm:py-20 lg:min-h-screen lg:px-8 lg:py-28 2xl:px-20 2xl:py-36"
+      style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '960px' }}
     >
       <div className="absolute inset-0 bg-linear-to-b from-[#060b08] via-[#030504] to-black" />
-      <div className="absolute top-0 left-1/2 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(204,174,110,0.18),transparent_68%)]" />
-      <div className="absolute right-0 bottom-0 h-[34rem] w-[34rem] translate-x-1/3 translate-y-1/4 rounded-full bg-[radial-gradient(circle,rgba(58,114,78,0.16),transparent_70%)]" />
-      <div className="cinematic-grain pointer-events-none absolute inset-0 opacity-[0.045]" />
+      {/* Reduced ambient gradients keep the cinematic mood without creating expensive full-screen repaints. */}
+      <div className="absolute top-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(204,174,110,0.13),transparent_68%)] lg:h-[28rem] lg:w-[28rem]" />
+      <div className="absolute right-0 bottom-0 h-72 w-72 translate-x-1/3 translate-y-1/4 rounded-full bg-[radial-gradient(circle,rgba(58,114,78,0.11),transparent_70%)] lg:h-[26rem] lg:w-[26rem]" />
+      <div className="cinematic-grain pointer-events-none absolute inset-0 opacity-[0.035]" />
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-screen-2xl flex-col justify-center">
         <div
           className={cn(
             'mx-auto max-w-4xl text-center opacity-0 transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100',
-            hasEntered || !resolvedVideoSrc ? 'translate-y-0 opacity-100' : 'translate-y-6',
+            hasMountedVideo || !hasVideo ? 'translate-y-0 opacity-100' : 'translate-y-6',
           )}
         >
           <h2 className="font-jost-extrabold text-4xl leading-none text-balance text-[#d6c08d]/75 uppercase sm:text-5xl lg:text-6xl 2xl:text-7xl">
@@ -154,69 +263,94 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
         <div
           className={cn(
             'relative mx-auto mt-10 w-full max-w-[1500px] opacity-0 transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:scale-100 motion-reduce:opacity-100 sm:mt-12 lg:mt-14 lg:w-[85vw]',
-            hasEntered || !resolvedVideoSrc
+            hasMountedVideo || !hasVideo
               ? 'translate-y-0 scale-100 opacity-100'
-              : 'translate-y-8 scale-[0.985]',
+              : 'translate-y-8 scale-[0.99]',
           )}
+          style={{ willChange: hasMountedVideo ? 'transform' : 'auto' }}
         >
-          <div className="pointer-events-none absolute -inset-8 rounded-[2.5rem] bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.2),transparent_68%)] opacity-80 transition-opacity duration-500" />
+          <div className="pointer-events-none absolute -inset-4 rounded-[2rem] bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.14),transparent_70%)] opacity-80 lg:-inset-6" />
 
-          <div className="group relative rounded-[1.6rem] bg-linear-to-br from-white/22 via-[#d8c187]/28 to-white/8 p-px shadow-[0_32px_90px_rgba(0,0,0,0.55)] transition-transform duration-500 ease-out motion-reduce:transition-none sm:rounded-[2rem] lg:hover:-translate-y-1 lg:hover:scale-[1.004] lg:hover:shadow-[0_42px_120px_rgba(0,0,0,0.65)]">
-            <div className="relative overflow-hidden rounded-[1.55rem] border border-white/10 bg-[#090b09]/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:rounded-[1.95rem]">
-              <div className="absolute inset-x-0 top-0 z-10 h-28 bg-linear-to-b from-black/42 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 z-10 h-28 bg-linear-to-t from-black/48 to-transparent" />
+          <div className="group relative rounded-[1.4rem] bg-linear-to-br from-white/20 via-[#d8c187]/24 to-white/8 p-px shadow-[0_22px_54px_rgba(0,0,0,0.45)] transition-transform duration-500 ease-out motion-reduce:transition-none sm:rounded-[2rem] lg:shadow-[0_30px_76px_rgba(0,0,0,0.52)] lg:hover:-translate-y-1 lg:hover:scale-[1.003] lg:hover:shadow-[0_36px_86px_rgba(0,0,0,0.58)]">
+            <div className="relative overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#090b09]/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:rounded-[1.95rem]">
+              <div className="absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/38 to-transparent sm:h-24" />
+              <div className="absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/44 to-transparent sm:h-24" />
 
-              <div className="relative aspect-video w-full lg:aspect-auto lg:h-[80vh] lg:max-h-[820px]">
-                {resolvedVideoSrc ? (
+              <div className="relative aspect-video w-full lg:aspect-auto lg:h-[76vh] lg:max-h-[780px]">
+                {hasVideo && hasMountedVideo ? (
                   <>
                     <video
-                      key={resolvedVideoSrc}
+                      key={sourceKey}
                       ref={videoRef}
                       className={cn(
-                        'h-full w-full object-cover transition-opacity duration-500',
-                        isVideoLoading || hasVideoError ? 'opacity-0' : 'opacity-100',
+                        'h-full w-full object-cover transition-opacity duration-700 ease-out',
+                        isVideoReady && !hasVideoError ? 'opacity-100' : 'opacity-0',
                       )}
                       muted={isMuted}
                       playsInline
                       loop
                       preload="metadata"
+                      poster={posterSrc || undefined}
+                      controls={false}
+                      controlsList="nodownload nofullscreen noplaybackrate"
+                      disablePictureInPicture
                       aria-label="Baru Sahib Association documentary video"
+                      onContextMenu={(event) => event.preventDefault()}
                       onLoadStart={() => {
                         setHasVideoError(false);
                         setIsVideoLoading(true);
                       }}
                       onWaiting={() => setIsVideoLoading(true)}
                       onStalled={() => setIsVideoLoading(true)}
-                      onLoadedData={() => setIsVideoLoading(false)}
-                      onCanPlay={() => setIsVideoLoading(false)}
-                      onPlaying={() => setIsVideoLoading(false)}
+                      onLoadedData={() => {
+                        setIsVideoReady(true);
+                        setIsVideoLoading(false);
+                      }}
+                      onCanPlay={() => {
+                        setIsVideoReady(true);
+                        setIsVideoLoading(false);
+                      }}
+                      onPlaying={() => {
+                        isPlayingRef.current = true;
+                        setIsVideoReady(true);
+                        setIsVideoLoading(false);
+                      }}
+                      onPause={() => {
+                        isPlayingRef.current = false;
+                      }}
                       onError={() => {
                         setIsVideoLoading(false);
                         setHasVideoError(true);
                       }}
                     >
-                      <source src={resolvedVideoSrc} type={getVideoType(resolvedVideoSrc)} />
+                      {videoSources.map((source) => (
+                        <source key={source.src} src={source.src} type={source.type} />
+                      ))}
                     </video>
+
+                    {!isVideoReady && posterSrc && <PosterPreview poster={posterSrc} />}
 
                     {isVideoLoading && !hasVideoError && <VideoLoadingOverlay />}
 
                     {hasVideoError && <VideoErrorOverlay />}
 
-                    <button
-                      type="button"
-                      onClick={toggleMute}
-                      className="absolute right-4 bottom-4 z-20 flex size-12 items-center justify-center rounded-full border border-white/20 bg-black/42 text-white shadow-2xl shadow-black/40 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white/16 focus:ring-2 focus:ring-[#d8c187]/70 focus:ring-offset-2 focus:ring-offset-black focus:outline-none sm:right-6 sm:bottom-6 sm:size-14"
-                      aria-label={isMuted ? 'Unmute video' : 'Mute video'}
-                    >
-                      {isMuted ? (
-                        <VolumeX className="size-5 transition-transform duration-300" />
-                      ) : (
-                        <Volume2 className="size-5 transition-transform duration-300" />
-                      )}
-                    </button>
+                    {!hasVideoError && (
+                      <button
+                        type="button"
+                        onClick={toggleMute}
+                        className="absolute right-4 bottom-4 z-20 flex size-12 items-center justify-center rounded-full border border-white/20 bg-black/42 text-white shadow-[0_12px_34px_rgba(0,0,0,0.34)] backdrop-blur-sm transition-all duration-300 hover:bg-white/16 focus:ring-2 focus:ring-[#d8c187]/70 focus:ring-offset-2 focus:ring-offset-black focus:outline-none sm:right-6 sm:bottom-6 sm:size-14 lg:hover:scale-105"
+                        aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                      >
+                        {isMuted ? (
+                          <VolumeX className="size-5 transition-transform duration-300" />
+                        ) : (
+                          <Volume2 className="size-5 transition-transform duration-300" />
+                        )}
+                      </button>
+                    )}
                   </>
                 ) : (
-                  <VideoFrameSkeleton />
+                  <VideoFrameSkeleton poster={posterSrc} />
                 )}
               </div>
             </div>
@@ -227,12 +361,33 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   );
 }
 
-function VideoFrameSkeleton() {
+function PosterPreview({ poster }: { poster: string }) {
+  return (
+    <div className="absolute inset-0">
+      <SafeImage
+        src={poster}
+        alt=""
+        fill
+        loading="lazy"
+        quality={90}
+        className="object-cover opacity-90"
+        sizes={VIDEO_FRAME_SIZES}
+      />
+      <div className="absolute inset-0 bg-black/10" />
+    </div>
+  );
+}
+
+function VideoFrameSkeleton({ poster }: { poster?: string }) {
   return (
     <div className="relative h-full min-h-[240px] overflow-hidden bg-[#0c100d] sm:min-h-[360px] lg:min-h-0">
-      <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.12),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015))]" />
+      {poster ? (
+        <PosterPreview poster={poster} />
+      ) : (
+        <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.1),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.055),rgba(255,255,255,0.012))]" />
+      )}
       <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/25 to-transparent" />
-      <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.08)_42%,transparent_58%)] bg-[length:220%_100%] motion-safe:animate-[cinematicShimmer_2.4s_ease-in-out_infinite]" />
+      <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.07)_42%,transparent_58%)] bg-[length:220%_100%] motion-safe:animate-[cinematicShimmer_2.6s_ease-in-out_infinite]" />
       <VideoLoadingOverlay />
       <div className="absolute right-5 bottom-5 size-12 animate-pulse rounded-full border border-white/12 bg-white/8 sm:right-6 sm:bottom-6 sm:size-14" />
     </div>
@@ -242,11 +397,11 @@ function VideoFrameSkeleton() {
 function VideoLoadingOverlay() {
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.1),rgba(0,0,0,0.18)_34%,rgba(0,0,0,0.34)_100%)]"
+      className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.08),rgba(0,0,0,0.16)_34%,rgba(0,0,0,0.3)_100%)]"
       role="status"
       aria-live="polite"
     >
-      <div className="relative flex flex-col items-center gap-5 rounded-[1.4rem] border border-white/12 bg-black/34 px-8 py-7 text-white shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-md">
+      <div className="relative flex flex-col items-center gap-5 rounded-[1.4rem] border border-white/12 bg-black/34 px-8 py-7 text-white shadow-[0_18px_52px_rgba(0,0,0,0.42)] backdrop-blur-sm">
         <span className="absolute inset-0 rounded-[1.4rem] bg-linear-to-br from-white/10 via-transparent to-[#d8c187]/10" />
         <SegmentedLoadingSpinner />
         <span className="font-jost-medium relative inline-flex items-center gap-1 text-xs tracking-[0.24em] text-white/78 uppercase">
@@ -271,12 +426,12 @@ function SegmentedLoadingSpinner() {
     <div
       className="relative size-11 animate-spin sm:size-12"
       aria-hidden="true"
-      style={{ animationDuration: '950ms' }}
+      style={{ animationDuration: '1100ms' }}
     >
       {loadingSpinnerSegments.map((segment) => (
         <span
           key={segment}
-          className="absolute top-1/2 left-1/2 h-2.5 w-1 -translate-x-1/2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.34)] sm:h-3"
+          className="absolute top-1/2 left-1/2 h-2.5 w-1 -translate-x-1/2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.3)] sm:h-3"
           style={{
             opacity: 0.18 + segment * 0.065,
             transform: `translate(-50%, -50%) rotate(${segment * 30}deg) translateY(-1.15rem)`,
@@ -291,7 +446,7 @@ function SegmentedLoadingSpinner() {
 function VideoErrorOverlay() {
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.1),rgba(0,0,0,0.24)_42%,rgba(0,0,0,0.42)_100%)]">
-      <div className="max-w-sm rounded-2xl border border-white/12 bg-black/32 px-6 py-5 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.48)] backdrop-blur-md">
+      <div className="max-w-sm rounded-2xl border border-white/12 bg-black/32 px-6 py-5 text-center text-white shadow-[0_18px_52px_rgba(0,0,0,0.42)] backdrop-blur-sm">
         <p className="font-jost-bold text-sm tracking-[0.18em] text-[#d8c187] uppercase">
           Video unavailable
         </p>
@@ -310,7 +465,7 @@ export function CinematicVideoSectionSkeleton() {
       className="relative overflow-hidden bg-[#030504] px-4 py-16 sm:px-6 sm:py-20 lg:min-h-screen lg:px-8 lg:py-28 2xl:px-20 2xl:py-36"
     >
       <div className="absolute inset-0 bg-linear-to-b from-[#060b08] via-[#030504] to-black" />
-      <div className="cinematic-grain pointer-events-none absolute inset-0 opacity-[0.045]" />
+      <div className="cinematic-grain pointer-events-none absolute inset-0 opacity-[0.035]" />
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-screen-2xl flex-col justify-center">
         <div className="mx-auto max-w-4xl animate-pulse text-center">
           <div className="mx-auto h-3 w-44 rounded bg-white/15 sm:h-4" />
@@ -318,9 +473,9 @@ export function CinematicVideoSectionSkeleton() {
           <div className="mx-auto mt-4 h-4 w-full max-w-xl rounded bg-white/12 sm:h-5" />
         </div>
         <div className="relative mx-auto mt-10 w-full max-w-[1500px] sm:mt-12 lg:mt-14 lg:w-[85vw]">
-          <div className="rounded-[1.6rem] bg-linear-to-br from-white/18 via-[#d8c187]/18 to-white/8 p-px shadow-[0_32px_90px_rgba(0,0,0,0.55)] sm:rounded-[2rem]">
-            <div className="overflow-hidden rounded-[1.55rem] border border-white/10 bg-[#090b09]/92 sm:rounded-[1.95rem]">
-              <div className="aspect-video w-full lg:aspect-auto lg:h-[80vh] lg:max-h-[820px]">
+          <div className="rounded-[1.4rem] bg-linear-to-br from-white/18 via-[#d8c187]/18 to-white/8 p-px shadow-[0_22px_54px_rgba(0,0,0,0.45)] sm:rounded-[2rem] lg:shadow-[0_30px_76px_rgba(0,0,0,0.52)]">
+            <div className="overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#090b09]/92 sm:rounded-[1.95rem]">
+              <div className="aspect-video w-full lg:aspect-auto lg:h-[76vh] lg:max-h-[780px]">
                 <VideoFrameSkeleton />
               </div>
             </div>
