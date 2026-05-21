@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 
 const isProd = process.env.NODE_ENV === 'production';
+const MAX_VIDEO_UPLOAD_SIZE_MB = 400;
+const MULTIPART_UPLOAD_OVERHEAD_MB = 20;
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -15,20 +17,22 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      '@tanstack/react-query',
-      'framer-motion',
-      'date-fns',
-    ],
-    // Allow up to ~10MB uploads through Server Actions (default is 1MB)
+    optimizePackageImports: ['lucide-react', '@tanstack/react-query', 'framer-motion', 'date-fns'],
+    // /api/upload uses multipart/form-data. Next clones request bodies through
+    // the proxy layer before route handlers run, and the default cap is 10MB.
+    // Keep the route-level video limit at exactly 400MB, but allow 20MB of
+    // multipart/header overhead so a valid 400MB video is not truncated before
+    // req.formData() can parse it.
+    proxyClientMaxBodySize: `${MAX_VIDEO_UPLOAD_SIZE_MB + MULTIPART_UPLOAD_OVERHEAD_MB}mb`,
+    // Server Actions are separate from /api/upload; keep them small so accidental
+    // action posts do not accept large payloads meant for the upload endpoint.
     serverActions: {
       bodySizeLimit: '12mb',
     },
   },
 
   async headers() {
-    // Base security headers — always on.
+    // Base security headers - always on.
     const securityHeaders = [
       { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'X-Content-Type-Options', value: 'nosniff' },

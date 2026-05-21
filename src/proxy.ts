@@ -13,10 +13,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 function addSecurityHeaders(res: NextResponse): NextResponse {
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.headers.set(k, v);
   if (process.env.NODE_ENV === 'production') {
-    res.headers.set(
-      'Strict-Transport-Security',
-      'max-age=63072000; includeSubDomains; preload',
-    );
+    res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   }
   return res;
 }
@@ -29,7 +26,7 @@ function clientIp(req: NextRequest): string {
   );
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const method = req.method;
 
@@ -38,8 +35,7 @@ export async function middleware(req: NextRequest) {
   const isLoginPage = pathname === '/admin/login';
   const isAuthApi = pathname.startsWith('/api/auth/');
   // /api/upload has no trailing path but must always be admin-only
-  const isAdminApi =
-    pathname.startsWith('/api/admin/') || pathname === '/api/upload';
+  const isAdminApi = pathname.startsWith('/api/admin/') || pathname === '/api/upload';
   const isApiRoute = pathname.startsWith('/api/');
   const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
 
@@ -102,25 +98,19 @@ export async function middleware(req: NextRequest) {
   //   • All /admin/* pages
   //   • All /api/admin/* routes and /api/upload
   //   • Any mutation on other API routes covered by this matcher
-  const needsAuth =
-    isAdminPage ||
-    isAdminApi ||
-    (isApiRoute && isMutation && !isAuthApi);
+  const needsAuth = isAdminPage || isAdminApi || (isApiRoute && isMutation && !isAuthApi);
 
   if (!needsAuth) {
     return addSecurityHeaders(NextResponse.next());
   }
 
   const isHttps =
-    req.headers.get('x-forwarded-proto') === 'https' ||
-    req.nextUrl.protocol === 'https:';
+    req.headers.get('x-forwarded-proto') === 'https' || req.nextUrl.protocol === 'https:';
 
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET,
-    cookieName: isHttps
-      ? '__Secure-authjs.session-token'
-      : 'authjs.session-token',
+    cookieName: isHttps ? '__Secure-authjs.session-token' : 'authjs.session-token',
     secureCookie: isHttps,
   });
 
@@ -174,6 +164,8 @@ export async function middleware(req: NextRequest) {
 
   return addSecurityHeaders(NextResponse.next());
 }
+
+export default proxy;
 
 export const config = {
   matcher: [

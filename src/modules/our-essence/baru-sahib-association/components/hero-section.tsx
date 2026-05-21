@@ -23,9 +23,7 @@ export function BaruSahibAssociationHero({ data }: BaruSahibAssociationHeroProps
         className="object-cover object-center"
         sizes="100vw"
       />
-      {/* <div className="absolute inset-0 bg-linear-to-r from-black/55 via-black/20 to-black/55" /> */}
-      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-black/25" />
-
+      
       <div className="relative z-10 mx-auto flex w-full max-w-7xl px-4 pt-28 pb-16 sm:px-6 sm:pt-32 sm:pb-20 lg:justify-end lg:px-8 lg:pt-20 lg:pb-24 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-52 2xl:pb-36">
         <div className="animate-fadeIn max-w-3xl min-w-0 lg:w-[54%]">
           <h1 className="font-jost-extrabold text-4xl leading-[0.95] text-balance text-white uppercase sm:text-5xl md:text-6xl lg:text-5xl 2xl:text-7xl">
