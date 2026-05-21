@@ -1,4 +1,8 @@
+'use client';
+
+import { motion } from 'framer-motion';
 import { SafeImage } from '@/components/shared';
+import { container, defaultViewport, fadeUp } from '@/lib/animation-variants';
 import { fallbackImage, defaultEducateContent } from '../data/defaults';
 import type { SocialInitiativesEducateContent } from '../types';
 
@@ -20,20 +24,27 @@ export function EducateEmpowerSection({ data }: EducateEmpowerSectionProps) {
         alt=""
         fill
         loading="lazy"
+        quality={100}
         className="object-cover object-center motion-safe:scale-[1.01]"
-        sizes="100vw"
+        sizes="(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 2560px"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[540px] max-w-none items-end px-[4.5vw] pt-24 pb-[18vh] sm:px-[4.5vw] lg:h-full lg:min-h-0 lg:py-0 lg:pb-[17vh]">
-        <div className=" mb-10 animate-fadeIn max-w-[620px] 2xl:max-w-[760px]">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={defaultViewport}
+        className="relative z-10 mx-auto flex min-h-[540px] max-w-none items-end px-[4.5vw] pt-24 pb-[18vh] sm:px-[4.5vw] lg:h-full lg:min-h-0 lg:py-0 lg:pb-[17vh]"
+      >
+        <motion.div variants={fadeUp} className="mb-10 max-w-[620px] 2xl:max-w-[760px]">
           <h2 className="font-jost-extrabold text-[clamp(1.55rem,3.2vw,3.4rem)] leading-none text-balance text-white uppercase drop-shadow-[0_3px_14px_rgba(0,0,0,0.38)] lg:whitespace-nowrap">
             {heading}
           </h2>
           <p className="mt-3 max-w-[610px] text-[clamp(0.78rem,1.05vw,1rem)] leading-snug text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] 2xl:max-w-[720px]">
             {paragraph}
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

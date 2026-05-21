@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   compress: true,
 
   images: {
+    qualities: [75, 90, 100],
     remotePatterns: [
       { protocol: 'https', hostname: 'utfs.io' },
       { protocol: 'https', hostname: 'uploadthing.com' },
