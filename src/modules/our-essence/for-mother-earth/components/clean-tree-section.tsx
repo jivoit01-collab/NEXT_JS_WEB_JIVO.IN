@@ -37,9 +37,7 @@ export function CleanTreeSection({ data }: CleanTreeSectionProps) {
         className="object-cover object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />
-      <div className="absolute inset-0 bg-linear-to-r from-black/10 via-black/12 to-black/42" />
-      <div className="absolute inset-0 bg-linear-to-b from-[#f5c46a]/10 via-transparent to-black/16" />
-
+      
       <motion.div
         variants={revealContainer}
         initial="hidden"

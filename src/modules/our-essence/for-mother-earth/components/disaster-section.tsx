@@ -36,9 +36,7 @@ export function DisasterSection({ data }: DisasterSectionProps) {
         className="object-cover object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />
-      <div className="absolute inset-0 bg-linear-to-r from-black/40 via-black/18 to-transparent" />
-      <div className="absolute inset-0 bg-linear-to-b from-[#c08735]/18 via-transparent to-black/22" />
-
+      
       <motion.div
         variants={revealContainer}
         initial="hidden"
