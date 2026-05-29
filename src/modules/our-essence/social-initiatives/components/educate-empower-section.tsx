@@ -2,7 +2,12 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import { SafeImage } from '@/components/shared';
-import { container, defaultViewport, fadeUp, reducedMotion } from '@/lib/animation-variants';
+import {
+  containerSlow,
+  defaultViewport,
+  fadeUpSlow,
+  reducedMotion,
+} from '@/lib/animation-variants';
 import { fallbackImage, defaultEducateContent } from '../data/defaults';
 import type { SocialInitiativesEducateContent } from '../types';
 
@@ -10,7 +15,7 @@ interface EducateEmpowerSectionProps {
   data?: SocialInitiativesEducateContent;
 }
 
-const FULL_BLEED_IMAGE_SIZES = '(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 1920px';
+const FULL_BLEED_IMAGE_SIZES = '100vw';
 
 function imageWithFallback(image: string) {
   return image || fallbackImage;
@@ -18,24 +23,26 @@ function imageWithFallback(image: string) {
 
 export function EducateEmpowerSection({ data }: EducateEmpowerSectionProps) {
   const prefersReducedMotion = useReducedMotion();
-  const revealContainer = prefersReducedMotion ? reducedMotion : container;
-  const revealItem = prefersReducedMotion ? reducedMotion : fadeUp;
+  const revealContainer = prefersReducedMotion ? reducedMotion : containerSlow;
+  const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
   const { heading, paragraph, image } = data ?? defaultEducateContent;
 
   return (
     <section
-      className="relative min-h-[580px] overflow-hidden bg-[#2c1c0f] sm:min-h-[620px] lg:h-[clamp(600px,50vw,780px)] lg:min-h-[600px]"
+      className="relative min-h-[580px] overflow-hidden bg-[#2c1c0f] sm:min-h-[620px] lg:h-[clamp(600px,50vw,820px)] lg:min-h-[600px]"
       style={{ contentVisibility: 'auto', contain: 'layout paint' }}
     >
-      <SafeImage
-        src={imageWithFallback(image)}
-        alt=""
-        fill
-        loading="lazy"
-        quality={100}
-        className="object-cover object-center motion-safe:scale-[1.01]"
-        sizes={FULL_BLEED_IMAGE_SIZES}
-      />
+      <div className="absolute inset-0 overflow-hidden">
+        <SafeImage
+          src={imageWithFallback(image)}
+          alt=""
+          fill
+          loading="lazy"
+          quality={100}
+          className="object-cover object-center"
+          sizes={FULL_BLEED_IMAGE_SIZES}
+        />
+      </div>
       <div className="absolute inset-0 bg-linear-to-r from-black/34 via-black/10 to-transparent" />
       <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/18" />
 
@@ -63,7 +70,7 @@ export function EducateEmpowerSectionSkeleton() {
   return (
     <section
       aria-hidden
-      className="relative min-h-[580px] animate-pulse overflow-hidden bg-[#2c1c0f] sm:min-h-[620px] lg:h-[clamp(600px,50vw,780px)] lg:min-h-[600px]"
+      className="relative min-h-[580px] animate-pulse overflow-hidden bg-[#2c1c0f] sm:min-h-[620px] lg:h-[clamp(600px,50vw,820px)] lg:min-h-[600px]"
     >
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-linear-to-r from-black/42 via-black/12 to-transparent" />

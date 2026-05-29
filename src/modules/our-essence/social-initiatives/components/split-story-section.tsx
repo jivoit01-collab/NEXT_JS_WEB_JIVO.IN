@@ -2,7 +2,12 @@
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { SafeImage } from '@/components/shared';
-import { container, defaultViewport, fadeUp, reducedMotion } from '@/lib/animation-variants';
+import {
+  containerSlow,
+  defaultViewport,
+  fadeUpSlow,
+  reducedMotion,
+} from '@/lib/animation-variants';
 import { fallbackImage } from '../data/defaults';
 import type { SocialInitiativesSplitContent } from '../types';
 
@@ -12,7 +17,7 @@ interface SplitStorySectionProps {
   tone?: 'forest' | 'ocean';
 }
 
-const FULL_BLEED_IMAGE_SIZES = '(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 1920px';
+const FULL_BLEED_IMAGE_SIZES = '100vw';
 
 function imageWithFallback(image: string) {
   return image || fallbackImage;
@@ -20,25 +25,27 @@ function imageWithFallback(image: string) {
 
 export function SplitStorySection({ data, fallbackData, tone = 'forest' }: SplitStorySectionProps) {
   const prefersReducedMotion = useReducedMotion();
-  const revealContainer = prefersReducedMotion ? reducedMotion : container;
-  const revealItem = prefersReducedMotion ? reducedMotion : fadeUp;
+  const revealContainer = prefersReducedMotion ? reducedMotion : containerSlow;
+  const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
   const content = data ?? fallbackData;
   const isOcean = tone === 'ocean';
 
   return (
     <section
-      className="relative min-h-[620px] overflow-hidden bg-[#070b08] sm:min-h-[580px] md:min-h-[540px] lg:h-[clamp(560px,46vw,720px)] lg:min-h-[560px]"
+      className="relative min-h-[620px] overflow-hidden bg-[#070b08] sm:min-h-[580px] md:min-h-[540px] lg:h-[clamp(560px,46vw,760px)] lg:min-h-[560px]"
       style={{ contentVisibility: 'auto', contain: 'layout paint' }}
     >
-      <SafeImage
-        src={imageWithFallback(content.backgroundImage)}
-        alt=""
-        fill
-        loading="lazy"
-        quality={100}
-        className="object-cover object-center"
-        sizes={FULL_BLEED_IMAGE_SIZES}
-      />
+      <div className="absolute inset-0 overflow-hidden">
+        <SafeImage
+          src={imageWithFallback(content.backgroundImage)}
+          alt=""
+          fill
+          loading="lazy"
+          quality={100}
+          className="object-cover object-[50%_52%]"
+          sizes={FULL_BLEED_IMAGE_SIZES}
+        />
+      </div>
       <div
         className={
           isOcean
@@ -100,7 +107,7 @@ export function SplitStorySectionSkeleton() {
   return (
     <section
       aria-hidden
-      className="relative min-h-[620px] animate-pulse overflow-hidden bg-[#070b08] sm:min-h-[580px] md:min-h-[540px] lg:h-[clamp(560px,46vw,720px)] lg:min-h-[560px]"
+      className="relative min-h-[620px] animate-pulse overflow-hidden bg-[#070b08] sm:min-h-[580px] md:min-h-[540px] lg:h-[clamp(560px,46vw,760px)] lg:min-h-[560px]"
     >
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-linear-to-b from-black/28 via-black/34 to-black/42" />

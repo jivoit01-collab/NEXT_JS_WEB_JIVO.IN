@@ -8,7 +8,7 @@ import type { OurFairShareHeroContent } from '../types';
 
 const HERO_BLUR =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDE2IDkiIHhtbG5zPSJodHRwOi8vd3d3Lnczb3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iOSIgZmlsbD0iIzFlMjExYiIvPjwvc3ZnPg==';
-const HERO_IMAGE_SIZES = '(max-width: 768px) 140vw, (max-width: 1536px) 115vw, 1920px';
+const HERO_IMAGE_SIZES = '(max-width: 768px) 140vw, (max-width: 1536px) 115vw, 100vw';
 
 interface OurFairShareHeroSectionProps {
   data?: OurFairShareHeroContent;
@@ -34,7 +34,7 @@ export function OurFairShareHeroSection({ data }: OurFairShareHeroSectionProps) 
         quality={100}
         placeholder="blur"
         blurDataURL={HERO_BLUR}
-        className="origin-center object-cover object-top motion-safe:animate-[cinematicZoomOut_12s_ease-out_forwards]"
+        className="object-cover object-top"
         sizes={HERO_IMAGE_SIZES}
       />
       <div className="absolute inset-0 bg-linear-to-r from-black/14 via-black/6 to-black/28" />
@@ -48,18 +48,28 @@ export function OurFairShareHeroSection({ data }: OurFairShareHeroSectionProps) 
         className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col justify-center px-5 pt-28 pb-16 text-center sm:px-6 lg:block lg:max-w-none lg:px-0 lg:pt-0 lg:pb-0"
       >
         <motion.div
-          variants={revealItem}
-          className="mx-auto w-full max-w-[620px] min-w-0 text-center text-white transition-transform duration-500 lg:absolute lg:top-[22.5%] lg:left-[52.2%] lg:w-[44vw] lg:max-w-[590px] lg:hover:-translate-y-1 xl:max-w-[650px] 2xl:left-[52.5%] 2xl:max-w-[760px]"
+          variants={revealContainer}
+          style={{ willChange: prefersReducedMotion ? 'auto' : 'transform, opacity' }}
+          className="mx-auto w-full max-w-[620px] min-w-0 transform-gpu text-center text-white transition-transform duration-700 ease-out lg:absolute lg:top-[22.5%] lg:left-[52.2%] lg:w-[44vw] lg:max-w-[590px] lg:hover:-translate-y-1 xl:max-w-[650px] 2xl:left-[52.5%] 2xl:max-w-[760px]"
         >
-          <h1 className="font-jost-extrabold text-[clamp(1.85rem,2.35vw,3.6rem)] leading-[1.04] text-balance text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.38)] lg:whitespace-nowrap">
+          <motion.h1
+            variants={revealItem}
+            className="font-jost-extrabold text-[clamp(1.85rem,2.35vw,3.6rem)] leading-[1.04] text-balance text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.38)] lg:whitespace-nowrap"
+          >
             {title}
-          </h1>
-          <p className="font-jost-medium mx-auto mt-3 max-w-[560px] text-center text-[clamp(0.68rem,0.74vw,0.9rem)] tracking-[0.18em] text-white/92 uppercase">
+          </motion.h1>
+          <motion.p
+            variants={revealItem}
+            className="font-jost-medium mx-auto mt-3 max-w-[560px] text-center text-[clamp(0.68rem,0.74vw,0.9rem)] tracking-[0.18em] text-white/92 uppercase"
+          >
             {subtitle}
-          </p>
-          <p className="mx-auto mt-4 w-full max-w-[560px] text-center text-[clamp(0.82rem,0.92vw,1.02rem)] leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)] 2xl:max-w-[680px]">
+          </motion.p>
+          <motion.p
+            variants={revealItem}
+            className="mx-auto mt-4 w-full max-w-[560px] text-center text-[clamp(0.82rem,0.92vw,1.02rem)] leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)] 2xl:max-w-[680px]"
+          >
             {description}
-          </p>
+          </motion.p>
         </motion.div>
       </motion.div>
     </section>
