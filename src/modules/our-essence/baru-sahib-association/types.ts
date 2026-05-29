@@ -1,4 +1,4 @@
-export interface BaruSahibAssociationHeroContent {
+﻿export interface BaruSahibAssociationHeroContent {
   title: string;
   description: string;
   image: string;
@@ -6,6 +6,10 @@ export interface BaruSahibAssociationHeroContent {
 
 export interface BaruSahibAssociationVideoContent {
   video: string;
+  /** Optional WebM/AV1 source. Browsers will prefer this before MP4 when provided. */
+  videoWebm?: string;
+  /** Optional optimized WebP poster shown before the large video begins decoding. */
+  poster?: string;
 }
 
 export interface BaruSahibAssociationHumanityContent {

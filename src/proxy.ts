@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server';
+﻿import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { localRateLimit, isAuthBlocked } from '@/lib/rate-limit-local';
 
@@ -30,7 +30,7 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const method = req.method;
 
-  // ── Route classification ──────────────────────────────────────────
+  // â”€â”€ Route classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const isAdminPage = pathname.startsWith('/admin');
   const isLoginPage = pathname === '/admin/login';
   const isAuthApi = pathname.startsWith('/api/auth/');
@@ -41,12 +41,12 @@ export async function proxy(req: NextRequest) {
 
   const ip = clientIp(req);
 
-  // ── 1. Rate limiting ──────────────────────────────────────────────
+  // â”€â”€ 1. Rate limiting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (isAuthApi && isMutation) {
-    // Login brute-force protection — POST only (not GET /session, /csrf, /providers)
+    // Login brute-force protection â€” POST only (not GET /session, /csrf, /providers)
     const result = localRateLimit.auth(ip);
     if (!result.allowed) {
-      // IP is now blocked — send them to homepage so the block persists
+      // IP is now blocked â€” send them to homepage so the block persists
       // across refreshes (middleware enforces it, not client state).
       const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
       const host = req.headers.get('host') ?? req.nextUrl.host;
@@ -70,7 +70,7 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ── 2. CSRF origin check for all API mutations ────────────────────
+  // â”€â”€ 2. CSRF origin check for all API mutations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // NextAuth handles its own CSRF; skip that path.
   // If an Origin header is present it must match this server's host.
   if (isApiRoute && !isAuthApi && isMutation) {
@@ -93,11 +93,11 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ── 3. Auth + role enforcement ────────────────────────────────────
+  // â”€â”€ 3. Auth + role enforcement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Routes that require an authenticated ADMIN/SUPER_ADMIN session:
-  //   • All /admin/* pages
-  //   • All /api/admin/* routes and /api/upload
-  //   • Any mutation on other API routes covered by this matcher
+  //   â€¢ All /admin/* pages
+  //   â€¢ All /api/admin/* routes and /api/upload
+  //   â€¢ Any mutation on other API routes covered by this matcher
   const needsAuth = isAdminPage || isAdminApi || (isApiRoute && isMutation && !isAuthApi);
 
   if (!needsAuth) {
@@ -118,7 +118,7 @@ export async function proxy(req: NextRequest) {
   const role = token?.role as string | undefined;
   const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
 
-  // ── 3a. Admin pages — redirect flow ──────────────────────────────
+  // â”€â”€ 3a. Admin pages â€” redirect flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (isAdminPage) {
     // Blocked IPs (exceeded auth attempts) cannot access any /admin page
     // until the 15-minute window expires.
@@ -150,7 +150,7 @@ export async function proxy(req: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
-  // ── 3b. Admin API routes — JSON responses ─────────────────────────
+  // â”€â”€ 3b. Admin API routes â€” JSON responses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (!isLoggedIn) {
     return addSecurityHeaders(
       NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 }),
@@ -165,8 +165,6 @@ export async function proxy(req: NextRequest) {
   return addSecurityHeaders(NextResponse.next());
 }
 
-export default proxy;
-
 export const config = {
   matcher: [
     // Admin dashboard pages
@@ -180,7 +178,7 @@ export const config = {
     '/api/navbar/:path*',
     '/api/footer/:path*',
     '/api/hero-slides/:path*',
-    // Auth routes — rate limiting only
+    // Auth routes â€” rate limiting only
     '/api/auth/:path*',
   ],
 };

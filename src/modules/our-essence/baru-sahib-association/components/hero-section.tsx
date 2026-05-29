@@ -1,10 +1,12 @@
-import { SafeImage } from '@/components/shared';
+﻿import { SafeImage } from '@/components/shared';
 import { fallbackImage, heroSectionData } from '../content-defaults';
 import type { BaruSahibAssociationHeroContent } from '../types';
 
 interface BaruSahibAssociationHeroProps {
   data?: BaruSahibAssociationHeroContent;
 }
+
+const HERO_IMAGE_SIZES = '(max-width: 768px) 180vw, (max-width: 1536px) 150vw, 2560px';
 
 function imageWithFallback(image: string) {
   return image || fallbackImage;
@@ -20,8 +22,9 @@ export function BaruSahibAssociationHero({ data }: BaruSahibAssociationHeroProps
         alt=""
         fill
         priority
+        quality={100}
         className="object-cover object-center"
-        sizes="100vw"
+        sizes={HERO_IMAGE_SIZES}
       />
       
       <div className="relative z-10 mx-auto flex w-full max-w-7xl px-4 pt-28 pb-16 sm:px-6 sm:pt-32 sm:pb-20 lg:justify-end lg:px-8 lg:pt-20 lg:pb-24 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-52 2xl:pb-36">

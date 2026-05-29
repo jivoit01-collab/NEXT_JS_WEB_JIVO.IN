@@ -1,4 +1,4 @@
-import {
+﻿import {
   BARU_SAHIB_ASSOCIATION_FALLBACK_IMAGE,
   BARU_SAHIB_ASSOCIATION_PAGE_KEY,
   BARU_SAHIB_ASSOCIATION_PAGE_TITLE,
@@ -18,6 +18,8 @@ export const heroSectionData: BaruSahibAssociationHeroContent = {
 
 export const videoSectionData: BaruSahibAssociationVideoContent = {
   video: '',
+  videoWebm: '',
+  poster: '',
 };
 
 export const humanitySectionData: BaruSahibAssociationHumanityContent = {

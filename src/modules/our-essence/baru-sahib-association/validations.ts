@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const baruSahibAssociationHeroSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -8,6 +8,8 @@ export const baruSahibAssociationHeroSchema = z.object({
 
 export const baruSahibAssociationVideoSchema = z.object({
   video: z.string().optional().default(''),
+  videoWebm: z.string().optional().default(''),
+  poster: z.string().optional().default(''),
 });
 
 export const baruSahibAssociationHumanitySchema = z.object({
