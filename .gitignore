@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/backups
 /.pnp
 .pnp.*
 .yarn/*
@@ -15,6 +16,8 @@
 cicd.md
 .github/
 logs/
+*.bat
+*.log
 
 # next.js
 /.next/
