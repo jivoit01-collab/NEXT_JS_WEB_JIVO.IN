@@ -16,8 +16,10 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+
           script: |
-           cd /d C:/LiveProjects/NEXT_JS_WEB_JIVO.IN
+            cd /d C:/LiveProjects/NEXT_JS_WEB_JIVO.IN
 
             echo "Pulling latest code..."
             git pull origin main
