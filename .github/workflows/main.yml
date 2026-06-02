@@ -1,0 +1,35 @@
+name: Deploy Jivo Website
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Windows Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+           cd  C:\LiveProjects\NEXT_JS_WEB_JIVO.IN
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Installing dependencies..."
+            npm install
+
+            echo "Building application..."
+            npm run build
+
+            echo "Restarting service..."
+            net stop "jivo-web"
+            net start "jivo-web"
+
+            echo "Deployment completed."
