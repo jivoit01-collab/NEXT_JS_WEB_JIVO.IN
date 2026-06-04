@@ -148,6 +148,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ file
 
   try {
     const responseContentType = filePath === PLACEHOLDER_PATH ? 'image/png' : contentType;
+    const cacheControl =
+      filePath === PLACEHOLDER_PATH
+        ? 'public, max-age=86400, s-maxage=604800'
+        : 'public, max-age=31536000, immutable';
 
     if (responseContentType.startsWith('video/')) {
       const fileStats = await stat(filePath);
@@ -201,7 +205,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ file
       headers: {
         'Content-Type': responseContentType,
         'Content-Length': String(buffer.length),
-        'Cache-Control': 'public, max-age=86400, s-maxage=604800',
+        'Cache-Control': cacheControl,
       },
     });
   } catch (error) {

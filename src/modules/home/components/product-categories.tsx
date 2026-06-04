@@ -5,7 +5,7 @@ import { SafeImage, SplitWords } from '@/components/shared';
 import { productCategories as defaults } from '../data/home-content';
 import type { CategoriesContent } from '../types';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { container, scaleIn, defaultViewport } from '@/lib/animation-variants';
 
 interface ProductCategoriesProps {
@@ -118,11 +118,11 @@ export function ProductCategoriesSkeleton() {
 }
 
 // 🔥 Tilt + Ripple (Optimized)
-function TiltCard({ children }: { children: React.ReactNode }) {
-  const [style, setStyle] = useState<React.CSSProperties>({});
+const TiltCard = memo(function TiltCard({ children }: { children: React.ReactNode }) {
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const [ripples, setRipples] = useState<Ripple[]>([]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -130,19 +130,19 @@ function TiltCard({ children }: { children: React.ReactNode }) {
     const rotateX = -(y - rect.height / 2) / 12;
     const rotateY = (x - rect.width / 2) / 12;
 
-    setStyle({
-      transform: `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`,
-    });
-  };
+    if (cardRef.current) {
+      cardRef.current.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    }
+  }, []);
 
-  const handleMouseLeave = () => {
-    setStyle({
-      transform: 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)',
-    });
-  };
+  const handleMouseLeave = useCallback(() => {
+    if (cardRef.current) {
+      cardRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
+    }
+  }, []);
 
   // Ripple
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const size = 80;
     const x = e.clientX - rect.left - size / 2;
@@ -154,14 +154,14 @@ function TiltCard({ children }: { children: React.ReactNode }) {
     setTimeout(() => {
       setRipples((prev) => prev.filter((r) => r.id !== ripple.id));
     }, 500);
-  };
+  }, []);
 
   return (
     <motion.div
+      ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
-      style={style}
       className="relative transition-transform duration-300"
     >
       {/* Ripple */}
@@ -181,4 +181,4 @@ function TiltCard({ children }: { children: React.ReactNode }) {
       {children}
     </motion.div>
   );
-}
+});

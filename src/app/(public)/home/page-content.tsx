@@ -1,5 +1,9 @@
 import { JsonLd } from '@/components/shared';
-import { HomeMain, getHomePageSections, getActiveHeroSlides, defaultSeo } from '@/modules/home';
+import { HomeMain, defaultSeo } from '@/modules/home';
+import {
+  getActiveHeroSlidesForRender,
+  getHomePageSectionsForRender,
+} from '@/modules/home/data/queries';
 import { resolveSeo, getStructuredData } from '@/modules/seo/utils';
 
 // NOTE: Route segment config (`revalidate`) lives in
@@ -19,8 +23,8 @@ export async function generateMetadata() {
 
 export default async function HomePage() {
   const [sections, heroSlides, structuredData] = await Promise.all([
-    getHomePageSections(),
-    getActiveHeroSlides(),
+    getHomePageSectionsForRender(),
+    getActiveHeroSlidesForRender(),
     getStructuredData('home', defaultSeo),
   ]);
 

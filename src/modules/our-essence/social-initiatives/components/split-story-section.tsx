@@ -41,7 +41,7 @@ export function SplitStorySection({ data, fallbackData, tone = 'forest' }: Split
           alt=""
           fill
           loading="lazy"
-          quality={100}
+          quality={90}
           className="object-cover object-[50%_52%]"
           sizes={FULL_BLEED_IMAGE_SIZES}
         />

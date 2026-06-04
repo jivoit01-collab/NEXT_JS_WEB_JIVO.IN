@@ -41,7 +41,7 @@ export function WomenEmpowermentSection({ data }: WomenEmpowermentSectionProps) 
         alt=""
         fill
         loading="lazy"
-        quality={100}
+        quality={90}
         className="object-cover object-[center_20%]"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />

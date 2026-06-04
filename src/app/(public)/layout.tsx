@@ -1,11 +1,10 @@
+import { Suspense } from 'react';
 import { Navbar, Footer } from '@/components/layout';
+import { PublicRuntimeLoader } from '@/components/shared/public-runtime-loader';
 import { getNavbarSetting, getVisibleNavLinks } from '@/modules/navbar';
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const [navSetting, navLinks] = await Promise.all([
-    getNavbarSetting(),
-    getVisibleNavLinks(),
-  ]);
+  const [navSetting, navLinks] = await Promise.all([getNavbarSetting(), getVisibleNavLinks()]);
 
   const links = navLinks.map((link) => ({
     title: link.title,
@@ -13,27 +12,26 @@ export default async function PublicLayout({ children }: { children: React.React
     subLinks: link.subLinks.map((sub) => ({ title: sub.title, href: sub.href })),
   }));
 
-  const fixedLinks = links.map(link => ({
-  ...link,
-  href: link.href ?? undefined,
+  const fixedLinks = links.map((link) => ({
+    ...link,
+    href: link.href ?? undefined,
 
-  subLinks: link.subLinks
-    ?.filter(sub => sub.href)  
-    .map(sub => ({
-      title: sub.title,
-      href: sub.href as string  
-    }))
-}));
+    subLinks: link.subLinks
+      ?.filter((sub) => sub.href)
+      .map((sub) => ({
+        title: sub.title,
+        href: sub.href as string,
+      })),
+  }));
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar
-        logoUrl={navSetting.logoUrl}
-        logoAlt={navSetting.logoAlt}
-        links={fixedLinks}
-      />
+      <Navbar logoUrl={navSetting.logoUrl} logoAlt={navSetting.logoAlt} links={fixedLinks} />
       {children}
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
+      <PublicRuntimeLoader />
     </div>
   );
 }

@@ -24,5 +24,7 @@ export type {
   FooterLinkRow,
   FooterSettingRow,
   FooterColumnWithLinks,
+  VisibleFooterColumnWithLinks,
+  VisibleFooterSetting,
   FooterData,
 } from './types';

@@ -31,7 +31,7 @@ export function MotherEarthHeroSection({ data }: MotherEarthHeroSectionProps) {
         alt=""
         fill
         priority
-        quality={100}
+        quality={90}
         placeholder="blur"
         blurDataURL={HERO_BLUR}
         className="object-cover object-bottom motion-safe:animate-[socialHeroZoom_16s_ease-out_forwards]"

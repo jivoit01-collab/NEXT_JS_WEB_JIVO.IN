@@ -34,10 +34,17 @@ export async function getVisibleFooter(): Promise<FooterData> {
     prisma.footerColumn.findMany({
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
-      include: {
+      select: {
+        id: true,
+        title: true,
         links: {
           where: { isVisible: true },
           orderBy: { sortOrder: 'asc' },
+          select: {
+            id: true,
+            title: true,
+            href: true,
+          },
         },
       },
     }),
@@ -144,10 +151,7 @@ export async function createLink(input: unknown): Promise<ActionResponse<FooterL
   return { success: true, data: created };
 }
 
-export async function updateLink(
-  id: string,
-  input: unknown,
-): Promise<ActionResponse<FooterLink>> {
+export async function updateLink(id: string, input: unknown): Promise<ActionResponse<FooterLink>> {
   const guard = await requireAdmin<FooterLink>();
   if (guard) return guard;
 
@@ -186,17 +190,34 @@ export async function deleteLink(id: string): Promise<ActionResponse<FooterLink>
 //  Settings — singleton
 // ══════════════════════════════════════════════════════════════
 
-export async function getFooterSetting(): Promise<FooterSetting> {
-  return prisma.footerSetting.upsert({
+export async function getFooterSetting(): Promise<FooterData['setting']> {
+  const setting = await prisma.footerSetting.findUnique({
     where: { id: SETTING_ID },
-    update: {},
-    create: { id: SETTING_ID },
+    select: {
+      logoUrl: true,
+      logoAlt: true,
+      copyrightText: true,
+      address: true,
+      email: true,
+      phone: true,
+      phoneLabel: true,
+    },
   });
+
+  return (
+    setting ?? {
+      logoUrl: null,
+      logoAlt: null,
+      copyrightText: null,
+      address: null,
+      email: null,
+      phone: null,
+      phoneLabel: null,
+    }
+  );
 }
 
-export async function updateFooterSetting(
-  input: unknown,
-): Promise<ActionResponse<FooterSetting>> {
+export async function updateFooterSetting(input: unknown): Promise<ActionResponse<FooterSetting>> {
   const guard = await requireAdmin<FooterSetting>();
   if (guard) return guard;
 

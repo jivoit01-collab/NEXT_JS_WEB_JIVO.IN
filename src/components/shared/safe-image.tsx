@@ -65,8 +65,8 @@ export function SafeImage({ src, alt, onMissing, ...rest }: SafeImageProps) {
   useEffect(() => {
     reportedRef.current = false;
     const resetTimer = window.setTimeout(() => {
-      setPhase('initial');
-      setCurrentSrc(initial);
+      setPhase((prev) => (prev === 'initial' ? prev : 'initial'));
+      setCurrentSrc((prev) => (prev === initial ? prev : initial));
     }, 0);
     return () => window.clearTimeout(resetTimer);
   }, [initial]);

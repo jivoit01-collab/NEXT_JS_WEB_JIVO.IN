@@ -1,319 +1,456 @@
-# SEO Module — API Documentation
+# SEO.md
 
-> Per-page SEO, social-share metadata, and JSON-LD structured data for every public page on Jivo Wellness. Admin-editable from `/admin/seo` and from the SEO tab on each page editor (e.g. `/admin/home`). Read at request time by `generateMetadata()` via the `resolveSeo()` helper.
+## Purpose
 
----
-## SEO VALIDATION RULES
+This file defines the mandatory SEO, Lighthouse, Core Web Vitals, rendering, indexing, and performance optimization standards for all public pages.
 
-- metaTitle is REQUIRED
-- metaDescription is REQUIRED
-- canonicalUrl is REQUIRED
-- ogImage is REQUIRED
-- structuredData is REQUIRED
+Use this file whenever:
 
-If missing → fallback used but warning logged
+- Optimizing an existing page
+- Improving Lighthouse scores
+- Improving Core Web Vitals
+- Improving SEO
+- Improving bundle size
+- Improving rendering strategy
 
-## STRUCTURED DATA TYPES
+Do NOT use this file for creating page architecture, CRUD systems, admin pages, Prisma models, or API routes.
 
-Each page must use:
-
-Home → WebSite + Organization
-About → AboutPage
-Product → Product schema
-Blog → Article schema
-Contact → ContactPage
-
-## PERFORMANCE + SEO CONNECTION
-
-- Faster pages rank higher
-- Lazy loading improves LCP
-- Image optimization reduces CLS
-- SSR improves indexing
-
-
-## Architecture
-
-```
-DB:          SeoMeta (one row per page, keyed by `page` slug)
-                           ↑
-                           | upsert
-Server:      src/modules/seo/actions.ts (updateSeoMetaAction, ...)
-                           ↑
-                           | fetch
-API:         /api/admin/seo/[page]   — GET / PUT / DELETE
-             /api/admin/seo          — GET (list)
-                           ↑
-                           | fetch
-UI:          <SeoTabPanel page="…" /> (admin-only)
-             <SeoListTable />          (admin overview)
-
-generateMetadata():
-   resolveSeo(page, moduleDefault) → DB row → moduleDefault → siteDefaultSeo
-```
-
-### Fallback chain
-
-When a request comes in for any public page, `resolveSeo("home", defaultSeo)` does:
-
-1. **DB row** (`SeoMeta` for the page) — wins for any field it provides
-2. **Module default** (e.g. `src/modules/home/data/defaults.ts`)
-3. **Site default** (`src/modules/seo/data/defaults.ts → siteDefaultSeo`)
-
-A field can never be empty: every page always has strong baseline SEO.
+Those rules belong to PROMPT.md.
 
 ---
 
-## Prisma Model
+## Optimization Workflow
 
-```prisma
-// prisma/schema/seo.prisma
-model SeoMeta {
-  id              String   @id @default(cuid())
-  page            String   @unique // "home", "about", "products", "blog", ...
-  metaTitle       String
-  metaDescription String?  @db.Text
-  keywords        String[]
-  ogTitle         String?
-  ogDescription   String?  @db.Text
-  ogImage         String?
-  twitterCard     String   @default("summary_large_image")
-  canonicalUrl    String?
-  structuredData  Json?
-  robots          String   @default("index,follow")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+Whenever asked to optimize a page:
 
-  @@index([page])
-}
+Example:
+
+```txt
+Read SEO.md and optimize /the-story page
 ```
+
+Perform the following audit before making changes.
 
 ---
 
-## Folder structure
+## Lighthouse Targets
 
-```
-src/modules/seo/
-├── types.ts                        # SeoData, SeoFormInput, SeoDefaults, ...
-├── validations.ts                  # seoFormSchema, seoSchema (Zod)
-├── actions.ts                      # Server actions (admin-protected)
-├── utils.ts                        # resolveSeo(), getStructuredData()
-├── data/
-│   ├── queries.ts                  # getSeoByPage, getAllSeo
-│   ├── mutations.ts                # upsertSeoMeta, deleteSeoMeta
-│   └── defaults.ts                 # siteDefaultSeo, definePageSeo()
-├── components/
-│   ├── SeoTabPanel.tsx             # Reusable admin SEO form
-│   ├── SeoListTable.tsx            # Admin SEO overview table + drawer
-│   └── index.ts
-└── index.ts                        # Barrel export
+Public pages should target:
 
-src/components/shared/
-├── lazy-on-view.tsx                # IntersectionObserver wrapper
-└── section-skeleton.tsx            # Skeleton used as dynamic loading fallback
-```
+- Performance >= 90
+- SEO >= 95
+- Accessibility >= 90
+- Best Practices >= 95
+
+These are goals, not guaranteed measurements.
+
+Do not claim actual Lighthouse scores unless Lighthouse was executed.
 
 ---
 
-## Public API (admin-only — auth required)
+## Core Web Vitals Targets
 
-All routes return `{ success: boolean, data?: …, error?: string }`.
+## Largest Contentful Paint (LCP)
 
-### `GET /api/admin/seo`
+Target:
 
-List every SEO entry.
-
-**Auth:** ADMIN or SUPER_ADMIN
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "ckxyz…",
-      "page": "home",
-      "metaTitle": "Jivo Wellness — India's Largest Cold Press Canola Oil Seller",
-      "metaDescription": "Premium cold press canola oil…",
-      "keywords": ["jivo wellness", "cold press canola oil", …],
-      "ogTitle": "Jivo Wellness — Pure, Honest, Wellness-First Products",
-      "ogDescription": "Cold press oils…",
-      "ogImage": "/images/common/og-default.png",
-      "twitterCard": "summary_large_image",
-      "canonicalUrl": "https://jivo.in",
-      "structuredData": { "@type": "WebSite", "name": "Jivo Wellness", … },
-      "robots": "index,follow",
-      "createdAt": "2026-04-15T…Z",
-      "updatedAt": "2026-04-15T…Z"
-    }
-  ]
-}
+```txt
+< 2.5s
 ```
 
-### `GET /api/admin/seo/[page]`
+Optimization Rules:
 
-Fetch SEO for a single page. Returns `data: null` if no entry exists yet (admin can then create one via `PUT`).
-
-**Path param:** `page` — slug like `home`, `about`, `products`, `blog`, `contact`, `careers`.
-
-### `PUT /api/admin/seo/[page]`
-
-Upsert SEO for a page.
-
-**Body** (Zod `seoFormSchema`):
-
-```json
-{
-  "metaTitle": "About Jivo Wellness | Cold Press Canola Oil Pioneers",
-  "metaDescription": "Learn about Jivo Wellness — premium cold press oils & superfoods crafted with truth, devotion, and sewa.",
-  "keywords": ["about jivo", "jivo wellness story"],
-  "ogTitle": "About Jivo Wellness",
-  "ogDescription": "Premium cold press oils & wellness products from India.",
-  "ogImage": "/images/about/og.jpg",
-  "twitterCard": "summary_large_image",
-  "canonicalUrl": "https://jivo.in/about",
-  "structuredData": {
-    "@type": "Organization",
-    "name": "Jivo Wellness",
-    "url": "https://jivo.in"
-  },
-  "robots": "index,follow"
-}
-```
-
-**Validation rules:**
-
-- `metaTitle` required, ≤ 70 chars
-- `metaDescription` ≤ 180 chars
-- `keywords` array, ≤ 20 items, each ≤ 60 chars
-- `ogImage` must be an absolute URL or a path starting with `/`
-- `canonicalUrl` must be a valid URL
-- `twitterCard` ∈ `summary` / `summary_large_image`
-- `robots` ∈ `index,follow` / `noindex,follow` / `index,nofollow` / `noindex,nofollow`
-
-### `DELETE /api/admin/seo/[page]`
-
-Remove the row. The page reverts to its module default, then site default, on next request.
+- Hero content loads immediately
+- Hero image uses priority
+- Avoid heavy JS above the fold
+- Avoid hero animations that block rendering
 
 ---
 
-## Using SEO in a public page
+## Cumulative Layout Shift (CLS)
 
-Every page's `page.tsx` (or its `page-content.tsx`) must:
+Target:
+
+```txt
+< 0.1
+```
+
+Rules:
+
+- Every image must have dimensions
+- Use next/image
+- Reserve layout space
+- Avoid layout jumps
+
+---
+
+## Interaction to Next Paint (INP)
+
+Target:
+
+```txt
+< 200ms
+```
+
+Rules:
+
+- Reduce client-side JS
+- Avoid unnecessary re-renders
+- Lazy load heavy components
+
+---
+
+## Rendering Strategy
+
+Preferred order:
+
+1. SSG
+2. ISR
+3. SSR
+4. CSR
+
+Use:
+
+## SSG
+
+For:
+
+- Home
+- About
+- Story pages
+- Brand pages
+- Static marketing pages
+
+Example:
 
 ```tsx
-// src/app/(public)/about/page.tsx
-import { resolveSeo, getStructuredData } from '@/modules/seo';
-import { JsonLd } from '@/components/shared';
-import { defaultSeo } from '@/modules/about/data/defaults';
-
-export async function generateMetadata() {
-  return resolveSeo('about', defaultSeo);
-}
-
-export default async function AboutPage() {
-  const structured = await getStructuredData('about', defaultSeo);
-  return (
-    <>
-      {structured && <JsonLd data={structured} />}
-      {/* …rest of page… */}
-    </>
-  );
-}
-```
-
-And every module ships a `data/defaults.ts`:
-
-```ts
-// src/modules/about/data/defaults.ts
-import { definePageSeo } from '@/modules/seo';
-
-export const defaultSeo = definePageSeo({
-  metaTitle: 'About Jivo Wellness | Our Mission of Service',
-  metaDescription: 'Learn about Jivo Wellness…',
-  keywords: ['about jivo', 'jivo story'],
-  ogImage: '/images/about/og.jpg',
-  canonicalUrl: 'https://jivo.in/about',
-  robots: 'index,follow',
-  structuredData: { '@type': 'AboutPage', name: 'About Jivo Wellness' },
-});
+export const revalidate = 3600;
 ```
 
 ---
 
-## Adding the SEO tab to a page editor
+## ISR
 
-Every CMS page editor (e.g. `/admin/home`, `/admin/about`) ends with an SEO tab. Drop in `<SeoTabPanel />`:
+For:
+
+- Product pages
+- Blog pages
+- Frequently updated content
+
+Example:
 
 ```tsx
-import { SeoTabPanel } from '@/modules/seo';
-import { defaultSeo as homeDefaultSeo } from '@/modules/home';
-
-<Tabs defaultValue="sections">
-  <TabsList>
-    <TabsTrigger value="sections">Sections</TabsTrigger>
-    <TabsTrigger value="seo">SEO</TabsTrigger>
-  </TabsList>
-
-  <TabsContent value="sections">{/* existing editor */}</TabsContent>
-
-  <TabsContent value="seo">
-    <SeoTabPanel
-      page="home"
-      pageLabel="Home Page"
-      moduleDefault={homeDefaultSeo}
-    />
-  </TabsContent>
-</Tabs>
+export const revalidate = 300;
 ```
 
-The panel handles its own fetch/save — no extra wiring needed.
+---
+
+## SSR
+
+Only when:
+
+- Request-specific data is required
+- Authentication affects content
 
 ---
 
-## Pages excluded from SEO
+## CSR
 
-Do **not** create SEO entries for:
+Only when necessary.
 
-- `navbar`, `footer` — shared chrome, not indexed pages
-- `/admin/**` — private (set `robots: "noindex,nofollow"` in admin layout)
-- `/api/**` — no UI
-- `/login`, `/signup`, `/admin/login` — `noindex` by default
-- `/cart`, `/checkout`, `/order-success/[id]`, `/orders` — user-only, `noindex`
+Avoid full-page:
 
-For dynamic per-item SEO (Product detail, Blog post), keep the SEO fields **inline on the model itself** (`Product.metaTitle`, `BlogPost.metaTitle`) rather than `SeoMeta`. Use `SeoMeta` for static CMS pages only.
+```tsx
+"use client";
+```
+
+on public pages.
 
 ---
 
-## Postman / curl examples
+## Component Optimization
 
-Set an `Cookie: next-auth.session-token=…` header from a logged-in admin browser session.
+Hero section:
+
+- Direct import
+- No lazy loading
+
+SEO content sections:
+
+Use:
+
+```tsx
+dynamic(...);
+```
+
+Keep SSR enabled.
+
+Example:
+
+```tsx
+const StorySection = dynamic(() => import("./story-section"));
+```
+
+---
+
+## Client-Only Widgets
+
+Use:
+
+```tsx
+dynamic(() => import("./carousel"), { ssr: false });
+```
+
+Examples:
+
+- Sliders
+- Testimonials carousel
+- Maps
+- Videos
+- Interactive widgets
+
+---
+
+## Lazy Loading Rules
+
+Do NOT lazy load:
+
+- Hero
+- Main heading
+- First viewport content
+
+Lazy load:
+
+- Testimonials
+- Gallery
+- Related content
+- Sliders
+- Media sections
+- Footer widgets
+
+---
+
+## Image Optimization
+
+Mandatory:
+
+```tsx
+import Image from "next/image";
+```
+
+Rules:
+
+- Use next/image
+- Hero image uses priority
+- Use responsive sizes
+- Use WebP when possible
+- Avoid oversized images
+
+Example:
+
+```tsx
+<Image src={image} alt={alt} priority sizes="100vw" />
+```
+
+---
+
+## Font Optimization
+
+Use:
+
+```tsx
+next/font/google
+```
+
+Do NOT use:
+
+```html
+<link href="google-font-url" />
+```
+
+---
+
+## SEO Rules
+
+Every public page must have:
+
+- generateMetadata()
+- resolveSeo()
+- canonical URL
+- OpenGraph
+- structuredData
+- robots
+- sitemap inclusion
+
+---
+
+## Heading Structure
+
+Rules:
+
+- One H1 per page
+- H2 for sections
+- H3 for subsections
+
+Avoid multiple H1 tags.
+
+---
+
+## Structured Data
+
+Use:
+
+## Home
+
+- WebSite
+- Organization
+
+## About
+
+- AboutPage
+
+## Story
+
+- AboutPage
+
+## Product
+
+- Product
+
+## Blog
+
+- Article
+
+---
+
+## Sitemap Verification
+
+Verify:
+
+- Page exists in sitemap
+- Dynamic routes included
+- Private routes excluded
+
+---
+
+## Robots Verification
+
+Public pages:
+
+```txt
+index,follow
+```
+
+Private pages:
+
+```txt
+noindex,nofollow
+```
+
+Exclude:
+
+- /admin/**
+- /api/**
+- /login
+- /signup
+- /cart
+- /checkout
+- /orders
+
+---
+
+## Bundle Optimization
+
+Check:
+
+- unnecessary imports
+- large dependencies
+- duplicate libraries
+- unused client components
+
+Prefer:
+
+- Server Components
+- Dynamic imports
+- Route-level code splitting
+
+---
+
+## Animation Optimization
+
+Avoid:
+
+- Hero animations
+- Heavy scroll animations above fold
+
+Use:
+
+```tsx
+whileInView
+```
+
+for below-the-fold content.
+
+Always respect:
+
+```tsx
+prefers-reduced-motion
+```
+
+---
+
+## Audit Report Requirement
+
+After optimization, provide:
+
+```txt
+Performance Audit:
+PASS / FAIL
+
+SEO Audit:
+PASS / FAIL
+
+Accessibility Audit:
+PASS / FAIL
+
+Best Practices Audit:
+PASS / FAIL
+
+Rendering Strategy:
+SSG / ISR / SSR / CSR
+```
+
+Optimization Summary:
+
+- item 1
+- item 2
+- item 3
+
+Estimated Lighthouse Impact:
+
+```txt
+Performance: XX -> YY
+SEO: XX -> YY
+```
+
+Do not claim measured scores unless Lighthouse was executed.
+
+---
+
+## Build Verification
+
+Before completion:
+
+Run:
 
 ```bash
-# List all
-curl -s http://localhost:3000/api/admin/seo | jq
-
-# Get one
-curl -s http://localhost:3000/api/admin/seo/home | jq
-
-# Upsert
-curl -s -X PUT http://localhost:3000/api/admin/seo/home \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "metaTitle": "Jivo Wellness — Cold Press Canola Oil",
-    "metaDescription": "Premium cold press canola oil.",
-    "keywords": ["jivo", "canola oil"],
-    "twitterCard": "summary_large_image",
-    "robots": "index,follow"
-  }'
-
-# Delete (reverts to defaults)
-curl -s -X DELETE http://localhost:3000/api/admin/seo/home
+npm run build
 ```
 
----
+Verify:
 
-## Performance notes
+- No TypeScript errors
+- No ESLint errors
+- No build failures
 
-The SEO read in `generateMetadata()` runs at request time (alongside the page's own data fetch). Both are server components so the round-trip is one DB query per page render. Pair with `getStructuredData()` if you also want the JSON-LD blob in the page body — that uses an internal query cache so calling both in the same request only hits the DB once.
-
-For lazy-loading sections see `docs/prompt1.md §24`. For per-page folder structure see `docs/prompt1.md §25`.
+Do not mark optimization complete if the build fails.

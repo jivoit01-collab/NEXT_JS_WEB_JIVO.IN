@@ -33,11 +33,11 @@ export function CleanTreeSection({ data }: CleanTreeSectionProps) {
         alt=""
         fill
         loading="lazy"
-        quality={100}
+        quality={90}
         className="object-cover object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />
-      
+
       <motion.div
         variants={revealContainer}
         initial="hidden"

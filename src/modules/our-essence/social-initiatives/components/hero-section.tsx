@@ -41,7 +41,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
           alt=""
           fill
           priority
-          quality={100}
+          quality={90}
           fetchPriority="high"
           placeholder="blur"
           blurDataURL={HERO_BLUR}
@@ -49,7 +49,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
           sizes={HERO_IMAGE_SIZES}
         />
       </div>
-      
+
       <motion.div
         variants={revealContainer}
         initial="hidden"
@@ -60,7 +60,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
         <div className="flex min-h-[42svh] flex-1 items-center justify-center lg:min-h-0 lg:justify-end lg:pb-[clamp(1.5rem,5vh,4.5rem)]">
           <motion.div
             variants={revealItem}
-            className={` w-full max-w-[620px] px-5 py-6 text-white sm:px-7 sm:py-7 lg:max-w-[640px] lg:px-8 lg:py-8 2xl:max-w-[700px]`}
+            className={`w-full max-w-[620px] px-5 py-6 text-white sm:px-7 sm:py-7 lg:max-w-[640px] lg:px-8 lg:py-8 2xl:max-w-[700px]`}
           >
             <h1 className="font-jost-extrabold text-[clamp(2.15rem,3.25vw,4.4rem)] leading-[1.02] text-balance text-white uppercase drop-shadow-[0_3px_16px_rgba(0,0,0,0.4)]">
               {title}
@@ -98,7 +98,7 @@ function HeroStoryBlock({
   return (
     <motion.div
       variants={variant}
-      className={` mx-auto flex h-full w-full max-w-[520px] flex-col items-center justify-center px-5 py-5 text-center sm:px-6 sm:py-6 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7 ${className}`}
+      className={`mx-auto flex h-full w-full max-w-[520px] flex-col items-center justify-center px-5 py-5 text-center sm:px-6 sm:py-6 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7 ${className}`}
     >
       <h2 className="font-jost-bold text-[clamp(0.96rem,1.18vw,1.35rem)] leading-tight tracking-[0.1em] text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)]">
         {title}

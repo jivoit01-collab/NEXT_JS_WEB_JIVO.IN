@@ -14,10 +14,10 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'uploadthing.com' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
-    // Allow explicit quality={100} for full-bleed CMS hero images without Next rejecting the request.
-    qualities: [75, 90, 100],
+    // Keep CMS imagery crisp without allowing accidental quality=100 transfer bloat.
+    qualities: [75, 90],
     // Large full-screen sections need high-resolution candidates on lg/2xl displays.
-    deviceSizes: [640, 750, 828, 1080, 1200, 1600, 1920, 2048, 2560, 3840],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600, 1920, 2048, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 

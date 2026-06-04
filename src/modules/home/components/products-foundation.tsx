@@ -47,6 +47,7 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
   const lastSpawnRef = useRef(0);
   const lastTimeRef = useRef(0);
   const visibleRef = useRef(true);
+  const runningRef = useRef(false);
   const dprRef = useRef(1);
   const sizeRef = useRef({ w: 0, h: 0 });
 
@@ -211,7 +212,9 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
         for (const b of bubbles) drawBubble(ctx, b);
       }
 
-      rafRef.current = requestAnimationFrame(loopRef.current);
+      if (runningRef.current) {
+        rafRef.current = requestAnimationFrame(loopRef.current);
+      }
     },
     [drawBubble, spawnBubble],
   );
@@ -245,24 +248,42 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
 
+    const stopLoop = () => {
+      runningRef.current = false;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+
+    const startLoop = () => {
+      if (runningRef.current) return;
+      runningRef.current = true;
+      lastTimeRef.current = performance.now();
+      rafRef.current = requestAnimationFrame(loopRef.current);
+    };
+
     const io = new IntersectionObserver(
       (entries) => {
         visibleRef.current = entries[0]?.isIntersecting ?? true;
+        if (visibleRef.current && !document.hidden) startLoop();
+        else stopLoop();
       },
       { threshold: 0.01 },
     );
     io.observe(wrap);
 
     const onVisibility = () => {
-      if (document.hidden) visibleRef.current = false;
-      else visibleRef.current = true;
+      if (document.hidden) {
+        stopLoop();
+      } else if (visibleRef.current) {
+        startLoop();
+      }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
-    rafRef.current = requestAnimationFrame(loop);
+    startLoop();
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      stopLoop();
       ro.disconnect();
       io.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);

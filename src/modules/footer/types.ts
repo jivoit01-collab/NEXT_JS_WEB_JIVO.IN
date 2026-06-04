@@ -9,8 +9,17 @@ export interface FooterColumnWithLinks extends FooterColumn {
   links: FooterLink[];
 }
 
+export type VisibleFooterColumnWithLinks = Pick<FooterColumn, 'id' | 'title'> & {
+  links: Pick<FooterLink, 'id' | 'title' | 'href'>[];
+};
+
+export type VisibleFooterSetting = Pick<
+  FooterSetting,
+  'logoUrl' | 'logoAlt' | 'copyrightText' | 'address' | 'email' | 'phone' | 'phoneLabel'
+>;
+
 /** Everything the public footer needs in one shot */
 export interface FooterData {
-  columns: FooterColumnWithLinks[];
-  setting: FooterSetting;
+  columns: VisibleFooterColumnWithLinks[];
+  setting: VisibleFooterSetting;
 }
