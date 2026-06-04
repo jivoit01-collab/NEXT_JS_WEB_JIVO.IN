@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AlertCircle, Loader, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageUpload, VideoUpload } from '@/components/shared';
+import { ImageUpload, VideoUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
 import { upsertBaruSahibAssociationSectionAction } from '@/modules/our-essence/baru-sahib-association/actions';
 import { BARU_SAHIB_ASSOCIATION_SEO_PAGE } from '@/modules/our-essence/baru-sahib-association/constants';

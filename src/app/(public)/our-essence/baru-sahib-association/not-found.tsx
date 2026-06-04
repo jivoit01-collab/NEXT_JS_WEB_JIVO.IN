@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Home } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/button';
 
 export default function BaruSahibAssociationNotFound() {
   return (

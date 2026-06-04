@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { container, defaultViewport, fadeUp, reducedMotion } from '@/lib/animation-variants';
 import { defaultDisasterContent, fallbackImage } from '../data/defaults';
 import type { ForMotherEarthDisasterContent } from '../types';

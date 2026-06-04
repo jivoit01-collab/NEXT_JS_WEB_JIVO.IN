@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { cn } from '@/lib/utils';
 import { fallbackImage, humanitySectionData } from '../content-defaults';
 import type { BaruSahibAssociationHumanityContent } from '../types';

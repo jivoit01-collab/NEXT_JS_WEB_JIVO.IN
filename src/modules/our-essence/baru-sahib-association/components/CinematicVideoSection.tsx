@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { cn } from '@/lib/utils';
 import type { BaruSahibAssociationVideoContent } from '../types';
 

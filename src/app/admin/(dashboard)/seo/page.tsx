@@ -15,21 +15,18 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
-  Button,
-  Badge,
-  Input,
-  Label,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui';
+} from '@/components/ui/dialog';
 import { SeoTabPanel, SeoGuide } from '@/modules/seo';
 
 interface SeoRow {

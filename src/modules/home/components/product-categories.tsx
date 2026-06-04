@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { SafeImage, SplitWords } from '@/components/shared';
+import { SafeImage, SplitWords } from '@/components/shared/public';
 import { productCategories as defaults } from '../data/home-content';
 import type { CategoriesContent } from '../types';
 import { motion } from 'framer-motion';

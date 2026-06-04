@@ -1,6 +1,6 @@
 'use client';
 
-import { SafeImage, SplitWords } from '@/components/shared';
+import { SafeImage, SplitWords } from '@/components/shared/public';
 import { productsFoundationContent as defaults } from '../data/home-content';
 import type { ProductsFoundationContent } from '../types';
 import { motion, useReducedMotion } from 'framer-motion';

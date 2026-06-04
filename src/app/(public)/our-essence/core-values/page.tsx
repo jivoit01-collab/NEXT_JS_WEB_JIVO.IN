@@ -1,4 +1,4 @@
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import { CoreValuesMain } from '@/modules/our-essence/core-values';
 import { getCoreValuesSections } from '@/modules/our-essence/core-values/data/queries';
 import { defaultSeo } from '@/modules/our-essence/core-values/data/defaults';

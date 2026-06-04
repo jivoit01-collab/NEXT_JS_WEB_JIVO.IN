@@ -1,4 +1,4 @@
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import { OUR_FAIR_SHARE_SEO_PAGE, OurFairShareMain } from '@/modules/our-essence/our-fair-share';
 import { defaultSections, defaultSeo } from '@/modules/our-essence/our-fair-share/data/defaults';
 import { getOurFairShareSections } from '@/modules/our-essence/our-fair-share/data/queries';

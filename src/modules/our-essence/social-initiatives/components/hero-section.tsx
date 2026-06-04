@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { containerSlow, fadeUpSlow, reducedMotion } from '@/lib/animation-variants';
 import { fallbackImage, defaultHeroContent } from '../data/defaults';
 import type { SocialInitiativesHeroContent } from '../types';

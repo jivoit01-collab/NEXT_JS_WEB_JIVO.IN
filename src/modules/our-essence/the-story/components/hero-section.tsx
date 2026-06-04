@@ -1,6 +1,6 @@
 'use client';
 
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import type { TheStoryHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
 import { motion } from 'framer-motion';

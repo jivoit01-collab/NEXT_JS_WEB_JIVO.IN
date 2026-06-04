@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import type { HeroSlideData } from '../types';
 
 export function HeroCarousel({ logoSrc, slides }: { logoSrc: string; slides: HeroSlideData[] }) {

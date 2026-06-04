@@ -14,27 +14,26 @@ import {
   Inbox,
   X,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
-  Button,
-  Badge,
-  Input,
-  Label,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+} from '@/components/ui/dialog';
+import {
   Table,
   TableHeader,
   TableBody,
   TableHead,
   TableRow,
   TableCell,
-} from '@/components/ui';
+} from '@/components/ui/table';
 import { SeoTabPanel } from './SeoTabPanel';
 
 interface SeoRow {

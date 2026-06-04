@@ -1,4 +1,4 @@
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import {
   FOR_MOTHER_EARTH_SEO_PAGE,
   ForMotherEarthMain,

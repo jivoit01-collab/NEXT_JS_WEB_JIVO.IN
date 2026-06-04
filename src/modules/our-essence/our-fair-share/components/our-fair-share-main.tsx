@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { LazyOnView } from '@/components/shared';
+import { LazyOnView } from '@/components/shared/public';
 import { OurFairShareHeroSection } from './hero-section';
 import { HealthcareSectionSkeleton } from './healthcare-section';
 import { WomenEmpowermentSectionSkeleton } from './women-empowerment-section';

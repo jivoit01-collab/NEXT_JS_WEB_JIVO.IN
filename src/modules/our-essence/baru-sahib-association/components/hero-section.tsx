@@ -1,4 +1,4 @@
-﻿import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { fallbackImage, heroSectionData } from '../content-defaults';
 import type { BaruSahibAssociationHeroContent } from '../types';
 

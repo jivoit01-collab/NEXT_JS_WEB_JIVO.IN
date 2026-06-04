@@ -1,4 +1,4 @@
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import { HomeMain, defaultSeo } from '@/modules/home';
 import {
   getActiveHeroSlidesForRender,

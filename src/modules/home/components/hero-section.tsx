@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { heroContent as defaults, defaultHeroSlides } from '../data/home-content';
 import type { HeroContent, HeroSlideData } from '../types';
 

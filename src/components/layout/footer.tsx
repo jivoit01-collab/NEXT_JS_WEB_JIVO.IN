@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MapPin, Mail, Phone } from 'lucide-react';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { getVisibleFooter } from '@/modules/footer';
 import type { VisibleFooterColumnWithLinks } from '@/modules/footer/types';
 

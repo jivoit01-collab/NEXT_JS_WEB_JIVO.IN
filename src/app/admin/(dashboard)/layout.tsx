@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/button';
 import {
   Menu,
   X,

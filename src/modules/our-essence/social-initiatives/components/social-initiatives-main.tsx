@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { LazyOnView } from '@/components/shared';
+import { LazyOnView } from '@/components/shared/public';
 import { SocialInitiativesHero } from './hero-section';
 import { SplitStorySectionSkeleton } from './split-story-section';
 import { EducateEmpowerSectionSkeleton } from './educate-empower-section';

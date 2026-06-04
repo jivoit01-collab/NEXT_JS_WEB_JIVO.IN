@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Save, Loader } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageUpload } from '@/components/shared';
+import { ImageUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
 import {
   upsertTheStorySectionAction,

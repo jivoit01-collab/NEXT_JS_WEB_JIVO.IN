@@ -1,4 +1,4 @@
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import {
   SOCIAL_INITIATIVES_SEO_PAGE,
   SocialInitiativesMain,

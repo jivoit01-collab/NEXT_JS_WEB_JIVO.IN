@@ -3,29 +3,28 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
-  Button,
-  Input,
-  Label,
-  Textarea,
   Table,
   TableHeader,
   TableBody,
   TableHead,
   TableRow,
   TableCell,
+} from '@/components/ui/table';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  Badge,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '@/components/ui';
-import { ImageUpload, SafeImage } from '@/components/shared';
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ImageUpload, SafeImage } from '@/components/shared/admin';
 import {
   Plus,
   Pencil,

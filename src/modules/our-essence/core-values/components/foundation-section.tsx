@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { SafeImage, SplitWords } from '@/components/shared';
+import { SafeImage, SplitWords } from '@/components/shared/public';
 import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
 import type { CoreValuesFoundationContent } from '../types';
 import { defaultFoundationContent } from '../data/defaults';

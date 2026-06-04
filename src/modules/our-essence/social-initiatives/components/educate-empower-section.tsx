@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import {
   containerSlow,
   defaultViewport,

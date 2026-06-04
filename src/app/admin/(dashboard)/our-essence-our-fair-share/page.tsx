@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AlertCircle, Loader, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageUpload } from '@/components/shared';
+import { ImageUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
 import { upsertOurFairShareSectionAction } from '@/modules/our-essence/our-fair-share/actions';
 import { OUR_FAIR_SHARE_SEO_PAGE } from '@/modules/our-essence/our-fair-share/constants';

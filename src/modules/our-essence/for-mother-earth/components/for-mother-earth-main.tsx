@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { LazyOnView } from '@/components/shared';
+import { LazyOnView } from '@/components/shared/public';
 import { MotherEarthHeroSection } from './hero-section';
 import { CleanTreeSectionSkeleton } from './clean-tree-section';
 import { DisasterSectionSkeleton } from './disaster-section';

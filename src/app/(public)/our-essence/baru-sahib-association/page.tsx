@@ -1,4 +1,4 @@
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import {
   BARU_SAHIB_ASSOCIATION_SEO_PAGE,
   BaruSahibAssociationMain,

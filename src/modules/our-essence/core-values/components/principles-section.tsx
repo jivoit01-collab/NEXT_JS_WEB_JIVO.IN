@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
 import type { CoreValuesPrinciplesContent } from '../types';
 import { defaultPrinciplesContent } from '../data/defaults';
