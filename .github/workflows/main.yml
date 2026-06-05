@@ -27,6 +27,12 @@ jobs:
             echo "Installing dependencies..."
             npm install
 
+            echo "Syncing database schema..."
+            npm run db:push
+
+            echo "Seeding missing CMS defaults..."
+            npm run db:seed
+
             echo "Building application..."
             npm run build
 
