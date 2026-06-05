@@ -31,6 +31,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8 as const,
       changefreq: 'weekly' as const,
     },
+    {
+      path: '/our-essence/the-jivo-capital',
+      priority: 0.8 as const,
+      changefreq: 'weekly' as const,
+    },
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPages.map(

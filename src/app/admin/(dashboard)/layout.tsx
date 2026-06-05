@@ -22,6 +22,7 @@ import {
   BookOpen,
   Compass,
   Landmark,
+  Factory,
   Scale,
   Leaf,
   ChevronDown,
@@ -89,6 +90,11 @@ const SIDEBAR: NavSection[] = [
         href: '/admin/our-essence-for-mother-earth',
         icon: Leaf,
       },
+      {
+        title: 'The Jivo Capital',
+        href: '/admin/our-essence-the-jivo-capital',
+        icon: Factory,
+      },
     ],
   },
   {
@@ -139,6 +145,12 @@ const SIDEBAR: NavSection[] = [
         title: 'For Mother Earth',
         href: '/admin/our-essence-for-mother-earth',
         icon: Leaf,
+        tab: 'seo',
+      },
+      {
+        title: 'The Jivo Capital',
+        href: '/admin/our-essence-the-jivo-capital',
+        icon: Factory,
         tab: 'seo',
       },
     ],
