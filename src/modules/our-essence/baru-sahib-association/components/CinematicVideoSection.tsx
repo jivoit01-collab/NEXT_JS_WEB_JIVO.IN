@@ -83,6 +83,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
 
   const [isMuted, setIsMuted] = useState(true);
   const [hasMountedVideo, setHasMountedVideo] = useState(false);
+  const [hasSectionRevealed, setHasSectionRevealed] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [hasVideoError, setHasVideoError] = useState(false);
@@ -177,6 +178,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
 
     if (typeof IntersectionObserver === 'undefined') {
       const fallbackTimer = window.setTimeout(() => {
+        setHasSectionRevealed(true);
         setHasMountedVideo(true);
         isInPlayableViewRef.current = true;
         playWithAutoplayPolicy();
@@ -193,6 +195,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
         const shouldPlay = entry.isIntersecting && entry.intersectionRatio >= VIDEO_VIEW_THRESHOLD;
 
         if (entry.isIntersecting) {
+          setHasSectionRevealed(true);
           // Mount near the viewport so metadata is ready, but keep preload at metadata to avoid pulling a 400MB file early.
           setHasMountedVideo((current) => current || true);
         }
@@ -244,13 +247,16 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
     >
       <div
         className={cn(
-          'relative w-full opacity-0 transition-opacity duration-700 ease-out motion-reduce:opacity-100',
-          hasMountedVideo || !hasVideo ? 'opacity-100' : 'opacity-0',
+          'relative w-full translate-y-7 opacity-0 transition-[opacity,transform] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform motion-reduce:translate-y-0 motion-reduce:opacity-100',
+          hasSectionRevealed || !hasVideo ? 'translate-y-0 opacity-100' : 'opacity-0',
         )}
       >
-        <div className="relative overflow-hidden bg-black">
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/38 to-transparent sm:h-24" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/44 to-transparent sm:h-24" />
+
+        <div className="relative overflow-hidden border-y border-white/10 bg-black shadow-[0_-18px_60px_rgba(0,0,0,0.28),0_28px_90px_rgba(0,0,0,0.42)]">
+          <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,rgba(0,0,0,0.03)_28%,rgba(0,0,0,0.02)_62%,rgba(0,0,0,0.3)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
 
           <div className="relative h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
             {hasVideo && hasMountedVideo ? (
@@ -314,7 +320,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
                   <button
                     type="button"
                     onClick={toggleMute}
-                    className="absolute right-4 bottom-4 z-20 flex size-12 items-center justify-center rounded-full border border-white/20 bg-black/42 text-white shadow-[0_12px_34px_rgba(0,0,0,0.34)] backdrop-blur-sm transition-all duration-300 hover:bg-white/16 focus:ring-2 focus:ring-[#d8c187]/70 focus:ring-offset-2 focus:ring-offset-black focus:outline-none sm:right-6 sm:bottom-6 sm:size-14 lg:hover:scale-105"
+                    className="absolute right-4 bottom-4 z-20 flex size-12 items-center justify-center rounded-full border border-white/15 bg-black/38 text-white shadow-[0_14px_40px_rgba(0,0,0,0.38)] ring-1 ring-white/10 backdrop-blur-md transition-colors duration-300 hover:bg-white/14 focus:ring-2 focus:ring-[#d8c187]/70 focus:ring-offset-2 focus:ring-offset-black focus:outline-none sm:right-6 sm:bottom-6 sm:size-14"
                     aria-label={isMuted ? 'Unmute video' : 'Mute video'}
                   >
                     {isMuted ? (
@@ -435,9 +441,15 @@ function VideoErrorOverlay() {
 export function CinematicVideoSectionSkeleton() {
   return (
     <section aria-hidden className="relative w-full overflow-hidden bg-black">
-      <div className="relative overflow-hidden bg-black">
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/38 to-transparent sm:h-24" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/44 to-transparent sm:h-24" />
+      <div className="relative z-20 bg-black px-5 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <div className="h-3 w-48 animate-pulse rounded-full bg-[#d8c187]/18 sm:w-60" />
+      </div>
+
+      <div className="relative overflow-hidden border-y border-white/10 bg-black shadow-[0_-18px_60px_rgba(0,0,0,0.28),0_28px_90px_rgba(0,0,0,0.42)]">
+        <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,rgba(0,0,0,0.03)_28%,rgba(0,0,0,0.02)_62%,rgba(0,0,0,0.3)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
         <div className="h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
           <VideoFrameSkeleton />
         </div>
