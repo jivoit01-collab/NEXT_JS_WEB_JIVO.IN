@@ -1,0 +1,19 @@
+// ==========================================
+// OUR ESSENCE - THE JIVO CAPITAL page
+// Route: /our-essence/the-jivo-capital
+// Admin: /admin/our-essence-the-jivo-capital
+// Sections: hero, oilPlant, waterPlant
+// ==========================================
+
+model OurEssenceTheJivoCapital {
+  id        String   @id @default(cuid())
+  section   String   @unique
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

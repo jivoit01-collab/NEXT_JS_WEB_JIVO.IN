@@ -2,7 +2,17 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, BookOpen, Compass, Landmark, Users, Scale, Leaf } from 'lucide-react';
+import {
+  Search,
+  Sparkles,
+  BookOpen,
+  Compass,
+  Landmark,
+  Users,
+  Scale,
+  Leaf,
+  Factory,
+} from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -54,6 +64,13 @@ const SECTION_PAGES: PageEntry[] = [
     icon: Leaf,
     description: 'Planet care, clean villages & disaster support',
     color: 'from-lime-500/20 to-lime-600/5',
+  },
+  {
+    label: 'The Jivo Capital',
+    href: '/admin/our-essence-the-jivo-capital',
+    icon: Factory,
+    description: 'Manufacturing excellence, oil plant & water plant',
+    color: 'from-slate-500/20 to-slate-600/5',
   },
 ];
 
