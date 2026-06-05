@@ -1,0 +1,66 @@
+import { SafeImage } from '@/components/shared/public';
+import { defaultHeroContent, fallbackImage } from '../data/defaults';
+import type { TheJivoCapitalHeroContent } from '../types';
+
+const HERO_BLUR =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDE2IDkiIHhtbG5zPSJodHRwOi8vd3d3Lnczb3JnIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iOSIgZmlsbD0iIzg0NzA0NSIvPjwvc3ZnPg==';
+const HERO_IMAGE_SIZES = '(max-width: 768px) 140vw, (max-width: 1536px) 115vw, 1920px';
+
+interface TheJivoCapitalHeroProps {
+  data?: TheJivoCapitalHeroContent;
+}
+
+function imageWithFallback(image: string) {
+  return image || fallbackImage;
+}
+
+export function TheJivoCapitalHero({ data }: TheJivoCapitalHeroProps) {
+  const { title, description, image } = data ?? defaultHeroContent;
+
+  return (
+    <section className="relative min-h-[100svh] overflow-hidden bg-[#75643f]">
+      <SafeImage
+        src={imageWithFallback(image)}
+        alt=""
+        fill
+        priority
+        quality={90}
+        placeholder="blur"
+        blurDataURL={HERO_BLUR}
+        className="object-cover object-center"
+        sizes={HERO_IMAGE_SIZES}
+      />
+      <div className="absolute inset-0 bg-linear-to-b from-black/18 via-black/2 to-black/28" />
+      <div className="absolute inset-0 bg-linear-to-r from-black/8 via-transparent to-black/10" />
+
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl items-end justify-center px-5 pt-28 pb-[clamp(3.5rem,8vh,6rem)] text-center sm:px-8 lg:justify-end lg:text-right 2xl:max-w-screen-2xl 2xl:px-20">
+        <div className="w-full max-w-[760px] text-white lg:mr-[2vw]">
+          <h1 className="font-jost-extrabold text-[clamp(2.1rem,4vw,4.8rem)] leading-[0.98] text-balance uppercase drop-shadow-[0_4px_18px_rgba(0,0,0,0.44)]">
+            {title}
+          </h1>
+          <p className="mx-auto mt-4 max-w-[760px] text-[clamp(0.86rem,1.06vw,1.18rem)] leading-relaxed text-pretty text-white/92 drop-shadow-[0_3px_14px_rgba(0,0,0,0.44)] lg:ml-auto">
+            {description}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function TheJivoCapitalHeroSkeleton() {
+  return (
+    <section aria-hidden className="relative min-h-screen animate-pulse overflow-hidden bg-[#75643f]">
+      <div className="absolute inset-0 bg-white/10" />
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-end justify-center px-5 pt-28 pb-[clamp(3.5rem,8vh,6rem)] text-center sm:px-8 lg:justify-end lg:text-right 2xl:max-w-screen-2xl 2xl:px-20">
+        <div className="w-full max-w-[760px] lg:mr-[2vw]">
+          <div className="ml-auto h-14 w-full max-w-xl rounded bg-white/25 sm:h-20" />
+          <div className="mt-5 space-y-2">
+            <div className="ml-auto h-4 w-full rounded bg-white/18" />
+            <div className="ml-auto h-4 w-5/6 rounded bg-white/18" />
+            <div className="ml-auto h-4 w-2/3 rounded bg-white/18" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
