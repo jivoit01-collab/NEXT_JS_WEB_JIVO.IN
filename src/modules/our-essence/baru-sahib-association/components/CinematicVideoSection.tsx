@@ -24,7 +24,7 @@ const fallbackVideoContent: BaruSahibAssociationVideoContent = {
 const loadingSpinnerSegments = Array.from({ length: 12 }, (_, index) => index);
 const VIDEO_VIEW_THRESHOLD = 0.18;
 const VISIBILITY_DEBOUNCE_MS = 90;
-const VIDEO_FRAME_SIZES = '(max-width: 768px) 100vw, (max-width: 1536px) 92vw, 1500px';
+const VIDEO_FRAME_SIZES = '100vw';
 
 function resolveMediaSrc(value?: string) {
   if (!value) return '';
@@ -83,6 +83,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
 
   const [isMuted, setIsMuted] = useState(true);
   const [hasMountedVideo, setHasMountedVideo] = useState(false);
+  const [hasSectionRevealed, setHasSectionRevealed] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [hasVideoError, setHasVideoError] = useState(false);
@@ -177,6 +178,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
 
     if (typeof IntersectionObserver === 'undefined') {
       const fallbackTimer = window.setTimeout(() => {
+        setHasSectionRevealed(true);
         setHasMountedVideo(true);
         isInPlayableViewRef.current = true;
         playWithAutoplayPolicy();
@@ -193,6 +195,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
         const shouldPlay = entry.isIntersecting && entry.intersectionRatio >= VIDEO_VIEW_THRESHOLD;
 
         if (entry.isIntersecting) {
+          setHasSectionRevealed(true);
           // Mount near the viewport so metadata is ready, but keep preload at metadata to avoid pulling a 400MB file early.
           setHasMountedVideo((current) => current || true);
         }
@@ -239,121 +242,98 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#030504] px-4 py-16 sm:px-6 sm:py-20 lg:min-h-screen lg:px-8 lg:py-28 2xl:px-20 2xl:py-36"
-      style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '960px' }}
+      className="relative w-full overflow-hidden bg-black"
+      style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '760px' }}
     >
-      <div className="absolute inset-0 bg-linear-to-b from-[#060b08] via-[#030504] to-black" />
-      {/* Reduced ambient gradients keep the cinematic mood without creating expensive full-screen repaints. */}
-      <div className="absolute top-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(204,174,110,0.13),transparent_68%)] lg:h-[28rem] lg:w-[28rem]" />
-      <div className="absolute right-0 bottom-0 h-72 w-72 translate-x-1/3 translate-y-1/4 rounded-full bg-[radial-gradient(circle,rgba(58,114,78,0.11),transparent_70%)] lg:h-[26rem] lg:w-[26rem]" />
-      <div className="cinematic-grain pointer-events-none absolute inset-0 opacity-[0.035]" />
+      <div
+        className={cn(
+          'relative w-full translate-y-7 opacity-0 transition-[opacity,transform] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform motion-reduce:translate-y-0 motion-reduce:opacity-100',
+          hasSectionRevealed || !hasVideo ? 'translate-y-0 opacity-100' : 'opacity-0',
+        )}
+      >
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-screen-2xl flex-col justify-center">
-        <div
-          className={cn(
-            'mx-auto max-w-4xl text-center opacity-0 transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100',
-            hasMountedVideo || !hasVideo ? 'translate-y-0 opacity-100' : 'translate-y-6',
-          )}
-        >
-          <h2 className="font-jost-extrabold text-4xl leading-none text-balance text-[#d6c08d]/75 uppercase sm:text-5xl lg:text-6xl 2xl:text-7xl">
-            Baru Sahib
-          </h2>
-        </div>
+        <div className="relative overflow-hidden border-y border-white/10 bg-black shadow-[0_-18px_60px_rgba(0,0,0,0.28),0_28px_90px_rgba(0,0,0,0.42)]">
+          <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,rgba(0,0,0,0.03)_28%,rgba(0,0,0,0.02)_62%,rgba(0,0,0,0.3)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
 
-        <div
-          className={cn(
-            'relative mx-auto mt-10 w-full max-w-[1500px] opacity-0 transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:scale-100 motion-reduce:opacity-100 sm:mt-12 lg:mt-14 lg:w-[85vw]',
-            hasMountedVideo || !hasVideo
-              ? 'translate-y-0 scale-100 opacity-100'
-              : 'translate-y-8 scale-[0.99]',
-          )}
-          style={{ willChange: hasMountedVideo ? 'transform' : 'auto' }}
-        >
-          <div className="pointer-events-none absolute -inset-4 rounded-[2rem] bg-[radial-gradient(circle_at_center,rgba(214,192,141,0.14),transparent_70%)] opacity-80 lg:-inset-6" />
+          <div className="relative h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
+            {hasVideo && hasMountedVideo ? (
+              <>
+                <video
+                  key={sourceKey}
+                  ref={videoRef}
+                  className={cn(
+                    'h-full w-full object-cover transition-opacity duration-700 ease-out',
+                    isVideoReady && !hasVideoError ? 'opacity-100' : 'opacity-0',
+                  )}
+                  muted={isMuted}
+                  playsInline
+                  loop
+                  preload="metadata"
+                  poster={posterSrc || undefined}
+                  controls={false}
+                  controlsList="nodownload nofullscreen noplaybackrate"
+                  disablePictureInPicture
+                  aria-label="Baru Sahib Association documentary video"
+                  onContextMenu={(event) => event.preventDefault()}
+                  onLoadStart={() => {
+                    setHasVideoError(false);
+                    setIsVideoLoading(true);
+                  }}
+                  onWaiting={() => setIsVideoLoading(true)}
+                  onStalled={() => setIsVideoLoading(true)}
+                  onLoadedData={() => {
+                    setIsVideoReady(true);
+                    setIsVideoLoading(false);
+                  }}
+                  onCanPlay={() => {
+                    setIsVideoReady(true);
+                    setIsVideoLoading(false);
+                  }}
+                  onPlaying={() => {
+                    isPlayingRef.current = true;
+                    setIsVideoReady(true);
+                    setIsVideoLoading(false);
+                  }}
+                  onPause={() => {
+                    isPlayingRef.current = false;
+                  }}
+                  onError={() => {
+                    setIsVideoLoading(false);
+                    setHasVideoError(true);
+                  }}
+                >
+                  {videoSources.map((source) => (
+                    <source key={source.src} src={source.src} type={source.type} />
+                  ))}
+                </video>
 
-          <div className="group relative rounded-[1.4rem] bg-linear-to-br from-white/20 via-[#d8c187]/24 to-white/8 p-px shadow-[0_22px_54px_rgba(0,0,0,0.45)] transition-transform duration-500 ease-out motion-reduce:transition-none sm:rounded-[2rem] lg:shadow-[0_30px_76px_rgba(0,0,0,0.52)] lg:hover:-translate-y-1 lg:hover:scale-[1.003] lg:hover:shadow-[0_36px_86px_rgba(0,0,0,0.58)]">
-            <div className="relative overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#090b09]/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:rounded-[1.95rem]">
-              <div className="absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/38 to-transparent sm:h-24" />
-              <div className="absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/44 to-transparent sm:h-24" />
+                {!isVideoReady && posterSrc && <PosterPreview poster={posterSrc} />}
 
-              <div className="relative aspect-video w-full lg:aspect-auto lg:h-[76vh] lg:max-h-[780px]">
-                {hasVideo && hasMountedVideo ? (
-                  <>
-                    <video
-                      key={sourceKey}
-                      ref={videoRef}
-                      className={cn(
-                        'h-full w-full object-cover transition-opacity duration-700 ease-out',
-                        isVideoReady && !hasVideoError ? 'opacity-100' : 'opacity-0',
-                      )}
-                      muted={isMuted}
-                      playsInline
-                      loop
-                      preload="metadata"
-                      poster={posterSrc || undefined}
-                      controls={false}
-                      controlsList="nodownload nofullscreen noplaybackrate"
-                      disablePictureInPicture
-                      aria-label="Baru Sahib Association documentary video"
-                      onContextMenu={(event) => event.preventDefault()}
-                      onLoadStart={() => {
-                        setHasVideoError(false);
-                        setIsVideoLoading(true);
-                      }}
-                      onWaiting={() => setIsVideoLoading(true)}
-                      onStalled={() => setIsVideoLoading(true)}
-                      onLoadedData={() => {
-                        setIsVideoReady(true);
-                        setIsVideoLoading(false);
-                      }}
-                      onCanPlay={() => {
-                        setIsVideoReady(true);
-                        setIsVideoLoading(false);
-                      }}
-                      onPlaying={() => {
-                        isPlayingRef.current = true;
-                        setIsVideoReady(true);
-                        setIsVideoLoading(false);
-                      }}
-                      onPause={() => {
-                        isPlayingRef.current = false;
-                      }}
-                      onError={() => {
-                        setIsVideoLoading(false);
-                        setHasVideoError(true);
-                      }}
-                    >
-                      {videoSources.map((source) => (
-                        <source key={source.src} src={source.src} type={source.type} />
-                      ))}
-                    </video>
+                {isVideoLoading && !hasVideoError && <VideoLoadingOverlay />}
 
-                    {!isVideoReady && posterSrc && <PosterPreview poster={posterSrc} />}
+                {hasVideoError && <VideoErrorOverlay />}
 
-                    {isVideoLoading && !hasVideoError && <VideoLoadingOverlay />}
-
-                    {hasVideoError && <VideoErrorOverlay />}
-
-                    {!hasVideoError && (
-                      <button
-                        type="button"
-                        onClick={toggleMute}
-                        className="absolute right-4 bottom-4 z-20 flex size-12 items-center justify-center rounded-full border border-white/20 bg-black/42 text-white shadow-[0_12px_34px_rgba(0,0,0,0.34)] backdrop-blur-sm transition-all duration-300 hover:bg-white/16 focus:ring-2 focus:ring-[#d8c187]/70 focus:ring-offset-2 focus:ring-offset-black focus:outline-none sm:right-6 sm:bottom-6 sm:size-14 lg:hover:scale-105"
-                        aria-label={isMuted ? 'Unmute video' : 'Mute video'}
-                      >
-                        {isMuted ? (
-                          <VolumeX className="size-5 transition-transform duration-300" />
-                        ) : (
-                          <Volume2 className="size-5 transition-transform duration-300" />
-                        )}
-                      </button>
+                {!hasVideoError && (
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    className="absolute right-4 bottom-4 z-20 flex size-12 items-center justify-center rounded-full border border-white/15 bg-black/38 text-white shadow-[0_14px_40px_rgba(0,0,0,0.38)] ring-1 ring-white/10 backdrop-blur-md transition-colors duration-300 hover:bg-white/14 focus:ring-2 focus:ring-[#d8c187]/70 focus:ring-offset-2 focus:ring-offset-black focus:outline-none sm:right-6 sm:bottom-6 sm:size-14"
+                    aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                  >
+                    {isMuted ? (
+                      <VolumeX className="size-5 transition-transform duration-300" />
+                    ) : (
+                      <Volume2 className="size-5 transition-transform duration-300" />
                     )}
-                  </>
-                ) : (
-                  <VideoFrameSkeleton poster={posterSrc} />
+                  </button>
                 )}
-              </div>
-            </div>
+              </>
+            ) : (
+              <VideoFrameSkeleton poster={posterSrc} />
+            )}
           </div>
         </div>
       </div>
@@ -460,26 +440,18 @@ function VideoErrorOverlay() {
 
 export function CinematicVideoSectionSkeleton() {
   return (
-    <section
-      aria-hidden
-      className="relative overflow-hidden bg-[#030504] px-4 py-16 sm:px-6 sm:py-20 lg:min-h-screen lg:px-8 lg:py-28 2xl:px-20 2xl:py-36"
-    >
-      <div className="absolute inset-0 bg-linear-to-b from-[#060b08] via-[#030504] to-black" />
-      <div className="cinematic-grain pointer-events-none absolute inset-0 opacity-[0.035]" />
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-screen-2xl flex-col justify-center">
-        <div className="mx-auto max-w-4xl animate-pulse text-center">
-          <div className="mx-auto h-3 w-44 rounded bg-white/15 sm:h-4" />
-          <div className="mx-auto mt-5 h-11 w-full max-w-2xl rounded bg-white/18 sm:h-14 lg:h-16" />
-          <div className="mx-auto mt-4 h-4 w-full max-w-xl rounded bg-white/12 sm:h-5" />
-        </div>
-        <div className="relative mx-auto mt-10 w-full max-w-[1500px] sm:mt-12 lg:mt-14 lg:w-[85vw]">
-          <div className="rounded-[1.4rem] bg-linear-to-br from-white/18 via-[#d8c187]/18 to-white/8 p-px shadow-[0_22px_54px_rgba(0,0,0,0.45)] sm:rounded-[2rem] lg:shadow-[0_30px_76px_rgba(0,0,0,0.52)]">
-            <div className="overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#090b09]/92 sm:rounded-[1.95rem]">
-              <div className="aspect-video w-full lg:aspect-auto lg:h-[76vh] lg:max-h-[780px]">
-                <VideoFrameSkeleton />
-              </div>
-            </div>
-          </div>
+    <section aria-hidden className="relative w-full overflow-hidden bg-black">
+      <div className="relative z-20 bg-black px-5 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <div className="h-3 w-48 animate-pulse rounded-full bg-[#d8c187]/18 sm:w-60" />
+      </div>
+
+      <div className="relative overflow-hidden border-y border-white/10 bg-black shadow-[0_-18px_60px_rgba(0,0,0,0.28),0_28px_90px_rgba(0,0,0,0.42)]">
+        <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,rgba(0,0,0,0.03)_28%,rgba(0,0,0,0.02)_62%,rgba(0,0,0,0.3)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
+        <div className="h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
+          <VideoFrameSkeleton />
         </div>
       </div>
     </section>

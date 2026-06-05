@@ -3,17 +3,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { SafeImage } from '@/components/shared/public';
 import { cn } from '@/lib/utils';
-import { fallbackImage, humanitySectionData } from '../content-defaults';
+import {
+  baruSahibAssociationHumanityFallbackImage,
+  humanitySectionData,
+} from '../content-defaults';
 import type { BaruSahibAssociationHumanityContent } from '../types';
 
 interface HumanitySectionProps {
   data?: BaruSahibAssociationHumanityContent;
 }
 
-const FULL_BLEED_IMAGE_SIZES = '(max-width: 768px) 100vw, (max-width: 1536px) 100vw, 2560px';
+const FULL_BLEED_IMAGE_SIZES = '(max-width: 767px) 120vw, 100vw';
 
 function imageWithFallback(image: string) {
-  return image || fallbackImage;
+  return image || baruSahibAssociationHumanityFallbackImage;
 }
 
 export function HumanitySection({ data }: HumanitySectionProps) {
@@ -48,7 +51,7 @@ export function HumanitySection({ data }: HumanitySectionProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[560px] overflow-hidden bg-[#06110b] md:min-h-[520px] lg:h-[600px] 2xl:h-[720px]"
+      className="relative min-h-[700px] overflow-hidden bg-[#06110b] sm:min-h-[730px] md:min-h-[680px] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]"
     >
       <SafeImage
         src={imageWithFallback(image)}
@@ -56,13 +59,13 @@ export function HumanitySection({ data }: HumanitySectionProps) {
         fill
         loading="lazy"
         quality={90}
-        className="object-cover object-center"
+        className="object-cover object-[72%_96%] sm:object-[68%_92%] md:object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />
       {/* Keep the overlay simple so the browser spends pixels on the image, not repaint-heavy effects. */}
       <div className="absolute inset-0 bg-linear-to-r from-black/18 via-black/8 to-transparent" />
 
-      <div className="relative z-10 flex min-h-[80vh] px-4 py-24 sm:px-6 sm:py-16 md:min-h-[520px] lg:h-[80vh] lg:px-8 lg:py-20 2xl:h-[720px] 2xl:px-20 2xl:py-28">
+      <div className="relative z-10 flex min-h-[700px] px-4 pt-12 pb-80 sm:min-h-[730px] sm:px-6 sm:pt-14 sm:pb-80 md:min-h-[680px] md:py-16 lg:h-full lg:min-h-0 lg:px-8 lg:py-20 2xl:px-20 2xl:py-28">
         <div className="w-full max-w-7xl 2xl:max-w-screen-2xl">
           <div className="max-w-[760px] min-w-0 2xl:max-w-[940px]">
             <h2
@@ -75,7 +78,7 @@ export function HumanitySection({ data }: HumanitySectionProps) {
             </h2>
             <p
               className={cn(
-                'mt-5 max-w-[520px] text-sm leading-relaxed text-pretty text-white/92 opacity-0 drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-all delay-150 duration-700 ease-out sm:text-base md:text-[17px] lg:mt-6 2xl:mt-8 2xl:max-w-[640px] 2xl:text-xl',
+                'mt-4 max-w-[520px] text-xs leading-relaxed text-pretty text-white/92 opacity-0 drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-all delay-150 duration-700 ease-out sm:mt-5 sm:text-base md:text-[17px] lg:mt-6 2xl:mt-8 2xl:max-w-[640px] 2xl:text-xl',
                 isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8',
               )}
             >
@@ -92,11 +95,11 @@ export function HumanitySectionSkeleton() {
   return (
     <section
       aria-hidden
-      className="relative min-h-[560px] overflow-hidden bg-[#06110b] md:min-h-[520px] lg:h-[600px] 2xl:h-[720px]"
+      className="relative min-h-[700px] overflow-hidden bg-[#06110b] sm:min-h-[730px] md:min-h-[680px] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]"
     >
       <div className="absolute inset-0 animate-pulse bg-white/10" />
       <div className="absolute inset-0 bg-linear-to-r from-black/18 via-black/8 to-transparent" />
-      <div className="relative z-10 flex min-h-[560px] items-center px-4 py-14 sm:px-6 sm:py-16 md:min-h-[520px] lg:h-[600px] lg:px-8 lg:py-20 2xl:h-[720px] 2xl:px-20 2xl:py-28">
+      <div className="relative z-10 flex min-h-[700px] items-center px-4 pt-12 pb-80 sm:min-h-[730px] sm:px-6 sm:pt-14 sm:pb-80 md:min-h-[680px] md:py-16 lg:h-full lg:min-h-0 lg:px-8 lg:py-20 2xl:px-20 2xl:py-28">
         <div className="w-full max-w-7xl 2xl:max-w-screen-2xl">
           <div className="max-w-[760px] animate-pulse 2xl:max-w-[940px]">
             <div className="h-9 w-full rounded bg-white/20 sm:h-11 md:h-14 lg:h-16 2xl:h-20" />

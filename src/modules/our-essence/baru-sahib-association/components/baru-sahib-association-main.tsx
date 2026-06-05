@@ -29,7 +29,7 @@ export function BaruSahibAssociationMain({ sections }: BaruSahibAssociationMainP
       <BaruSahibAssociationHero
         data={sections.get('hero') as BaruSahibAssociationHeroContent | undefined}
       />
-      <LazyOnView rootMargin="300px" fallback={<CinematicVideoSectionSkeleton />} minHeight="100vh">
+      <LazyOnView rootMargin="300px" fallback={<CinematicVideoSectionSkeleton />} minHeight="0px">
         <CinematicVideoSection
           data={sections.get('video') as BaruSahibAssociationVideoContent | undefined}
         />
