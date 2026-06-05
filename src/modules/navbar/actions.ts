@@ -16,6 +16,10 @@ import type { NavLink, NavSubLink, NavbarSetting } from '@prisma/client';
 const SETTING_ID = 'default';
 
 type NavLinkWithSubs = NavLink & { subLinks: NavSubLink[] };
+type VisibleNavLinkWithSubs = Pick<NavLink, 'title' | 'href'> & {
+  subLinks: Pick<NavSubLink, 'title' | 'href'>[];
+};
+type NavbarSettingForRender = Pick<NavbarSetting, 'logoUrl' | 'logoAlt'>;
 
 async function requireAdmin<T>(): Promise<ActionResponse<T> | null> {
   const session = await auth();
@@ -27,14 +31,20 @@ async function requireAdmin<T>(): Promise<ActionResponse<T> | null> {
 
 // ── Public — visible links + visible sub-links, ordered ───────
 
-export async function getVisibleNavLinks(): Promise<NavLinkWithSubs[]> {
+export async function getVisibleNavLinks(): Promise<VisibleNavLinkWithSubs[]> {
   return prisma.navLink.findMany({
     where: { isVisible: true },
     orderBy: { sortOrder: 'asc' },
-    include: {
+    select: {
+      title: true,
+      href: true,
       subLinks: {
         where: { isVisible: true },
         orderBy: { sortOrder: 'asc' },
+        select: {
+          title: true,
+          href: true,
+        },
       },
     },
   });
@@ -78,11 +88,11 @@ export async function createNavLink(input: unknown): Promise<ActionResponse<NavL
   }
 
   const created = await prisma.navLink.create({
-  data: {
-    ...parsed.data,
-    href: parsed.data.href ?? ""  
-  }
-});
+    data: {
+      ...parsed.data,
+      href: parsed.data.href ?? '',
+    },
+  });
 
   revalidatePath('/', 'layout');
   revalidatePath('/');
@@ -90,10 +100,7 @@ export async function createNavLink(input: unknown): Promise<ActionResponse<NavL
 }
 
 // Admin — update
-export async function updateNavLink(
-  id: string,
-  input: unknown,
-): Promise<ActionResponse<NavLink>> {
+export async function updateNavLink(id: string, input: unknown): Promise<ActionResponse<NavLink>> {
   const guard = await requireAdmin<NavLink>();
   if (guard) return guard;
 
@@ -214,20 +221,20 @@ export async function deleteNavSubLink(id: string): Promise<ActionResponse<NavSu
 
 // ── Navbar settings (logo + branding) ──────────────────────────
 
-// Public + admin — singleton fetch (creates the row on first call).
-export async function getNavbarSetting(): Promise<NavbarSetting> {
-  const setting = await prisma.navbarSetting.upsert({
+// Public + admin read — singleton fetch. Missing row falls back without mutating during render.
+export async function getNavbarSetting(): Promise<NavbarSettingForRender> {
+  const setting = await prisma.navbarSetting.findUnique({
     where: { id: SETTING_ID },
-    update: {},
-    create: { id: SETTING_ID },
+    select: {
+      logoUrl: true,
+      logoAlt: true,
+    },
   });
-  return setting;
+  return setting ?? { logoUrl: null, logoAlt: null };
 }
 
 // Admin — update logo / alt text
-export async function updateNavbarSetting(
-  input: unknown,
-): Promise<ActionResponse<NavbarSetting>> {
+export async function updateNavbarSetting(input: unknown): Promise<ActionResponse<NavbarSetting>> {
   const guard = await requireAdmin<NavbarSetting>();
   if (guard) return guard;
 

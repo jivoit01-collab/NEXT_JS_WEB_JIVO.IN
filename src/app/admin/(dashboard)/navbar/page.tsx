@@ -3,24 +3,26 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
-  Button,
-  Input,
-  Label,
   Table,
   TableHeader,
   TableBody,
   TableHead,
   TableRow,
   TableCell,
+} from '@/components/ui/table';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  Badge,
-} from '@/components/ui';
-import { ImageUpload, SafeImage } from '@/components/shared';
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { ImageUpload, SafeImage } from '@/components/shared/admin';
 import {
   Plus,
   Pencil,

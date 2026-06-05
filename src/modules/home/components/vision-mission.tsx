@@ -1,6 +1,6 @@
 'use client';
 
-import { SafeImage, SplitWords } from '@/components/shared';
+import { SafeImage, SplitWords } from '@/components/shared/public';
 import { visionMissionContent as defaults } from '../data/home-content';
 import type { VisionMissionContent } from '../types';
 import { motion } from 'framer-motion';

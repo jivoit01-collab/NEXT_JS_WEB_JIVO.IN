@@ -1,5 +1,4 @@
-import { unstable_noStore as noStore } from 'next/cache';
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import {
   BARU_SAHIB_ASSOCIATION_SEO_PAGE,
   BaruSahibAssociationMain,
@@ -9,13 +8,13 @@ import {
 } from '@/modules/our-essence/baru-sahib-association';
 import { getStructuredData, resolveSeo } from '@/modules/seo/utils';
 
+export const revalidate = 300;
+
 export async function generateMetadata() {
   return resolveSeo(BARU_SAHIB_ASSOCIATION_SEO_PAGE, defaultSeo);
 }
 
 export default async function BaruSahibAssociationPage() {
-  noStore();
-
   const [sections, structuredData] = await Promise.all([
     getBaruSahibAssociationSections(),
     getStructuredData(BARU_SAHIB_ASSOCIATION_SEO_PAGE, defaultSeo),

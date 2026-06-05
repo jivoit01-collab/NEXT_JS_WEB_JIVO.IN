@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AlertCircle, Loader, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageUpload } from '@/components/shared';
+import { ImageUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
 import { upsertSocialInitiativesSectionAction } from '@/modules/our-essence/social-initiatives/actions';
 import { SOCIAL_INITIATIVES_SEO_PAGE } from '@/modules/our-essence/social-initiatives/constants';

@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { containerSlow, fadeUpSlow, reducedMotion } from '@/lib/animation-variants';
 import { defaultHeroContent, fallbackImage } from '../data/defaults';
 import type { OurFairShareHeroContent } from '../types';
@@ -31,7 +31,7 @@ export function OurFairShareHeroSection({ data }: OurFairShareHeroSectionProps) 
         alt=""
         fill
         priority
-        quality={100}
+        quality={90}
         placeholder="blur"
         blurDataURL={HERO_BLUR}
         className="object-cover object-top"

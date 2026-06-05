@@ -1,5 +1,4 @@
-import { unstable_noStore as noStore } from 'next/cache';
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import {
   SOCIAL_INITIATIVES_SEO_PAGE,
   SocialInitiativesMain,
@@ -12,13 +11,13 @@ import {
 import { getSocialInitiativesSections } from '@/modules/our-essence/social-initiatives/data/queries';
 import { getStructuredData, resolveSeo } from '@/modules/seo/utils';
 
+export const revalidate = 300;
+
 export async function generateMetadata() {
   return resolveSeo(SOCIAL_INITIATIVES_SEO_PAGE, defaultSeo);
 }
 
 export default async function SocialInitiativesPage() {
-  noStore();
-
   const [sections, structuredData] = await Promise.all([
     getSocialInitiativesSections(),
     getStructuredData(SOCIAL_INITIATIVES_SEO_PAGE, defaultSeo),

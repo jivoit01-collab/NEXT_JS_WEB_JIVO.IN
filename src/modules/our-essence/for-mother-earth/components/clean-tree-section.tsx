@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { container, defaultViewport, fadeUp, reducedMotion } from '@/lib/animation-variants';
 import { defaultCleanTreeContent, fallbackImage } from '../data/defaults';
 import type { ForMotherEarthCleanTreeContent } from '../types';
@@ -33,11 +33,11 @@ export function CleanTreeSection({ data }: CleanTreeSectionProps) {
         alt=""
         fill
         loading="lazy"
-        quality={100}
+        quality={90}
         className="object-cover object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />
-      
+
       <motion.div
         variants={revealContainer}
         initial="hidden"

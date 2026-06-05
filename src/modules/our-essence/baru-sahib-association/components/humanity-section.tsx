@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { cn } from '@/lib/utils';
 import { fallbackImage, humanitySectionData } from '../content-defaults';
 import type { BaruSahibAssociationHumanityContent } from '../types';
@@ -55,7 +55,7 @@ export function HumanitySection({ data }: HumanitySectionProps) {
         alt=""
         fill
         loading="lazy"
-        quality={100}
+        quality={90}
         className="object-cover object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />

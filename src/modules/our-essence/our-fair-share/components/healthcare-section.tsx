@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { containerSlow, fadeUpSlow, reducedMotion } from '@/lib/animation-variants';
 import { defaultHealthcareContent, fallbackImage } from '../data/defaults';
 import type { OurFairShareHealthcareContent } from '../types';
@@ -41,7 +41,7 @@ export function HealthcareSection({ data }: HealthcareSectionProps) {
         alt=""
         fill
         loading="lazy"
-        quality={100}
+        quality={90}
         className="object-cover object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />

@@ -1,11 +1,13 @@
+import { cache } from 'react';
 import { prisma } from '@/lib/db';
 
-export async function getSocialInitiativesSections() {
+export const getSocialInitiativesSections = cache(async () => {
   return prisma.ourEssenceSocialInitiatives.findMany({
     where: { isActive: true },
     orderBy: { sortOrder: 'asc' },
+    select: { section: true, content: true },
   });
-}
+});
 
 export async function getAllSocialInitiativesSections() {
   return prisma.ourEssenceSocialInitiatives.findMany({

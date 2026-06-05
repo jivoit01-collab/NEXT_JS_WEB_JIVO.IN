@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { SafeImage, SplitWords } from '@/components/shared';
+import { SafeImage, SplitWords } from '@/components/shared/public';
 import type { TheStoryFounderContent } from '../types';
 import { defaultFounderContent } from '../data/defaults';
 import { containerSlow, fadeUpSlow, defaultViewport } from '@/lib/animation-variants';

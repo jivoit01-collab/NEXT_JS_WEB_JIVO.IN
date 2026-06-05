@@ -1,19 +1,8 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Playfair_Display } from 'next/font/google';
 import localFont from 'next/font/local';
-import { Toaster } from 'sonner';
-import { ThemeProvider, QueryProvider } from '@/providers';
-import { ReduxProvider } from '@/store/provider';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
-import { OfflineIndicator, BlockedToast } from '@/components/shared';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -67,20 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${inter.variable} ${playfair.variable} ${jost.variable} font-sans antialiased`}
+        className={`${playfair.variable} ${jost.variable} font-sans antialiased`}
       >
-        <ThemeProvider>
-          <ReduxProvider>
-            <QueryProvider>
-              {children}
-              <OfflineIndicator />
-              <Toaster richColors position="top-right" />
-              <Suspense>
-                <BlockedToast />
-              </Suspense>
-            </QueryProvider>
-          </ReduxProvider>
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

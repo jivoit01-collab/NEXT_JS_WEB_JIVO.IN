@@ -1,12 +1,14 @@
+import { cache } from 'react';
 import { prisma } from '@/lib/db';
 
 /** Fetch all active sections for the public page, ordered by sortOrder. */
-export async function getCoreValuesSections() {
+export const getCoreValuesSections = cache(async () => {
   return prisma.ourEssenceCoreValues.findMany({
     where: { isActive: true },
     orderBy: { sortOrder: 'asc' },
+    select: { section: true, content: true },
   });
-}
+});
 
 /** Fetch ALL sections (active + inactive) for admin. */
 export async function getAllCoreValuesSections() {

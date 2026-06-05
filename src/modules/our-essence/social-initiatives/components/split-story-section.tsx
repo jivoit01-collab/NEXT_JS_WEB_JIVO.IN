@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import {
   containerSlow,
   defaultViewport,
@@ -41,7 +41,7 @@ export function SplitStorySection({ data, fallbackData, tone = 'forest' }: Split
           alt=""
           fill
           loading="lazy"
-          quality={100}
+          quality={90}
           className="object-cover object-[50%_52%]"
           sizes={FULL_BLEED_IMAGE_SIZES}
         />

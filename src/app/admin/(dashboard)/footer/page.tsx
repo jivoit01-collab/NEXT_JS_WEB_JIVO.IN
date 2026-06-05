@@ -3,25 +3,27 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
-  Button,
-  Input,
-  Label,
-  Textarea,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  Badge,
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import {
   Table,
   TableHeader,
   TableBody,
   TableHead,
   TableRow,
   TableCell,
-} from '@/components/ui';
-import { ImageUpload } from '@/components/shared';
+} from '@/components/ui/table';
+import { ImageUpload } from '@/components/shared/admin';
 import {
   Plus,
   Pencil,

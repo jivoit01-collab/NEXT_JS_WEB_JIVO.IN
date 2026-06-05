@@ -1,5 +1,5 @@
 import { Shield } from 'lucide-react';
-import { Badge } from '@/components/ui';
+import { Badge } from '@/components/ui/badge';
 
 const certifications = ['FDA Approved', 'ISO Certified', 'Sedex Certified', 'FSSAI'];
 

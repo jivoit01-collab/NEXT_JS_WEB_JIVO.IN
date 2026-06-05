@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import {
   containerSlow,
   defaultViewport,
@@ -38,7 +38,7 @@ export function EducateEmpowerSection({ data }: EducateEmpowerSectionProps) {
           alt=""
           fill
           loading="lazy"
-          quality={100}
+          quality={90}
           className="object-cover object-center"
           sizes={FULL_BLEED_IMAGE_SIZES}
         />

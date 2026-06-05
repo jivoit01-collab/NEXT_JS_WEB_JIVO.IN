@@ -3,18 +3,18 @@
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Save, Search, Image as ImageIcon, Globe, Code2, Clipboard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
-  Button,
-  Input,
-  Label,
-  Textarea,
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from '@/components/ui';
-import { ImageUpload } from '@/components/shared';
+} from '@/components/ui/select';
+import { ImageUpload } from '@/components/shared/admin';
 import type { SeoFormInput, TwitterCard, RobotsDirective } from '../types';
 import { SeoPreview } from './SeoPreview';
 

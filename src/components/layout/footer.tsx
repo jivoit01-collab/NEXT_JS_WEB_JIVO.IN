@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { MapPin, Mail, Phone } from 'lucide-react';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { getVisibleFooter } from '@/modules/footer';
-import type { FooterColumnWithLinks } from '@/modules/footer/types';
+import type { VisibleFooterColumnWithLinks } from '@/modules/footer/types';
 
-function ColumnBody({ column }: { column: FooterColumnWithLinks }) {
+function ColumnBody({ column }: { column: VisibleFooterColumnWithLinks }) {
   return (
     <>
-      <h4 className="mb-3 text-sm font-jost-bold uppercase tracking-[0.15em] text-[#222] sm:mb-4 sm:text-base md:mb-5 md:text-lg 2xl:mb-6 2xl:text-xl">
+      <h4 className="font-jost-bold mb-3 text-sm tracking-[0.15em] text-[#222] uppercase sm:mb-4 sm:text-base md:mb-5 md:text-lg 2xl:mb-6 2xl:text-xl">
         {column.title}
       </h4>
       <ul className="space-y-2 sm:space-y-2.5 md:space-y-3 2xl:space-y-4">
@@ -22,7 +22,7 @@ function ColumnBody({ column }: { column: FooterColumnWithLinks }) {
               </span>
               <span className="relative break-words transition-colors duration-300 group-hover:text-[#111]">
                 {link.title}
-                <span className="absolute left-0 -bottom-0.5 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-0.5 left-0 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
               </span>
             </Link>
           </li>
@@ -50,8 +50,7 @@ export async function Footer() {
       : `/api/uploads/${raw}`;
 
   const year = new Date().getFullYear();
-  const copyright =
-    setting.copyrightText || `All Right Reserved © ${year}`;
+  const copyright = setting.copyrightText || `All Right Reserved © ${year}`;
 
   return (
     <footer className="bg-[#e8e8e8] text-[#333]">
@@ -86,8 +85,7 @@ export async function Footer() {
 
       {/* ── Bottom bar ─────────────────────────────── */}
       <div className="border-t border-[#ccc] bg-[#ddd]">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-4 py-5 text-center sm:gap-5 sm:px-6 sm:py-6 md:py-7 lg:flex-row lg:justify-between lg:gap-6 lg:px-8 lg:text-left xl:px-12 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-8 2xl:gap-8">
-
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-4 py-5 text-center sm:gap-5 sm:px-6 sm:py-6 md:py-7 lg:flex-row lg:justify-between lg:gap-6 lg:px-8 lg:text-left xl:px-12 2xl:max-w-screen-2xl 2xl:gap-8 2xl:px-20 2xl:py-8">
           {/* Logo + copyright */}
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3 md:gap-4 2xl:gap-5">
             <SafeImage
@@ -119,7 +117,7 @@ export async function Footer() {
                 <Mail className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110 md:h-5 md:w-5 2xl:h-6 2xl:w-6" />
                 <span className="relative break-all sm:break-normal">
                   {setting.email}
-                  <span className="absolute left-0 -bottom-0.5 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
+                  <span className="absolute -bottom-0.5 left-0 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
                 </span>
               </Link>
             )}
@@ -133,7 +131,7 @@ export async function Footer() {
                 <span className="relative whitespace-nowrap">
                   {setting.phone}
                   {setting.phoneLabel ? ` ${setting.phoneLabel}` : ''}
-                  <span className="absolute left-0 -bottom-0.5 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
+                  <span className="absolute -bottom-0.5 left-0 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
                 </span>
               </Link>
             )}

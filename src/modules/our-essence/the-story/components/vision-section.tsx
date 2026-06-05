@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { SplitWords } from '@/components/shared';
+import { SplitWords } from '@/components/shared/public';
 import type { TheStoryVisionContent } from '../types';
 import { defaultVisionContent } from '../data/defaults';
 import { container, fadeUpSlow, defaultViewport } from '@/lib/animation-variants';

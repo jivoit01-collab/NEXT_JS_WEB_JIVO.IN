@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import { container, defaultViewport, fadeUp, reducedMotion } from '@/lib/animation-variants';
 import { defaultDisasterContent, fallbackImage } from '../data/defaults';
 import type { ForMotherEarthDisasterContent } from '../types';
@@ -32,11 +32,11 @@ export function DisasterSection({ data }: DisasterSectionProps) {
         alt=""
         fill
         loading="lazy"
-        quality={100}
+        quality={90}
         className="object-cover object-center"
         sizes={FULL_BLEED_IMAGE_SIZES}
       />
-      
+
       <motion.div
         variants={revealContainer}
         initial="hidden"

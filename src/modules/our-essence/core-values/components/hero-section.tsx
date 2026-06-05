@@ -1,4 +1,4 @@
-import { SafeImage } from '@/components/shared';
+import { SafeImage } from '@/components/shared/public';
 import type { CoreValuesHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
 

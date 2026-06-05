@@ -9,7 +9,6 @@ import { useScroll } from '@/hooks';
 import { SITE_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { toSrc } from '@/components/shared/image-upload';
-import { motion, AnimatePresence } from 'framer-motion';
 
 type NavbarSubLink = {
   title: string;
@@ -78,12 +77,11 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
       className={cn(
         'fixed top-0 z-50 w-full transition-all duration-300',
         scrolled
-          ? 'bg-black/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)]'
-          : 'bg-transparent'
+          ? 'bg-black/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl'
+          : 'bg-transparent',
       )}
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:h-16 lg:px-12 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-20">
-
         {/* Logo */}
         <Link href="/" className="flex items-center" aria-label={altText}>
           {logoUrl ? (
@@ -92,7 +90,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
               alt={altText}
               width={160}
               height={56}
-              priority
+              loading="eager"
               className="h-7 w-auto object-contain lg:h-9 2xl:h-12"
             />
           ) : (
@@ -116,7 +114,6 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                 onMouseEnter={() => hasSubLinks && openDropdown(key)}
                 onMouseLeave={closeDropdown}
               >
-
                 {/* MAIN LINK (Disabled navigation - acts as dropdown trigger) */}
                 {hasSubLinks ? (
                   <button
@@ -131,7 +128,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                     <ChevronDown
                       className={cn(
                         'h-3.5 w-3.5 transition-transform duration-300 2xl:h-4 2xl:w-4',
-                        isActive && 'rotate-180'
+                        isActive && 'rotate-180',
                       )}
                     />
                   </button>
@@ -152,36 +149,32 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                 )}
 
                 {/* DROPDOWN */}
-                <AnimatePresence>
-                  {hasSubLinks && isActive && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 4 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-full -left-6 z-50 pt-4 2xl:pt-5"
-                    >
-                      <div className="min-w-[220px] rounded-2xl border border-white/40 bg-[#c0c0c0] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.25)] 2xl:min-w-65 2xl:p-3">
-
-                        {link.subLinks?.map((sub) => (
-                          <Link
-                            key={sub.href + sub.title}
-                            href={sub.href}
-                            onClick={() => setActiveDropdown(null)}
-                            className="group block px-4 py-2.5 text-sm font-semibold text-black 2xl:px-5 2xl:py-3 2xl:text-base"
-                          >
-                            <span className="relative inline-block">
-                              {sub.title}
-                              <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-black transition-all duration-300 group-hover:w-full" />
-                            </span>
-                          </Link>
-                        ))}
-
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
+                {hasSubLinks && (
+                  <div
+                    className={cn(
+                      'absolute top-full -left-6 z-50 pt-4 transition-all duration-200 ease-out 2xl:pt-5',
+                      isActive
+                        ? 'pointer-events-auto translate-y-0 opacity-100'
+                        : 'pointer-events-none translate-y-2 opacity-0',
+                    )}
+                  >
+                    <div className="min-w-[220px] rounded-2xl border border-white/40 bg-[#c0c0c0] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.25)] 2xl:min-w-65 2xl:p-3">
+                      {link.subLinks?.map((sub) => (
+                        <Link
+                          key={sub.href + sub.title}
+                          href={sub.href}
+                          onClick={() => setActiveDropdown(null)}
+                          className="group block px-4 py-2.5 text-sm font-semibold text-black 2xl:px-5 2xl:py-3 2xl:text-base"
+                        >
+                          <span className="relative inline-block">
+                            {sub.title}
+                            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-black transition-all duration-300 group-hover:w-full" />
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -189,6 +182,8 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
 
         {/* Mobile Toggle */}
         <button
+          type="button"
+          aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
           onClick={() => setMobileOpen((v) => !v)}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md md:hidden"
         >
@@ -197,90 +192,85 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="border-t border-white/20 bg-zinc-950 backdrop-blur-3xl md:hidden"
-          >
-            <nav className="flex flex-col px-4 py-6">
+      <div
+        className={cn(
+          'grid border-t border-white/20 bg-zinc-950 backdrop-blur-3xl transition-[grid-template-rows,opacity] duration-300 ease-out md:hidden',
+          mobileOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        )}
+      >
+        <div className="overflow-hidden">
+          <nav className="flex flex-col px-4 py-6">
+            {links.map((link) => {
+              const key = link.title;
+              const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
+              const isExpanded = expandedMobile === key;
 
-              {links.map((link) => {
-                const key = link.title;
-                const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
-                const isExpanded = expandedMobile === key;
-
-                return (
-                  <div key={key}>
-                    <div className="flex items-center">
-                      {hasSubLinks ? (
-                        <button
-                          onClick={() => toggleMobileAccordion(key)}
-                          className="flex w-full cursor-default items-center justify-between px-4 py-3 text-lg font-semibold text-white"
-                        >
-                          <span>{link.title}</span>
-                          <ChevronDown
-                            className={cn(
-                              'h-5 w-5 transition-transform duration-300',
-                              isExpanded && 'rotate-180'
-                            )}
-                          />
-                        </button>
-                      ) : link.href === '/' ? (
-                        <Link
-                          href="/"
-                          onClick={() => setMobileOpen(false)}
-                          className="group flex-1 px-4 py-3 text-lg font-semibold text-white"
-                        >
-                          <span className="relative inline-block">
-                            {link.title}
-                            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
-                          </span>
-                        </Link>
-                      ) : (
-                        <span className="flex-1 px-4 py-3 text-lg font-semibold text-white">
-                          {link.title}
-                        </span>
-                      )}
-                    </div>
-
-                    {hasSubLinks && (
-                      <div
-                        className={cn(
-                          'grid transition-all duration-300',
-                          isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                        )}
+              return (
+                <div key={key}>
+                  <div className="flex items-center">
+                    {hasSubLinks ? (
+                      <button
+                        onClick={() => toggleMobileAccordion(key)}
+                        className="flex w-full cursor-default items-center justify-between px-4 py-3 text-lg font-semibold text-white"
                       >
-                        <div className="overflow-hidden">
-                          <div className="ml-4 rounded-xl bg-[#c0c0c0]">
-                            {link.subLinks?.map((sub) => (
-                              <Link
-                                key={sub.href + sub.title}
-                                href={sub.href}
-                                onClick={() => setMobileOpen(false)}
-                                className="group block px-6 py-3 text-sm font-bold text-black border-b border-black/5 last:border-0"
-                              >
-                                <span className="relative inline-block">
-                                  {sub.title}
-                                  <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-black transition-all duration-300 group-hover:w-full" />
-                                </span>
-                              </Link>
-                            ))}
-                          </div>
+                        <span>{link.title}</span>
+                        <ChevronDown
+                          className={cn(
+                            'h-5 w-5 transition-transform duration-300',
+                            isExpanded && 'rotate-180',
+                          )}
+                        />
+                      </button>
+                    ) : link.href === '/' ? (
+                      <Link
+                        href="/"
+                        onClick={() => setMobileOpen(false)}
+                        className="group flex-1 px-4 py-3 text-lg font-semibold text-white"
+                      >
+                        <span className="relative inline-block">
+                          {link.title}
+                          <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                        </span>
+                      </Link>
+                    ) : (
+                      <span className="flex-1 px-4 py-3 text-lg font-semibold text-white">
+                        {link.title}
+                      </span>
+                    )}
+                  </div>
+
+                  {hasSubLinks && (
+                    <div
+                      className={cn(
+                        'grid transition-all duration-300',
+                        isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                      )}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="ml-4 rounded-xl bg-[#c0c0c0]">
+                          {link.subLinks?.map((sub) => (
+                            <Link
+                              key={sub.href + sub.title}
+                              href={sub.href}
+                              onClick={() => setMobileOpen(false)}
+                              className="group block border-b border-black/5 px-6 py-3 text-sm font-bold text-black last:border-0"
+                            >
+                              <span className="relative inline-block">
+                                {sub.title}
+                                <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-black transition-all duration-300 group-hover:w-full" />
+                              </span>
+                            </Link>
+                          ))}
                         </div>
                       </div>
-                    )}
-
-                  </div>
-                );
-              })}
-
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
     </header>
   );
 }

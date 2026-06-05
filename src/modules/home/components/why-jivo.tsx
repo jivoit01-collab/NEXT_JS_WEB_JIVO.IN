@@ -5,7 +5,7 @@ import {
   whyJivoContent as textDefaults,
   valuePillars as pillarDefaults,
 } from '../data/home-content';
-import { SafeImage, SplitWords } from '@/components/shared';
+import { SafeImage, SplitWords } from '@/components/shared/public';
 import { container, containerSlow, fadeUpSlow, scaleIn, defaultViewport } from '@/lib/animation-variants';
 import type { WhyJivoContent } from '../types';
 

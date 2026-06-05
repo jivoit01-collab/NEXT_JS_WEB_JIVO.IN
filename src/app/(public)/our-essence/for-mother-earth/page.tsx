@@ -1,5 +1,4 @@
-import { unstable_noStore as noStore } from 'next/cache';
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import {
   FOR_MOTHER_EARTH_SEO_PAGE,
   ForMotherEarthMain,
@@ -8,13 +7,13 @@ import { defaultSections, defaultSeo } from '@/modules/our-essence/for-mother-ea
 import { getForMotherEarthSections } from '@/modules/our-essence/for-mother-earth/data/queries';
 import { getStructuredData, resolveSeo } from '@/modules/seo/utils';
 
+export const revalidate = 300;
+
 export async function generateMetadata() {
   return resolveSeo(FOR_MOTHER_EARTH_SEO_PAGE, defaultSeo);
 }
 
 export default async function ForMotherEarthPage() {
-  noStore();
-
   const [sections, structuredData] = await Promise.all([
     getForMotherEarthSections(),
     getStructuredData(FOR_MOTHER_EARTH_SEO_PAGE, defaultSeo),

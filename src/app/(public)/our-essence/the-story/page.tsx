@@ -1,4 +1,4 @@
-import { JsonLd } from '@/components/shared';
+import { JsonLd } from '@/components/shared/public';
 import { TheStoryMain } from '@/modules/our-essence/the-story';
 import { getTheStorySections } from '@/modules/our-essence/the-story/data/queries';
 import { defaultSeo } from '@/modules/our-essence/the-story/data/defaults';
