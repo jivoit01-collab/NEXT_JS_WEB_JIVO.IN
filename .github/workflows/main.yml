@@ -19,25 +19,4 @@ jobs:
           port: ${{ secrets.PORT }}
 
           script: |
-            cd /d C:/LiveProjects/NEXT_JS_WEB_JIVO.IN
-
-            echo "Pulling latest code..."
-            git pull origin main
-
-            echo "Installing dependencies..."
-            npm install
-
-            echo "Syncing database schema..."
-            npm run db:push
-
-            echo "Seeding missing CMS defaults..."
-            npm run db:seed
-
-            echo "Building application..."
-            npm run build
-
-            echo "Restarting service..."
-            net stop "jivo-web"
-            net start "jivo-web"
-
-            echo "Deployment completed."
+            powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; Set-Location 'C:\LiveProjects\NEXT_JS_WEB_JIVO.IN'; Write-Host 'Pulling latest code...'; git checkout main; git pull --ff-only origin main; Write-Host 'Installing dependencies...'; npm.cmd install; Write-Host 'Syncing database schema...'; npm.cmd run db:push; Write-Host 'Seeding missing CMS defaults...'; npm.cmd run db:seed; Write-Host 'Building application...'; npm.cmd run build; Write-Host 'Restarting service...'; Restart-Service -Name 'jivo-web' -Force; Write-Host 'Deployment completed.'"
