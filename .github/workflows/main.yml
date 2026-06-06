@@ -33,8 +33,4 @@ jobs:
             net stop "jivo-web" || echo Service was not running.
             net start "jivo-web"
 
-<<<<<<< HEAD
             echo Deployment completed.
-=======
-            echo Deployment completed.
->>>>>>> 24964bbd1d41740cd37ef55d93ea3338c4374018
