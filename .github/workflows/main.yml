@@ -17,6 +17,20 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
-
           script: |
-            powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; Set-Location 'C:\LiveProjects\NEXT_JS_WEB_JIVO.IN'; Write-Host 'Pulling latest code...'; git checkout main; git pull --ff-only origin main; Write-Host 'Installing dependencies...'; npm.cmd install; Write-Host 'Syncing database schema...'; npm.cmd run db:push; Write-Host 'Seeding missing CMS defaults...'; npm.cmd run db:seed; Write-Host 'Building application...'; npm.cmd run build; Write-Host 'Restarting service...'; $svc = Get-Service -Name 'jivo-web' -ErrorAction Stop; if ($svc.Status -eq 'Running') { net stop 'jivo-web'; if ($LASTEXITCODE -ne 0) { throw 'Failed to stop jivo-web service' } }; net start 'jivo-web'; if ($LASTEXITCODE -ne 0) { throw 'Failed to start jivo-web service' }; Start-Sleep -Seconds 15; $response = Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:3001/our-essence/the-jivo-capital' -TimeoutSec 30; if ($response.StatusCode -ne 200) { throw 'Health check failed' }; Write-Host 'Deployment completed and health check passed.'"
+            cd /d C:\LiveProjects\NEXT_JS_WEB_JIVO.IN
+
+            echo Pulling latest code...
+            git pull origin main
+
+            echo Installing dependencies...
+            call npm install
+
+            echo Building application...
+            call npm run build
+
+            echo Restarting service...
+            net stop "jivo-web" || echo Service was not running.
+            net start "jivo-web"
+
+            echo Deployment completed.
