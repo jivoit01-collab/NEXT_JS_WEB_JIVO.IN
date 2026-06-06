@@ -4,33 +4,141 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: jivo-website-production
+  cancel-in-progress: true
 
 jobs:
   deploy:
+    name: Deploy to production
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Deploy to Windows Server
+      - name: Deploy to Windows server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
+          command_timeout: 30m
+          script_stop: false
           script: |
-            cd /d C:\LiveProjects\NEXT_JS_WEB_JIVO.IN
+            @echo off
+            setlocal
+            set "PROJECT_ROOT=C:\LiveProjects"
+            set "PROJECT_NAME=NEXT_JS_WEB_JIVO.IN"
+            set "PROJECT_PATH=%PROJECT_ROOT%\%PROJECT_NAME%"
+            set "RELEASE_PATH=%PROJECT_ROOT%\%PROJECT_NAME%.deploying"
+            set "BACKUP_PATH=%PROJECT_ROOT%\%PROJECT_NAME%.rollback"
+            set "FAILED_PATH=%PROJECT_ROOT%\%PROJECT_NAME%.failed"
+            set "DEPLOY_BRANCH=main"
+            set "TARGET_COMMIT=${{ github.sha }}"
+            set "SERVICE_NAME=jivo-web"
+            set "LIVE_MOVED=0"
+            set "NEW_MOVED=0"
 
-            echo Pulling latest code...
-            git pull origin main
+            cd /d "%PROJECT_PATH%"
+            if errorlevel 1 exit /b 1
 
-            echo Installing dependencies...
-            call npm install
+            for /f "delims=" %%U in ('git config --get remote.origin.url') do set "ORIGIN_URL=%%U"
+            if "%ORIGIN_URL%"=="" exit /b 1
 
-            echo Building application...
+            echo Preparing isolated release folder...
+            if exist "%RELEASE_PATH%" rmdir /s /q "%RELEASE_PATH%"
+            if errorlevel 1 exit /b 1
+
+            git clone --branch "%DEPLOY_BRANCH%" --single-branch "%ORIGIN_URL%" "%RELEASE_PATH%"
+            if errorlevel 1 exit /b 1
+
+            cd /d "%RELEASE_PATH%"
+            if errorlevel 1 exit /b 1
+
+            git checkout "%TARGET_COMMIT%"
+            if errorlevel 1 exit /b 1
+
+            echo Copying server environment files...
+            for %%F in (.env .env.local .env.production .env.production.local) do (
+              if exist "%PROJECT_PATH%\%%F" copy /Y "%PROJECT_PATH%\%%F" "%RELEASE_PATH%\%%F" >nul
+            )
+
+            if not exist package-lock.json (
+              echo package-lock.json is required for npm ci.
+              exit /b 1
+            )
+
+            echo Installing dependencies in isolated release folder...
+            call npm ci
+            if errorlevel 1 exit /b 1
+
+            echo Building new release...
             call npm run build
+            if errorlevel 1 exit /b 1
 
-            echo Restarting service...
-            net stop "jivo-web" || echo Service was not running.
-            net start "jivo-web"
+            if exist "%PROJECT_PATH%\uploads" (
+              echo Copying existing uploads into new release...
+              robocopy "%PROJECT_PATH%\uploads" "%RELEASE_PATH%\uploads" /E /NFL /NDL /NJH /NJS /NP
+              if errorlevel 8 exit /b 1
+            )
 
-            echo Deployment completed.
+            echo New release built successfully. Swapping live folder now...
+            cd /d "%PROJECT_ROOT%"
+            if errorlevel 1 exit /b 1
+
+            if exist "%BACKUP_PATH%" rmdir /s /q "%BACKUP_PATH%"
+            if errorlevel 1 exit /b 1
+
+            if exist "%FAILED_PATH%" rmdir /s /q "%FAILED_PATH%"
+            if errorlevel 1 exit /b 1
+
+            echo Stopping service only after the new build is ready...
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $svc = Get-Service -Name '%SERVICE_NAME%' -ErrorAction Stop; if ($svc.Status -ne 'Stopped') { Stop-Service -Name '%SERVICE_NAME%' -Force -ErrorAction Stop; $svc.WaitForStatus('Stopped', '00:00:30') }"
+            if errorlevel 1 (
+              echo Could not stop service. Live version was not changed.
+              exit /b 1
+            )
+
+            ren "%PROJECT_NAME%" "%PROJECT_NAME%.rollback"
+            if errorlevel 1 goto rollback
+            set "LIVE_MOVED=1"
+
+            ren "%PROJECT_NAME%.deploying" "%PROJECT_NAME%"
+            if errorlevel 1 goto rollback
+            set "NEW_MOVED=1"
+
+            echo Starting new release...
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $svc = Get-Service -Name '%SERVICE_NAME%' -ErrorAction Stop; if ($svc.Status -ne 'Running') { Start-Service -Name '%SERVICE_NAME%' -ErrorAction Stop; $svc.WaitForStatus('Running', '00:00:30') }"
+            if errorlevel 1 goto rollback
+
+            echo Deployment completed with new release.
+            if exist "%BACKUP_PATH%" rmdir /s /q "%BACKUP_PATH%"
+            exit /b 0
+
+            :rollback
+            echo New release failed after service swap started. Restoring old release...
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "$svc = Get-Service -Name '%SERVICE_NAME%' -ErrorAction SilentlyContinue; if ($svc -and $svc.Status -ne 'Stopped') { Stop-Service -Name '%SERVICE_NAME%' -Force -ErrorAction SilentlyContinue }"
+
+            cd /d "%PROJECT_ROOT%"
+            if errorlevel 1 exit /b 1
+
+            if "%NEW_MOVED%"=="1" (
+              if exist "%FAILED_PATH%" rmdir /s /q "%FAILED_PATH%"
+              ren "%PROJECT_NAME%" "%PROJECT_NAME%.failed"
+            )
+
+            if "%LIVE_MOVED%"=="1" (
+              ren "%PROJECT_NAME%.rollback" "%PROJECT_NAME%"
+              if errorlevel 1 exit /b 1
+            ) else (
+              echo Live folder was not moved. Keeping current version in place.
+            )
+
+            echo Starting old release...
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; $svc = Get-Service -Name '%SERVICE_NAME%' -ErrorAction Stop; if ($svc.Status -ne 'Running') { Start-Service -Name '%SERVICE_NAME%' -ErrorAction Stop; $svc.WaitForStatus('Running', '00:00:30') }"
+            if errorlevel 1 exit /b 1
+
+            echo Old release restored. Deployment failed, but service is running on the previous version.
+            exit /b 1
