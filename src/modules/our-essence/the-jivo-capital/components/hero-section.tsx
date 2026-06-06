@@ -1,4 +1,8 @@
+'use client';
+
+import { motion, useReducedMotion } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
+import { containerSlow, fadeUpSlow, reducedMotion } from '@/lib/animation-variants';
 import { defaultHeroContent, fallbackImage } from '../data/defaults';
 import type { TheJivoCapitalHeroContent } from '../types';
 
@@ -16,6 +20,8 @@ function imageWithFallback(image: string) {
 
 export function TheJivoCapitalHero({ data }: TheJivoCapitalHeroProps) {
   const { title, description, image } = data ?? defaultHeroContent;
+  const prefersReducedMotion = useReducedMotion();
+  const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[#75643f]">
@@ -30,18 +36,29 @@ export function TheJivoCapitalHero({ data }: TheJivoCapitalHeroProps) {
         className="object-cover object-center"
         sizes={HERO_IMAGE_SIZES}
       />
-      <div className="absolute inset-0 bg-linear-to-b from-black/18 via-black/2 to-black/28" />
-      <div className="absolute inset-0 bg-linear-to-r from-black/8 via-transparent to-black/10" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/4 via-transparent to-black/10" />
+      <div className="absolute inset-0 bg-linear-to-r from-black/3 via-transparent to-black/5" />
 
       <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl items-end justify-center px-5 pt-28 pb-[clamp(3.5rem,8vh,6rem)] text-center sm:px-8 lg:justify-end lg:text-right 2xl:max-w-screen-2xl 2xl:px-20">
-        <div className="w-full max-w-[760px] text-white lg:mr-[2vw]">
-          <h1 className="font-jost-extrabold text-[clamp(2.1rem,4vw,4.8rem)] leading-[0.98] text-balance uppercase drop-shadow-[0_4px_18px_rgba(0,0,0,0.44)]">
+        <motion.div
+          variants={containerSlow}
+          initial="hidden"
+          animate="show"
+          className="w-full max-w-[760px] text-white lg:mr-[2vw]"
+        >
+          <motion.h1
+            variants={revealItem}
+            className="font-jost-extrabold text-[clamp(2.1rem,4vw,4.8rem)] leading-[0.98] text-balance uppercase drop-shadow-[0_4px_18px_rgba(0,0,0,0.5)]"
+          >
             {title}
-          </h1>
-          <p className="mx-auto mt-4 max-w-[760px] text-[clamp(0.86rem,1.06vw,1.18rem)] leading-relaxed text-pretty text-white/92 drop-shadow-[0_3px_14px_rgba(0,0,0,0.44)] lg:ml-auto">
+          </motion.h1>
+          <motion.p
+            variants={revealItem}
+            className="mx-auto mt-4 max-w-[760px] text-[clamp(0.86rem,1.06vw,1.18rem)] leading-relaxed text-pretty text-white/94 drop-shadow-[0_3px_14px_rgba(0,0,0,0.52)] lg:ml-auto"
+          >
             {description}
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </div>
     </section>
   );
