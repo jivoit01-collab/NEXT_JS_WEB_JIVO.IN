@@ -181,9 +181,7 @@ export default function AdminNavbarManager() {
     }
   };
 
-  const logoDirty =
-    (setting?.logoUrl ?? '') !== logoUrl ||
-    (setting?.logoAlt ?? '') !== logoAlt;
+  const logoDirty = (setting?.logoUrl ?? '') !== logoUrl || (setting?.logoAlt ?? '') !== logoAlt;
 
   // ── NavLink handlers ──────────────────────────────────────
 
@@ -289,9 +287,7 @@ export default function AdminNavbarManager() {
     setError('');
     try {
       const isEdit = !!editingSubLink;
-      const url = isEdit
-        ? `/api/navbar/sublinks/${editingSubLink.id}`
-        : '/api/navbar/sublinks';
+      const url = isEdit ? `/api/navbar/sublinks/${editingSubLink.id}` : '/api/navbar/sublinks';
       const method = isEdit ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -370,7 +366,7 @@ export default function AdminNavbarManager() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -380,13 +376,13 @@ export default function AdminNavbarManager() {
       {/* ── Header ──────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">
+          <div className="font-jost-bold text-primary mb-1 flex items-center gap-2 text-xs tracking-widest uppercase">
             <Navigation className="h-3.5 w-3.5" /> Navbar
           </div>
-          <h1 className="text-2xl font-jost-bold tracking-tight md:text-3xl 2xl:text-4xl">
+          <h1 className="font-jost-bold text-2xl tracking-tight md:text-3xl 2xl:text-4xl">
             Navbar Management
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground 2xl:text-base">
+          <p className="text-muted-foreground mt-1 text-sm 2xl:text-base">
             Manage top navigation links and their hover dropdown sub-links.
           </p>
         </div>
@@ -400,13 +396,9 @@ export default function AdminNavbarManager() {
 
       {/* ── Stats row ──────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard icon={<Link2 className="h-4 w-4" />} label="Total links" value={links.length} />
         <StatCard
-          icon={<Link2 className="h-4 w-4" />}
-          label="Total links"
-          value={links.length}
-        />
-        <StatCard
-          icon={<CheckCircle2 className="h-4 w-4 text-primary" />}
+          icon={<CheckCircle2 className="text-primary h-4 w-4" />}
           label="Visible"
           value={visibleCount}
           tone="primary"
@@ -424,23 +416,22 @@ export default function AdminNavbarManager() {
       </div>
 
       {/* ── Brand / Logo card ──────────────── */}
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
+      <div className="bg-card rounded-xl border p-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <span className="bg-primary/10 text-primary inline-flex h-8 w-8 items-center justify-center rounded-md">
             <ImageIcon className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-base font-jost-bold">Brand logo</h2>
-            <p className="text-xs text-muted-foreground">
-              Shown on the left of the public navbar. Recommended: transparent
-              PNG/WebP, ~120x40 px.
+            <h2 className="font-jost-bold text-base">Brand logo</h2>
+            <p className="text-muted-foreground text-xs">
+              Shown on the left of the public navbar. Recommended: transparent PNG/WebP, ~120x40 px.
             </p>
           </div>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-[auto,1fr]">
           <div>
-            <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">
+            <Label className="text-muted-foreground mb-2 block text-xs tracking-wide uppercase">
               Logo image
             </Label>
             <ImageUpload
@@ -452,7 +443,10 @@ export default function AdminNavbarManager() {
 
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="logo-alt" className="text-xs uppercase tracking-wide text-muted-foreground">
+              <Label
+                htmlFor="logo-alt"
+                className="text-muted-foreground text-xs tracking-wide uppercase"
+              >
                 Alt text (accessibility)
               </Label>
               <Input
@@ -462,13 +456,13 @@ export default function AdminNavbarManager() {
                 onChange={(e) => setLogoAlt(e.target.value)}
                 maxLength={200}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Defaults to the site name when left empty.
               </p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              <Label className="text-muted-foreground text-xs tracking-wide uppercase">
                 Live preview
               </Label>
               <div className="flex h-16 items-center justify-between rounded-md bg-gradient-to-br from-[#3d4f2f] to-[#2a3a1f] px-4">
@@ -481,7 +475,7 @@ export default function AdminNavbarManager() {
                     className="h-7 w-auto object-contain"
                   />
                 ) : (
-                  <span className="font-playfair text-lg font-jost-bold text-white">
+                  <span className="font-jost-bold font-sans text-lg text-white">
                     {logoAlt || 'Jivo Wellness'}
                   </span>
                 )}
@@ -490,16 +484,8 @@ export default function AdminNavbarManager() {
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-1">
-              {logoDirty && (
-                <span className="text-xs text-muted-foreground">
-                  Unsaved changes
-                </span>
-              )}
-              <Button
-                onClick={saveLogo}
-                disabled={!logoDirty || savingLogo}
-                className="gap-2"
-              >
+              {logoDirty && <span className="text-muted-foreground text-xs">Unsaved changes</span>}
+              <Button onClick={saveLogo} disabled={!logoDirty || savingLogo} className="gap-2">
                 {savingLogo ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -515,11 +501,11 @@ export default function AdminNavbarManager() {
       {/* ══════════════════════════════════════════════ */}
       {/* NAV LINKS — TAB ROW (like footer columns)     */}
       {/* ══════════════════════════════════════════════ */}
-      <div className="rounded-xl border bg-card shadow-sm">
+      <div className="bg-card rounded-xl border shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
           <div>
-            <h2 className="text-sm font-jost-bold">Nav Links &amp; Sub-Links</h2>
-            <p className="text-xs text-muted-foreground">
+            <h2 className="font-jost-bold text-sm">Nav Links &amp; Sub-Links</h2>
+            <p className="text-muted-foreground text-xs">
               Click a tab to manage that link&apos;s dropdown sub-links.
             </p>
           </div>
@@ -529,9 +515,9 @@ export default function AdminNavbarManager() {
         </div>
 
         {/* Tab strip */}
-        <div className="scrollbar-hide flex gap-2 overflow-x-auto border-b bg-muted/20 px-5 py-3">
+        <div className="scrollbar-hide bg-muted/20 flex gap-2 overflow-x-auto border-b px-5 py-3">
           {links.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No links yet.</p>
+            <p className="text-muted-foreground text-xs">No links yet.</p>
           ) : (
             links.map((link) => {
               const isActive = link.id === activeNavLinkId;
@@ -557,9 +543,7 @@ export default function AdminNavbarManager() {
                   <span className="font-jost-medium">{link.title}</span>
                   <span
                     className={`rounded-full px-1.5 text-[10px] ${
-                      isActive
-                        ? 'bg-primary-foreground/20'
-                        : 'bg-muted text-muted-foreground'
+                      isActive ? 'bg-primary-foreground/20' : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {link.subLinks.length}
@@ -576,16 +560,14 @@ export default function AdminNavbarManager() {
             {/* Active link header */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <h3 className="text-base font-jost-bold">{activeNavLink.title}</h3>
+                <h3 className="font-jost-bold text-base">{activeNavLink.title}</h3>
                 <Badge
                   variant={activeNavLink.isVisible ? 'default' : 'secondary'}
-                  className={
-                    activeNavLink.isVisible ? 'bg-primary/15 text-primary' : ''
-                  }
+                  className={activeNavLink.isVisible ? 'bg-primary/15 text-primary' : ''}
                 >
                   {activeNavLink.isVisible ? 'Active' : 'Hidden'}
                 </Badge>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   Order #{activeNavLink.sortOrder}
                 </span>
               </div>
@@ -625,7 +607,7 @@ export default function AdminNavbarManager() {
                       title: activeNavLink.title,
                     })
                   }
-                  className="shrink-0 gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive shrink-0 gap-2"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Delete link
                 </Button>
@@ -652,7 +634,7 @@ export default function AdminNavbarManager() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="py-12 text-center text-sm text-muted-foreground"
+                        className="text-muted-foreground py-12 text-center text-sm"
                       >
                         No sub-links yet. Click <b>Add Sub-Link</b> to create one.
                       </TableCell>
@@ -660,13 +642,11 @@ export default function AdminNavbarManager() {
                   ) : (
                     activeNavLink.subLinks.map((sub) => (
                       <TableRow key={sub.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
+                        <TableCell className="text-muted-foreground font-mono text-xs">
                           #{sub.sortOrder}
                         </TableCell>
                         <TableCell className="font-jost-medium">{sub.title}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {sub.href}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">{sub.href}</TableCell>
                         <TableCell>
                           <button
                             onClick={() => toggleSubLinkVisibility(sub)}
@@ -739,7 +719,7 @@ export default function AdminNavbarManager() {
             </div>
           </div>
         ) : (
-          <div className="p-12 text-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground p-12 text-center text-sm">
             {links.length === 0
               ? 'Add your first nav link above to get started.'
               : 'Select a link tab to manage its sub-links.'}
@@ -754,7 +734,7 @@ export default function AdminNavbarManager() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <span className="bg-primary/10 text-primary inline-flex h-8 w-8 items-center justify-center rounded-md">
                 {editingLink ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
               </span>
               {editingLink ? 'Edit nav link' : 'Create nav link'}
@@ -771,12 +751,10 @@ export default function AdminNavbarManager() {
                 onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })}
                 maxLength={60}
               />
-              <p className="text-xs text-muted-foreground">
-                The label shown in the navbar.
-              </p>
+              <p className="text-muted-foreground text-xs">The label shown in the navbar.</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 rounded-lg border bg-muted/20 p-3">
+            <div className="bg-muted/20 grid grid-cols-2 gap-4 rounded-lg border p-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">Sort order</Label>
                 <Input
@@ -810,7 +788,7 @@ export default function AdminNavbarManager() {
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-md border px-3 py-2 text-sm">
                 <X className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -846,7 +824,7 @@ export default function AdminNavbarManager() {
             <div className="space-y-2">
               <Label>Parent link</Label>
               <select
-                className="h-9 w-full cursor-pointer rounded-md border border-border bg-background px-3 text-sm"
+                className="border-border bg-background h-9 w-full cursor-pointer rounded-md border px-3 text-sm"
                 value={subLinkForm.navLinkId}
                 onChange={(e) => setSubLinkForm({ ...subLinkForm, navLinkId: e.target.value })}
               >
@@ -903,7 +881,7 @@ export default function AdminNavbarManager() {
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-md border px-3 py-2 text-sm">
                 <X className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -931,7 +909,7 @@ export default function AdminNavbarManager() {
               Delete {deleteTarget?.type === 'link' ? 'nav link' : 'sub-link'}?
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Are you sure you want to delete <b>{deleteTarget?.title}</b>?
             {deleteTarget?.type === 'link' &&
               ' This will also delete all sub-links inside this nav link.'}{' '}
@@ -966,12 +944,12 @@ function StatCard({
   tone?: 'default' | 'primary';
 }) {
   return (
-    <div className="rounded-xl border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
+    <div className="bg-card rounded-xl border px-4 py-3 shadow-sm">
+      <div className="font-jost-medium text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase">
         {icon} {label}
       </div>
       <div
-        className={`mt-1 text-2xl font-jost-bold 2xl:text-3xl ${
+        className={`font-jost-bold mt-1 text-2xl 2xl:text-3xl ${
           tone === 'primary' ? 'text-primary' : 'text-foreground'
         }`}
       >

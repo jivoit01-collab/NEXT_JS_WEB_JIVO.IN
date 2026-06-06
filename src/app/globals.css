@@ -72,11 +72,11 @@ button,
   --color-jivo-blue: var(--jivo-blue);
   --color-jivo-maroon: var(--jivo-maroon);
 
-  /* ── Fonts ──
+  /* Fonts
      Jost is the brand default. Overrides Tailwind's default --font-sans
      so `font-sans` (and the body's base font) resolve to Jost. */
   --font-sans: var(--font-jost), system-ui, sans-serif;
-  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-serif: var(--font-jost), system-ui, sans-serif;
 }
 
 /* ================================================

@@ -1,16 +1,9 @@
 import type { Metadata } from 'next';
-import { Playfair_Display } from 'next/font/google';
 import localFont from 'next/font/local';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
 import './globals.css';
 
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-playfair',
-});
-
-// Jost — primary brand font (loaded from /public/fonts)
+// Jost - primary brand font (loaded only from /public/fonts)
 const jost = localFont({
   src: [
     { path: '../../public/fonts/Jost-Light.ttf', weight: '300', style: 'normal' },
@@ -54,10 +47,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        suppressHydrationWarning
-        className={`${playfair.variable} ${jost.variable} font-sans antialiased`}
-      >
+      <body suppressHydrationWarning className={`${jost.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

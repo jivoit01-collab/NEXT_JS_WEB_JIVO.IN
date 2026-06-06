@@ -8,11 +8,9 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, className }: PageHeaderProps) {
   return (
-    <div className={cn('pb-8 pt-6', className)}>
-      <h1 className="font-serif text-3xl font-jost-bold tracking-tight md:text-4xl">{title}</h1>
-      {description && (
-        <p className="mt-2 text-lg text-muted-foreground">{description}</p>
-      )}
+    <div className={cn('pt-6 pb-8', className)}>
+      <h1 className="font-jost-bold font-sans text-3xl tracking-tight md:text-4xl">{title}</h1>
+      {description && <p className="text-muted-foreground mt-2 text-lg">{description}</p>}
     </div>
   );
 }
