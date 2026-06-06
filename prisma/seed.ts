@@ -63,7 +63,6 @@ async function main() {
       emailVerified: new Date(),
     },
   });
-  console.log(`✓ Admin user: ${admin.email}`);
 
   // ── Home page sections ─────────────────────────────────────
   const homeSections = [
@@ -279,7 +278,7 @@ async function main() {
   // ── Navbar links ───────────────────────────────────────────
   const navLinks = [
     { title: 'Our Essence', href: '/our-essence', sortOrder: 0 },
-    { title: 'Our Products', href: '/our-products', sortOrder: 1 },
+    { title: 'Our Products', href: '/products', sortOrder: 1 },
     { title: 'Jivo Media', href: '/media', sortOrder: 2 },
     { title: 'Community', href: '/community', sortOrder: 3 },
   ];
