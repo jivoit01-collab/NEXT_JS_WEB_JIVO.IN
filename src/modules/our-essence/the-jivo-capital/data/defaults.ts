@@ -5,6 +5,8 @@ import {
   THE_JIVO_CAPITAL_ROUTE,
 } from '../constants';
 import type {
+  TheJivoCapitalFarmToBottleContent,
+  TheJivoCapitalFreshLockContent,
   TheJivoCapitalHeroContent,
   TheJivoCapitalPlantContent,
   TheJivoCapitalSectionKey,
@@ -33,22 +35,42 @@ export const defaultWaterPlantContent: TheJivoCapitalPlantContent = {
   align: 'right',
 };
 
+export const defaultFarmToBottleContent: TheJivoCapitalFarmToBottleContent = {
+  title: 'World’s First: The "Farm-to-Bottle" Facility',
+  description:
+    "We are the world's first and only facility to fully integrate grass production from farm to bottle. This model gives us unparalleled control over quality, providing 100% traceability from the soil in our own farms directly to the final, sealed product because our factory is on-site, our harvest is processed within minutes, not days. This allows us to capture the grass at its absolute peak, locking in maximum freshness and nutrients.",
+  image: '',
+};
+
+export const defaultFreshLockContent: TheJivoCapitalFreshLockContent = {
+  title: 'Our Patented "Fresh-Lock" Technology',
+  description:
+    'The challenge with wheatgrass is that its most potent nutrients degrade almost immediately after juicing.\nTo solve this, we developed a proprietary, patented “Fresh-Lock” technology.\nThis novel, cold-press stabilization process is the crucial next step. It preserves the heat-sensitive enzymes, vital chlorophyll, and delicate phytonutrients that are destroyed by traditional heat pasteurization or dehydration.\nThis combination of our "Farm-to-Bottle" system and our patented technology is what makes our product unique. It allows us to deliver the full nutritional potency of a live, fresh-squeezed juice in a convenient, ready-to-consume format.',
+  backgroundImage: '',
+};
+
 export const defaultSections = {
   hero: defaultHeroContent,
   oilPlant: defaultOilPlantContent,
   waterPlant: defaultWaterPlantContent,
+  farmToBottle: defaultFarmToBottleContent,
+  freshLock: defaultFreshLockContent,
 } as const;
 
 export const sectionTitles: Record<TheJivoCapitalSectionKey, string> = {
   hero: 'Hero Section',
   oilPlant: '100 BPM Rotary Net Weight Oil Plant',
   waterPlant: '300 BPM Natural Mineral Water Combi Plant',
+  farmToBottle: 'Farm-to-Bottle Facility',
+  freshLock: 'Fresh-Lock Technology',
 };
 
 export const sectionSortOrder: Record<TheJivoCapitalSectionKey, number> = {
   hero: 0,
   oilPlant: 1,
   waterPlant: 2,
+  farmToBottle: 3,
+  freshLock: 4,
 };
 
 export const sectionKeys = Object.keys(defaultSections) as TheJivoCapitalSectionKey[];

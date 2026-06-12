@@ -11,13 +11,34 @@ export interface TheJivoCapitalPlantContent {
   align: 'left' | 'right';
 }
 
-export type TheJivoCapitalSectionKey = 'hero' | 'oilPlant' | 'waterPlant';
+export interface TheJivoCapitalFarmToBottleContent {
+  title: string;
+  description: string;
+  image: string;
+}
+
+export interface TheJivoCapitalFreshLockContent {
+  title: string;
+  description: string;
+  backgroundImage: string;
+}
+
+export type TheJivoCapitalSectionKey =
+  | 'hero'
+  | 'oilPlant'
+  | 'waterPlant'
+  | 'farmToBottle'
+  | 'freshLock';
 
 export interface TheJivoCapitalSectionRow {
   id: string;
   section: TheJivoCapitalSectionKey;
   title: string | null;
-  content: TheJivoCapitalHeroContent | TheJivoCapitalPlantContent;
+  content:
+    | TheJivoCapitalHeroContent
+    | TheJivoCapitalPlantContent
+    | TheJivoCapitalFarmToBottleContent
+    | TheJivoCapitalFreshLockContent;
   sortOrder: number;
   isActive: boolean;
 }

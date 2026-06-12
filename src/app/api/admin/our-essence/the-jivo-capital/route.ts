@@ -7,6 +7,8 @@ import {
 } from '@/modules/our-essence/the-jivo-capital/data/defaults';
 import { getAllTheJivoCapitalSections } from '@/modules/our-essence/the-jivo-capital/data/queries';
 import type {
+  TheJivoCapitalFarmToBottleContent,
+  TheJivoCapitalFreshLockContent,
   TheJivoCapitalHeroContent,
   TheJivoCapitalPlantContent,
   TheJivoCapitalSectionKey,
@@ -18,6 +20,8 @@ type TheJivoCapitalApiData = {
   hero: TheJivoCapitalHeroContent;
   oilPlant: TheJivoCapitalPlantContent;
   waterPlant: TheJivoCapitalPlantContent;
+  farmToBottle: TheJivoCapitalFarmToBottleContent;
+  freshLock: TheJivoCapitalFreshLockContent;
 };
 
 function isSectionKey(value: string): value is TheJivoCapitalSectionKey {
@@ -41,6 +45,18 @@ function mergeSection(
       ...(content as Partial<TheJivoCapitalPlantContent>),
     };
   }
+  if (section === 'farmToBottle') {
+    data.farmToBottle = {
+      ...data.farmToBottle,
+      ...(content as Partial<TheJivoCapitalFarmToBottleContent>),
+    };
+  }
+  if (section === 'freshLock') {
+    data.freshLock = {
+      ...data.freshLock,
+      ...(content as Partial<TheJivoCapitalFreshLockContent>),
+    };
+  }
 }
 
 export async function GET() {
@@ -53,6 +69,8 @@ export async function GET() {
       hero: { ...defaultSections.hero },
       oilPlant: { ...defaultSections.oilPlant },
       waterPlant: { ...defaultSections.waterPlant },
+      farmToBottle: { ...defaultSections.farmToBottle },
+      freshLock: { ...defaultSections.freshLock },
     };
 
     for (const section of sections) {

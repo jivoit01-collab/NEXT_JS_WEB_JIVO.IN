@@ -6,14 +6,21 @@ import { AlertCircle, Loader, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
-import { upsertTheJivoCapitalSectionAction } from '@/modules/our-essence/the-jivo-capital/actions';
+import {
+  getTheJivoCapitalPageSectionsAction,
+  upsertTheJivoCapitalSectionAction,
+} from '@/modules/our-essence/the-jivo-capital/actions';
 import { THE_JIVO_CAPITAL_SEO_PAGE } from '@/modules/our-essence/the-jivo-capital/constants';
 import {
+  defaultFarmToBottleContent,
+  defaultFreshLockContent,
   defaultHeroContent,
   defaultOilPlantContent,
   defaultWaterPlantContent,
 } from '@/modules/our-essence/the-jivo-capital/data/defaults';
 import type {
+  TheJivoCapitalFarmToBottleContent,
+  TheJivoCapitalFreshLockContent,
   TheJivoCapitalHeroContent,
   TheJivoCapitalPlantContent,
   TheJivoCapitalSectionKey,
@@ -25,18 +32,10 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'hero', label: 'Hero' },
   { key: 'oilPlant', label: 'Oil Plant' },
   { key: 'waterPlant', label: 'Water Plant' },
+  { key: 'farmToBottle', label: 'Farm-to-Bottle' },
+  { key: 'freshLock', label: 'Fresh-Lock' },
   { key: 'seo', label: 'SEO' },
 ];
-
-interface ApiResponse {
-  success: boolean;
-  data?: {
-    hero?: Partial<TheJivoCapitalHeroContent>;
-    oilPlant?: Partial<TheJivoCapitalPlantContent>;
-    waterPlant?: Partial<TheJivoCapitalPlantContent>;
-  };
-  error?: string;
-}
 
 export default function TheJivoCapitalManager() {
   const searchParams = useSearchParams();
@@ -52,25 +51,47 @@ export default function TheJivoCapitalManager() {
     useState<TheJivoCapitalPlantContent>(defaultOilPlantContent);
   const [waterPlant, setWaterPlant] =
     useState<TheJivoCapitalPlantContent>(defaultWaterPlantContent);
+  const [farmToBottle, setFarmToBottle] =
+    useState<TheJivoCapitalFarmToBottleContent>(defaultFarmToBottleContent);
+  const [freshLock, setFreshLock] =
+    useState<TheJivoCapitalFreshLockContent>(defaultFreshLockContent);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/admin/our-essence/the-jivo-capital', {
-          cache: 'no-store',
-        });
-        const json = (await res.json()) as ApiResponse;
+        const sections = await getTheJivoCapitalPageSectionsAction();
 
-        if (!json.success) {
-          throw new Error(json.error ?? 'Failed to load page data');
-        }
-
-        if (json.data?.hero) setHero({ ...defaultHeroContent, ...json.data.hero });
-        if (json.data?.oilPlant) {
-          setOilPlant({ ...defaultOilPlantContent, ...json.data.oilPlant });
-        }
-        if (json.data?.waterPlant) {
-          setWaterPlant({ ...defaultWaterPlantContent, ...json.data.waterPlant });
+        for (const section of sections) {
+          if (section.section === 'hero') {
+            setHero({
+              ...defaultHeroContent,
+              ...(section.content as Partial<TheJivoCapitalHeroContent>),
+            });
+          }
+          if (section.section === 'oilPlant') {
+            setOilPlant({
+              ...defaultOilPlantContent,
+              ...(section.content as Partial<TheJivoCapitalPlantContent>),
+            });
+          }
+          if (section.section === 'waterPlant') {
+            setWaterPlant({
+              ...defaultWaterPlantContent,
+              ...(section.content as Partial<TheJivoCapitalPlantContent>),
+            });
+          }
+          if (section.section === 'farmToBottle') {
+            setFarmToBottle({
+              ...defaultFarmToBottleContent,
+              ...(section.content as Partial<TheJivoCapitalFarmToBottleContent>),
+            });
+          }
+          if (section.section === 'freshLock') {
+            setFreshLock({
+              ...defaultFreshLockContent,
+              ...(section.content as Partial<TheJivoCapitalFreshLockContent>),
+            });
+          }
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to load page data';
@@ -86,7 +107,7 @@ export default function TheJivoCapitalManager() {
     if (activeTab === 'seo') return;
 
     setLoading(true);
-    const contentMap = { hero, oilPlant, waterPlant };
+    const contentMap = { hero, oilPlant, waterPlant, farmToBottle, freshLock };
     const result = await upsertTheJivoCapitalSectionAction(activeTab, contentMap[activeTab]);
 
     if (result.success) {
@@ -95,7 +116,7 @@ export default function TheJivoCapitalManager() {
       toast.error(result.error || 'Failed to save section');
     }
     setLoading(false);
-  }, [activeTab, hero, oilPlant, waterPlant]);
+  }, [activeTab, farmToBottle, freshLock, hero, oilPlant, waterPlant]);
 
   if (loadingData) {
     return (
@@ -113,7 +134,7 @@ export default function TheJivoCapitalManager() {
             The Jivo Capital - Page Manager
           </h1>
           <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-            Manage the plant hero, oil packaging section, water combi plant section, and SEO.
+            Manage the plant hero, production sections, wheatgrass technology sections, and SEO.
           </p>
         </div>
         {activeTab !== 'seo' && <SaveButton loading={loading} onClick={handleSave} />}
@@ -181,6 +202,14 @@ export default function TheJivoCapitalManager() {
             />
           )}
 
+          {activeTab === 'farmToBottle' && (
+            <FarmToBottleEditor value={farmToBottle} onChange={setFarmToBottle} />
+          )}
+
+          {activeTab === 'freshLock' && (
+            <FreshLockEditor value={freshLock} onChange={setFreshLock} />
+          )}
+
           {activeTab === 'seo' && <SeoTabPanel page={THE_JIVO_CAPITAL_SEO_PAGE} />}
         </div>
       </div>
@@ -226,6 +255,64 @@ function PlantEditor({
         </select>
       </label>
       <ImageField label={imageLabel} value={value.image} onChange={(image) => onChange({ ...value, image })} />
+    </div>
+  );
+}
+
+function FarmToBottleEditor({
+  value,
+  onChange,
+}: {
+  value: TheJivoCapitalFarmToBottleContent;
+  onChange: (value: TheJivoCapitalFarmToBottleContent) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <TextField
+        label="Heading"
+        value={value.title}
+        onChange={(title) => onChange({ ...value, title })}
+      />
+      <TextAreaField
+        label="Paragraph"
+        rows={7}
+        value={value.description}
+        onChange={(description) => onChange({ ...value, description })}
+      />
+      <ImageField
+        label="Farm-to-Bottle Background Image"
+        value={value.image}
+        onChange={(image) => onChange({ ...value, image })}
+      />
+    </div>
+  );
+}
+
+function FreshLockEditor({
+  value,
+  onChange,
+}: {
+  value: TheJivoCapitalFreshLockContent;
+  onChange: (value: TheJivoCapitalFreshLockContent) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <TextField
+        label="Heading"
+        value={value.title}
+        onChange={(title) => onChange({ ...value, title })}
+      />
+      <TextAreaField
+        label="Paragraph"
+        rows={9}
+        value={value.description}
+        onChange={(description) => onChange({ ...value, description })}
+      />
+      <ImageField
+        label="Fresh-Lock Background Image"
+        value={value.backgroundImage}
+        onChange={(backgroundImage) => onChange({ ...value, backgroundImage })}
+      />
     </div>
   );
 }

@@ -12,19 +12,23 @@
 | Prisma model | `OurEssenceTheJivoCapital` |
 | Module | `src/modules/our-essence/the-jivo-capital/` |
 
-The page is a CMS-managed Our Essence page with three image-led sections based on the supplied screenshots:
+The page is a CMS-managed Our Essence page with five image-led sections based on the supplied screenshots:
 
 - Hero: aerial factory/field story
 - Oil plant: 100 BPM rotary net weight oil packaging line
 - Water plant: 300 BPM natural mineral water combi plant
+- Farm-to-Bottle: integrated grass production from farm to sealed bottle
+- Fresh-Lock: patented wheatgrass stabilization technology over one full background image
 
 ## UI Structure
 
-The public page renders three full-bleed sections:
+The public page renders five full-bleed sections:
 
 - `TheJivoCapitalHero`: above-the-fold section with priority image, title, and mission paragraph.
 - `PlantSection` for `oilPlant`: left/bottom text alignment matching the oil bottling screenshot.
 - `PlantSection` for `waterPlant`: right/top text alignment matching the water plant screenshot.
+- `FarmToBottleSection`: top-left editorial copy over a cinematic farm/facility background.
+- `FreshLockSection`: left copy over one CMS-managed full background image.
 
 Images are CMS-editable. If no image has been uploaded, the shared `SafeImage` placeholder is used.
 
@@ -56,6 +60,16 @@ Returns merged defaults plus active CMS rows.
       "description": "Engineered for purity and performance...",
       "image": "",
       "align": "right"
+    },
+    "farmToBottle": {
+      "title": "World’s First: The \"Farm-to-Bottle\" Facility",
+      "description": "We are the world's first and only facility...",
+      "image": ""
+    },
+    "freshLock": {
+      "title": "Our Patented \"Fresh-Lock\" Technology",
+      "description": "The challenge with wheatgrass is that its most potent nutrients...",
+      "backgroundImage": ""
     }
   }
 }
@@ -88,11 +102,13 @@ Valid section values:
 - `hero`
 - `oilPlant`
 - `waterPlant`
+- `farmToBottle`
+- `freshLock`
 
 ## Workflow
 
 1. Admin opens `/admin/our-essence-the-jivo-capital`.
-2. Admin edits one tab: Hero, Oil Plant, Water Plant, or SEO.
+2. Admin edits one tab: Hero, Oil Plant, Water Plant, Farm-to-Bottle, Fresh-Lock, or SEO.
 3. Section content is validated with Zod.
 4. Server action upserts the row in `OurEssenceTheJivoCapital`.
 5. The public page, admin page, SEO manager, and sitemap are revalidated.
@@ -133,6 +149,8 @@ Recommended upload dimensions:
 
 - Hero: at least `1920x1080`
 - Plant sections: at least `1920x900`
+- Farm-to-Bottle background: at least `1920x1080`
+- Fresh-Lock background: at least `1920x1080`
 - Use WebP or optimized JPEG where possible
 
 ## SEO Documentation
@@ -184,12 +202,11 @@ Content-Type: application/json
 
 ```json
 {
-  "section": "waterPlant",
+  "section": "freshLock",
   "content": {
-    "title": "India's First 300 BPM Combi Plant for Natural Mineral Water",
-    "description": "Updated water plant description.",
-    "image": "water-plant.webp",
-    "align": "right"
+    "title": "Our Patented \"Fresh-Lock\" Technology",
+    "description": "Updated Fresh-Lock technology description.",
+    "backgroundImage": "fresh-lock-bg.webp"
   }
 }
 ```
@@ -223,3 +240,4 @@ Content-Type: application/json
 - Added Prisma model `OurEssenceTheJivoCapital`.
 - Added default SEO and sitemap entry.
 - Added safe seed defaults.
+- Added Farm-to-Bottle and Fresh-Lock CMS sections to the Jivo Capital page.

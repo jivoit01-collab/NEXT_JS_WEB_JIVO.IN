@@ -26,6 +26,8 @@ export default async function TheJivoCapitalPage() {
     ['hero', defaultSections.hero],
     ['oilPlant', defaultSections.oilPlant],
     ['waterPlant', defaultSections.waterPlant],
+    ['farmToBottle', defaultSections.farmToBottle],
+    ['freshLock', defaultSections.freshLock],
   ]);
 
   for (const section of sections) {
