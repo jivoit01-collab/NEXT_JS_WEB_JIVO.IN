@@ -13,7 +13,7 @@ interface HumanitySectionProps {
   data?: BaruSahibAssociationHumanityContent;
 }
 
-const FULL_BLEED_IMAGE_SIZES = '(max-width: 767px) 120vw, 100vw';
+const HUMANITY_IMAGE_SIZES = '100vw';
 
 function imageWithFallback(image: string) {
   return image || baruSahibAssociationHumanityFallbackImage;
@@ -51,21 +51,24 @@ export function HumanitySection({ data }: HumanitySectionProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[700px] overflow-hidden bg-[#06110b] sm:min-h-[730px] md:min-h-[680px] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]"
+      className="relative min-h-[700px] overflow-hidden bg-[#06110b] sm:min-h-[730px] md:min-h-[75svh] lg:min-h-[90svh] xl:min-h-screen"
     >
-      <SafeImage
-        src={imageWithFallback(image)}
-        alt=""
-        fill
-        loading="lazy"
-        quality={90}
-        className="object-cover object-[72%_96%] sm:object-[68%_92%] md:object-center"
-        sizes={FULL_BLEED_IMAGE_SIZES}
-      />
-      {/* Keep the overlay simple so the browser spends pixels on the image, not repaint-heavy effects. */}
-      <div className="absolute inset-0 bg-linear-to-r from-black/18 via-black/8 to-transparent" />
+      <div className="absolute inset-0">
+        <SafeImage
+          src={imageWithFallback(image)}
+          alt=""
+          fill
+          loading="lazy"
+          quality={100}
+          unoptimized
+          className="object-cover object-[72%_96%] sm:object-[68%_92%] md:object-center"
+          sizes={HUMANITY_IMAGE_SIZES}
+        />
+      </div>
+      <div className="absolute inset-0 bg-linear-to-r from-black/58 via-black/26 to-black/6" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/28 to-transparent" />
 
-      <div className="relative z-10 flex min-h-[700px] px-4 pt-12 pb-80 sm:min-h-[730px] sm:px-6 sm:pt-14 sm:pb-80 md:min-h-[680px] md:py-16 lg:h-full lg:min-h-0 lg:px-8 lg:py-20 2xl:px-20 2xl:py-28">
+      <div className="relative z-10 flex min-h-[700px] px-4 pt-12 pb-80 sm:min-h-[730px] sm:px-6 sm:pt-14 sm:pb-80 md:min-h-[75svh] md:py-16 lg:min-h-[90svh] lg:items-start lg:px-8 lg:pt-28 lg:pb-20 xl:min-h-screen xl:pt-32 2xl:px-20 2xl:pt-40 2xl:pb-28">
         <div className="w-full max-w-7xl 2xl:max-w-screen-2xl">
           <div className="max-w-[760px] min-w-0 2xl:max-w-[940px]">
             <h2
@@ -95,11 +98,12 @@ export function HumanitySectionSkeleton() {
   return (
     <section
       aria-hidden
-      className="relative min-h-[700px] overflow-hidden bg-[#06110b] sm:min-h-[730px] md:min-h-[680px] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]"
+      className="relative min-h-[700px] overflow-hidden bg-[#06110b] sm:min-h-[730px] md:min-h-[75svh] lg:min-h-[90svh] xl:min-h-screen"
     >
       <div className="absolute inset-0 animate-pulse bg-white/10" />
-      <div className="absolute inset-0 bg-linear-to-r from-black/18 via-black/8 to-transparent" />
-      <div className="relative z-10 flex min-h-[700px] items-center px-4 pt-12 pb-80 sm:min-h-[730px] sm:px-6 sm:pt-14 sm:pb-80 md:min-h-[680px] md:py-16 lg:h-full lg:min-h-0 lg:px-8 lg:py-20 2xl:px-20 2xl:py-28">
+      <div className="absolute inset-0 bg-linear-to-r from-black/58 via-black/26 to-black/6" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/28 to-transparent" />
+      <div className="relative z-10 flex min-h-[700px] items-center px-4 pt-12 pb-80 sm:min-h-[730px] sm:px-6 sm:pt-14 sm:pb-80 md:min-h-[75svh] md:py-16 lg:min-h-[90svh] lg:items-start lg:px-8 lg:pt-28 lg:pb-20 xl:min-h-screen xl:pt-32 2xl:px-20 2xl:pt-40 2xl:pb-28">
         <div className="w-full max-w-7xl 2xl:max-w-screen-2xl">
           <div className="max-w-[760px] animate-pulse 2xl:max-w-[940px]">
             <div className="h-9 w-full rounded bg-white/20 sm:h-11 md:h-14 lg:h-16 2xl:h-20" />

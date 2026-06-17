@@ -242,8 +242,8 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full overflow-hidden bg-black"
-      style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '760px' }}
+      className="relative w-full overflow-hidden bg-black lg:min-h-screen"
+      style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '1000px' }}
     >
       <div
         className={cn(
@@ -251,14 +251,13 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
           hasSectionRevealed || !hasVideo ? 'translate-y-0 opacity-100' : 'opacity-0',
         )}
       >
-
         <div className="relative overflow-hidden border-y border-white/10 bg-black shadow-[0_-18px_60px_rgba(0,0,0,0.28),0_28px_90px_rgba(0,0,0,0.42)]">
           <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,rgba(0,0,0,0.03)_28%,rgba(0,0,0,0.02)_62%,rgba(0,0,0,0.3)_100%)]" />
           <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
 
-          <div className="relative h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
+          <div className="relative h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-screen lg:min-h-screen">
             {hasVideo && hasMountedVideo ? (
               <>
                 <video
@@ -450,7 +449,7 @@ export function CinematicVideoSectionSkeleton() {
         <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
-        <div className="h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
+        <div className="h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-screen lg:min-h-screen">
           <VideoFrameSkeleton />
         </div>
       </div>

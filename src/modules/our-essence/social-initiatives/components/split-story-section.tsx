@@ -32,7 +32,7 @@ export function SplitStorySection({ data, fallbackData, tone = 'forest' }: Split
 
   return (
     <section
-      className="relative min-h-[620px] overflow-hidden bg-[#070b08] sm:min-h-[580px] md:min-h-[540px] lg:h-[clamp(560px,46vw,760px)] lg:min-h-[560px]"
+      className="relative overflow-hidden bg-[#070b08] lg:h-[clamp(560px,46vw,760px)] lg:min-h-[560px]"
       style={{ contentVisibility: 'auto', contain: 'layout paint' }}
     >
       <div className="absolute inset-0 overflow-hidden">
@@ -42,7 +42,7 @@ export function SplitStorySection({ data, fallbackData, tone = 'forest' }: Split
           fill
           loading="lazy"
           quality={90}
-          className="object-cover object-[50%_52%]"
+          className="object-cover object-[52%_50%] sm:object-[54%_50%] md:object-[50%_52%]"
           sizes={FULL_BLEED_IMAGE_SIZES}
         />
       </div>
@@ -59,7 +59,7 @@ export function SplitStorySection({ data, fallbackData, tone = 'forest' }: Split
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="relative z-10 mx-auto flex min-h-[620px] max-w-none items-center px-[6vw] py-18 sm:min-h-[580px] sm:px-[6.5vw] sm:py-20 md:min-h-[540px] lg:h-full lg:min-h-0 lg:px-[7vw] lg:py-0 2xl:px-[8vw]"
+        className="relative z-10 mx-auto flex max-w-none items-center px-[6vw] py-12 sm:px-[6.5vw] sm:py-14 md:py-16 lg:h-full lg:px-[7vw] lg:py-0 2xl:px-[8vw]"
       >
         <div className="grid w-full items-start gap-10 sm:gap-12 md:grid-cols-2 md:items-center md:gap-[8vw] xl:gap-[10vw]">
           <StoryBlock
@@ -107,11 +107,11 @@ export function SplitStorySectionSkeleton() {
   return (
     <section
       aria-hidden
-      className="relative min-h-[620px] animate-pulse overflow-hidden bg-[#070b08] sm:min-h-[580px] md:min-h-[540px] lg:h-[clamp(560px,46vw,760px)] lg:min-h-[560px]"
+      className="relative animate-pulse overflow-hidden bg-[#070b08] lg:h-[clamp(560px,46vw,760px)] lg:min-h-[560px]"
     >
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-linear-to-b from-black/28 via-black/34 to-black/42" />
-      <div className="relative z-10 mx-auto flex min-h-[620px] max-w-none items-center px-[6vw] py-18 sm:min-h-[580px] sm:px-[6.5vw] sm:py-20 md:min-h-[540px] lg:h-full lg:min-h-0 lg:px-[7vw] lg:py-0 2xl:px-[8vw]">
+      <div className="relative z-10 mx-auto flex max-w-none items-center px-[6vw] py-12 sm:px-[6.5vw] sm:py-14 md:py-16 lg:h-full lg:px-[7vw] lg:py-0 2xl:px-[8vw]">
         <div className="grid w-full items-start gap-10 sm:gap-12 md:grid-cols-2 md:items-center md:gap-[8vw] xl:gap-[10vw]">
           {[0, 1].map((item) => (
             <div

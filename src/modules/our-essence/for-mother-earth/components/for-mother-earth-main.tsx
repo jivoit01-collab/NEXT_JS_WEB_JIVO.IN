@@ -29,12 +29,12 @@ export function ForMotherEarthMain({ sections }: ForMotherEarthMainProps) {
       <MotherEarthHeroSection
         data={sections.get('hero') as ForMotherEarthHeroContent | undefined}
       />
-      <LazyOnView rootMargin="300px" fallback={<CleanTreeSectionSkeleton />} minHeight="560px">
+      <LazyOnView rootMargin="700px" fallback={<CleanTreeSectionSkeleton />} minHeight="0px">
         <CleanTreeSection
           data={sections.get('cleanTree') as ForMotherEarthCleanTreeContent | undefined}
         />
       </LazyOnView>
-      <LazyOnView rootMargin="300px" fallback={<DisasterSectionSkeleton />} minHeight="560px">
+      <LazyOnView rootMargin="700px" fallback={<DisasterSectionSkeleton />} minHeight="0px">
         <DisasterSection
           data={sections.get('disaster') as ForMotherEarthDisasterContent | undefined}
         />
