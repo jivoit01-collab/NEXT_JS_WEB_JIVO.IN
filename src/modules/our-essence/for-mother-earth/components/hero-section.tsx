@@ -1,14 +1,35 @@
 ﻿'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { cubicBezier, motion, useReducedMotion, type Variants } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
-import { containerSlow, fadeUpSlow, reducedMotion } from '@/lib/animation-variants';
+import { reducedMotion } from '@/lib/animation-variants';
 import { defaultHeroContent, fallbackImage } from '../data/defaults';
 import type { ForMotherEarthHeroContent } from '../types';
 
 const HERO_BLUR =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDE2IDkiIHhtbG5zPSJodHRwOi8vd3d3Lnczb3JnIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iOSIgZmlsbD0iIzI5MzgyZCIvPjwvc3ZnPg==';
-const HERO_IMAGE_SIZES = '(max-width: 768px) 130vw, (max-width: 1536px) 100vw, 1920px';
+const HERO_IMAGE_SIZES = '100vw';
+const TEXT_EASE = cubicBezier(0.22, 1, 0.36, 1);
+const textContainer: Variants = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.14,
+      delayChildren: 0.08,
+    },
+  },
+};
+const textFadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.78,
+      ease: TEXT_EASE,
+    },
+  },
+};
 
 interface MotherEarthHeroSectionProps {
   data?: ForMotherEarthHeroContent;
@@ -20,12 +41,12 @@ function imageWithFallback(image: string) {
 
 export function MotherEarthHeroSection({ data }: MotherEarthHeroSectionProps) {
   const prefersReducedMotion = useReducedMotion();
-  const revealContainer = prefersReducedMotion ? reducedMotion : containerSlow;
-  const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
+  const revealContainer = prefersReducedMotion ? reducedMotion : textContainer;
+  const revealItem = prefersReducedMotion ? reducedMotion : textFadeUp;
   const { title, quote, quoteAuthor, description, image } = data ?? defaultHeroContent;
 
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-[#1c261f]">
+    <section className="relative min-h-[56svh] overflow-hidden bg-[#1c261f] sm:min-h-[60svh] md:min-h-[68svh] lg:min-h-[100svh]">
       <SafeImage
         src={imageWithFallback(image)}
         alt=""
@@ -34,36 +55,36 @@ export function MotherEarthHeroSection({ data }: MotherEarthHeroSectionProps) {
         quality={90}
         placeholder="blur"
         blurDataURL={HERO_BLUR}
-        className="object-cover object-bottom motion-safe:animate-[socialHeroZoom_16s_ease-out_forwards]"
+        className="object-cover object-[50%_48%] sm:object-[50%_46%] md:object-center"
         sizes={HERO_IMAGE_SIZES}
       />
-      <div className="absolute inset-0 bg-linear-to-b from-black/16 via-black/5 to-black/24" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_43%,rgba(255,246,205,0.3),transparent_30%),radial-gradient(circle_at_24%_22%,rgba(143,217,232,0.2),transparent_28%),radial-gradient(circle_at_76%_20%,rgba(144,202,228,0.18),transparent_30%)]" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/8 via-transparent to-black/14" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_43%,rgba(255,246,205,0.18),transparent_32%),radial-gradient(circle_at_24%_22%,rgba(143,217,232,0.1),transparent_30%),radial-gradient(circle_at_76%_20%,rgba(144,202,228,0.1),transparent_32%)]" />
 
       <motion.div
         variants={revealContainer}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.3 }}
-        className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl items-start justify-center px-5 pt-[clamp(6.5rem,15vh,9.25rem)] pb-16 text-center sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20"
+        className="relative z-10 mx-auto flex min-h-[56svh] w-full max-w-7xl items-center justify-center px-5 pt-20 pb-8 text-center sm:min-h-[60svh] sm:px-6 sm:pt-24 sm:pb-10 md:min-h-[68svh] lg:min-h-[100svh] lg:items-start lg:px-8 lg:pt-[clamp(6.5rem,15vh,9.25rem)] lg:pb-16 2xl:max-w-screen-2xl 2xl:px-20"
       >
         <div className="mx-auto w-full max-w-[920px] text-white 2xl:max-w-[1100px]">
           <motion.h1
             variants={revealItem}
-            className="font-jost-medium text-[clamp(2rem,4.05vw,5rem)] leading-[1.04] text-balance uppercase drop-shadow-[0_4px_18px_rgba(0,0,0,0.3)]"
+            className="font-jost-medium text-[clamp(1.85rem,8vw,3rem)] leading-[1.04] text-balance uppercase drop-shadow-[0_3px_12px_rgba(0,0,0,0.24)] sm:text-[clamp(2.25rem,7vw,3.75rem)] lg:text-[clamp(2rem,4.05vw,5rem)]"
           >
             {title}
           </motion.h1>
           <motion.div
             variants={revealItem}
-            className="mx-auto mt-5 max-w-[780px] text-[clamp(0.72rem,1.02vw,1.05rem)] leading-relaxed text-white/90 2xl:max-w-[880px]"
+            className="mx-auto mt-4 max-w-[720px] text-[clamp(0.68rem,2.5vw,0.88rem)] leading-relaxed text-white/95 sm:mt-5 sm:text-[clamp(0.78rem,1.8vw,1rem)] lg:max-w-[780px] lg:text-[clamp(0.72rem,1.02vw,1.05rem)] 2xl:max-w-[880px]"
           >
             <p className="font-jost-medium tracking-[0.08em] italic">{quote}</p>
             <p className="font-jost-medium mt-1">- {quoteAuthor}</p>
           </motion.div>
           <motion.p
             variants={revealItem}
-            className="mx-auto mt-6 max-w-[780px] text-[clamp(0.86rem,1.12vw,1.25rem)] leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.32)] 2xl:max-w-[920px]"
+            className="mx-auto mt-4 max-w-[720px] text-[clamp(0.82rem,3vw,1rem)] leading-relaxed text-pretty text-white/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.24)] sm:mt-5 lg:mt-6 lg:max-w-[780px] lg:text-[clamp(0.86rem,1.12vw,1.25rem)] 2xl:max-w-[920px]"
           >
             {description}
           </motion.p>
@@ -77,11 +98,11 @@ export function MotherEarthHeroSectionSkeleton() {
   return (
     <section
       aria-hidden
-      className="relative min-h-screen animate-pulse overflow-hidden bg-[#1c261f]"
+      className="relative min-h-[56svh] animate-pulse overflow-hidden bg-[#1c261f] sm:min-h-[60svh] md:min-h-[68svh] lg:min-h-[100svh]"
     >
       <div className="absolute inset-0 bg-white/10" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_43%,rgba(255,246,205,0.22),transparent_30%)]" />
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-start justify-center px-5 pt-[clamp(6.5rem,15vh,9.25rem)] pb-16 text-center sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_43%,rgba(255,246,205,0.16),transparent_32%)]" />
+      <div className="relative z-10 mx-auto flex min-h-[56svh] w-full max-w-7xl items-center justify-center px-5 pt-20 pb-8 text-center sm:min-h-[60svh] sm:px-6 sm:pt-24 sm:pb-10 md:min-h-[68svh] lg:min-h-[100svh] lg:items-start lg:px-8 lg:pt-[clamp(6.5rem,15vh,9.25rem)] lg:pb-16 2xl:max-w-screen-2xl 2xl:px-20">
         <div className="mx-auto w-full max-w-[920px] 2xl:max-w-[1100px]">
           <div className="mx-auto h-20 w-full max-w-3xl rounded bg-white/25 sm:h-28 2xl:h-36" />
           <div className="mx-auto mt-5 h-4 w-2/3 rounded bg-white/18" />

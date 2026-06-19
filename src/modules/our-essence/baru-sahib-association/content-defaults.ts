@@ -6,7 +6,7 @@ import type {
 } from './types';
 
 export const baruSahibAssociationHeroFallbackImage =
-  '1778930212982-chatgpt-image-may-8-2026-03-53-04-pm.webp';
+  '1780639908366-chatgpt-image-may-8-2026-03-53-04-pm-1.webp';
 export const baruSahibAssociationHumanityFallbackImage = '1779436577668-img-5268-jpg-1.webp';
 
 export const heroSectionData: BaruSahibAssociationHeroContent = {

@@ -34,7 +34,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
   } = data ?? defaultHeroContent;
 
   return (
-    <section className="relative min-h-[100svh] overflow-hidden">
+    <section className="relative overflow-hidden bg-[#060b08] lg:min-h-[100svh]">
       <div className="absolute inset-0">
         <SafeImage
           src={imageWithFallback(image)}
@@ -45,7 +45,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
           fetchPriority="high"
           placeholder="blur"
           blurDataURL={HERO_BLUR}
-          className="object-cover object-center"
+          className="object-cover object-[56%_center] sm:object-[54%_center] md:object-center"
           sizes={HERO_IMAGE_SIZES}
         />
       </div>
@@ -55,9 +55,9 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.22 }}
-        className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1500px] flex-col px-5 pt-28 pb-10 text-center sm:px-6 sm:pt-32 sm:pb-12 md:px-8 lg:px-[6vw] lg:pt-28 lg:pb-[clamp(3.5rem,7vh,6.5rem)] 2xl:px-[5vw]"
+        className="relative z-10 mx-auto grid w-full max-w-[1500px] grid-rows-[minmax(0,1fr)_auto] px-5 pt-20 pb-8 text-center sm:px-6 sm:pt-24 sm:pb-9 md:px-8 md:pt-28 md:pb-10 lg:min-h-[100svh] lg:px-[6vw] lg:pt-28 lg:pb-[clamp(3.5rem,7vh,6.5rem)] 2xl:px-[5vw]"
       >
-        <div className="flex min-h-[42svh] flex-1 items-center justify-center lg:min-h-0 lg:justify-end lg:pb-[clamp(1.5rem,5vh,4.5rem)]">
+        <div className="flex min-h-0 items-center justify-center lg:justify-end lg:pb-[clamp(1.5rem,5vh,4.5rem)]">
           <motion.div
             variants={revealItem}
             className={`w-full max-w-[620px] px-5 py-6 text-white sm:px-7 sm:py-7 lg:max-w-[640px] lg:px-8 lg:py-8 2xl:max-w-[700px]`}
@@ -71,7 +71,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
           </motion.div>
         </div>
 
-        <div className="mx-auto grid w-full max-w-[1120px] items-stretch gap-5 sm:gap-6 md:grid-cols-2 lg:max-w-[1180px] lg:gap-8 2xl:max-w-[1260px]">
+        <div className="mx-auto grid w-full max-w-[1120px] items-stretch gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 lg:max-w-[1180px] lg:gap-8 2xl:max-w-[1260px]">
           <HeroStoryBlock
             title={alignmentTitle}
             description={alignmentDescription}
@@ -98,7 +98,7 @@ function HeroStoryBlock({
   return (
     <motion.div
       variants={variant}
-      className={`mx-auto flex h-full w-full max-w-[520px] flex-col items-center justify-center px-5 py-5 text-center sm:px-6 sm:py-6 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7 ${className}`}
+      className={`mx-auto flex h-full w-full max-w-[520px] flex-col items-center justify-start px-5 py-4 text-center sm:px-6 sm:py-5 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7 ${className}`}
     >
       <h2 className="font-jost-bold text-[clamp(0.96rem,1.18vw,1.35rem)] leading-tight tracking-[0.1em] text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)]">
         {title}
@@ -114,22 +114,22 @@ export function SocialInitiativesHeroSkeleton() {
   return (
     <section
       aria-hidden
-      className="relative flex min-h-screen animate-pulse items-center overflow-hidden bg-[#060b08]"
+      className="relative flex animate-pulse items-center overflow-hidden bg-[#060b08] lg:min-h-screen"
     >
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-black/34" />
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1500px] flex-col px-5 pt-28 pb-10 sm:px-6 sm:pt-32 sm:pb-12 md:px-8 lg:px-[6vw] lg:pt-28 lg:pb-[clamp(3.5rem,7vh,6.5rem)] 2xl:px-[5vw]">
-        <div className="flex min-h-[42svh] flex-1 items-center justify-center lg:min-h-0 lg:justify-end lg:pb-[clamp(1.5rem,5vh,4.5rem)]">
+      <div className="relative z-10 mx-auto grid w-full max-w-[1500px] grid-rows-[minmax(0,1fr)_auto] px-5 pt-20 pb-8 sm:px-6 sm:pt-24 sm:pb-9 md:px-8 md:pt-28 md:pb-10 lg:min-h-screen lg:px-[6vw] lg:pt-28 lg:pb-[clamp(3.5rem,7vh,6.5rem)] 2xl:px-[5vw]">
+        <div className="flex min-h-0 items-center justify-center lg:justify-end lg:pb-[clamp(1.5rem,5vh,4.5rem)]">
           <div className="w-full max-w-[620px] rounded-lg border border-white/12 bg-white/10 px-5 py-6 sm:px-7 sm:py-7 lg:max-w-[640px] lg:px-8 lg:py-8">
             <div className="mx-auto h-10 w-4/5 rounded bg-white/25 sm:h-14 lg:h-16" />
             <div className="mx-auto mt-4 h-5 w-3/4 rounded bg-white/18" />
           </div>
         </div>
-        <div className="mx-auto grid w-full max-w-[1120px] items-stretch gap-5 sm:gap-6 md:grid-cols-2 lg:max-w-[1180px] lg:gap-8 2xl:max-w-[1260px]">
+        <div className="mx-auto grid w-full max-w-[1120px] items-stretch gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 lg:max-w-[1180px] lg:gap-8 2xl:max-w-[1260px]">
           {[0, 1].map((item) => (
             <div
               key={item}
-              className="mx-auto flex h-full w-full max-w-[520px] flex-col items-center justify-center rounded-lg border border-white/12 bg-white/10 px-5 py-5 text-center sm:px-6 sm:py-6 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7"
+              className="mx-auto flex h-full w-full max-w-[520px] flex-col items-center justify-start rounded-lg border border-white/12 bg-white/10 px-5 py-4 text-center sm:px-6 sm:py-5 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7"
             >
               <div className="mx-auto h-5 w-56 rounded bg-white/22" />
               <div className="mt-3 space-y-2">

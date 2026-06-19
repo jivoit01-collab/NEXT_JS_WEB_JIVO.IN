@@ -6,8 +6,7 @@ interface BaruSahibAssociationHeroProps {
   data?: BaruSahibAssociationHeroContent;
 }
 
-const HERO_IMAGE_SIZES =
-  '(max-width: 767px) 240vw, (max-width: 1023px) 180vw, (max-width: 1279px) 150vw, 150vw';
+const HERO_IMAGE_SIZES = '100vw';
 
 function imageWithFallback(image: string) {
   return image || baruSahibAssociationHeroFallbackImage;
@@ -23,7 +22,8 @@ export function BaruSahibAssociationHero({ data }: BaruSahibAssociationHeroProps
         alt=""
         fill
         priority
-        quality={90}
+        quality={100}
+        unoptimized
         className="object-cover object-center"
         sizes={HERO_IMAGE_SIZES}
       />

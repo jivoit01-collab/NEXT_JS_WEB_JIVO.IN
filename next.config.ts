@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
     // Keep CMS imagery crisp without allowing accidental quality=100 transfer bloat.
-    qualities: [75, 90],
+    qualities: [75, 90, 100],
     // Large full-screen sections need high-resolution candidates on lg/2xl displays.
     deviceSizes: [640, 750, 828, 1080, 1200, 1600, 1920, 2048, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -30,6 +30,16 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '12mb',
     },
+  },
+
+  async redirects() {
+    return [
+      {
+        source: '/barusahib-association',
+        destination: '/our-essence/baru-sahib-association',
+        permanent: true,
+      },
+    ];
   },
 
   async headers() {
