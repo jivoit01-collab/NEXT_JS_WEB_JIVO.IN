@@ -1,10 +1,14 @@
-import NextAuth from 'next-auth';
+import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { authConfig } from '@/lib/auth.config';
 import { recordFailedAttempt } from '@/lib/admin-security-store';
+
+class AdminIpBlockedError extends CredentialsSignin {
+  code = 'blocked';
+}
 
 /**
  * Full auth config (Node runtime).
@@ -41,8 +45,15 @@ async function getClientIp(): Promise<string> {
 
 async function recordFailedLogin(ip: string): Promise<null> {
   try {
-    await recordFailedAttempt(ip);
+    const result = await recordFailedAttempt(ip);
+    if (result.blocked) {
+      throw new AdminIpBlockedError();
+    }
   } catch (error) {
+    if (error instanceof AdminIpBlockedError) {
+      throw error;
+    }
+
     console.error('[auth.recordFailedLogin]', { ip, error });
   }
 

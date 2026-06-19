@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { getClientIpFromHeaders, isAllowedAdminIp } from '@/lib/admin-ip';
 import { isIpBlocked } from '@/lib/admin-security-store';
 import { localRateLimit } from '@/lib/rate-limit-local';
 
@@ -35,39 +36,21 @@ function notFound(req: NextRequest): NextResponse {
   return addSecurityHeaders(NextResponse.rewrite(url));
 }
 
-function normalizeIp(ip: string | null | undefined): string | null {
-  if (!ip) return null;
+function blockedIpResponse(req: NextRequest, isCredentialAuth: boolean): NextResponse {
+  const url = new URL('/', req.url);
+  url.searchParams.set('error', 'blocked');
 
-  const first = ip.split(',')[0]?.trim();
-  if (!first) return null;
+  if (isCredentialAuth && req.headers.get('x-auth-return-redirect') === '1') {
+    return addSecurityHeaders(NextResponse.json({ url: url.toString() }));
+  }
 
-  const withoutPort = /^\d{1,3}(?:\.\d{1,3}){3}:\d+$/.test(first)
-    ? first.slice(0, first.lastIndexOf(':'))
-    : first;
-
-  return withoutPort.startsWith('::ffff:')
-    ? withoutPort.slice('::ffff:'.length)
-    : withoutPort;
+  return addSecurityHeaders(NextResponse.redirect(url));
 }
 
 function clientIp(req: NextRequest): string | null {
   const hintedReq = req as NextRequest & { ip?: string };
 
-  return (
-    normalizeIp(req.headers.get('x-real-ip')) ??
-    normalizeIp(req.headers.get('x-forwarded-for')) ??
-    normalizeIp(req.headers.get('cf-connecting-ip')) ??
-    normalizeIp(hintedReq.ip)
-  );
-}
-
-function allowedAdminIps(): Set<string> {
-  return new Set(
-    (process.env.ALLOWED_ADMIN_IPS ?? '')
-      .split(',')
-      .map((ip) => normalizeIp(ip))
-      .filter((ip): ip is string => Boolean(ip)),
-  );
+  return getClientIpFromHeaders(req.headers, hintedReq.ip);
 }
 
 function isCredentialAuthPost(pathname: string, method: string): boolean {
@@ -96,15 +79,14 @@ export async function proxy(req: NextRequest) {
 
   if (isGuardedTarget) {
     const ip = clientIp(req);
-    const allowedIps = allowedAdminIps();
 
-    if (!ip || !allowedIps.has(ip)) {
+    if (!ip || !isAllowedAdminIp(ip)) {
       return notFound(req);
     }
 
     try {
       if (await isIpBlocked(ip)) {
-        return notFound(req);
+        return blockedIpResponse(req, isCredentialAuth);
       }
     } catch (error) {
       console.error('[proxy.adminSecurityStore]', { ip, error });
