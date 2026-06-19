@@ -54,17 +54,28 @@ export default function AdminLoginPage() {
         redirect: false,
       });
 
-      if (result?.status === 429) {
-        router.replace('/?blocked=1');
+      if (
+        result?.status === 429 ||
+        result?.code === 'blocked' ||
+        result?.url?.includes('error=blocked')
+      ) {
+        router.replace('/?error=blocked');
       } else if (result?.error) {
         setError('Invalid email or password');
         setLoading(false);
       } else {
         setLoading(false);
-        router.push('/admin');
+        router.push('/jivo-dev');
         router.refresh();
       }
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+
+      if (message.includes('JSON') || message.includes('Unexpected token')) {
+        router.replace('/?error=blocked');
+        return;
+      }
+
       setError('Invalid email or password');
       setLoading(false);
     }

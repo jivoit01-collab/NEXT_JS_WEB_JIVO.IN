@@ -102,7 +102,7 @@ const AUTH_WINDOW_MS = 15 * 60 * 1000;
 
 /**
  * Returns true if the IP has exhausted its auth attempts and the block
- * window has not yet expired. Used by middleware to gate /admin access.
+ * window has not yet expired. Used by proxy to gate admin access.
  */
 export function isAuthBlocked(ip: string): boolean {
   const entry = store.get(`auth:${ip}`);

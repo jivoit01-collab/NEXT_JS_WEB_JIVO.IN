@@ -13,7 +13,7 @@ export const authConfig: NextAuthConfig = {
   trustHost: true,
   session: { strategy: 'jwt' },
   pages: {
-    signIn: '/admin/login',
+    signIn: '/jivo-dev/login',
   },
   providers: [], // Providers are only attached in the Node-runtime auth.ts
   callbacks: {
@@ -36,7 +36,7 @@ export const authConfig: NextAuthConfig = {
       const { pathname } = request.nextUrl;
 
       const isPublic =
-        !pathname.startsWith('/admin') || pathname === '/admin/login';
+        !pathname.startsWith('/jivo-dev') || pathname === '/jivo-dev/login';
 
       if (isPublic) return true;
 

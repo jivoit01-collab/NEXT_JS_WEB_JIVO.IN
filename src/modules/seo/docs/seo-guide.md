@@ -123,7 +123,7 @@ SEO does **not** cost money — it is free traffic from Google. But it takes the
 **Real pages:**
 - `/` (Home) → `index, follow`
 - `/products` → `index, follow`
-- `/admin` → `noindex, nofollow` *(already set automatically)*
+- `/jivo-dev` → `noindex, nofollow` *(already set automatically)*
 - `/cart` → `noindex, follow`
 
 ---

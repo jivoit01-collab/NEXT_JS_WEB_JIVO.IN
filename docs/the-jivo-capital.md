@@ -5,7 +5,7 @@
 | Item | Value |
 | --- | --- |
 | Public route | `/our-essence/the-jivo-capital` |
-| Admin route | `/admin/our-essence-the-jivo-capital` |
+| Admin route | `/jivo-dev/our-essence-the-jivo-capital` |
 | SEO page key | `our-essence-the-jivo-capital` |
 | Public API | `/api/our-essence/the-jivo-capital` |
 | Admin API | `/api/admin/our-essence/the-jivo-capital` |
@@ -107,7 +107,7 @@ Valid section values:
 
 ## Workflow
 
-1. Admin opens `/admin/our-essence-the-jivo-capital`.
+1. Admin opens `/jivo-dev/our-essence-the-jivo-capital`.
 2. Admin edits one tab: Hero, Oil Plant, Water Plant, Farm-to-Bottle, Fresh-Lock, or SEO.
 3. Section content is validated with Zod.
 4. Server action upserts the row in `OurEssenceTheJivoCapital`.
@@ -235,7 +235,7 @@ Content-Type: application/json
 ## Update Log
 
 - Added public page route `/our-essence/the-jivo-capital`.
-- Added admin page route `/admin/our-essence-the-jivo-capital`.
+- Added admin page route `/jivo-dev/our-essence-the-jivo-capital`.
 - Added public and admin API routes.
 - Added Prisma model `OurEssenceTheJivoCapital`.
 - Added default SEO and sitemap entry.

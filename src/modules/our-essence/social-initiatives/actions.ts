@@ -82,7 +82,7 @@ export async function upsertSocialInitiativesSectionAction(
     const row = await upsertSocialInitiativesSection(section, parsed.data);
     revalidatePath(SOCIAL_INITIATIVES_ROUTE);
     revalidatePath(SOCIAL_INITIATIVES_ADMIN_ROUTE);
-    revalidatePath('/admin/seo');
+    revalidatePath('/jivo-dev/seo');
     revalidatePath('/sitemap.xml');
     return { success: true, data: row };
   } catch (error) {

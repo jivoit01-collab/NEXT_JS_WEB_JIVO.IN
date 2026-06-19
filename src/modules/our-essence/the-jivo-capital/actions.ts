@@ -85,7 +85,7 @@ export async function upsertTheJivoCapitalSectionAction(
     const row = await upsertTheJivoCapitalSection(section, parsed.data);
     revalidatePath(THE_JIVO_CAPITAL_ROUTE);
     revalidatePath(THE_JIVO_CAPITAL_ADMIN_ROUTE);
-    revalidatePath('/admin/seo');
+    revalidatePath('/jivo-dev/seo');
     revalidatePath('/sitemap.xml');
     return { success: true, data: row };
   } catch (error) {

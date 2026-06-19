@@ -82,7 +82,7 @@ export async function upsertOurFairShareSectionAction(
     const row = await upsertOurFairShareSection(section, parsed.data);
     revalidatePath(OUR_FAIR_SHARE_ROUTE);
     revalidatePath(OUR_FAIR_SHARE_ADMIN_ROUTE);
-    revalidatePath('/admin/seo');
+    revalidatePath('/jivo-dev/seo');
     revalidatePath('/sitemap.xml');
     return { success: true, data: row };
   } catch (error) {

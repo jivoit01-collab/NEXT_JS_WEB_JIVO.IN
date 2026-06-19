@@ -88,7 +88,7 @@ export async function upsertHomePageSection(
 
   revalidatePath('/', 'layout');
   revalidatePath('/');
-  revalidatePath('/admin/home');
+  revalidatePath('/jivo-dev/home');
   return { success: true, data: record };
 }
 

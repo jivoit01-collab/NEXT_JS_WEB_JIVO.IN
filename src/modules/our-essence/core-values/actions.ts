@@ -86,7 +86,7 @@ export async function upsertCoreValuesSectionAction(
   try {
     const row = await upsertCoreValuesSection(section, parsed.data);
     revalidatePath('/our-essence/core-values');
-    revalidatePath('/admin/our-essence-core-values');
+    revalidatePath('/jivo-dev/our-essence-core-values');
     return { success: true, data: row };
   } catch (err) {
     console.error('[upsertCoreValuesSectionAction]', { section, err });
@@ -103,7 +103,7 @@ export async function deleteCoreValuesSectionAction(
   try {
     const deleted = await deleteCoreValuesSectionById(id);
     revalidatePath('/our-essence/core-values');
-    revalidatePath('/admin/our-essence-core-values');
+    revalidatePath('/jivo-dev/our-essence-core-values');
     return { success: true, data: deleted };
   } catch (err) {
     console.error('[deleteCoreValuesSectionAction]', { id, err });

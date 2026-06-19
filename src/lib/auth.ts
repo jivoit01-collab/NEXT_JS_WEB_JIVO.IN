@@ -1,8 +1,14 @@
-import NextAuth from 'next-auth';
+import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
+import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { authConfig } from '@/lib/auth.config';
+import { recordFailedAttempt } from '@/lib/admin-security-store';
+
+class AdminIpBlockedError extends CredentialsSignin {
+  code = 'blocked';
+}
 
 /**
  * Full auth config (Node runtime).
@@ -11,6 +17,49 @@ import { authConfig } from '@/lib/auth.config';
  * does DB lookups + bcrypt password comparison. Do NOT import this from
  * middleware — use `auth.config.ts` there instead.
  */
+function normalizeIp(ip: string | null | undefined): string | null {
+  if (!ip) return null;
+
+  const first = ip.split(',')[0]?.trim();
+  if (!first) return null;
+
+  const withoutPort = /^\d{1,3}(?:\.\d{1,3}){3}:\d+$/.test(first)
+    ? first.slice(0, first.lastIndexOf(':'))
+    : first;
+
+  return withoutPort.startsWith('::ffff:')
+    ? withoutPort.slice('::ffff:'.length)
+    : withoutPort;
+}
+
+async function getClientIp(): Promise<string> {
+  const requestHeaders = await headers();
+
+  return (
+    normalizeIp(requestHeaders.get('x-real-ip')) ??
+    normalizeIp(requestHeaders.get('x-forwarded-for')) ??
+    normalizeIp(requestHeaders.get('cf-connecting-ip')) ??
+    'unknown'
+  );
+}
+
+async function recordFailedLogin(ip: string): Promise<null> {
+  try {
+    const result = await recordFailedAttempt(ip);
+    if (result.blocked) {
+      throw new AdminIpBlockedError();
+    }
+  } catch (error) {
+    if (error instanceof AdminIpBlockedError) {
+      throw error;
+    }
+
+    console.error('[auth.recordFailedLogin]', { ip, error });
+  }
+
+  return null;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
@@ -20,10 +69,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        const ip = await getClientIp();
         const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
         const password = credentials?.password as string | undefined;
 
-        if (!email || !password) return null;
+        if (!email || !password) return recordFailedLogin(ip);
 
         // 1. DB lookup (seeded admin user)
         try {
@@ -59,7 +109,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           };
         }
 
-        return null;
+        return recordFailedLogin(ip);
       },
     }),
   ],

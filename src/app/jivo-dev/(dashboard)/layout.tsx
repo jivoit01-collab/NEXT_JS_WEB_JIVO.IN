@@ -55,101 +55,101 @@ interface NavSection {
 const SIDEBAR: NavSection[] = [
   {
     title: 'Dashboard',
-    href: '/admin',
+    href: '/jivo-dev',
     icon: LayoutDashboard,
     children: [
-      { title: 'Home Page', href: '/admin/home', icon: Home },
-      { title: 'Navbar', href: '/admin/navbar', icon: Navigation },
-      { title: 'Footer', href: '/admin/footer', icon: PanelBottom },
+      { title: 'Home Page', href: '/jivo-dev/home', icon: Home },
+      { title: 'Navbar', href: '/jivo-dev/navbar', icon: Navigation },
+      { title: 'Footer', href: '/jivo-dev/footer', icon: PanelBottom },
     ],
   },
   {
     title: 'Our Essence',
-    href: '/admin/our-essence',
+    href: '/jivo-dev/our-essence',
     icon: Sparkles,
     children: [
-      { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen },
-      { title: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass },
+      { title: 'The Story', href: '/jivo-dev/our-essence-the-story', icon: BookOpen },
+      { title: 'Core Values', href: '/jivo-dev/our-essence-core-values', icon: Compass },
       {
         title: 'Baru Sahib Association',
-        href: '/admin/our-essence-baru-sahib-association',
+        href: '/jivo-dev/our-essence-baru-sahib-association',
         icon: Landmark,
       },
       {
         title: 'Social Initiatives',
-        href: '/admin/our-essence-social-initiatives',
+        href: '/jivo-dev/our-essence-social-initiatives',
         icon: Users,
       },
       {
         title: 'Our Fair Share',
-        href: '/admin/our-essence-our-fair-share',
+        href: '/jivo-dev/our-essence-our-fair-share',
         icon: Scale,
       },
       {
         title: 'For Mother Earth',
-        href: '/admin/our-essence-for-mother-earth',
+        href: '/jivo-dev/our-essence-for-mother-earth',
         icon: Leaf,
       },
       {
         title: 'The Jivo Capital',
-        href: '/admin/our-essence-the-jivo-capital',
+        href: '/jivo-dev/our-essence-the-jivo-capital',
         icon: Factory,
       },
     ],
   },
   {
     title: 'Our Products',
-    href: '/admin/our-products',
+    href: '/jivo-dev/our-products',
     icon: Package,
     children: [],
   },
   {
     title: 'Jivo Media',
-    href: '/admin/media',
+    href: '/jivo-dev/media',
     icon: Newspaper,
     children: [],
   },
   {
     title: 'Community',
-    href: '/admin/community',
+    href: '/jivo-dev/community',
     icon: Users,
     children: [],
   },
   {
     title: 'SEO Manager',
-    href: '/admin/seo',
+    href: '/jivo-dev/seo',
     icon: Globe,
     children: [
-      { title: 'Home', href: '/admin/home', icon: Home, tab: 'seo' },
-      { title: 'The Story', href: '/admin/our-essence-the-story', icon: BookOpen, tab: 'seo' },
-      { title: 'Core Values', href: '/admin/our-essence-core-values', icon: Compass, tab: 'seo' },
+      { title: 'Home', href: '/jivo-dev/home', icon: Home, tab: 'seo' },
+      { title: 'The Story', href: '/jivo-dev/our-essence-the-story', icon: BookOpen, tab: 'seo' },
+      { title: 'Core Values', href: '/jivo-dev/our-essence-core-values', icon: Compass, tab: 'seo' },
       {
         title: 'Baru Sahib Association',
-        href: '/admin/our-essence-baru-sahib-association',
+        href: '/jivo-dev/our-essence-baru-sahib-association',
         icon: Landmark,
         tab: 'seo',
       },
       {
         title: 'Social Initiatives',
-        href: '/admin/our-essence-social-initiatives',
+        href: '/jivo-dev/our-essence-social-initiatives',
         icon: Users,
         tab: 'seo',
       },
       {
         title: 'Our Fair Share',
-        href: '/admin/our-essence-our-fair-share',
+        href: '/jivo-dev/our-essence-our-fair-share',
         icon: Scale,
         tab: 'seo',
       },
       {
         title: 'For Mother Earth',
-        href: '/admin/our-essence-for-mother-earth',
+        href: '/jivo-dev/our-essence-for-mother-earth',
         icon: Leaf,
         tab: 'seo',
       },
       {
         title: 'The Jivo Capital',
-        href: '/admin/our-essence-the-jivo-capital',
+        href: '/jivo-dev/our-essence-the-jivo-capital',
         icon: Factory,
         tab: 'seo',
       },
@@ -375,7 +375,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/admin/login' })} className="gap-2">
+            <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/jivo-dev/login' })} className="gap-2">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -402,7 +402,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            onClick={() => signOut({ callbackUrl: '/jivo-dev/login' })}
             className="gap-2"
           >
             <LogOut className="h-4 w-4" /> Logout
