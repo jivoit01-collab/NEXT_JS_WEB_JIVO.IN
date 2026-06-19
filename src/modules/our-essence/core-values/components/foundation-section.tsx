@@ -28,7 +28,6 @@ export function FoundationSection({ data }: Props) {
         <div className="absolute inset-0 bg-linear-to-b from-[#2d1810] via-[#3a1f15] to-[#1a0d08]" />
       )}
 
-      <div className="absolute inset-0 bg-black/55" />
 
       <motion.div
         variants={container}
