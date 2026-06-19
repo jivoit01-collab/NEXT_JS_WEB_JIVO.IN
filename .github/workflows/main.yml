@@ -12,14 +12,11 @@ jobs:
     steps:
       - name: Deploy to Windows Server
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          JIVO_HEALTHCHECK_URL: ${{ secrets.JIVO_HEALTHCHECK_URL }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
-          envs: JIVO_HEALTHCHECK_URL
           command_timeout: 30m
           script: |
             cmd.exe /D /S /C "cd /d C:\LiveProjects\NEXT_JS_WEB_JIVO.IN && git fetch origin main && git show origin/main:scripts/deploy-jivo-windows.ps1 > %TEMP%\jivo-deploy-windows.ps1 && powershell.exe -NoProfile -ExecutionPolicy Bypass -File %TEMP%\jivo-deploy-windows.ps1"
