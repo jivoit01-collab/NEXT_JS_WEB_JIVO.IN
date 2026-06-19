@@ -16,6 +16,7 @@
 cicd.md
 .github/
 logs/
+.data/
 *.bat
 *.log    
 

@@ -87,7 +87,7 @@ export async function upsertTheStorySectionAction(
   try {
     const row = await upsertTheStorySection(section, parsed.data);
     revalidatePath('/our-essence/the-story');
-    revalidatePath('/admin/our-essence-the-story');
+    revalidatePath('/jivo-dev/our-essence-the-story');
     return { success: true, data: row };
   } catch (err) {
     console.error('[upsertTheStorySectionAction]', { section, err });
@@ -104,7 +104,7 @@ export async function deleteTheStorySectionAction(
   try {
     const deleted = await deleteTheStorySectionById(id);
     revalidatePath('/our-essence/the-story');
-    revalidatePath('/admin/our-essence-the-story');
+    revalidatePath('/jivo-dev/our-essence-the-story');
     return { success: true, data: deleted };
   } catch (err) {
     console.error('[deleteTheStorySectionAction]', { id, err });

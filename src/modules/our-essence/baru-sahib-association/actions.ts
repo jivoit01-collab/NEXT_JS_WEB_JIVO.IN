@@ -81,8 +81,8 @@ export async function upsertBaruSahibAssociationSectionAction(
   try {
     const row = await upsertBaruSahibAssociationSection(section, parsed.data);
     revalidatePath(BARU_SAHIB_ASSOCIATION_ROUTE);
-    revalidatePath('/admin/our-essence-baru-sahib-association');
-    revalidatePath('/admin/seo');
+    revalidatePath('/jivo-dev/our-essence-baru-sahib-association');
+    revalidatePath('/jivo-dev/seo');
     revalidatePath('/sitemap.xml');
     return { success: true, data: row };
   } catch (error) {
@@ -100,7 +100,7 @@ export async function deleteBaruSahibAssociationSectionAction(
   try {
     const deleted = await deleteBaruSahibAssociationSectionById(id);
     revalidatePath(BARU_SAHIB_ASSOCIATION_ROUTE);
-    revalidatePath('/admin/our-essence-baru-sahib-association');
+    revalidatePath('/jivo-dev/our-essence-baru-sahib-association');
     return { success: true, data: deleted };
   } catch (error) {
     console.error('[deleteBaruSahibAssociationSectionAction]', { id, error });
