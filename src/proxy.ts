@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from 'next/server';
+﻿import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { getClientIpFromHeaders, isAllowedAdminIp } from '@/lib/admin-ip';
+import { getClientIpFromHeaders } from '@/lib/admin-ip';
 import { isIpBlocked } from '@/lib/admin-security-store';
 import { localRateLimit } from '@/lib/rate-limit-local';
 
@@ -78,11 +78,7 @@ export async function proxy(req: NextRequest) {
   const isGuardedTarget = isAdminPage || isAdminApi || isCredentialAuth;
 
   if (isGuardedTarget) {
-    const ip = clientIp(req);
-
-    if (!ip || !isAllowedAdminIp(ip)) {
-      return notFound(req);
-    }
+    const ip = clientIp(req) ?? 'unknown';
 
     try {
       if (await isIpBlocked(ip)) {
@@ -90,7 +86,7 @@ export async function proxy(req: NextRequest) {
       }
     } catch (error) {
       console.error('[proxy.adminSecurityStore]', { ip, error });
-      return notFound(req);
+      return blockedIpResponse(req, isCredentialAuth);
     }
   }
 
