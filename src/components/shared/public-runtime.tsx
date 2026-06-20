@@ -18,7 +18,7 @@ export function PublicRuntime() {
 
     const loadBlockedToast = async () => {
       const [{ Toaster: SonnerToaster }, blockedModule] = await Promise.all([
-        import('../ui/sonner'),
+        import('sonner'),
         import('./blocked-toast'),
       ]);
       if (cancelled) return;
@@ -31,7 +31,12 @@ export function PublicRuntime() {
       if (!cancelled) setOfflineIndicator(() => offlineModule.OfflineIndicator);
     };
 
-    if (new URLSearchParams(window.location.search).get('error') === 'blocked') {
+    const hasBlockedCookie = document.cookie
+      .split(';')
+      .some((item) => item.trim() === 'admin_blocked=1');
+    const hasBlockedParam = new URLSearchParams(window.location.search).get('error') === 'blocked';
+
+    if (hasBlockedCookie || hasBlockedParam) {
       loadBlockedToast();
     }
 

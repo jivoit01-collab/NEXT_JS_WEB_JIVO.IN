@@ -38,13 +38,21 @@ function notFound(req: NextRequest): NextResponse {
 
 function blockedIpResponse(req: NextRequest, isCredentialAuth: boolean): NextResponse {
   const url = new URL('/', req.url);
-  url.searchParams.set('error', 'blocked');
+  let res: NextResponse;
 
   if (isCredentialAuth && req.headers.get('x-auth-return-redirect') === '1') {
-    return addSecurityHeaders(NextResponse.json({ url: url.toString() }));
+    res = NextResponse.json({ url: url.toString() });
+  } else {
+    res = NextResponse.redirect(url);
   }
 
-  return addSecurityHeaders(NextResponse.redirect(url));
+  res.cookies.set('admin_blocked', '1', {
+    path: '/',
+    maxAge: 60,
+    sameSite: 'lax',
+  });
+
+  return addSecurityHeaders(res);
 }
 
 function clientIp(req: NextRequest): string | null {
