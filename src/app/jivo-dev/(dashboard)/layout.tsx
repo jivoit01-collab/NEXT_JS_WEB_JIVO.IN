@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { LivePreviewButton } from '@/components/shared/admin';
+import { useTheme } from '@/providers/theme-provider';
 import {
   Menu,
   X,
@@ -30,7 +31,6 @@ import {
   ArrowLeft,
   Moon,
   Sun,
-  ExternalLink,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
@@ -165,6 +165,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const tabParam = searchParams.get('tab');
   const { theme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -209,6 +210,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
+  const closeSidebar = useCallback(() => {
+    setMobileOpen(false);
+    setSidebarCollapsed(true);
+  }, []);
+
+  const openMobileSidebar = useCallback(() => {
+    setSidebarCollapsed(false);
+    setMobileOpen(true);
+  }, []);
+
   /** True when this child link matches current URL (path + optional tab param). */
   const isChildActive = (child: NavChild) => {
     if (!pathname.startsWith(child.href)) return false;
@@ -235,15 +246,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         className={cn(
           'bg-card fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r shadow-sm 2xl:w-72',
           'transform transition-transform duration-300',
-          mobileOpen ? 'translate-x-0' : '-translate-x-64',
-          'md:translate-x-0',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          sidebarCollapsed ? 'md:-translate-x-full' : 'md:translate-x-0',
         )}
       >
         {/* Header */}
         <div className="flex h-16 shrink-0 items-center justify-between border-b px-6 2xl:h-20 2xl:px-8">
-          <Link href="/" title="Back to Website">
-            <ArrowLeft size={20} className="hover:text-primary cursor-pointer 2xl:h-6 2xl:w-6" />
-          </Link>
+          <button
+            type="button"
+            onClick={closeSidebar}
+            title="Close sidebar"
+            className="hover:text-primary cursor-pointer transition-colors"
+            aria-label="Close sidebar"
+          >
+            <ArrowLeft size={20} className="2xl:h-6 2xl:w-6" />
+          </button>
           <span className="font-jost-bold text-lg 2xl:text-xl">Admin Panel</span>
           <button
             onClick={() => setMobileOpen(false)}
@@ -340,11 +357,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* ── Main content ──────────────────────── */}
-      <div className="min-w-0 flex-1 md:ml-64 2xl:ml-72">
+      <div
+        className={cn(
+          'min-w-0 flex-1 transition-[margin] duration-300',
+          sidebarCollapsed ? 'md:ml-0' : 'md:ml-64 2xl:ml-72',
+        )}
+      >
         <header className="bg-background/95 sticky top-0 z-20 flex h-14 items-center justify-between border-b px-4 backdrop-blur md:hidden">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setMobileOpen(true)}
+              onClick={openMobileSidebar}
               className="cursor-pointer"
               aria-label="Open menu"
             >
@@ -365,48 +387,53 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Moon className="h-4 w-4" />
               )}
             </Button>
-            <Button asChild variant="outline" size="icon" className="h-9 w-9">
-              <a href="/" target="_blank" rel="noopener noreferrer" aria-label="View Live Site">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-            <Button asChild variant="outline" size="icon" className="h-9 w-9">
-              <a href="/" target="_blank" rel="noopener noreferrer" aria-label="View Live Site">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
+            <LivePreviewButton
+              iconOnly
+              className="h-9 w-9 border-border/60 bg-background/70"
+            />
             <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/jivo-dev/login' })} className="gap-2">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </header>
 
-        <header className="bg-background/95 sticky top-0 z-20 hidden h-16 items-center justify-end gap-3 border-b px-6 backdrop-blur md:flex 2xl:h-20 2xl:gap-4 2xl:px-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="h-9 w-9"
-          >
-            {mounted && theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
+        <header className="bg-background/95 sticky top-0 z-20 hidden h-16 items-center justify-between gap-3 border-b px-6 backdrop-blur md:flex 2xl:h-20 2xl:gap-4 2xl:px-8">
+          <div className="flex items-center gap-3">
+            {sidebarCollapsed && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarCollapsed(false)}
+                className="h-9 w-9"
+                aria-label="Open sidebar"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
             )}
-          </Button>
-          <Button asChild variant="outline" size="sm" className="gap-2">
-            <a href="/" target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4" /> View Live Site
-            </a>
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => signOut({ callbackUrl: '/jivo-dev/login' })}
-            className="gap-2"
-          >
-            <LogOut className="h-4 w-4" /> Logout
-          </Button>
+          </div>
+          <div className="flex items-center gap-3 2xl:gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="h-9 w-9"
+            >
+              {mounted && theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
+            <LivePreviewButton className="h-9" />
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: '/jivo-dev/login' })}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" /> Logout
+            </Button>
+          </div>
         </header>
 
         <main className="p-4 sm:p-6 2xl:p-10">{children}</main>
