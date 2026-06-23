@@ -1,15 +1,24 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 export function BlockedToast() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
   useEffect(() => {
-    if (searchParams.get('error') !== 'blocked') return;
+    const hasBlockedCookie = document.cookie
+      .split(';')
+      .some((item) => item.trim() === 'admin_blocked=1');
+    const url = new URL(window.location.href);
+    const hasBlockedParam = url.searchParams.get('error') === 'blocked';
+
+    if (!hasBlockedCookie && !hasBlockedParam) return;
+
+    document.cookie = 'admin_blocked=; Max-Age=0; Path=/; SameSite=Lax';
+
+    if (hasBlockedParam) {
+      url.searchParams.delete('error');
+      window.history.replaceState(null, '', url.pathname + url.search);
+    }
 
     toast.error('Access Denied', {
       position: 'top-right',
@@ -25,12 +34,7 @@ export function BlockedToast() {
       description:
         'Your IP has been temporarily suspended for 48 hours due to multiple failed login attempts. Please contact your system administrator.',
     });
-
-    // Strip the param from URL without a page reload
-    const url = new URL(window.location.href);
-    url.searchParams.delete('error');
-    router.replace(url.pathname + url.search, { scroll: false });
-  }, [searchParams, router]);
+  }, []);
 
   return null;
 }

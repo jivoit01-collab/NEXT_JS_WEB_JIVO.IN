@@ -14,7 +14,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import { ImageUpload } from '@/components/shared/admin';
+import { ImageUpload, LivePreviewButton } from '@/components/shared/admin';
 import type { SeoFormInput, TwitterCard, RobotsDirective } from '../types';
 import { SeoPreview } from './SeoPreview';
 
@@ -109,7 +109,8 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
   }, [page, moduleDefault]);
 
   useEffect(() => {
-    void load();
+    const id = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(id);
   }, [load]);
 
   const handleSave = async () => {
@@ -402,7 +403,8 @@ export function SeoTabPanel({ page, moduleDefault, pageLabel }: SeoTabPanelProps
       />
 
       {/* Action bar */}
-      <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
+      <div className="sticky bottom-0 flex items-center justify-between gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
+        <LivePreviewButton />
         <Button onClick={handleSave} disabled={saving} className="gap-2">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save SEO

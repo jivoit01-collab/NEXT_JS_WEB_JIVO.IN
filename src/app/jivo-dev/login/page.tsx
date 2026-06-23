@@ -15,6 +15,11 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  function redirectToBlockedHome() {
+    document.cookie = 'admin_blocked=1; Max-Age=60; Path=/; SameSite=Lax';
+    router.replace('/');
+  }
+
   function validate(): boolean {
     let valid = true;
     setEmailError('');
@@ -59,7 +64,7 @@ export default function AdminLoginPage() {
         result?.code === 'blocked' ||
         result?.url?.includes('error=blocked')
       ) {
-        router.replace('/?error=blocked');
+        redirectToBlockedHome();
       } else if (result?.error) {
         setError('Invalid email or password');
         setLoading(false);
@@ -72,7 +77,7 @@ export default function AdminLoginPage() {
       const message = err instanceof Error ? err.message : '';
 
       if (message.includes('JSON') || message.includes('Unexpected token')) {
-        router.replace('/?error=blocked');
+        redirectToBlockedHome();
         return;
       }
 

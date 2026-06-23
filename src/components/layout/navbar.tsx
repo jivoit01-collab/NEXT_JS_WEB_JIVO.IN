@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -37,6 +38,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
   );
   const scrolled = useScroll(40);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerMounted, setDrawerMounted] = useState(false);
   const [expandedMobile, setExpandedMobile] = useState<Record<string, boolean>>({});
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
@@ -59,6 +61,11 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
     const handleClickOutside = () => setActiveDropdown(null);
     window.addEventListener('click', handleClickOutside);
     return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDrawerMounted(true), 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   // Keep the mobile drawer from trapping scroll behind it.
@@ -99,14 +106,15 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
   };
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 z-50 w-full transition-all duration-300',
-        scrolled
-          ? 'bg-black/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl'
-          : 'bg-transparent',
-      )}
-    >
+    <>
+      <header
+        className={cn(
+          'fixed top-0 z-50 w-full transition-all duration-300',
+          scrolled
+            ? 'bg-black/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl'
+            : 'bg-transparent',
+        )}
+      >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:h-16 lg:px-12 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-20">
         {/* Logo */}
         <Link href="/" className="flex items-center" aria-label={altText}>
@@ -218,26 +226,30 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
+      </header>
 
-      {/* Mobile Drawer */}
-      <div
-        aria-hidden={!mobileOpen}
-        className={cn(
-          'fixed inset-0 z-40 bg-black/35 backdrop-blur-[3px] transition-opacity duration-300 lg:hidden',
-          mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
-        )}
-        onClick={() => setMobileOpen(false)}
-      />
+      {drawerMounted &&
+        createPortal(
+          <>
+            {/* Mobile Drawer */}
+            <div
+              aria-hidden={!mobileOpen}
+              className={cn(
+                'fixed inset-0 z-[90] bg-black/35 backdrop-blur-[3px] transition-opacity duration-300 lg:hidden',
+                mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+              )}
+              onClick={() => setMobileOpen(false)}
+            />
 
-      <aside
-        id="public-mobile-navigation"
-        className={cn(
-          'fixed inset-y-0 right-0 z-[60] flex w-[72vw] min-w-[248px] max-w-[320px] flex-col overflow-hidden border-l border-white/18 bg-black/28 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1 ring-white/12 backdrop-blur-2xl transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden',
-          mobileOpen
-            ? 'pointer-events-auto translate-x-0 opacity-100'
-            : 'pointer-events-none translate-x-full opacity-0',
-        )}
-      >
+            <aside
+              id="public-mobile-navigation"
+              className={cn(
+                'fixed inset-y-0 right-0 z-[100] isolate flex h-[100dvh] w-[72vw] min-w-[248px] max-w-[320px] flex-col overflow-hidden border-l border-white/18 bg-black/28 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1 ring-white/12 backdrop-blur-2xl transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden',
+                mobileOpen
+                  ? 'pointer-events-auto translate-x-0 opacity-100'
+                  : 'pointer-events-none translate-x-full opacity-0',
+              )}
+            >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/12 bg-white/5 px-5">
           <Link
             href="/"
@@ -352,27 +364,30 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
             })}
           </div>
         </nav>
-      </aside>
+            </aside>
 
-      <style jsx global>{`
-        .mobile-nav-scroll::-webkit-scrollbar {
-          width: 6px;
-        }
-        .mobile-nav-scroll::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .mobile-nav-scroll::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.18);
-          border-radius: 999px;
-        }
-        .mobile-nav-scroll::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.32);
-        }
-        .mobile-nav-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-        }
-      `}</style>
-    </header>
+            <style jsx global>{`
+              .mobile-nav-scroll::-webkit-scrollbar {
+                width: 6px;
+              }
+              .mobile-nav-scroll::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .mobile-nav-scroll::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.18);
+                border-radius: 999px;
+              }
+              .mobile-nav-scroll::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.32);
+              }
+              .mobile-nav-scroll {
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+              }
+            `}</style>
+          </>,
+          document.body,
+        )}
+    </>
   );
 }
