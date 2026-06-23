@@ -20,9 +20,9 @@ export default function BaruSahibAssociationError({
   }, [error]);
 
   return (
-    <main className="container mx-auto flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+    <main className="container mx-auto flex min-h-dvh flex-col items-center justify-center gap-4 px-4 text-center">
       <AlertTriangle className="text-destructive h-10 w-10" />
-      <h1 className="text-xl font-semibold">Something broke on this page.</h1>
+      <h1 className="text-xl font-jost-bold">Something broke on this page.</h1>
       <p className="text-muted-foreground max-w-md text-sm">
         We&apos;ve logged the issue. You can retry, or head back home while we look at it.
       </p>

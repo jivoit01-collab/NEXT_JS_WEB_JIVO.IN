@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { SafeImage, SplitWords } from '@/components/shared/public';
-import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
+import { container, fadeUp, reducedMotion, defaultViewport } from '@/lib/animation-variants';
 import type { CoreValuesFoundationContent } from '../types';
 import { defaultFoundationContent } from '../data/defaults';
 
@@ -13,6 +13,9 @@ interface Props {
 /** TRUTH AS FOUNDATION — heading + 2-column value blocks over hands bg. */
 export function FoundationSection({ data }: Props) {
   const { heading, backgroundImage, blocks } = data ?? defaultFoundationContent;
+  const prefersReducedMotion = useReducedMotion();
+  const revealVariant = prefersReducedMotion ? reducedMotion : fadeUp;
+  const containerVariant = prefersReducedMotion ? reducedMotion : container;
 
   return (
     <section className="relative overflow-hidden py-16 sm:py-20 md:py-24 lg:py-32 2xl:py-40">
@@ -21,6 +24,7 @@ export function FoundationSection({ data }: Props) {
           src={backgroundImage}
           alt=""
           fill
+          quality={78}
           className="object-cover"
           sizes="100vw"
         />
@@ -28,39 +32,38 @@ export function FoundationSection({ data }: Props) {
         <div className="absolute inset-0 bg-linear-to-b from-[#2d1810] via-[#3a1f15] to-[#1a0d08]" />
       )}
 
-
-      <motion.div
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={defaultViewport}
-        className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20"
-      >
-        <motion.h2
-          variants={fadeUp}
-          className="mb-10 text-center font-jost-bold text-2xl uppercase tracking-[0.12em] text-white sm:mb-14 sm:text-3xl md:text-4xl lg:mb-28 lg:text-6xl 2xl:mb-32 2xl:text-7xl"
+      <LazyMotion features={domAnimation}>
+        <m.div
+          variants={containerVariant}
+          initial="hidden"
+          whileInView="show"
+          viewport={defaultViewport}
+          className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20"
         >
-          <SplitWords text={heading} inheritParent />
-        </motion.h2>
+          <m.h2
+            variants={revealVariant}
+            className="mb-10 text-balance text-center font-jost-bold text-2xl uppercase tracking-[0.12em] text-white sm:mb-14 sm:text-3xl md:text-4xl lg:mb-28 lg:text-6xl 2xl:mb-32 2xl:text-7xl"
+          >
+            <SplitWords text={heading} inheritParent />
+          </m.h2>
 
-        <div className="grid gap-10 sm:gap-12 md:grid-cols-2 md:gap-16 lg:gap-24 2xl:gap-32">
-          {blocks.map((block, i) => (
-            <motion.div key={`${block.label}-${i}`} variants={fadeUp}>
-              <h3 className="mb-3 font-jost-bold text-sm uppercase tracking-[0.2em] text-white sm:mb-4 sm:text-base md:text-lg 2xl:mb-5 2xl:text-xl">
-                {block.label}
-              </h3>
-              <p className="text-sm leading-relaxed text-white/85 sm:text-base md:text-lg 2xl:text-xl">
-                {block.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+          <div className="grid gap-10 sm:gap-12 md:grid-cols-2 md:gap-16 lg:gap-24 2xl:gap-32">
+            {blocks.map((block, i) => (
+              <m.div key={`${block.label}-${i}`} variants={revealVariant}>
+                <h3 className="mb-3 font-jost-bold text-sm uppercase tracking-[0.2em] text-white sm:mb-4 sm:text-base md:text-lg 2xl:mb-5 2xl:text-xl">
+                  {block.label}
+                </h3>
+                <p className="text-pretty text-sm leading-relaxed text-white/85 sm:text-base md:text-lg 2xl:text-xl">
+                  {block.description}
+                </p>
+              </m.div>
+            ))}
+          </div>
+        </m.div>
+      </LazyMotion>
     </section>
   );
 }
-
-// ── Skeleton ──────────────────────────────────────────────────
 
 export function FoundationSectionSkeleton() {
   return (
@@ -89,3 +92,4 @@ export function FoundationSectionSkeleton() {
     </section>
   );
 }
+

@@ -1,8 +1,4 @@
-'use client';
-
-import { motion, useReducedMotion } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
-import { containerSlow, fadeUpSlow, reducedMotion } from '@/lib/animation-variants';
 import type { CoreValuesHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
 
@@ -10,22 +6,21 @@ interface Props {
   data?: CoreValuesHeroContent;
 }
 
-/** Full-bleed hero — EAGER loaded (above the fold, priority LCP). */
+/** Full-bleed hero — eager loaded (above the fold, LCP candidate). */
 export function CoreValuesHero({ data }: Props) {
-  const prefersReducedMotion = useReducedMotion();
-  const revealContainer = prefersReducedMotion ? reducedMotion : containerSlow;
-  const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
   const { heading, subtitle, paragraph, backgroundImage } = data ?? defaultHeroContent;
 
   return (
-    <section className="relative flex min-h-[60vh] items-center overflow-hidden sm:min-h-[70vh] lg:min-h-screen">
+    <section className="relative flex min-h-[60svh] items-center overflow-hidden sm:min-h-[70svh] lg:min-h-dvh">
       {/* Background image */}
       {backgroundImage ? (
         <SafeImage
           src={backgroundImage}
-          alt={heading}
+          alt=""
           fill
           priority
+          fetchPriority="high"
+          quality={78}
           className="object-cover"
           sizes="100vw"
         />
@@ -34,42 +29,24 @@ export function CoreValuesHero({ data }: Props) {
       )}
 
       {/* Content */}
-      <motion.div
-        variants={revealContainer}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.45 }}
-        style={{ willChange: prefersReducedMotion ? 'auto' : 'transform, opacity' }}
-        className="relative z-10 mx-auto w-full max-w-7xl transform-gpu px-4 pt-24 sm:px-6 sm:pt-32 md:pt-40 lg:px-8 lg:pt-48 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-60"
-      >
-        <motion.h1
-          variants={revealItem}
-          className="font-jost-bold text-3xl tracking-[0.08em] text-white uppercase sm:text-4xl sm:tracking-[0.12em] md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl"
-        >
+      <div className="relative z-10 mx-auto w-full max-w-7xl transform-gpu px-4 pt-24 sm:px-6 sm:pt-32 md:pt-40 lg:px-8 lg:pt-48 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-60">
+        <h1 className="font-jost-bold text-balance text-3xl tracking-[0.08em] text-white uppercase sm:text-4xl sm:tracking-[0.12em] md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
           {heading}
-        </motion.h1>
-        <motion.p
-          variants={revealItem}
-          className="mt-4 max-w-xl text-sm leading-relaxed text-white/90 sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl"
-        >
+        </h1>
+        <p className="mt-4 max-w-xl text-pretty text-sm leading-relaxed text-white/90 sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
           {subtitle}
-        </motion.p>
-        <motion.p
-          variants={revealItem}
-          className="mt-4 max-w-xl text-sm leading-relaxed text-white/80 sm:mt-5 sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl"
-        >
+        </p>
+        <p className="mt-4 max-w-xl text-pretty text-sm leading-relaxed text-white/80 sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
           {paragraph}
-        </motion.p>
-      </motion.div>
+        </p>
+      </div>
     </section>
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────
-
 export function CoreValuesHeroSkeleton() {
   return (
-    <section className="bg-muted relative flex min-h-[60vh] animate-pulse items-center overflow-hidden sm:min-h-[70vh] lg:min-h-screen">
+    <section className="bg-muted relative flex min-h-[60svh] animate-pulse items-center overflow-hidden sm:min-h-[70svh] lg:min-h-dvh">
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pt-24 sm:px-6 sm:pt-32 md:pt-40 lg:px-8 lg:pt-48 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-60">
         {/* Heading */}
         <div className="bg-muted-foreground/20 h-9 w-64 rounded-md sm:h-11 sm:w-80 lg:h-14 lg:w-104 2xl:h-16 2xl:w-lg" />
@@ -88,3 +65,4 @@ export function CoreValuesHeroSkeleton() {
     </section>
   );
 }
+

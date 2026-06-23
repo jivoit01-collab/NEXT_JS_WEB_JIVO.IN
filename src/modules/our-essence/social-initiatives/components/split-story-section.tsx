@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import { LazyMotion, domAnimation, m, useReducedMotion, type Variants } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
 import {
   containerSlow,
@@ -41,7 +41,7 @@ export function SplitStorySection({ data, fallbackData, tone = 'forest' }: Split
           alt=""
           fill
           loading="lazy"
-          quality={90}
+          quality={80}
           className="object-cover object-[52%_50%] sm:object-[54%_50%] md:object-[50%_52%]"
           sizes={FULL_BLEED_IMAGE_SIZES}
         />
@@ -54,28 +54,30 @@ export function SplitStorySection({ data, fallbackData, tone = 'forest' }: Split
         }
       />
 
-      <motion.div
-        variants={revealContainer}
-        initial="hidden"
-        whileInView="show"
-        viewport={defaultViewport}
-        className="relative z-10 mx-auto flex max-w-none items-center px-[6vw] py-12 sm:px-[6.5vw] sm:py-14 md:py-16 lg:h-full lg:px-[7vw] lg:py-0 2xl:px-[8vw]"
-      >
-        <div className="grid w-full items-start gap-10 sm:gap-12 md:grid-cols-2 md:items-center md:gap-[8vw] xl:gap-[10vw]">
-          <StoryBlock
-            title={content.leftTitle}
-            description={content.leftDescription}
-            variant={revealItem}
-            className="md:justify-self-start"
-          />
-          <StoryBlock
-            title={content.rightTitle}
-            description={content.rightDescription}
-            variant={revealItem}
-            className="md:justify-self-end"
-          />
-        </div>
-      </motion.div>
+      <LazyMotion features={domAnimation}>
+        <m.div
+          variants={revealContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={defaultViewport}
+          className="relative z-10 mx-auto flex max-w-none items-center px-[6vw] py-12 sm:px-[6.5vw] sm:py-14 md:py-16 lg:h-full lg:px-[7vw] lg:py-0 2xl:px-[8vw]"
+        >
+          <div className="grid w-full items-start gap-10 sm:gap-12 md:grid-cols-2 md:items-center md:gap-[8vw] xl:gap-[10vw]">
+            <StoryBlock
+              title={content.leftTitle}
+              description={content.leftDescription}
+              variant={revealItem}
+              className="md:justify-self-start"
+            />
+            <StoryBlock
+              title={content.rightTitle}
+              description={content.rightDescription}
+              variant={revealItem}
+              className="md:justify-self-end"
+            />
+          </div>
+        </m.div>
+      </LazyMotion>
     </section>
   );
 }
@@ -92,14 +94,14 @@ function StoryBlock({
   className?: string;
 }) {
   return (
-    <motion.div variants={variant} className={`w-full max-w-[520px] text-left ${className}`}>
+    <m.div variants={variant} className={`w-full max-w-[520px] text-left ${className}`}>
       <h2 className="font-jost-bold text-[clamp(1.05rem,1.42vw,1.55rem)] leading-tight tracking-[0.08em] text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)]">
         {title}
       </h2>
       <p className="mt-4 text-[clamp(0.86rem,1.02vw,1.08rem)] leading-relaxed text-pretty whitespace-pre-line text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)]">
         {description}
       </p>
-    </motion.div>
+    </m.div>
   );
 }
 
