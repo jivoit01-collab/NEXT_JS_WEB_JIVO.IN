@@ -53,7 +53,7 @@ export function PlantSection({ data, fallback }: PlantSectionProps) {
       <div
         className={`relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl px-5 py-16 text-white sm:px-8 2xl:max-w-screen-2xl 2xl:px-20 ${
           alignRight
-            ? 'items-start justify-center pt-[clamp(3.25rem,7vh,5rem)] text-center lg:justify-end lg:text-right'
+            ? 'items-start justify-end pt-[clamp(3.25rem,7vh,5rem)] text-right lg:justify-end lg:text-right'
             : 'items-end justify-start pb-[clamp(3rem,8vh,5rem)] text-left'
         }`}
       >
@@ -64,7 +64,7 @@ export function PlantSection({ data, fallback }: PlantSectionProps) {
           viewport={{ once: true, amount: 0.35 }}
           className={
             alignRight
-              ? 'w-full max-w-[780px] -translate-y-3 sm:-translate-y-5 lg:mr-[2vw] lg:-translate-y-7'
+              ? 'ml-auto w-full max-w-[780px] -translate-y-3 sm:-translate-y-5 lg:mr-[2vw] lg:-translate-y-7'
               : 'w-full max-w-[760px] lg:ml-[1vw]'
           }
         >
@@ -96,7 +96,7 @@ export function PlantSectionSkeleton({ align = 'left' }: { align?: 'left' | 'rig
       <div
         className={`relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl px-5 py-16 sm:px-8 2xl:max-w-screen-2xl 2xl:px-20 ${
           alignRight
-            ? 'items-start justify-center pt-[clamp(7rem,14vh,10rem)] text-center lg:justify-end'
+            ? 'items-start justify-end pt-[clamp(7rem,14vh,10rem)] text-right lg:justify-end'
             : 'items-end justify-start pb-[clamp(3rem,8vh,5rem)]'
         }`}
       >
