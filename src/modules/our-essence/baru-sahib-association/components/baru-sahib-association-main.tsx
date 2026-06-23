@@ -34,9 +34,11 @@ export function BaruSahibAssociationMain({ sections }: BaruSahibAssociationMainP
           data={sections.get('video') as BaruSahibAssociationVideoContent | undefined}
         />
       </LazyOnView>
-      <HumanitySection
-        data={sections.get('humanity') as BaruSahibAssociationHumanityContent | undefined}
-      />
+      <LazyOnView rootMargin="220px" fallback={<HumanitySectionSkeleton />} minHeight="0px">
+        <HumanitySection
+          data={sections.get('humanity') as BaruSahibAssociationHumanityContent | undefined}
+        />
+      </LazyOnView>
     </main>
   );
 }

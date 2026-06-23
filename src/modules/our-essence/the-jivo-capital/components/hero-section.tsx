@@ -1,14 +1,10 @@
-'use client';
-
-import { motion, useReducedMotion } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
-import { containerSlow, fadeUpSlow, reducedMotion } from '@/lib/animation-variants';
 import { defaultHeroContent, fallbackImage } from '../data/defaults';
 import type { TheJivoCapitalHeroContent } from '../types';
 
 const HERO_BLUR =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDE2IDkiIHhtbG5zPSJodHRwOi8vd3d3Lnczb3JnIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iOSIgZmlsbD0iIzg0NzA0NSIvPjwvc3ZnPg==';
-const HERO_IMAGE_SIZES = '(max-width: 768px) 140vw, (max-width: 1536px) 115vw, 1920px';
+const HERO_IMAGE_SIZES = '100vw';
 
 interface TheJivoCapitalHeroProps {
   data?: TheJivoCapitalHeroContent;
@@ -20,17 +16,15 @@ function imageWithFallback(image: string) {
 
 export function TheJivoCapitalHero({ data }: TheJivoCapitalHeroProps) {
   const { title, description, image } = data ?? defaultHeroContent;
-  const prefersReducedMotion = useReducedMotion();
-  const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
 
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-[#75643f]">
+    <section className="relative min-h-[60svh] overflow-hidden bg-[#75643f] sm:min-h-[70svh] lg:min-h-[100svh]">
       <SafeImage
         src={imageWithFallback(image)}
         alt=""
         fill
         priority
-        quality={90}
+        quality={80}
         placeholder="blur"
         blurDataURL={HERO_BLUR}
         className="object-cover object-center"
@@ -39,26 +33,15 @@ export function TheJivoCapitalHero({ data }: TheJivoCapitalHeroProps) {
       <div className="absolute inset-0 bg-linear-to-b from-black/4 via-transparent to-black/10" />
       <div className="absolute inset-0 bg-linear-to-r from-black/3 via-transparent to-black/5" />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl items-end justify-center px-5 pt-28 pb-[clamp(3.5rem,8vh,6rem)] text-center sm:px-8 lg:justify-end lg:text-right 2xl:max-w-screen-2xl 2xl:px-20">
-        <motion.div
-          variants={containerSlow}
-          initial="hidden"
-          animate="show"
-          className="w-full max-w-[760px] text-white lg:mr-[2vw]"
-        >
-          <motion.h1
-            variants={revealItem}
-            className="font-jost-extrabold text-[clamp(2.1rem,4vw,4.8rem)] leading-[0.98] text-balance uppercase drop-shadow-[0_4px_18px_rgba(0,0,0,0.5)]"
-          >
+      <div className="relative z-10 mx-auto flex min-h-[60svh] w-full max-w-7xl items-end justify-center px-4 py-14 text-center sm:min-h-[70svh] sm:px-6 sm:py-16 lg:min-h-[100svh] lg:justify-end lg:pb-[clamp(3.5rem,8svh,6rem)] lg:text-right 2xl:max-w-screen-2xl 2xl:px-20">
+        <div className="w-full max-w-[760px] text-white lg:mr-[2vw]">
+          <h1 className="font-jost-extrabold text-[clamp(2rem,8vw,3.25rem)] leading-[0.98] text-balance uppercase drop-shadow-[0_4px_18px_rgba(0,0,0,0.5)] lg:text-[clamp(2.75rem,4vw,4rem)]">
             {title}
-          </motion.h1>
-          <motion.p
-            variants={revealItem}
-            className="mx-auto mt-4 max-w-[760px] text-[clamp(0.86rem,1.06vw,1.18rem)] leading-relaxed text-pretty text-white/94 drop-shadow-[0_3px_14px_rgba(0,0,0,0.52)] lg:ml-auto"
-          >
+          </h1>
+          <p className="mx-auto mt-4 max-w-[760px] text-[clamp(0.9rem,3.8vw,1rem)] leading-relaxed text-pretty text-white/94 drop-shadow-[0_3px_14px_rgba(0,0,0,0.52)] lg:text-[clamp(1rem,1.18vw,1.25rem)]">
             {description}
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -66,11 +49,14 @@ export function TheJivoCapitalHero({ data }: TheJivoCapitalHeroProps) {
 
 export function TheJivoCapitalHeroSkeleton() {
   return (
-    <section aria-hidden className="relative min-h-screen animate-pulse overflow-hidden bg-[#75643f]">
+    <section
+      aria-hidden
+      className="relative min-h-[60svh] animate-pulse overflow-hidden bg-[#75643f] sm:min-h-[70svh] lg:min-h-[100svh]"
+    >
       <div className="absolute inset-0 bg-white/10" />
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-end justify-center px-5 pt-28 pb-[clamp(3.5rem,8vh,6rem)] text-center sm:px-8 lg:justify-end lg:text-right 2xl:max-w-screen-2xl 2xl:px-20">
+      <div className="relative z-10 mx-auto flex min-h-[60svh] w-full max-w-7xl items-end justify-center px-4 py-14 text-center sm:min-h-[70svh] sm:px-6 sm:py-16 lg:min-h-[100svh] lg:justify-end lg:pb-[clamp(3.5rem,8svh,6rem)] lg:text-right 2xl:max-w-screen-2xl 2xl:px-20">
         <div className="w-full max-w-[760px] lg:mr-[2vw]">
-          <div className="ml-auto h-14 w-full max-w-xl rounded bg-white/25 sm:h-20" />
+          <div className="ml-auto h-12 w-full max-w-xl rounded bg-white/25 sm:h-16 lg:h-20" />
           <div className="mt-5 space-y-2">
             <div className="ml-auto h-4 w-full rounded bg-white/18" />
             <div className="ml-auto h-4 w-5/6 rounded bg-white/18" />

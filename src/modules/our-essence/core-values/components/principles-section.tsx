@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
-import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
+import { container, fadeUp, reducedMotion, defaultViewport } from '@/lib/animation-variants';
 import type { CoreValuesPrinciplesContent } from '../types';
 import { defaultPrinciplesContent } from '../data/defaults';
 
@@ -13,6 +13,9 @@ interface Props {
 /** Sewa / Intelligence / Integrity — grid over sunset-sky bg. */
 export function PrinciplesSection({ data }: Props) {
   const { backgroundImage, blocks } = data ?? defaultPrinciplesContent;
+  const prefersReducedMotion = useReducedMotion();
+  const revealVariant = prefersReducedMotion ? reducedMotion : fadeUp;
+  const containerVariant = prefersReducedMotion ? reducedMotion : container;
 
   return (
     <section className="relative overflow-hidden py-16 sm:py-20 md:py-24 lg:py-28 2xl:py-36">
@@ -21,6 +24,7 @@ export function PrinciplesSection({ data }: Props) {
           src={backgroundImage}
           alt=""
           fill
+          quality={78}
           className="object-cover"
           sizes="100vw"
         />
@@ -28,31 +32,31 @@ export function PrinciplesSection({ data }: Props) {
         <div className="absolute inset-0 bg-linear-to-b from-[#f8a880] via-[#f1738a] to-[#8b4789]" />
       )}
 
-      <motion.div
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={defaultViewport}
-        className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20"
-      >
-        <div className="grid gap-10 sm:gap-12 md:grid-cols-2 md:gap-16 lg:gap-24 2xl:gap-32">
-          {blocks.map((block, i) => (
-            <motion.div key={`${block.label}-${i}`} variants={fadeUp}>
-              <h3 className="mb-3 font-jost-bold text-sm uppercase tracking-[0.2em] text-white sm:mb-4 sm:text-base md:text-lg 2xl:mb-5 2xl:text-xl">
-                {block.label}
-              </h3>
-              <p className="text-sm leading-relaxed text-white/90 sm:text-base md:text-lg 2xl:text-xl">
-                {block.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+      <LazyMotion features={domAnimation}>
+        <m.div
+          variants={containerVariant}
+          initial="hidden"
+          whileInView="show"
+          viewport={defaultViewport}
+          className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20"
+        >
+          <div className="grid gap-10 sm:gap-12 md:grid-cols-2 md:gap-16 lg:gap-24 2xl:gap-32">
+            {blocks.map((block, i) => (
+              <m.div key={`${block.label}-${i}`} variants={revealVariant}>
+                <h3 className="mb-3 font-jost-bold text-sm uppercase tracking-[0.2em] text-white sm:mb-4 sm:text-base md:text-lg 2xl:mb-5 2xl:text-xl">
+                  {block.label}
+                </h3>
+                <p className="text-pretty text-sm leading-relaxed text-white/90 sm:text-base md:text-lg 2xl:text-xl">
+                  {block.description}
+                </p>
+              </m.div>
+            ))}
+          </div>
+        </m.div>
+      </LazyMotion>
     </section>
   );
 }
-
-// ── Skeleton ──────────────────────────────────────────────────
 
 export function PrinciplesSectionSkeleton() {
   return (
@@ -75,3 +79,4 @@ export function PrinciplesSectionSkeleton() {
     </section>
   );
 }
+
