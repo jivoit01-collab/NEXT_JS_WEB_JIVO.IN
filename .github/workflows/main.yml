@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -17,6 +18,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
-          command_timeout: 30m
+          command_timeout: 60m
           script: |
             cmd.exe /D /S /C "cd /d C:\LiveProjects\NEXT_JS_WEB_JIVO.IN && git fetch origin main && git show origin/main:scripts/deploy-jivo-windows.ps1 > %TEMP%\jivo-deploy-windows.ps1 && powershell.exe -NoProfile -ExecutionPolicy Bypass -File %TEMP%\jivo-deploy-windows.ps1"

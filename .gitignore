@@ -18,7 +18,8 @@ cicd.md
 logs/
 .data/
 *.bat
-*.log    
+!deploye.bat
+*.log
 
 # next.js
 /.next/

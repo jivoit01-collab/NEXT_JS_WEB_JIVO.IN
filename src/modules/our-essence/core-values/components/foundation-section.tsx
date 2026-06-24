@@ -16,6 +16,9 @@ export function FoundationSection({ data }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const revealVariant = prefersReducedMotion ? reducedMotion : fadeUp;
   const containerVariant = prefersReducedMotion ? reducedMotion : container;
+  const hoverLift = prefersReducedMotion
+    ? undefined
+    : { y: -10, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } };
 
   return (
     <section className="relative overflow-hidden py-16 sm:py-20 md:py-24 lg:py-32 2xl:py-40">
@@ -42,18 +45,30 @@ export function FoundationSection({ data }: Props) {
         >
           <m.h2
             variants={revealVariant}
-            className="mb-10 text-balance text-center font-jost-bold text-2xl uppercase tracking-[0.12em] text-white sm:mb-14 sm:text-3xl md:text-4xl lg:mb-28 lg:text-6xl 2xl:mb-32 2xl:text-7xl"
+            whileHover={hoverLift}
+            className="mb-10 inline-block w-full cursor-default text-balance text-center font-jost-bold text-2xl uppercase tracking-[0.12em] text-white transition-[text-shadow] duration-500 hover:[text-shadow:0_10px_36px_rgba(255,255,255,0.3)] sm:mb-14 sm:text-3xl md:text-4xl lg:mb-28 lg:text-6xl 2xl:mb-32 2xl:text-7xl"
           >
             <SplitWords text={heading} inheritParent />
           </m.h2>
 
           <div className="grid gap-10 sm:gap-12 md:grid-cols-2 md:gap-16 lg:gap-24 2xl:gap-32">
             {blocks.map((block, i) => (
-              <m.div key={`${block.label}-${i}`} variants={revealVariant}>
-                <h3 className="mb-3 font-jost-bold text-sm uppercase tracking-[0.2em] text-white sm:mb-4 sm:text-base md:text-lg 2xl:mb-5 2xl:text-xl">
+              <m.div
+                key={`${block.label}-${i}`}
+                variants={revealVariant}
+                whileHover={hoverLift}
+                className="group relative cursor-default"
+              >
+                {/* Decorative index that fades up on hover */}
+                <span className="font-jost-bold absolute -top-6 left-0 text-3xl text-white/0 transition-all duration-500 group-hover:-top-9 group-hover:text-white/15 sm:text-4xl lg:text-5xl">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 className="mb-3 flex items-center font-jost-bold text-sm uppercase tracking-[0.2em] text-white transition-all duration-300 group-hover:tracking-[0.28em] sm:mb-4 sm:text-base md:text-lg 2xl:mb-5 2xl:text-xl">
+                  {/* Accent line that grows in on hover */}
+                  <span className="mr-0 h-px w-0 bg-white/80 transition-all duration-500 group-hover:mr-3 group-hover:w-8" />
                   {block.label}
                 </h3>
-                <p className="text-pretty text-sm leading-relaxed text-white/85 sm:text-base md:text-lg 2xl:text-xl">
+                <p className="text-pretty text-sm leading-relaxed text-white/85 transition-colors duration-300 group-hover:text-white sm:text-base md:text-lg 2xl:text-xl">
                   {block.description}
                 </p>
               </m.div>
