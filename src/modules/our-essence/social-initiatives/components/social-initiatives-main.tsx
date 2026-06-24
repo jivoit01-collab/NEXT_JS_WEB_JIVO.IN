@@ -1,5 +1,4 @@
 import dynamic from 'next/dynamic';
-import { LazyOnView } from '@/components/shared/public';
 import { SocialInitiativesHero } from './hero-section';
 import { SplitStorySectionSkeleton } from './split-story-section';
 import { EducateEmpowerSectionSkeleton } from './educate-empower-section';
@@ -10,6 +9,10 @@ import type {
   SocialInitiativesSplitContent,
 } from '../types';
 
+// Hero is above-the-fold — eager (server-rendered) for instant LCP.
+// Below-the-fold sections use next/dynamic for JS code splitting while still
+// shipping their markup in the ISR HTML (no LazyOnView viewport gating — see
+// docs/performance.md §9.2). Skeletons only show during client-nav chunk load.
 const SplitStorySection = dynamic(
   () => import('./split-story-section').then((mod) => mod.SplitStorySection),
   { loading: () => <SplitStorySectionSkeleton /> },
@@ -30,18 +33,14 @@ export function SocialInitiativesMain({ sections }: SocialInitiativesMainProps) 
       <SocialInitiativesHero
         data={sections.get('hero') as SocialInitiativesHeroContent | undefined}
       />
-      <LazyOnView rootMargin="700px" fallback={<SplitStorySectionSkeleton />} minHeight="0px">
-        <SplitStorySection
-          data={sections.get('responsibilities') as SocialInitiativesSplitContent | undefined}
-          fallbackData={defaultResponsibilitiesContent}
-          tone="ocean"
-        />
-      </LazyOnView>
-      <LazyOnView rootMargin="700px" fallback={<EducateEmpowerSectionSkeleton />} minHeight="0px">
-        <EducateEmpowerSection
-          data={sections.get('educate') as SocialInitiativesEducateContent | undefined}
-        />
-      </LazyOnView>
+      <SplitStorySection
+        data={sections.get('responsibilities') as SocialInitiativesSplitContent | undefined}
+        fallbackData={defaultResponsibilitiesContent}
+        tone="ocean"
+      />
+      <EducateEmpowerSection
+        data={sections.get('educate') as SocialInitiativesEducateContent | undefined}
+      />
     </main>
   );
 }

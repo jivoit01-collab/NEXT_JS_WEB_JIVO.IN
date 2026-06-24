@@ -42,46 +42,63 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
         />
       </div>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1500px] grid-rows-[minmax(0,1fr)_auto] px-5 pt-20 pb-8 text-center sm:px-6 sm:pt-24 sm:pb-9 md:px-8 md:pt-28 md:pb-10 lg:min-h-[100svh] lg:px-[6vw] lg:pt-28 lg:pb-[clamp(3.5rem,7dvh,6.5rem)] 2xl:px-[5vw]">
-        <div className="flex min-h-0 items-center justify-center lg:justify-end lg:pb-[clamp(1.5rem,5dvh,4.5rem)]">
+      <div className="relative z-10 mx-auto grid w-full max-w-[1500px] grid-rows-[minmax(0,1fr)_auto] px-5 pt-14 pb-8 text-center sm:px-6 sm:pt-20 sm:pb-9 md:px-8 md:pt-28 md:pb-10 lg:min-h-[100svh] lg:px-[6vw] lg:pt-28 lg:pb-[clamp(3.5rem,7dvh,6.5rem)] 2xl:px-[5vw]">
+        <div className="flex min-h-0 items-start justify-start pt-2 md:items-center md:justify-center md:pt-0 lg:justify-end lg:pb-[clamp(1.5rem,5dvh,4.5rem)]">
           <div
-            className={`w-full max-w-[620px] px-5 py-6 text-white sm:px-7 sm:py-7 lg:max-w-[640px] lg:px-8 lg:py-8 2xl:max-w-[700px]`}
+            className={`w-full max-w-[620px] px-5 py-6 text-left text-white sm:px-7 sm:py-7 md:text-center lg:max-w-[640px] lg:px-8 lg:py-8 2xl:max-w-[700px]`}
           >
-            <h1 className="font-jost-extrabold text-[clamp(2.15rem,3.25vw,4.4rem)] leading-[1.02] text-balance text-white uppercase drop-shadow-[0_3px_16px_rgba(0,0,0,0.4)]">
+            <h1 className="font-jost-extrabold inline-block cursor-default text-[clamp(2.15rem,3.25vw,4.4rem)] leading-[1.02] text-balance text-white uppercase drop-shadow-[0_3px_16px_rgba(0,0,0,0.4)] transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:drop-shadow-[0_12px_34px_rgba(0,0,0,0.55)]">
               {title}
             </h1>
-            <p className="mx-auto mt-3 max-w-[500px] text-[clamp(0.92rem,1.04vw,1.24rem)] leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.42)] 2xl:max-w-[560px]">
+            <p className="mt-3 max-w-[500px] cursor-default text-[clamp(0.92rem,1.04vw,1.24rem)] leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.42)] transition-all duration-500 ease-out hover:-translate-y-1 hover:text-white md:mx-auto 2xl:max-w-[560px]">
               {subtitle}
             </p>
           </div>
         </div>
 
         <div className="mx-auto grid w-full max-w-[1120px] items-stretch gap-4 sm:gap-5 md:grid-cols-2 md:gap-6 lg:max-w-[1180px] lg:gap-8 2xl:max-w-[1260px]">
-          <HeroStoryBlock title={alignmentTitle} description={alignmentDescription} />
-          <HeroStoryBlock title={goalTitle} description={goalDescription} />
+          <HeroStoryBlock title={alignmentTitle} description={alignmentDescription} align="right" />
+          <HeroStoryBlock title={goalTitle} description={goalDescription} align="left" />
         </div>
       </div>
     </section>
   );
 }
 
+const STORY_BLOCK_ALIGN = {
+  center: { items: 'items-center', text: 'text-center', paragraph: 'mx-auto' },
+  // Mobile zig-zag: left/right on small screens, recentred from md up.
+  left: { items: 'items-start md:items-center', text: 'text-left md:text-center', paragraph: 'md:mx-auto' },
+  right: {
+    items: 'items-end md:items-center',
+    text: 'text-right md:text-center',
+    paragraph: 'ml-auto md:mx-auto',
+  },
+} as const;
+
 function HeroStoryBlock({
   title,
   description,
+  align = 'center',
   className = '',
 }: {
   title: string;
   description: string;
+  align?: keyof typeof STORY_BLOCK_ALIGN;
   className?: string;
 }) {
+  const alignment = STORY_BLOCK_ALIGN[align];
+
   return (
     <div
-      className={`mx-auto flex h-full w-full max-w-[520px] flex-col items-center justify-start px-5 py-4 text-center sm:px-6 sm:py-5 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7 ${className}`}
+      className={`group mx-auto flex h-full w-full max-w-[520px] cursor-default flex-col ${alignment.items} justify-start rounded-2xl border border-white/0 bg-white/0 px-5 py-4 ${alignment.text} transition-all duration-300 ease-out will-change-transform hover:-translate-y-1.5 hover:border-white/15 hover:bg-white/5 hover:backdrop-blur-sm sm:px-6 sm:py-5 md:max-w-none lg:min-h-[160px] lg:px-7 lg:py-7 ${className}`}
     >
-      <h2 className="font-jost-bold text-[clamp(0.96rem,1.18vw,1.35rem)] leading-tight tracking-[0.1em] text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)]">
+      <h2 className="font-jost-bold text-[clamp(0.96rem,1.18vw,1.35rem)] leading-tight tracking-[0.1em] text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)] transition-all duration-300 group-hover:tracking-[0.16em]">
         {title}
       </h2>
-      <p className="mx-auto mt-3 max-w-[390px] text-[clamp(0.82rem,0.94vw,1rem)] leading-relaxed text-pretty text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)] lg:max-w-[420px]">
+      <p
+        className={`mt-3 ${alignment.paragraph} max-w-[390px] text-[clamp(0.82rem,0.94vw,1rem)] leading-relaxed text-pretty text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)] transition-colors duration-300 group-hover:text-white lg:max-w-[420px]`}
+      >
         {description}
       </p>
     </div>

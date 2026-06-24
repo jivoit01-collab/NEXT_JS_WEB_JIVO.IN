@@ -22,6 +22,12 @@ export function HealthcareSection({ data }: HealthcareSectionProps) {
   const revealContainer = prefersReducedMotion ? reducedMotion : containerSlow;
   const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
   const revealImage = prefersReducedMotion ? reducedMotion : imageReveal;
+  const hoverLift = prefersReducedMotion
+    ? undefined
+    : { y: -6, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } };
+  const hoverHeading = prefersReducedMotion
+    ? undefined
+    : { y: -6, scale: 1.015, transition: { type: 'spring' as const, stiffness: 280, damping: 18 } };
   const { title, paragraph1, paragraph2, image } = data ?? defaultHealthcareContent;
 
   return (
@@ -48,27 +54,30 @@ export function HealthcareSection({ data }: HealthcareSectionProps) {
         <div className="absolute inset-0 bg-linear-to-r from-black/55 via-black/15 to-transparent" />
         <div className="absolute inset-0 bg-linear-to-b from-black/10 via-transparent to-black/15" />
 
-        <div className="relative z-10 mx-auto flex min-h-[60svh] w-full max-w-7xl items-center px-5 py-12 sm:min-h-[64svh] sm:px-6 md:min-h-[70svh] lg:h-full lg:min-h-0 lg:items-start lg:px-[2vw] lg:pt-[clamp(3.25rem,5vw,4.7rem)]">
+        <div className="relative z-10 mx-auto flex min-h-[60svh] w-full max-w-7xl items-center px-3 py-12 sm:min-h-[64svh] sm:px-4 md:min-h-[70svh] lg:h-full lg:min-h-0 lg:items-start lg:px-6 lg:pt-[clamp(3.25rem,5vw,4.7rem)] xl:px-8 2xl:max-w-screen-2xl 2xl:px-12">
           <m.div
             variants={revealContainer}
             style={{ willChange: prefersReducedMotion ? 'auto' : 'transform, opacity' }}
-            className="w-full max-w-[620px] min-w-0 transform-gpu text-left text-white lg:w-[44vw] lg:max-w-[590px]"
+            className="w-full max-w-[560px] min-w-0 transform-gpu text-left text-white lg:w-[46vw] lg:max-w-[600px]"
           >
             <m.h2
               variants={revealItem}
-              className="font-jost-bold text-[clamp(2rem,4vw,2.75rem)] leading-[1.08] text-balance drop-shadow-[0_3px_14px_rgba(0,0,0,0.4)]"
+              whileHover={hoverHeading}
+              className="font-jost-bold max-w-[560px] inline-block cursor-default text-[clamp(1.6rem,2.5vw,2rem)] leading-[1.12] text-balance drop-shadow-[0_3px_14px_rgba(0,0,0,0.4)] transition-[filter] duration-500 hover:drop-shadow-[0_14px_30px_rgba(0,0,0,0.55)]"
             >
               {title}
             </m.h2>
             <m.p
               variants={revealItem}
-              className="mt-4 max-w-[560px] text-[clamp(0.95rem,1vw,1.02rem)] leading-relaxed text-pretty text-white/92 drop-shadow-[0_2px_10px_rgba(0,0,0,0.34)] sm:mt-5"
+              whileHover={hoverLift}
+              className="mt-4 max-w-[500px] cursor-default text-[clamp(0.95rem,1vw,1.02rem)] leading-relaxed text-pretty text-white/92 drop-shadow-[0_2px_10px_rgba(0,0,0,0.34)] transition-colors duration-300 hover:text-white sm:mt-5"
             >
               {paragraph1}
             </m.p>
             <m.p
               variants={revealItem}
-              className="mt-4 max-w-[580px] text-[clamp(0.9rem,0.96vw,1rem)] leading-relaxed text-pretty text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.34)]"
+              whileHover={hoverLift}
+              className="mt-4 max-w-[500px] cursor-default text-[clamp(0.9rem,0.96vw,1rem)] leading-relaxed text-pretty text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.34)] transition-colors duration-300 hover:text-white"
             >
               {paragraph2}
             </m.p>
@@ -87,8 +96,8 @@ export function HealthcareSectionSkeleton() {
     >
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-linear-to-r from-black/55 via-black/15 to-transparent" />
-      <div className="relative z-10 mx-auto flex min-h-[60svh] w-full max-w-7xl items-center px-5 py-12 sm:min-h-[64svh] sm:px-6 md:min-h-[70svh] lg:h-full lg:min-h-0 lg:items-start lg:px-[2vw] lg:pt-[clamp(3.25rem,5vw,4.7rem)]">
-        <div className="w-full max-w-[620px] lg:w-[44vw] lg:max-w-[590px]">
+      <div className="relative z-10 mx-auto flex min-h-[60svh] w-full max-w-7xl items-center px-3 py-12 sm:min-h-[64svh] sm:px-4 md:min-h-[70svh] lg:h-full lg:min-h-0 lg:items-start lg:px-6 lg:pt-[clamp(3.25rem,5vw,4.7rem)] xl:px-8 2xl:max-w-screen-2xl 2xl:px-12">
+        <div className="w-full max-w-[560px] lg:w-[46vw] lg:max-w-[600px]">
           <div className="h-28 w-full rounded bg-white/24 sm:h-36 2xl:h-44" />
           <div className="mt-6 space-y-2">
             <div className="h-4 w-full rounded bg-white/16" />

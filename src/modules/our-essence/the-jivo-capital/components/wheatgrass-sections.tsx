@@ -34,6 +34,12 @@ export function FarmToBottleSection({ data }: FarmToBottleSectionProps) {
   const section = data ?? defaultFarmToBottleContent;
   const prefersReducedMotion = useReducedMotion();
   const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
+  const hoverLift = prefersReducedMotion
+    ? undefined
+    : { y: -6, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } };
+  const hoverHeading = prefersReducedMotion
+    ? undefined
+    : { y: -6, scale: 1.012, transition: { type: 'spring' as const, stiffness: 280, damping: 18 } };
 
   return (
     <LazyMotion features={domAnimation}>
@@ -70,7 +76,7 @@ export function FarmToBottleSection({ data }: FarmToBottleSectionProps) {
         <div className="absolute inset-0 bg-linear-to-b from-black/34 via-black/8 to-black/22" />
         <div className="absolute inset-0 bg-linear-to-r from-black/24 via-transparent to-black/10" />
 
-        <div className="relative z-10 mx-auto flex min-h-[72svh] w-full max-w-7xl items-start px-4 py-12 text-white sm:min-h-[82svh] sm:px-6 sm:py-14 lg:min-h-[100svh] lg:py-16 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-20">
+        <div className="relative z-10 mx-auto flex min-h-[72svh] w-full max-w-7xl items-start px-3 py-12 text-white sm:min-h-[82svh] sm:px-4 sm:py-14 lg:min-h-[100svh] lg:px-6 lg:py-16 xl:px-8 2xl:max-w-screen-2xl 2xl:px-12 2xl:pt-20">
           <m.div
             variants={containerSlow}
             initial="hidden"
@@ -80,13 +86,15 @@ export function FarmToBottleSection({ data }: FarmToBottleSectionProps) {
           >
             <m.h2
               variants={revealItem}
-              className="font-jost-extrabold text-[clamp(2rem,8vw,3rem)] leading-[0.98] text-balance drop-shadow-[0_4px_18px_rgba(0,0,0,0.55)] lg:text-[clamp(2rem,3.4vw,4rem)]"
+              whileHover={hoverHeading}
+              className="font-jost-extrabold inline-block cursor-default text-[clamp(2rem,8vw,3rem)] leading-[0.98] text-balance drop-shadow-[0_4px_18px_rgba(0,0,0,0.55)] lg:text-[clamp(2rem,3.4vw,4rem)]"
             >
               {section.title}
             </m.h2>
             <m.p
               variants={revealItem}
-              className="mt-5 max-w-[840px] whitespace-pre-line text-[clamp(0.9rem,3.8vw,1rem)] leading-relaxed text-pretty text-white/94 drop-shadow-[0_3px_12px_rgba(0,0,0,0.5)] 2xl:text-xl"
+              whileHover={hoverLift}
+              className="mt-5 max-w-[840px] cursor-default whitespace-pre-line text-[clamp(0.9rem,3.8vw,1rem)] leading-relaxed text-pretty text-white/94 drop-shadow-[0_3px_12px_rgba(0,0,0,0.5)] transition-colors duration-300 hover:text-white 2xl:text-xl"
             >
               {section.description}
             </m.p>
@@ -101,6 +109,12 @@ export function FreshLockSection({ data }: FreshLockSectionProps) {
   const section = data ?? defaultFreshLockContent;
   const prefersReducedMotion = useReducedMotion();
   const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
+  const hoverLift = prefersReducedMotion
+    ? undefined
+    : { y: -6, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } };
+  const hoverHeading = prefersReducedMotion
+    ? undefined
+    : { y: -6, scale: 1.012, transition: { type: 'spring' as const, stiffness: 280, damping: 18 } };
 
   return (
     <LazyMotion features={domAnimation}>
@@ -122,23 +136,25 @@ export function FreshLockSection({ data }: FreshLockSectionProps) {
         )}
         <div className="absolute inset-0 bg-linear-to-r from-[#8c9d7b]/80 via-[#aebc9f]/40 to-transparent" />
 
-        <div className="relative z-10 mx-auto flex min-h-[78svh] w-full max-w-7xl items-start px-4 pt-12 pb-52 sm:min-h-[86svh] sm:px-6 sm:pt-14 sm:pb-56 lg:min-h-[100svh] lg:items-center lg:py-16 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-36">
+        <div className="relative z-10 mx-auto flex min-h-[78svh] w-full max-w-7xl items-start px-3 pt-12 pb-52 sm:min-h-[86svh] sm:px-4 sm:pt-14 sm:pb-56 lg:min-h-[100svh] lg:items-center lg:px-6 lg:py-16 xl:px-8 2xl:max-w-screen-2xl 2xl:px-12 2xl:py-36">
           <m.div
             variants={containerSlow}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.35 }}
-            className="max-w-[88%] text-white sm:max-w-[680px] lg:max-w-[820px]"
+            className="max-w-[88%] text-white sm:max-w-[560px] lg:max-w-[600px]"
           >
             <m.h2
               variants={revealItem}
-              className="font-jost-extrabold text-[clamp(1.6rem,7vw,2.5rem)] leading-[1.06] text-balance drop-shadow-[0_3px_12px_rgba(63,78,52,0.38)] lg:text-[clamp(2rem,3.35vw,4rem)]"
+              whileHover={hoverHeading}
+              className="font-jost-extrabold inline-block cursor-default text-[clamp(1.5rem,6vw,2.1rem)] leading-[1.08] text-balance drop-shadow-[0_3px_12px_rgba(63,78,52,0.38)] lg:text-[clamp(1.8rem,2.5vw,2.6rem)]"
             >
               {section.title}
             </m.h2>
             <m.p
               variants={revealItem}
-              className="mt-5 max-w-[800px] whitespace-pre-line text-[clamp(0.82rem,3.2vw,0.95rem)] leading-relaxed text-pretty text-white/96 drop-shadow-[0_2px_10px_rgba(63,78,52,0.34)] sm:mt-6 lg:mt-7 lg:text-base 2xl:text-xl"
+              whileHover={hoverLift}
+              className="mt-5 max-w-[800px] cursor-default whitespace-pre-line text-[clamp(0.82rem,3.2vw,0.95rem)] leading-relaxed text-pretty text-white/96 drop-shadow-[0_2px_10px_rgba(63,78,52,0.34)] transition-colors duration-300 hover:text-white sm:mt-6 lg:mt-7 lg:text-base 2xl:text-xl"
             >
               {section.description}
             </m.p>
@@ -157,7 +173,7 @@ export function FarmToBottleSectionSkeleton() {
     >
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-black/18" />
-      <div className="relative z-10 mx-auto flex min-h-[72svh] w-full max-w-7xl items-start px-4 py-12 text-white sm:min-h-[82svh] sm:px-6 sm:py-14 lg:min-h-[100svh] lg:py-16 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-20">
+      <div className="relative z-10 mx-auto flex min-h-[72svh] w-full max-w-7xl items-start px-3 py-12 text-white sm:min-h-[82svh] sm:px-4 sm:py-14 lg:min-h-[100svh] lg:px-6 lg:py-16 xl:px-8 2xl:max-w-screen-2xl 2xl:px-12 2xl:pt-20">
         <div className="w-full max-w-[860px]">
           <div className="h-12 w-full max-w-3xl rounded bg-white/24 sm:h-16 lg:h-20" />
           <div className="mt-5 space-y-2">
@@ -178,8 +194,8 @@ export function FreshLockSectionSkeleton() {
       className="relative min-h-[82svh] animate-pulse overflow-hidden bg-[#a8b797] sm:min-h-[88svh] lg:min-h-[100svh]"
     >
       <div className="absolute inset-0 bg-white/10" />
-      <div className="relative z-10 mx-auto flex min-h-[78svh] w-full max-w-7xl items-start px-4 pt-12 pb-52 sm:min-h-[86svh] sm:px-6 sm:pt-14 sm:pb-56 lg:min-h-[100svh] lg:items-center lg:py-16 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-36">
-        <div className="max-w-[820px]">
+      <div className="relative z-10 mx-auto flex min-h-[78svh] w-full max-w-7xl items-start px-3 pt-12 pb-52 sm:min-h-[86svh] sm:px-4 sm:pt-14 sm:pb-56 lg:min-h-[100svh] lg:items-center lg:px-6 lg:py-16 xl:px-8 2xl:max-w-screen-2xl 2xl:px-12 2xl:py-36">
+        <div className="max-w-[600px]">
           <div className="h-12 w-full max-w-3xl rounded bg-white/28 sm:h-16 lg:h-20" />
           <div className="mt-7 space-y-2">
             <div className="h-4 w-full rounded bg-white/18 2xl:h-5" />

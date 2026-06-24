@@ -36,12 +36,12 @@ export function TheStoryHero({ data }: Props) {
         className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-28 md:pt-32 lg:px-8 lg:pb-24 lg:pt-40 2xl:max-w-screen-2xl 2xl:px-20 2xl:pb-36 2xl:pt-52"
       >
         <h1
-          className="font-jost-bold text-3xl uppercase tracking-[0.08em] text-white text-balance sm:text-4xl sm:tracking-[0.12em] md:text-4xl md:tracking-[0.15em] lg:text-5xl xl:text-6xl 2xl:text-7xl"
+          className="font-jost-bold inline-block cursor-default text-3xl uppercase tracking-[0.08em] text-white text-balance drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:drop-shadow-[0_10px_30px_rgba(197,168,50,0.45)] sm:text-4xl sm:tracking-[0.12em] md:text-4xl md:tracking-[0.15em] lg:text-5xl xl:text-6xl 2xl:text-7xl"
         >
           {heading}
         </h1>
 
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/90 text-pretty sm:mt-4 sm:max-w-2xl sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
+        <p className="mt-3 max-w-xl cursor-default text-sm leading-relaxed text-white/90 text-pretty transition-all duration-500 ease-out hover:-translate-y-1 hover:text-white sm:mt-4 sm:max-w-2xl sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
           {paragraph}
         </p>
       </div>

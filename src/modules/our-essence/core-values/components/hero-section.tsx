@@ -30,13 +30,13 @@ export function CoreValuesHero({ data }: Props) {
 
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-7xl transform-gpu px-4 pt-24 sm:px-6 sm:pt-32 md:pt-40 lg:px-8 lg:pt-48 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-60">
-        <h1 className="font-jost-bold text-balance text-3xl tracking-[0.08em] text-white uppercase sm:text-4xl sm:tracking-[0.12em] md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
+        <h1 className="font-jost-bold inline-block cursor-default text-balance text-3xl tracking-[0.08em] text-white uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:drop-shadow-[0_10px_30px_rgba(197,168,50,0.5)] sm:text-4xl sm:tracking-[0.12em] md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
           {heading}
         </h1>
-        <p className="mt-4 max-w-xl text-pretty text-sm leading-relaxed text-white/90 sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
+        <p className="mt-4 max-w-xl cursor-default text-pretty text-sm leading-relaxed text-white/90 transition-all duration-500 ease-out hover:-translate-y-1 hover:text-white sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
           {subtitle}
         </p>
-        <p className="mt-4 max-w-xl text-pretty text-sm leading-relaxed text-white/80 sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
+        <p className="mt-4 max-w-xl cursor-default text-pretty text-sm leading-relaxed text-white/80 transition-all duration-500 ease-out hover:-translate-y-1 hover:text-white sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
           {paragraph}
         </p>
       </div>
