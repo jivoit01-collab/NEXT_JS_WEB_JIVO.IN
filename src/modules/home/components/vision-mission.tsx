@@ -20,8 +20,9 @@ export function VisionMission({ data, isLoading }: VisionMissionProps) {
     <section className="relative w-full overflow-hidden py-16 sm:py-20 md:py-24 lg:py-28 2xl:py-36">
       <SafeImage
         src={content.backgroundImage || defaults.backgroundImage}
-        alt="Nature background"
+        alt=""
         fill
+        sizes="100vw"
         className="object-cover"
       />
 
