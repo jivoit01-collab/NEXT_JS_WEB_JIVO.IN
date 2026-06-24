@@ -1,11 +1,11 @@
 'use client';
 
-import { SafeImage, SplitWords } from '@/components/shared/public';
+import { SafeImage } from '@/components/shared/public';
 import { productsFoundationContent as defaults } from '../data/home-content';
 import type { ProductsFoundationContent } from '../types';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import { useCallback, useEffect, useRef } from 'react';
-import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
+import { GsapReveal, SplitReveal } from './home-motion';
 
 interface ProductsFoundationProps {
   data?: ProductsFoundationContent;
@@ -309,24 +309,18 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
 
   return (
     <section className="flex items-center bg-[#134b4c] py-16 text-white sm:py-20 md:min-h-[75dvh] md:py-24 lg:py-28 2xl:py-36">
-      <motion.div
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={defaultViewport}
-        className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8 2xl:max-w-7xl 2xl:gap-20"
-      >
-        <motion.div variants={fadeUp} className="flex items-center justify-center">
+      <div className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:gap-12 lg:grid-cols-[2fr_3fr] lg:gap-16 lg:px-8 2xl:max-w-7xl 2xl:gap-20">
+        <GsapReveal y={48} className="flex items-center justify-center">
           <div
             ref={wrapRef}
             className="group relative aspect-3/4 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg 2xl:max-w-xl"
           >
-            <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-out will-change-transform group-hover:-translate-y-1 group-hover:scale-[1.02]">
+            <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-out will-change-transform group-hover:-translate-y-1 group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100">
               <SafeImage
                 src={content.productImage || defaults.productImage}
                 alt="Jivo Product"
                 fill
-                sizes="(max-width: 768px) 80vw, (max-width: 1536px) 40vw, 36rem"
+                sizes="(max-width: 1024px) 80vw, (max-width: 1536px) 40vw, 36rem"
                 className="object-cover"
               />
               <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#134b4c]/35 via-transparent to-transparent" />
@@ -344,44 +338,40 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
               />
             )}
           </div>
-        </motion.div>
+        </GsapReveal>
 
         <div className="flex flex-col justify-center space-y-6 md:space-y-8 lg:space-y-10 2xl:space-y-12">
-          <motion.div variants={fadeUp}>
-            <h2 className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl 2xl:text-5xl">
-              <SplitWords text={content.section1.heading} inheritParent />
-            </h2>
-            <div className="mt-4 space-y-2 2xl:mt-5 2xl:space-y-3">
+          <div>
+            <SplitReveal
+              as="h2"
+              text={content.section1.heading}
+              className="font-jost-bold block text-[clamp(1.35rem,1rem+1.6vw,2.75rem)] leading-[1.12] text-balance"
+            />
+            <GsapReveal stagger={0.1} y={24} className="mt-4 space-y-2 2xl:mt-5 2xl:space-y-3">
               {content.section1.paragraphs.map((p, i) => (
-                <motion.p
-                  key={i}
-                  variants={fadeUp}
-                  className="text-sm leading-relaxed text-white/75 md:text-base 2xl:text-lg"
-                >
+                <p key={i} className="text-base leading-relaxed text-pretty text-white/80 2xl:text-lg">
                   {p}
-                </motion.p>
+                </p>
               ))}
-            </div>
-          </motion.div>
+            </GsapReveal>
+          </div>
 
-          <motion.div variants={fadeUp}>
-            <h2 className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl 2xl:text-5xl">
-              <SplitWords text={content.section2.heading} inheritParent />
-            </h2>
-            <div className="mt-4 space-y-2 2xl:mt-5 2xl:space-y-3">
+          <div>
+            <SplitReveal
+              as="h2"
+              text={content.section2.heading}
+              className="font-jost-bold block text-[clamp(1.35rem,1rem+1.6vw,2.75rem)] leading-[1.12] text-balance"
+            />
+            <GsapReveal stagger={0.1} y={24} className="mt-4 space-y-2 2xl:mt-5 2xl:space-y-3">
               {content.section2.paragraphs.map((p, i) => (
-                <motion.p
-                  key={i}
-                  variants={fadeUp}
-                  className="text-sm leading-relaxed text-white/75 md:text-base 2xl:text-lg"
-                >
+                <p key={i} className="text-base leading-relaxed text-pretty text-white/80 2xl:text-lg">
                   {p}
-                </motion.p>
+                </p>
               ))}
-            </div>
-          </motion.div>
+            </GsapReveal>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -391,7 +381,7 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
 export function ProductsFoundationSkeleton() {
   return (
     <section className="flex animate-pulse items-center bg-[#134b4c] py-16 sm:py-20 md:min-h-[75dvh] md:py-24 lg:py-28 2xl:py-36">
-      <div className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8 2xl:max-w-7xl 2xl:gap-20">
+      <div className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:gap-12 lg:grid-cols-[2fr_3fr] lg:gap-16 lg:px-8 2xl:max-w-7xl 2xl:gap-20">
         {/* Product image placeholder */}
         <div className="flex items-center justify-center">
           <div className="aspect-3/4 w-full max-w-xs rounded-2xl bg-white/10 sm:max-w-sm md:max-w-md lg:max-w-lg 2xl:max-w-xl" />
