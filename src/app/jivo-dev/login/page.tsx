@@ -15,6 +15,11 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  function redirectToBlockedHome() {
+    document.cookie = 'admin_blocked=1; Max-Age=60; Path=/; SameSite=Lax';
+    router.replace('/');
+  }
+
   function validate(): boolean {
     let valid = true;
     setEmailError('');
@@ -54,17 +59,28 @@ export default function AdminLoginPage() {
         redirect: false,
       });
 
-      if (result?.status === 429) {
-        router.replace('/?blocked=1');
+      if (
+        result?.status === 429 ||
+        result?.code === 'blocked' ||
+        result?.url?.includes('error=blocked')
+      ) {
+        redirectToBlockedHome();
       } else if (result?.error) {
         setError('Invalid email or password');
         setLoading(false);
       } else {
         setLoading(false);
-        router.push('/admin');
+        router.push('/jivo-dev');
         router.refresh();
       }
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+
+      if (message.includes('JSON') || message.includes('Unexpected token')) {
+        redirectToBlockedHome();
+        return;
+      }
+
       setError('Invalid email or password');
       setLoading(false);
     }

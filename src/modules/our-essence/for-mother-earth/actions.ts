@@ -82,7 +82,7 @@ export async function upsertForMotherEarthSectionAction(
     const row = await upsertForMotherEarthSection(section, parsed.data);
     revalidatePath(FOR_MOTHER_EARTH_ROUTE);
     revalidatePath(FOR_MOTHER_EARTH_ADMIN_ROUTE);
-    revalidatePath('/admin/seo');
+    revalidatePath('/jivo-dev/seo');
     revalidatePath('/sitemap.xml');
     return { success: true, data: row };
   } catch (error) {

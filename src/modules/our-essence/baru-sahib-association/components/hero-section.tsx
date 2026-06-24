@@ -6,8 +6,7 @@ interface BaruSahibAssociationHeroProps {
   data?: BaruSahibAssociationHeroContent;
 }
 
-const HERO_IMAGE_SIZES =
-  '(max-width: 767px) 240vw, (max-width: 1023px) 180vw, (max-width: 1279px) 150vw, 150vw';
+const HERO_IMAGE_SIZES = '100vw';
 
 function imageWithFallback(image: string) {
   return image || baruSahibAssociationHeroFallbackImage;
@@ -17,19 +16,19 @@ export function BaruSahibAssociationHero({ data }: BaruSahibAssociationHeroProps
   const { title, description, image } = data ?? heroSectionData;
 
   return (
-    <section className="relative flex min-h-[55svh] items-center overflow-hidden bg-[#07100b] sm:min-h-[60svh] md:min-h-[75svh] lg:min-h-[95svh] xl:min-h-screen">
+    <section className="relative flex min-h-[55svh] items-center overflow-hidden bg-[#07100b] sm:min-h-[60svh] md:min-h-[75svh] lg:min-h-[95svh] xl:min-h-dvh">
       <SafeImage
         src={imageWithFallback(image)}
         alt=""
         fill
         priority
-        quality={90}
+        quality={78}
         className="object-cover object-center"
         sizes={HERO_IMAGE_SIZES}
       />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl px-4 pt-20 pb-10 sm:px-6 sm:pt-24 sm:pb-12 md:pt-28 md:pb-14 lg:justify-end lg:px-8 lg:pt-20 lg:pb-24 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-52 2xl:pb-36">
-        <div className="animate-fadeIn max-w-3xl min-w-0 lg:w-[54%]">
+        <div className="max-w-3xl min-w-0 lg:w-[54%]">
           <h1 className="font-jost-extrabold text-3xl leading-[0.95] text-balance text-white uppercase sm:text-4xl md:text-6xl lg:text-5xl 2xl:text-7xl">
             {title}
           </h1>
@@ -46,7 +45,7 @@ export function BaruSahibAssociationHeroSkeleton() {
   return (
     <section
       aria-hidden
-      className="bg-muted relative flex min-h-[55svh] animate-pulse items-center overflow-hidden sm:min-h-[60svh] md:min-h-[75svh] lg:min-h-[95svh] xl:min-h-screen"
+      className="bg-muted relative flex min-h-[55svh] animate-pulse items-center overflow-hidden sm:min-h-[60svh] md:min-h-[75svh] lg:min-h-[95svh] xl:min-h-dvh"
     >
       <div className="from-muted-foreground/25 via-muted-foreground/10 to-muted-foreground/25 absolute inset-0 bg-linear-to-r" />
       <div className="relative z-10 mx-auto flex w-full max-w-7xl px-4 pt-20 pb-10 sm:px-6 sm:pt-24 sm:pb-12 md:pt-28 md:pb-14 lg:justify-end lg:px-8 lg:pt-40 lg:pb-24 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-52 2xl:pb-36">

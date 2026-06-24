@@ -16,8 +16,9 @@
 cicd.md
 .github/
 logs/
+.data/
 *.bat
-*.log
+*.log    
 
 # next.js
 /.next/

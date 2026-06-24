@@ -27,16 +27,12 @@ export function OurFairShareMain({ sections }: OurFairShareMainProps) {
   return (
     <main>
       <OurFairShareHeroSection data={sections.get('hero') as OurFairShareHeroContent | undefined} />
-      <LazyOnView rootMargin="500px" fallback={<HealthcareSectionSkeleton />} minHeight="620px">
+      <LazyOnView rootMargin="900px" fallback={<HealthcareSectionSkeleton />} minHeight="0px">
         <HealthcareSection
           data={sections.get('healthcare') as OurFairShareHealthcareContent | undefined}
         />
       </LazyOnView>
-      <LazyOnView
-        rootMargin="500px"
-        fallback={<WomenEmpowermentSectionSkeleton />}
-        minHeight="600px"
-      >
+      <LazyOnView rootMargin="900px" fallback={<WomenEmpowermentSectionSkeleton />} minHeight="0px">
         <WomenEmpowermentSection
           data={sections.get('women') as OurFairShareWomenContent | undefined}
         />

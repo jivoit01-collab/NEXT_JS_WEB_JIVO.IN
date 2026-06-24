@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -37,7 +38,8 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
   );
   const scrolled = useScroll(40);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
+  const [drawerMounted, setDrawerMounted] = useState(false);
+  const [expandedMobile, setExpandedMobile] = useState<Record<string, boolean>>({});
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,6 +63,37 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const id = window.setTimeout(() => setDrawerMounted(true), 0);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  // Keep the mobile drawer from trapping scroll behind it.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setMobileOpen(false);
+      setExpandedMobile({});
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [pathname]);
+
   // Clear any pending hover-close timer on unmount
   useEffect(() => {
     return () => {
@@ -69,19 +102,20 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
   }, []);
 
   const toggleMobileAccordion = (key: string) => {
-    setExpandedMobile((prev) => (prev === key ? null : key));
+    setExpandedMobile((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 z-50 w-full transition-all duration-300',
-        scrolled
-          ? 'bg-black/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl'
-          : 'bg-transparent',
-      )}
-    >
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:h-16 lg:px-12 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-20">
+    <>
+      <header
+        className={cn(
+          'fixed top-0 z-50 w-full transition-all duration-300',
+          scrolled
+            ? 'bg-black/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl'
+            : 'bg-transparent',
+        )}
+      >
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:h-16 lg:px-12 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-20">
         {/* Logo */}
         <Link href="/" className="flex items-center" aria-label={altText}>
           {logoUrl ? (
@@ -101,7 +135,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden items-center gap-8 md:flex 2xl:gap-12">
+        <nav className="hidden items-center gap-5 lg:flex xl:gap-8 2xl:gap-12">
           {links.map((link) => {
             const key = link.title;
             const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
@@ -122,7 +156,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                       e.stopPropagation();
                       setActiveDropdown((prev) => (prev === key ? null : key));
                     }}
-                    className="flex cursor-default items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base"
+                    className="flex cursor-default items-center gap-1 text-[13px] font-medium tracking-wide text-white xl:text-sm 2xl:text-base"
                   >
                     {link.title}
                     <ChevronDown
@@ -135,7 +169,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                 ) : link.href === '/' ? (
                   <Link
                     href="/"
-                    className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base"
+                    className="group flex items-center gap-1 text-[13px] font-medium tracking-wide text-white xl:text-sm 2xl:text-base"
                   >
                     <span className="relative">
                       {link.title}
@@ -143,7 +177,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                     </span>
                   </Link>
                 ) : (
-                  <span className="flex cursor-default items-center gap-1 text-[13px] font-medium tracking-wide text-white lg:text-sm 2xl:text-base">
+                  <span className="flex cursor-default items-center gap-1 text-[13px] font-medium tracking-wide text-white xl:text-sm 2xl:text-base">
                     {link.title}
                   </span>
                 )}
@@ -158,17 +192,17 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                         : 'pointer-events-none translate-y-2 opacity-0',
                     )}
                   >
-                    <div className="min-w-[220px] rounded-2xl border border-white/40 bg-[#c0c0c0] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.25)] 2xl:min-w-65 2xl:p-3">
+                    <div className="min-w-[220px] rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:min-w-65 2xl:p-3">
                       {link.subLinks?.map((sub) => (
                         <Link
                           key={sub.href + sub.title}
                           href={sub.href}
                           onClick={() => setActiveDropdown(null)}
-                          className="group block px-4 py-2.5 text-sm font-semibold text-black 2xl:px-5 2xl:py-3 2xl:text-base"
+                          className="group block rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition duration-300 2xl:px-5 2xl:py-3 2xl:text-base"
                         >
-                          <span className="relative inline-block">
+                          <span className="relative inline-block whitespace-nowrap">
                             {sub.title}
-                            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-black transition-all duration-300 group-hover:w-full" />
+                            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
                           </span>
                         </Link>
                       ))}
@@ -184,80 +218,140 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
         <button
           type="button"
           aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileOpen}
+          aria-controls="public-mobile-navigation"
           onClick={() => setMobileOpen((v) => !v)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition duration-300 hover:bg-white/20 lg:hidden"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
+      </header>
 
-      {/* Mobile Menu */}
-      <div
-        className={cn(
-          'grid border-t border-white/20 bg-zinc-950 backdrop-blur-3xl transition-[grid-template-rows,opacity] duration-300 ease-out md:hidden',
-          mobileOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
-        )}
-      >
-        <div className="overflow-hidden">
-          <nav className="flex flex-col px-4 py-6">
-            {links.map((link) => {
+      {drawerMounted &&
+        createPortal(
+          <>
+            {/* Mobile Drawer */}
+            <div
+              aria-hidden={!mobileOpen}
+              className={cn(
+                'fixed inset-0 z-[90] bg-black/35 backdrop-blur-[3px] transition-opacity duration-300 lg:hidden',
+                mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+              )}
+              onClick={() => setMobileOpen(false)}
+            />
+
+            <aside
+              id="public-mobile-navigation"
+              className={cn(
+                'fixed inset-y-0 right-0 z-[100] isolate flex h-[100dvh] w-[72vw] min-w-[248px] max-w-[320px] flex-col overflow-hidden border-l border-white/18 bg-black/28 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1 ring-white/12 backdrop-blur-2xl transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden',
+                mobileOpen
+                  ? 'pointer-events-auto translate-x-0 opacity-100'
+                  : 'pointer-events-none translate-x-full opacity-0',
+              )}
+            >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/12 bg-white/5 px-5">
+          <Link
+            href="/"
+            className="flex min-w-0 items-center"
+            aria-label={altText}
+            onClick={() => setMobileOpen(false)}
+          >
+            {logoUrl ? (
+              <Image
+                src={toSrc(logoUrl)}
+                alt={altText}
+                width={136}
+                height={48}
+                loading="eager"
+                className="h-8 w-auto object-contain"
+              />
+            ) : (
+              <span className="truncate text-lg font-bold tracking-tight">{altText}</span>
+            )}
+          </Link>
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            onClick={() => setMobileOpen(false)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition duration-300 hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <nav className="mobile-nav-scroll flex-1 overflow-y-auto px-3 py-4">
+          <div className="space-y-1">
+            {links.map((link, index) => {
               const key = link.title;
               const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
-              const isExpanded = expandedMobile === key;
+              const isExpanded = expandedMobile[key] ?? false;
 
               return (
-                <div key={key}>
-                  <div className="flex items-center">
-                    {hasSubLinks ? (
-                      <button
-                        onClick={() => toggleMobileAccordion(key)}
-                        className="flex w-full cursor-default items-center justify-between px-4 py-3 text-lg font-semibold text-white"
-                      >
-                        <span>{link.title}</span>
-                        <ChevronDown
-                          className={cn(
-                            'h-5 w-5 transition-transform duration-300',
-                            isExpanded && 'rotate-180',
-                          )}
-                        />
-                      </button>
-                    ) : link.href === '/' ? (
-                      <Link
-                        href="/"
-                        onClick={() => setMobileOpen(false)}
-                        className="group flex-1 px-4 py-3 text-lg font-semibold text-white"
-                      >
-                        <span className="relative inline-block">
-                          {link.title}
-                          <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
-                        </span>
-                      </Link>
-                    ) : (
-                      <span className="flex-1 px-4 py-3 text-lg font-semibold text-white">
+                <div
+                  key={key}
+                  className={cn(
+                    'transition-[transform,opacity] duration-500 ease-out',
+                    mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0',
+                  )}
+                  style={{ transitionDelay: mobileOpen ? `${120 + index * 35}ms` : '0ms' }}
+                >
+                  {hasSubLinks ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleMobileAccordion(key)}
+                      aria-expanded={isExpanded}
+                      className="group flex w-full cursor-pointer items-center justify-between rounded-lg px-4 py-3 text-left text-base font-semibold text-white transition duration-300"
+                    >
+                      <span className="relative inline-block whitespace-nowrap">
                         {link.title}
+                        <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
                       </span>
-                    )}
-                  </div>
+                      <ChevronDown
+                        className={cn(
+                          'h-5 w-5 shrink-0 transition-transform duration-300',
+                          isExpanded && 'rotate-180',
+                        )}
+                      />
+                    </button>
+                  ) : link.href ? (
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="group block rounded-lg px-4 py-3 text-base font-semibold text-white transition duration-300"
+                    >
+                      <span className="relative inline-block whitespace-nowrap">
+                        {link.title}
+                        <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                      </span>
+                    </Link>
+                  ) : (
+                    <span className="block rounded-lg px-4 py-3 text-base font-semibold text-white/80">
+                      {link.title}
+                    </span>
+                  )}
 
                   {hasSubLinks && (
                     <div
                       className={cn(
-                        'grid transition-all duration-300',
-                        isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                        'grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out',
+                        isExpanded
+                          ? 'grid-rows-[1fr] translate-y-0 opacity-100'
+                          : 'grid-rows-[0fr] -translate-y-1 opacity-0',
                       )}
                     >
                       <div className="overflow-hidden">
-                        <div className="ml-4 rounded-xl bg-[#c0c0c0]">
+                        <div className="ml-4 border-l border-white/15 py-1 pl-3">
                           {link.subLinks?.map((sub) => (
                             <Link
                               key={sub.href + sub.title}
                               href={sub.href}
                               onClick={() => setMobileOpen(false)}
-                              className="group block border-b border-black/5 px-6 py-3 text-sm font-bold text-black last:border-0"
+                              className="group block rounded-md px-3 py-2.5 text-sm font-semibold text-white/78 transition duration-300 hover:text-white"
                             >
-                              <span className="relative inline-block">
+                              <span className="relative inline-block whitespace-nowrap">
                                 {sub.title}
-                                <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-black transition-all duration-300 group-hover:w-full" />
+                                <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
                               </span>
                             </Link>
                           ))}
@@ -268,9 +362,32 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
                 </div>
               );
             })}
-          </nav>
-        </div>
-      </div>
-    </header>
+          </div>
+        </nav>
+            </aside>
+
+            <style jsx global>{`
+              .mobile-nav-scroll::-webkit-scrollbar {
+                width: 6px;
+              }
+              .mobile-nav-scroll::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .mobile-nav-scroll::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.18);
+                border-radius: 999px;
+              }
+              .mobile-nav-scroll::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.32);
+              }
+              .mobile-nav-scroll {
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+              }
+            `}</style>
+          </>,
+          document.body,
+        )}
+    </>
   );
 }

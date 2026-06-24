@@ -30,14 +30,14 @@ export function SocialInitiativesMain({ sections }: SocialInitiativesMainProps) 
       <SocialInitiativesHero
         data={sections.get('hero') as SocialInitiativesHeroContent | undefined}
       />
-      <LazyOnView rootMargin="300px" fallback={<SplitStorySectionSkeleton />} minHeight="620px">
+      <LazyOnView rootMargin="700px" fallback={<SplitStorySectionSkeleton />} minHeight="0px">
         <SplitStorySection
           data={sections.get('responsibilities') as SocialInitiativesSplitContent | undefined}
           fallbackData={defaultResponsibilitiesContent}
           tone="ocean"
         />
       </LazyOnView>
-      <LazyOnView rootMargin="300px" fallback={<EducateEmpowerSectionSkeleton />} minHeight="620px">
+      <LazyOnView rootMargin="700px" fallback={<EducateEmpowerSectionSkeleton />} minHeight="0px">
         <EducateEmpowerSection
           data={sections.get('educate') as SocialInitiativesEducateContent | undefined}
         />

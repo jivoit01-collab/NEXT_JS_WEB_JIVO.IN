@@ -69,7 +69,7 @@ export async function updateSeoMetaAction(
   // "home", "about", "products" — map to its public path.
   const path = page === 'home' ? '/' : `/${page}`;
   revalidatePath(path);
-  revalidatePath('/admin/seo');
+  revalidatePath('/jivo-dev/seo');
 
   return { success: true, data: record };
 }
@@ -78,6 +78,6 @@ export async function deleteSeoMetaAction(page: string): Promise<ActionResponse<
   const guard = await requireAdmin<SeoMeta>();
   if (guard) return guard;
   const data = await deleteSeoMeta(page);
-  revalidatePath('/admin/seo');
+  revalidatePath('/jivo-dev/seo');
   return { success: true, data };
 }

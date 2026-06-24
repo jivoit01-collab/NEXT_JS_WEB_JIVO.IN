@@ -19,9 +19,9 @@ interface PageEntry {
 }
 
 const ALL_PAGES: PageEntry[] = [
-  { label: 'Home Page', href: '/admin/home', icon: Home, description: 'Hero, categories, vision, why Jivo & more', color: 'from-emerald-500/20 to-emerald-600/5' },
-  { label: 'Navbar', href: '/admin/navbar', icon: Navigation, description: 'Manage navigation links & sub-links', color: 'from-sky-500/20 to-sky-600/5' },
-  { label: 'Footer', href: '/admin/footer', icon: PanelBottom, description: 'Columns, links & contact settings', color: 'from-amber-500/20 to-amber-600/5' },
+  { label: 'Home Page', href: '/jivo-dev/home', icon: Home, description: 'Hero, categories, vision, why Jivo & more', color: 'from-emerald-500/20 to-emerald-600/5' },
+  { label: 'Navbar', href: '/jivo-dev/navbar', icon: Navigation, description: 'Manage navigation links & sub-links', color: 'from-sky-500/20 to-sky-600/5' },
+  { label: 'Footer', href: '/jivo-dev/footer', icon: PanelBottom, description: 'Columns, links & contact settings', color: 'from-amber-500/20 to-amber-600/5' },
 ];
 
 export default function AdminDashboardPage() {

@@ -73,3 +73,17 @@ export type {
   SocialInitiativesSectionKey,
   SocialInitiativesSplitContent,
 } from './social-initiatives';
+
+export {
+  TheJivoCapitalHero,
+  TheJivoCapitalMain,
+  PlantSection,
+  defaultSeo as theJivoCapitalDefaultSeo,
+  getTheJivoCapitalSections,
+} from './the-jivo-capital';
+
+export type {
+  TheJivoCapitalHeroContent,
+  TheJivoCapitalPlantContent,
+  TheJivoCapitalSectionKey,
+} from './the-jivo-capital';

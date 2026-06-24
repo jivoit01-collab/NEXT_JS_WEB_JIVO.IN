@@ -17,21 +17,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
-
+          command_timeout: 30m
           script: |
-            cd /d C:/LiveProjects/NEXT_JS_WEB_JIVO.IN
-
-            echo "Pulling latest code..."
-            git pull origin main
-
-            echo "Installing dependencies..."
-            npm install
-
-            echo "Building application..."
-            npm run build
-
-            echo "Restarting service..."
-            net stop "jivo-web"
-            net start "jivo-web"
-
-            echo "Deployment completed."
+            cmd.exe /D /S /C "cd /d C:\LiveProjects\NEXT_JS_WEB_JIVO.IN && git fetch origin main && git show origin/main:scripts/deploy-jivo-windows.ps1 > %TEMP%\jivo-deploy-windows.ps1 && powershell.exe -NoProfile -ExecutionPolicy Bypass -File %TEMP%\jivo-deploy-windows.ps1"

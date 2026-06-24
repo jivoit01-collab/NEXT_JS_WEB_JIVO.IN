@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/constants';
 /**
  * Strong SEO defaults for the Home page.
  * Used as fallback in `generateMetadata()` via `resolveSeo("home", defaultSeo)`
- * when the admin hasn't yet customized SEO from `/admin/seo`.
+ * when the admin hasn't yet customized SEO from `/jivo-dev/seo`.
  */
 export const defaultSeo = definePageSeo({
   metaTitle: "Jivo Wellness — India's Largest Cold Press Canola Oil Seller",

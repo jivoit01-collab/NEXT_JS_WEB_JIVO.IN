@@ -140,7 +140,7 @@ Response:
 
 ## Data Flow
 
-1. Admin creates/edits sections via `/admin/home-page` dashboard
+1. Admin creates/edits sections via `/jivo-dev/home-page` dashboard
 2. Form data validated with Zod (`homeSectionSchema`)
 3. API saves to PostgreSQL via Prisma (`PageContent` model)
 4. Public home page fetches active sections via `getHomePageSections()` server action

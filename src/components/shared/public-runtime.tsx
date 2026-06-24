@@ -5,6 +5,7 @@ import { useEffect, useState, type ComponentType } from 'react';
 type ToasterComponent = ComponentType<{
   richColors?: boolean;
   position?: 'top-right';
+  theme?: 'dark' | 'light' | 'system';
 }>;
 
 export function PublicRuntime() {
@@ -30,7 +31,12 @@ export function PublicRuntime() {
       if (!cancelled) setOfflineIndicator(() => offlineModule.OfflineIndicator);
     };
 
-    if (new URLSearchParams(window.location.search).get('blocked') === '1') {
+    const hasBlockedCookie = document.cookie
+      .split(';')
+      .some((item) => item.trim() === 'admin_blocked=1');
+    const hasBlockedParam = new URLSearchParams(window.location.search).get('error') === 'blocked';
+
+    if (hasBlockedCookie || hasBlockedParam) {
       loadBlockedToast();
     }
 
@@ -55,7 +61,7 @@ export function PublicRuntime() {
   return (
     <>
       {OfflineIndicator ? <OfflineIndicator /> : null}
-      {Toaster ? <Toaster richColors position="top-right" /> : null}
+      {Toaster ? <Toaster richColors position="top-right" theme="dark" /> : null}
       {BlockedToast ? <BlockedToast /> : null}
     </>
   );

@@ -2,7 +2,17 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, BookOpen, Compass, Landmark, Users, Scale, Leaf } from 'lucide-react';
+import {
+  Search,
+  Sparkles,
+  BookOpen,
+  Compass,
+  Landmark,
+  Users,
+  Scale,
+  Leaf,
+  Factory,
+} from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -15,45 +25,52 @@ interface PageEntry {
 const SECTION_PAGES: PageEntry[] = [
   {
     label: 'The Story',
-    href: '/admin/our-essence-the-story',
+    href: '/jivo-dev/our-essence-the-story',
     icon: BookOpen,
     description: 'Hero, founder bio & vision',
     color: 'from-teal-500/20 to-teal-600/5',
   },
   {
     label: 'Core Values',
-    href: '/admin/our-essence-core-values',
+    href: '/jivo-dev/our-essence-core-values',
     icon: Compass,
     description: 'Truth, Devotion, Sewa, Intelligence, Integrity',
     color: 'from-amber-500/20 to-amber-600/5',
   },
   {
     label: 'Baru Sahib Association',
-    href: '/admin/our-essence-baru-sahib-association',
+    href: '/jivo-dev/our-essence-baru-sahib-association',
     icon: Landmark,
     description: 'Hero, cinematic video & humanity story',
     color: 'from-emerald-500/20 to-emerald-600/5',
   },
   {
     label: 'Social Initiatives',
-    href: '/admin/our-essence-social-initiatives',
+    href: '/jivo-dev/our-essence-social-initiatives',
     icon: Users,
     description: 'Hero mission, responsibilities & empowerment',
     color: 'from-rose-500/20 to-rose-600/5',
   },
   {
     label: 'Our Fair Share',
-    href: '/admin/our-essence-our-fair-share',
+    href: '/jivo-dev/our-essence-our-fair-share',
     icon: Scale,
     description: 'Education, healthcare & women empowerment',
     color: 'from-cyan-500/20 to-cyan-600/5',
   },
   {
     label: 'For Mother Earth',
-    href: '/admin/our-essence-for-mother-earth',
+    href: '/jivo-dev/our-essence-for-mother-earth',
     icon: Leaf,
     description: 'Planet care, clean villages & disaster support',
     color: 'from-lime-500/20 to-lime-600/5',
+  },
+  {
+    label: 'The Jivo Capital',
+    href: '/jivo-dev/our-essence-the-jivo-capital',
+    icon: Factory,
+    description: 'Manufacturing excellence, oil plant & water plant',
+    color: 'from-slate-500/20 to-slate-600/5',
   },
 ];
 

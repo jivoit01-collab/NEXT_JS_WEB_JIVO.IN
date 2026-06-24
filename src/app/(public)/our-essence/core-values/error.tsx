@@ -20,7 +20,7 @@ export default function CoreValuesError({
   }, [error]);
 
   return (
-    <main className="container mx-auto flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+    <main className="container mx-auto flex min-h-dvh flex-col items-center justify-center gap-4 px-4 text-center">
       <AlertTriangle className="h-10 w-10 text-destructive" />
       <h1 className="text-xl font-semibold">Something broke on this page.</h1>
       <p className="max-w-md text-sm text-muted-foreground">

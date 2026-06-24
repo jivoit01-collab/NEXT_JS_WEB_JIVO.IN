@@ -25,6 +25,7 @@ const loadingSpinnerSegments = Array.from({ length: 12 }, (_, index) => index);
 const VIDEO_VIEW_THRESHOLD = 0.18;
 const VISIBILITY_DEBOUNCE_MS = 90;
 const VIDEO_FRAME_SIZES = '100vw';
+const VIDEO_SECTION_ROOT_MARGIN = '140px 0px';
 
 function resolveMediaSrc(value?: string) {
   if (!value) return '';
@@ -196,8 +197,9 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
 
         if (entry.isIntersecting) {
           setHasSectionRevealed(true);
-          // Mount near the viewport so metadata is ready, but keep preload at metadata to avoid pulling a 400MB file early.
-          setHasMountedVideo((current) => current || true);
+          if (shouldPlay) {
+            setHasMountedVideo(true);
+          }
         }
 
         isInPlayableViewRef.current = shouldPlay;
@@ -217,7 +219,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
         );
       },
       {
-        rootMargin: '220px 0px',
+        rootMargin: VIDEO_SECTION_ROOT_MARGIN,
         threshold: [0, 0.15, VIDEO_VIEW_THRESHOLD, 0.35],
       },
     );
@@ -242,8 +244,8 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full overflow-hidden bg-black"
-      style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '760px' }}
+      className="relative w-full overflow-hidden bg-black lg:min-h-dvh"
+      style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '1000px' }}
     >
       <div
         className={cn(
@@ -251,14 +253,13 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
           hasSectionRevealed || !hasVideo ? 'translate-y-0 opacity-100' : 'opacity-0',
         )}
       >
-
         <div className="relative overflow-hidden border-y border-white/10 bg-black shadow-[0_-18px_60px_rgba(0,0,0,0.28),0_28px_90px_rgba(0,0,0,0.42)]">
           <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,rgba(0,0,0,0.03)_28%,rgba(0,0,0,0.02)_62%,rgba(0,0,0,0.3)_100%)]" />
           <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
 
-          <div className="relative h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
+          <div className="relative aspect-video h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-dvh lg:min-h-dvh">
             {hasVideo && hasMountedVideo ? (
               <>
                 <video
@@ -349,7 +350,7 @@ function PosterPreview({ poster }: { poster: string }) {
         alt=""
         fill
         loading="lazy"
-        quality={90}
+        quality={78}
         className="object-cover opacity-90"
         sizes={VIDEO_FRAME_SIZES}
       />
@@ -450,7 +451,7 @@ export function CinematicVideoSectionSkeleton() {
         <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
-        <div className="h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-[calc(100svh-4rem)] lg:min-h-[620px] 2xl:h-[calc(100svh-5rem)]">
+        <div className="h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-dvh lg:min-h-dvh">
           <VideoFrameSkeleton />
         </div>
       </div>

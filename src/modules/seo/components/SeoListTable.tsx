@@ -332,7 +332,7 @@ export function SeoListTable() {
         <p className="px-1 text-xs text-muted-foreground">
           Showing {filtered.length} of {rows.length} page
           {rows.length === 1 ? '' : 's'}. Pages appear here when you build them and save
-          SEO from their admin editor (e.g. <span className="font-mono">/admin/home</span>
+          SEO from their admin editor (e.g. <span className="font-mono">/jivo-dev/home</span>
           &nbsp;â†’ SEO tab) or via the &quot;Add Page SEO&quot; button above.
         </p>
       )}

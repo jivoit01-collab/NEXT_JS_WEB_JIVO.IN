@@ -63,7 +63,6 @@ async function main() {
       emailVerified: new Date(),
     },
   });
-  console.log(`✓ Admin user: ${admin.email}`);
 
   // ── Home page sections ─────────────────────────────────────
   const homeSections = [
@@ -279,7 +278,7 @@ async function main() {
   // ── Navbar links ───────────────────────────────────────────
   const navLinks = [
     { title: 'Our Essence', href: '/our-essence', sortOrder: 0 },
-    { title: 'Our Products', href: '/our-products', sortOrder: 1 },
+    { title: 'Our Products', href: '/products', sortOrder: 1 },
     { title: 'Jivo Media', href: '/media', sortOrder: 2 },
     { title: 'Community', href: '/community', sortOrder: 3 },
   ];
@@ -312,6 +311,7 @@ async function main() {
         { title: 'Why Jivo', href: '/why-jivo' },
         { title: 'Social Initiatives', href: '/our-essence/social-initiatives' },
         { title: 'Baru Sahib Association', href: '/our-essence/baru-sahib-association' },
+        { title: 'The Jivo Capital', href: '/our-essence/the-jivo-capital' },
       ],
     },
     {
@@ -626,6 +626,34 @@ async function main() {
         '@type': 'AboutPage',
         name: 'For Mother Earth',
         url: `${BASE}/our-essence/for-mother-earth`,
+      },
+    },
+    {
+      page: 'our-essence-the-jivo-capital',
+      metaTitle: 'The Jivo Capital | Our Essence | Jivo Wellness',
+      metaDescription:
+        'Explore The Jivo Capital, Jivo Wellness manufacturing excellence across automated oil packaging and natural mineral water production.',
+      keywords: [
+        'the jivo capital',
+        'jivo wellness plant',
+        'jivo manufacturing',
+        '100 bpm oil plant',
+        '300 bpm combi plant',
+        'natural mineral water plant',
+        'automated packaging',
+        'wellness products india',
+      ],
+      ogTitle: 'The Jivo Capital | Jivo Wellness',
+      ogDescription:
+        'A cinematic look at Jivo Wellness manufacturing, quality, integrity, and purpose-driven production.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/the-jivo-capital`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'The Jivo Capital',
+        url: `${BASE}/our-essence/the-jivo-capital`,
       },
     },
   ];
@@ -1119,6 +1147,80 @@ async function main() {
           },
         });
         console.log(`  For Mother Earth "${s.section}": created`);
+      }
+    }
+  }
+
+  const theJivoCapitalSections = [
+    {
+      section: 'hero',
+      title: 'Hero Section',
+      sortOrder: 0,
+      content: {
+        title: 'THE JIVO CAPITAL',
+        description:
+          'Our products and services reflect our mission to serve humanity through wellness. Every offering is aligned with purpose, built with integrity, and crafted to deliver the very best in health and wellbeing. State-of-the-Art plant dedicated to wellness, integrity, and quality.',
+        image: '',
+      },
+    },
+    {
+      section: 'oilPlant',
+      title: '100 BPM Rotary Net Weight Oil Plant',
+      sortOrder: 1,
+      content: {
+        title: 'The 100 BPM Rotary Net Weight Oil Plant',
+        description:
+          'This is a high-performance, automated packaging line designed for maximum accuracy and throughput. It integrates filling, capping, and labeling at a consistent speed of 100 bottles per minute (BPM). Its core advantages are net weight filling, rotary operation, and oil-specific handling.',
+        image: '',
+        align: 'left',
+      },
+    },
+    {
+      section: 'waterPlant',
+      title: '300 BPM Natural Mineral Water Combi Plant',
+      sortOrder: 2,
+      content: {
+        title: "India's First 300 BPM Combi Plant for Natural Mineral Water",
+        description:
+          "Engineered for purity and performance, India's first 300 BPM Combi Plant combines bottle creation, filling, and capping within a single hygienic system. Delivering contamination-free production, reduced plastic usage, lower energy consumption, and unmatched operational efficiency, it represents the future of sustainable beverage manufacturing.",
+        image: '',
+        align: 'right',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceTheJivoCapital.deleteMany();
+    for (const s of theJivoCapitalSections) {
+      await prisma.ourEssenceTheJivoCapital.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`The Jivo Capital: RESET (${theJivoCapitalSections.length} sections)`);
+  } else {
+    for (const s of theJivoCapitalSections) {
+      const exists = await prisma.ourEssenceTheJivoCapital.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  The Jivo Capital "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceTheJivoCapital.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  The Jivo Capital "${s.section}": created`);
       }
     }
   }

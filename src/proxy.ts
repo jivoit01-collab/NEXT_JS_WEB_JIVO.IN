@@ -1,6 +1,12 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { localRateLimit, isAuthBlocked } from '@/lib/rate-limit-local';
+import { getClientIpFromHeaders } from '@/lib/admin-ip';
+import { isIpBlocked } from '@/lib/admin-security-store';
+import { localRateLimit } from '@/lib/rate-limit-local';
+
+const ADMIN_ROUTE = '/jivo-dev';
+const LEGACY_ADMIN_ROUTE = '/admin';
+const NOT_FOUND_ROUTE = '/__not-found';
 
 const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY',
@@ -11,18 +17,55 @@ const SECURITY_HEADERS: Record<string, string> = {
 };
 
 function addSecurityHeaders(res: NextResponse): NextResponse {
-  for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.headers.set(k, v);
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    res.headers.set(key, value);
+  }
+
   if (process.env.NODE_ENV === 'production') {
     res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   }
+
   return res;
 }
 
-function clientIp(req: NextRequest): string {
+function notFound(req: NextRequest): NextResponse {
+  const url = req.nextUrl.clone();
+  url.pathname = NOT_FOUND_ROUTE;
+  url.search = '';
+
+  return addSecurityHeaders(NextResponse.rewrite(url));
+}
+
+function blockedIpResponse(req: NextRequest, isCredentialAuth: boolean): NextResponse {
+  const url = new URL('/', req.url);
+  let res: NextResponse;
+
+  if (isCredentialAuth && req.headers.get('x-auth-return-redirect') === '1') {
+    res = NextResponse.json({ url: url.toString() });
+  } else {
+    res = NextResponse.redirect(url);
+  }
+
+  res.cookies.set('admin_blocked', '1', {
+    path: '/',
+    maxAge: 60,
+    sameSite: 'lax',
+  });
+
+  return addSecurityHeaders(res);
+}
+
+function clientIp(req: NextRequest): string | null {
+  const hintedReq = req as NextRequest & { ip?: string };
+
+  return getClientIpFromHeaders(req.headers, hintedReq.ip);
+}
+
+function isCredentialAuthPost(pathname: string, method: string): boolean {
   return (
-    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
-    req.headers.get('x-real-ip') ??
-    'unknown'
+    method === 'POST' &&
+    pathname.startsWith('/api/auth/') &&
+    (pathname.includes('/callback/credentials') || pathname.includes('/signin/credentials'))
   );
 }
 
@@ -30,36 +73,36 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const method = req.method;
 
-  // â”€â”€ Route classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const isAdminPage = pathname.startsWith('/admin');
-  const isLoginPage = pathname === '/admin/login';
-  const isAuthApi = pathname.startsWith('/api/auth/');
-  // /api/upload has no trailing path but must always be admin-only
+  if (pathname.startsWith(LEGACY_ADMIN_ROUTE)) {
+    return notFound(req);
+  }
+
+  const isAdminPage = pathname.startsWith(ADMIN_ROUTE);
+  const isLoginPage = pathname === `${ADMIN_ROUTE}/login`;
   const isAdminApi = pathname.startsWith('/api/admin/') || pathname === '/api/upload';
+  const isCredentialAuth = isCredentialAuthPost(pathname, method);
   const isApiRoute = pathname.startsWith('/api/');
   const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
+  const isGuardedTarget = isAdminPage || isAdminApi || isCredentialAuth;
 
-  const ip = clientIp(req);
+  if (isGuardedTarget) {
+    const ip = clientIp(req) ?? 'unknown';
 
-  // â”€â”€ 1. Rate limiting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  if (isAuthApi && isMutation) {
-    // Login brute-force protection â€” POST only (not GET /session, /csrf, /providers)
-    const result = localRateLimit.auth(ip);
-    if (!result.allowed) {
-      // IP is now blocked â€” send them to homepage so the block persists
-      // across refreshes (middleware enforces it, not client state).
-      const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
-      const host = req.headers.get('host') ?? req.nextUrl.host;
-      return addSecurityHeaders(
-        NextResponse.json(
-          { url: `${proto}://${host}/` },
-          { status: 429, headers: { 'Retry-After': String(result.retryAfter) } },
-        ),
-      );
+    try {
+      if (await isIpBlocked(ip)) {
+        return blockedIpResponse(req, isCredentialAuth);
+      }
+    } catch (error) {
+      console.error('[proxy.adminSecurityStore]', { ip, error });
+      return blockedIpResponse(req, isCredentialAuth);
     }
-  } else if ((isAdminApi || isAdminPage) && isMutation) {
+  }
+
+  if ((isAdminApi || isAdminPage) && isMutation) {
+    const ip = clientIp(req) ?? 'unknown';
     const limiter = pathname === '/api/upload' ? localRateLimit.upload : localRateLimit.admin;
     const result = limiter(ip);
+
     if (!result.allowed) {
       return addSecurityHeaders(
         NextResponse.json(
@@ -70,14 +113,14 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // â”€â”€ 2. CSRF origin check for all API mutations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // NextAuth handles its own CSRF; skip that path.
-  // If an Origin header is present it must match this server's host.
-  if (isApiRoute && !isAuthApi && isMutation) {
+  // CSRF origin check for all API mutations except NextAuth, which owns its CSRF flow.
+  if (isApiRoute && !pathname.startsWith('/api/auth/') && isMutation) {
     const origin = req.headers.get('origin');
+
     if (origin) {
       const host = req.headers.get('host') ?? '';
       let originHost: string;
+
       try {
         originHost = new URL(origin).host;
       } catch {
@@ -85,6 +128,7 @@ export async function proxy(req: NextRequest) {
           NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 }),
         );
       }
+
       if (originHost !== host) {
         return addSecurityHeaders(
           NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 }),
@@ -93,12 +137,7 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // â”€â”€ 3. Auth + role enforcement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Routes that require an authenticated ADMIN/SUPER_ADMIN session:
-  //   â€¢ All /admin/* pages
-  //   â€¢ All /api/admin/* routes and /api/upload
-  //   â€¢ Any mutation on other API routes covered by this matcher
-  const needsAuth = isAdminPage || isAdminApi || (isApiRoute && isMutation && !isAuthApi);
+  const needsAuth = isAdminPage || isAdminApi || (isApiRoute && isMutation && !pathname.startsWith('/api/auth/'));
 
   if (!needsAuth) {
     return addSecurityHeaders(NextResponse.next());
@@ -114,48 +153,42 @@ export async function proxy(req: NextRequest) {
     secureCookie: isHttps,
   });
 
-  const isLoggedIn = !!token;
   const role = token?.role as string | undefined;
+  const isLoggedIn = Boolean(token);
   const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
 
-  // â”€â”€ 3a. Admin pages â€” redirect flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (isAdminPage) {
-    // Blocked IPs (exceeded auth attempts) cannot access any /admin page
-    // until the 15-minute window expires.
-    if (!isLoggedIn && isAuthBlocked(ip)) {
-      return addSecurityHeaders(NextResponse.redirect(new URL('/?blocked=1', req.url)));
-    }
-
     if (!isLoginPage && !isLoggedIn) {
       const url = req.nextUrl.clone();
-      url.pathname = '/admin/login';
+      url.pathname = `${ADMIN_ROUTE}/login`;
+
       const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
       const host = req.headers.get('host') ?? req.nextUrl.host;
       url.searchParams.set('callbackUrl', `${proto}://${host}${pathname}`);
+
       return addSecurityHeaders(NextResponse.redirect(url));
     }
 
     if (!isLoginPage && isLoggedIn && !isAdmin) {
-      // Authenticated but not an admin role
       const url = req.nextUrl.clone();
-      url.pathname = '/admin/login';
+      url.pathname = `${ADMIN_ROUTE}/login`;
       url.searchParams.set('error', 'AccessDenied');
       return addSecurityHeaders(NextResponse.redirect(url));
     }
 
     if (isLoginPage && isLoggedIn && isAdmin) {
-      return addSecurityHeaders(NextResponse.redirect(new URL('/admin', req.url)));
+      return addSecurityHeaders(NextResponse.redirect(new URL(ADMIN_ROUTE, req.url)));
     }
 
     return addSecurityHeaders(NextResponse.next());
   }
 
-  // â”€â”€ 3b. Admin API routes â€” JSON responses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (!isLoggedIn) {
     return addSecurityHeaders(
       NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 }),
     );
   }
+
   if (!isAdmin) {
     return addSecurityHeaders(
       NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 }),
@@ -167,18 +200,14 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Admin dashboard pages
     '/admin/:path*',
-    // All /api/admin/* routes (SEO, our-essence, etc.)
+    '/jivo-dev/:path*',
     '/api/admin/:path*',
-    // File upload endpoint
     '/api/upload',
-    // Mixed public-GET / admin-mutation routes
     '/api/home/:path*',
     '/api/navbar/:path*',
     '/api/footer/:path*',
     '/api/hero-slides/:path*',
-    // Auth routes â€” rate limiting only
     '/api/auth/:path*',
   ],
 };
