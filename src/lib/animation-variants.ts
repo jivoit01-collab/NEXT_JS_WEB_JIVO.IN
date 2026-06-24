@@ -80,6 +80,20 @@ export const scaleIn: Variants = {
   },
 };
 
+/**
+ * Slow scale-down for full-bleed background images on scroll-in.
+ * Opacity never hits 0 (no blank flash); transform-only motion stays GPU-cheap.
+ * Pair with an `overflow-hidden` parent so the 1.08 scale never overflows.
+ */
+export const imageReveal: Variants = {
+  hidden: { scale: 1.08, opacity: 0.55 },
+  show: {
+    scale: 1,
+    opacity: 1,
+    transition: { duration: 1.2, ease: EASE_OUT_EXPO },
+  },
+};
+
 /** Reduced-motion fallback — zero movement, instant show. */
 export const reducedMotion: Variants = {
   hidden: { opacity: 1 },

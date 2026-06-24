@@ -34,16 +34,15 @@ export function OurFairShareHeroSection({ data }: OurFairShareHeroSectionProps) 
       <div className="absolute inset-0 bg-linear-to-b from-black/12 via-transparent to-black/16" />
       <div className="absolute inset-0 bg-linear-to-br from-transparent via-transparent to-black/36 lg:hidden" />
 
-      <div className="relative z-10 grid h-full min-h-[58svh] w-full grid-rows-[1fr_auto] px-5 pt-20 pb-8 text-right sm:min-h-[60svh] sm:px-6 sm:pt-24 sm:pb-10 md:min-h-[68svh] md:pt-28 md:pb-12 lg:grid-cols-1 lg:items-end lg:justify-items-end lg:px-0 lg:pb-0 lg:text-center">
-        <div className="w-full self-end"></div>
-        <div className="w-full max-w-[82vw] min-w-0 self-end text-white sm:max-w-[430px] md:max-w-[520px] lg:mx-auto lg:w-[44vw] lg:max-w-[590px]">
-          <h1 className="font-jost-extrabold text-[clamp(1.28rem,5.6vw,1.95rem)] leading-[1.04] text-balance text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.38)] sm:text-[clamp(1.45rem,4.8vw,2.25rem)] md:text-[clamp(1.75rem,4vw,2.9rem)] lg:text-[clamp(1.85rem,2.35vw,3.6rem)]">
+      <div className="relative z-10 mx-auto flex min-h-[58svh] w-full max-w-7xl items-end justify-end px-5 pt-20 pb-10 text-right sm:min-h-[60svh] sm:px-6 sm:pt-24 sm:pb-12 md:min-h-[68svh] md:pt-28 lg:min-h-[100svh] lg:max-w-none lg:items-center lg:justify-end lg:px-8 lg:pt-24 lg:pr-[5vw] lg:pb-16 lg:text-center 2xl:px-20 2xl:pr-[6vw]">
+        <div className="w-full max-w-[82vw] min-w-0 text-white sm:max-w-[440px] md:max-w-[560px] lg:w-[46vw] lg:max-w-[680px]">
+          <h1 className="font-jost-extrabold text-[clamp(1.55rem,6.2vw,2.45rem)] leading-[1.04] text-balance text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.4)] lg:text-[clamp(2rem,2.85vw,2.7rem)]">
             {title}
           </h1>
-          <p className="font-jost-medium mt-2 ml-auto max-w-[560px] text-right text-[clamp(0.54rem,2.1vw,0.74rem)] tracking-[0.14em] text-white/92 uppercase sm:mt-3 sm:text-[clamp(0.62rem,1.8vw,0.8rem)] md:text-[clamp(0.68rem,1.4vw,0.88rem)] lg:mx-auto lg:text-center lg:text-[clamp(0.68rem,0.74vw,0.9rem)] lg:tracking-[0.18em]">
+          <p className="font-jost-medium mt-2 ml-auto max-w-[620px] text-right text-[clamp(0.58rem,2vw,0.78rem)] tracking-[0.14em] text-white/92 uppercase sm:mt-3 lg:mx-auto lg:text-center lg:text-[clamp(0.68rem,0.78vw,0.82rem)] lg:tracking-[0.18em]">
             {subtitle}
           </p>
-          <p className="mt-3 ml-auto w-full max-w-[560px] text-right text-[clamp(0.62rem,2.35vw,0.82rem)] leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)] sm:mt-4 sm:text-[clamp(0.72rem,2vw,0.9rem)] md:text-[clamp(0.78rem,1.55vw,0.98rem)] lg:mx-auto lg:text-center lg:text-[clamp(0.82rem,0.92vw,1.02rem)] 2xl:max-w-[680px]">
+          <p className="mt-3 ml-auto w-full max-w-[620px] text-right text-[clamp(0.82rem,2.7vw,1rem)] leading-relaxed text-pretty text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.38)] sm:mt-4 lg:mx-auto lg:text-center lg:text-[clamp(0.86rem,1vw,0.98rem)]">
             {description}
           </p>
         </div>
@@ -60,9 +59,8 @@ export function OurFairShareHeroSectionSkeleton() {
     >
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-linear-to-r from-black/14 via-black/6 to-black/28" />
-      <div className="relative z-10 grid h-full min-h-[58svh] w-full grid-rows-[1fr_auto] px-5 pt-20 pb-8 sm:min-h-[60svh] sm:px-6 sm:pt-24 sm:pb-10 md:min-h-[68svh] md:pt-28 md:pb-12 lg:grid-cols-1 lg:items-end lg:justify-items-end lg:px-0 lg:pb-0">
-        <div className="w-full self-end"></div>
-        <div className="w-full max-w-[82vw] min-w-0 self-end sm:max-w-[430px] md:max-w-[520px] lg:mx-auto lg:w-[44vw] lg:max-w-[590px]">
+      <div className="relative z-10 mx-auto flex min-h-[58svh] w-full max-w-7xl items-end justify-end px-5 pt-20 pb-10 sm:min-h-[60svh] sm:px-6 sm:pt-24 sm:pb-12 md:min-h-[68svh] md:pt-28 lg:min-h-[100svh] lg:max-w-none lg:items-center lg:justify-end lg:px-8 lg:pt-24 lg:pr-[5vw] lg:pb-16 2xl:px-20 2xl:pr-[6vw]">
+        <div className="w-full max-w-[82vw] min-w-0 sm:max-w-[440px] md:max-w-[560px] lg:w-[46vw] lg:max-w-[680px]">
           <div className="mx-auto h-10 w-full max-w-2xl rounded bg-white/24 sm:h-14 2xl:h-16" />
           <div className="mx-auto mt-4 h-4 w-4/5 rounded bg-white/18" />
           <div className="mx-auto mt-5 w-full max-w-[560px] space-y-2">
