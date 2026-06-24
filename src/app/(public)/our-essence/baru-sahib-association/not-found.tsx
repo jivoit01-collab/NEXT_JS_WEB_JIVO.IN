@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 
 export default function BaruSahibAssociationNotFound() {
   return (
-    <main className="container mx-auto flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
-      <h1 className="text-3xl font-bold">404 - page not found</h1>
+    <main className="container mx-auto flex min-h-dvh flex-col items-center justify-center gap-4 px-4 text-center">
+      <h1 className="text-3xl font-jost-extrabold">404 - page not found</h1>
       <p className="text-muted-foreground text-sm">
         The page you&apos;re looking for has moved or never existed.
       </p>
