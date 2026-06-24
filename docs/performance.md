@@ -4,6 +4,14 @@ This is the permanent performance, accessibility, best-practices, and SEO rulese
 
 ## 1. How To Use This File
 
+**ABSOLUTE RULE — DO NOT CHANGE STYLING:**
+When applying any fix from this file, you must not change the visual appearance of any page. Specifically:
+
+- Do not change Tailwind classes, colors, spacing, fonts, sizes, layout, or animations that affect how the page looks.
+- Do not rename, reorder, or restyle existing markup beyond what a fix strictly requires.
+- Fixes are about HOW content is delivered and rendered (server vs client, prefetch, image pipeline, placeholder heights, semantics, metadata) — NOT how it looks. The page must look pixel-identical before and after, on mobile and desktop.
+- If a correct fix would unavoidably change appearance, STOP and ask the user first instead of proceeding.
+
 Read this file before creating or editing any public page, shared page component, image-heavy section, layout, metadata helper, or CMS-driven page module.
 
 Every page should target Lighthouse scores as close as possible to `100 / 100 / 100 / 100` for Performance, Accessibility, Best Practices, and SEO. If a page cannot meet a rule because of CMS content, document the reason and fix the source content when possible.
@@ -368,3 +376,30 @@ SEO:
 - [ ] Robots rules do not block the page.
 - [ ] Links use descriptive text.
 - [ ] JSON-LD is present when relevant.
+
+## 9. Remediation Plan (from production audit)
+
+A production audit found five root causes behind three reported symptoms: a 1–2s delay before content appears on navigation, images appearing 4–5s after text, and an occasional blank screen before anything renders. Fix them in the priority order below, one page/area at a time.
+
+Priority order:
+
+1. **Image delivery (biggest win, fixes the 4–5s image delay).** Images are tiny on the wire (~40KB) but slow because sharp re-encodes AVIF/WebP on every request with no CDN and a cold cache. Fix: put a CDN/edge cache in front of `/_next/image` and `/api/uploads`, raise `images.minimumCacheTTL`, pre-generate derivatives so sharp never runs on the request path, and downscale oversized source images (some are ~1MB / 2000px). Files: `route.ts`, `next.config.ts`, `safe-image.tsx`.
+2. **Un-defer static sections (fixes skeleton-then-content + blank).** The 5 essence pages wrap static CMS content in `LazyOnView` + `dynamic()`, making SEO-relevant content client-only. Fix: render those sections as plain Server Components so they ship in the ISR HTML; reserve `next/dynamic` for genuinely heavy client widgets only. Files: `social-initiatives-main.tsx`, `baru-sahib-association`, `the-jivo-capital`, `our-fair-share`, `for-mother-earth`. (`the-story`, `core-values`, and `home` already use the correct pattern — make the others consistent.)
+3. **Prefetch warming (fixes the 1–2s click delay).** Routes are ISR and fast, but primary nav links are hidden in dropdowns/footer/off-screen drawer, so Next never prefetches them. Fix: prefetch primary destinations on menu hover/intent. Files: `navbar.tsx`, `footer.tsx`.
+4. **Skeleton/CLS height + cold-ISR (fixes occasional blank).** Placeholder heights are only reserved at the `lg:` breakpoint, so mobile skeletons collapse to near-zero and read as empty; cold-ISR loads also flash white. Fix: reserve placeholder height at ALL breakpoints; add on-demand revalidation so the cache is rarely cold. Files: `loading.tsx` + sibling skeletons, `*-main.tsx` (`minHeight` values).
+5. **Font trim (polish).** 7 Jost weights (~420KB) preload and compete with the LCP image; 2 italics are unused. Fix: set `preload: false` on rarely-used weights. Files: `layout.tsx`.
+
+Confirmed NOT problems (do not "fix" these): ISR/SSG/CSR render split is correct; data layer is correct; nav/footer already use `<Link>` (no full reloads); no public CSR data provider; CSS is a single build-time Tailwind bundle; fonts use `display: swap`.
+
+## 10. Per-Page Remediation Workflow
+
+Fix ONE page (or one area) at a time, so changes stay small and reversible:
+
+1. Pick one page/area from the priority list in Section 9.
+2. State which root cause(s) apply to it and the exact files involved.
+3. Take a "before" baseline: note current Lighthouse scores and confirm the page's current visual appearance on mobile and desktop.
+4. Apply ONLY the delivery/rendering fix — never touch styling (see Section 1 rule).
+5. Run a production build (`npm run build`) and test that build, not the dev server.
+6. Verify: the page looks pixel-identical to before, the targeted symptom is gone, and the per-page checklist in Section 8 still passes.
+7. Commit that single page's change on its own branch/commit with a clear message before moving to the next page.
+8. Never batch multiple pages or multiple root causes into one change set.
