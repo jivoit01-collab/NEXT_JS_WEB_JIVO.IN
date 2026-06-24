@@ -308,7 +308,7 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
   if (isLoading) return <ProductsFoundationSkeleton />;
 
   return (
-    <section className="flex items-center bg-[#134b4c] py-16 text-white sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28 2xl:py-36">
+    <section className="flex items-center bg-[#134b4c] py-16 text-white sm:py-20 md:min-h-[75dvh] md:py-24 lg:py-28 2xl:py-36">
       <motion.div
         variants={container}
         initial="hidden"
@@ -326,6 +326,7 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
                 src={content.productImage || defaults.productImage}
                 alt="Jivo Product"
                 fill
+                sizes="(max-width: 768px) 80vw, (max-width: 1536px) 40vw, 36rem"
                 className="object-cover"
               />
               <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#134b4c]/35 via-transparent to-transparent" />
@@ -389,7 +390,7 @@ export function ProductsFoundation({ data, isLoading }: ProductsFoundationProps)
 
 export function ProductsFoundationSkeleton() {
   return (
-    <section className="flex animate-pulse items-center bg-[#134b4c] py-16 sm:py-20 md:min-h-[75vh] md:py-24 lg:py-28 2xl:py-36">
+    <section className="flex animate-pulse items-center bg-[#134b4c] py-16 sm:py-20 md:min-h-[75dvh] md:py-24 lg:py-28 2xl:py-36">
       <div className="container mx-auto grid grid-cols-1 items-center gap-10 px-4 sm:px-6 md:grid-cols-[2fr_3fr] md:gap-12 lg:gap-16 lg:px-8 2xl:max-w-7xl 2xl:gap-20">
         {/* Product image placeholder */}
         <div className="flex items-center justify-center">

@@ -1,5 +1,4 @@
 import dynamic from 'next/dynamic';
-import { LazyOnView } from '@/components/shared/public';
 import { OurFairShareHeroSection } from './hero-section';
 import { HealthcareSectionSkeleton } from './healthcare-section';
 import { WomenEmpowermentSectionSkeleton } from './women-empowerment-section';
@@ -27,16 +26,12 @@ export function OurFairShareMain({ sections }: OurFairShareMainProps) {
   return (
     <main>
       <OurFairShareHeroSection data={sections.get('hero') as OurFairShareHeroContent | undefined} />
-      <LazyOnView rootMargin="900px" fallback={<HealthcareSectionSkeleton />} minHeight="0px">
-        <HealthcareSection
-          data={sections.get('healthcare') as OurFairShareHealthcareContent | undefined}
-        />
-      </LazyOnView>
-      <LazyOnView rootMargin="900px" fallback={<WomenEmpowermentSectionSkeleton />} minHeight="0px">
-        <WomenEmpowermentSection
-          data={sections.get('women') as OurFairShareWomenContent | undefined}
-        />
-      </LazyOnView>
+      <HealthcareSection
+        data={sections.get('healthcare') as OurFairShareHealthcareContent | undefined}
+      />
+      <WomenEmpowermentSection
+        data={sections.get('women') as OurFairShareWomenContent | undefined}
+      />
     </main>
   );
 }
