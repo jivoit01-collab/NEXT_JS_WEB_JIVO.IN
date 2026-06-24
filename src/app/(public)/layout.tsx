@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Navbar, Footer } from '@/components/layout';
 import { PublicRuntimeLoader } from '@/components/shared/public-runtime-loader';
+import { SmoothScrollProvider } from '@/components/shared/smooth-scroll-provider';
 import { getNavbarSetting, getVisibleNavLinks } from '@/modules/navbar';
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -25,13 +26,18 @@ export default async function PublicLayout({ children }: { children: React.React
   }));
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
+      {/* Navbar stays OUTSIDE the smooth wrapper so its `fixed` positioning works. */}
       <Navbar logoUrl={navSetting.logoUrl} logoAlt={navSetting.logoAlt} links={fixedLinks} />
-      {children}
-      <Suspense fallback={null}>
-        <Footer />
-      </Suspense>
+      <SmoothScrollProvider>
+        <div className="flex min-h-screen flex-col">
+          {children}
+          <Suspense fallback={null}>
+            <Footer />
+          </Suspense>
+        </div>
+      </SmoothScrollProvider>
       <PublicRuntimeLoader />
-    </div>
+    </>
   );
 }
