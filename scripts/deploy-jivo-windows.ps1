@@ -353,17 +353,13 @@ try {
     throw 'package-lock.json is required for npm ci. Lock-file creation is intentionally skipped.'
   }
 
-  try {
-    $packageLock = Get-Content -LiteralPath $packageLockPath -Raw | ConvertFrom-Json
-  } catch {
-    throw ('package-lock.json exists but is not valid JSON: ' + $_.Exception.Message)
-  }
-
-  if (-not $packageLock.lockfileVersion) {
+  $packageLockRaw = Get-Content -LiteralPath $packageLockPath -Raw
+  $lockfileVersionMatch = [regex]::Match($packageLockRaw, '"lockfileVersion"\s*:\s*(\d+)')
+  if (-not $lockfileVersionMatch.Success) {
     throw 'package-lock.json exists but lockfileVersion is missing.'
   }
 
-  Write-Host ('package-lock.json lockfileVersion: ' + $packageLock.lockfileVersion)
+  Write-Host ('package-lock.json lockfileVersion: ' + $lockfileVersionMatch.Groups[1].Value)
 
   Invoke-Step 'Install dependencies from package-lock.json' 'npm.cmd' @('ci')
   Invoke-Step 'Build new release' 'npm.cmd' @('run', 'build')
