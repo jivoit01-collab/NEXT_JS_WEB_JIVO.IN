@@ -340,17 +340,30 @@ try {
 
   Remove-FolderIfExists -Path $ReleasePath
 
-  Invoke-Step 'Clone current repo to isolated release folder' 'git.exe' @('clone', '--no-hardlinks', $AppPath, $ReleasePath)
+  Invoke-Step 'Clone origin/main to isolated release folder' 'git.exe' @('clone', '--no-checkout', $originUrl, $ReleasePath)
 
   Set-Location -LiteralPath $ReleasePath
-  Invoke-Step 'Restore remote origin URL' 'git.exe' @('remote', 'set-url', 'origin', $originUrl)
-  Invoke-Step 'Checkout target commit in release folder' 'git.exe' @('checkout', '-B', $DeployBranch, $targetCommit)
+  Invoke-Step 'Fetch target branch in release folder' 'git.exe' @('fetch', 'origin', $DeployBranch)
+  Invoke-Step 'Checkout target commit in release folder' 'git.exe' @('checkout', '--detach', $targetCommit)
 
   Copy-ServerFilesToRelease
 
-  if (-not (Test-Path -LiteralPath (Join-Path $ReleasePath 'package-lock.json'))) {
+  $packageLockPath = Join-Path $ReleasePath 'package-lock.json'
+  if (-not (Test-Path -LiteralPath $packageLockPath)) {
     throw 'package-lock.json is required for npm ci. Lock-file creation is intentionally skipped.'
   }
+
+  try {
+    $packageLock = Get-Content -LiteralPath $packageLockPath -Raw | ConvertFrom-Json
+  } catch {
+    throw ('package-lock.json exists but is not valid JSON: ' + $_.Exception.Message)
+  }
+
+  if (-not $packageLock.lockfileVersion) {
+    throw 'package-lock.json exists but lockfileVersion is missing.'
+  }
+
+  Write-Host ('package-lock.json lockfileVersion: ' + $packageLock.lockfileVersion)
 
   Invoke-Step 'Install dependencies from package-lock.json' 'npm.cmd' @('ci')
   Invoke-Step 'Build new release' 'npm.cmd' @('run', 'build')
