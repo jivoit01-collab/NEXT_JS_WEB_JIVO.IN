@@ -4,11 +4,6 @@ import { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { gsap, useGSAP, ScrollSmoother, ScrollTrigger } from '@/lib/gsap';
 
-// [scroll-debug] Temporary navigation-scroll diagnostics. Set to `false` to silence
-// (or delete this line plus the `if (DEBUG_SCROLL)` console.log calls below). Filter
-// the browser console by "[scroll-debug]".
-const DEBUG_SCROLL = true;
-
 /**
  * Site-wide GSAP ScrollSmoother. The navbar and any portalled overlays must live
  * OUTSIDE this wrapper (ScrollSmoother transforms #smooth-content, which breaks
@@ -61,7 +56,6 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
   useGSAP(
     () => {
       const getSmoother = () => ScrollSmoother.get();
-      const readPos = () => Math.round(getSmoother()?.scrollTop() ?? window.scrollY);
 
       const jumpToTop = () => {
         getSmoother()?.scrollTo(0, false);
@@ -73,11 +67,8 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
         jumpToTop();
       };
 
-      if (DEBUG_SCROLL) console.log('[scroll-debug] navigate ->', pathname);
-
       // 1. Immediate reset.
       reassertTop();
-      if (DEBUG_SCROLL) console.log('[scroll-debug] initial reset fired; scrollPos =', readPos());
 
       // 2. Re-assert as the DB content arrives and the height settles.
       const contentEl = content.current;
@@ -88,20 +79,19 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       let hardCapTimer = 0;
       let observer: ResizeObserver | null = null;
 
-      const closeWindow = (reason: string) => {
+      const closeWindow = () => {
         if (closed) return;
         closed = true;
         observer?.disconnect();
         if (rafId) cancelAnimationFrame(rafId);
         window.clearTimeout(stableTimer);
         window.clearTimeout(hardCapTimer);
-        if (DEBUG_SCROLL) console.log(`[scroll-debug] re-assert window closed (${reason})`);
       };
 
       // Close once the height has been stable (no resize) for ~300ms.
       const armStableTimer = () => {
         window.clearTimeout(stableTimer);
-        stableTimer = window.setTimeout(() => closeWindow('height stable 300ms'), 300);
+        stableTimer = window.setTimeout(() => closeWindow(), 300);
       };
 
       if (contentEl && typeof ResizeObserver !== 'undefined') {
@@ -113,30 +103,18 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
           rafId = requestAnimationFrame(() => {
             scheduled = false;
             if (closed) return;
-            const before = readPos();
             reassertTop();
-            const after = readPos();
-            if (DEBUG_SCROLL) {
-              console.log(
-                '[scroll-debug] re-assert: contentHeight =',
-                Math.round(contentEl.getBoundingClientRect().height),
-                '| scrollPos',
-                before,
-                '->',
-                after,
-              );
-            }
             armStableTimer();
           });
         });
         observer.observe(contentEl);
         armStableTimer(); // close even if no resize ever fires
         // Hard cap: never re-assert for more than ~2s after navigation.
-        hardCapTimer = window.setTimeout(() => closeWindow('2s hard cap'), 2000);
+        hardCapTimer = window.setTimeout(() => closeWindow(), 2000);
       }
 
       // Clean up on unmount / next pathname change.
-      return () => closeWindow('cleanup (unmount or next navigation)');
+      return () => closeWindow();
     },
     { dependencies: [pathname] },
   );
