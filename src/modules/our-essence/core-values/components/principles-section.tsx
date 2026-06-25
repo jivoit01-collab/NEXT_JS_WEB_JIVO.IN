@@ -49,12 +49,8 @@ export function PrinciplesSection({ data }: Props) {
                 key={`${block.label}-${i}`}
                 variants={revealVariant}
                 whileHover={hoverLift}
-                className="group relative cursor-default"
+                className="group cursor-default"
               >
-                {/* Decorative index that fades up on hover */}
-                <span className="font-jost-bold absolute -top-6 left-0 text-3xl text-white/0 transition-all duration-500 group-hover:-top-9 group-hover:text-white/20 sm:text-4xl lg:text-5xl">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
                 <h3 className="mb-3 flex items-center font-jost-bold text-sm uppercase tracking-[0.2em] text-white transition-all duration-300 group-hover:tracking-[0.28em] sm:mb-4 sm:text-base md:text-lg 2xl:mb-5 2xl:text-xl">
                   {/* Accent line that grows in on hover */}
                   <span className="mr-0 h-px w-0 bg-white transition-all duration-500 group-hover:mr-3 group-hover:w-8" />

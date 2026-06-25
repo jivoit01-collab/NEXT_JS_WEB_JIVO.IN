@@ -11,7 +11,6 @@ export function TheStoryHero({ data }: Props) {
 
   return (
     <section className="relative flex min-h-[60svh] items-center overflow-hidden sm:min-h-[70svh] lg:min-h-dvh">
-
       {/* Background */}
       {backgroundImage ? (
         <SafeImage
@@ -28,20 +27,14 @@ export function TheStoryHero({ data }: Props) {
         <div className="absolute inset-0 bg-linear-to-br from-[#c5a832] to-[#8a7a1e]" />
       )}
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
-
-      {/* Content */}
-      <div
-        className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-28 md:pt-32 lg:px-8 lg:pb-24 lg:pt-40 2xl:max-w-screen-2xl 2xl:px-20 2xl:pb-36 2xl:pt-52"
-      >
-        <h1
-          className="font-jost-bold inline-block cursor-default text-3xl uppercase tracking-[0.08em] text-white text-balance drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:drop-shadow-[0_10px_30px_rgba(197,168,50,0.45)] sm:text-4xl sm:tracking-[0.12em] md:text-4xl md:tracking-[0.15em] lg:text-5xl xl:text-6xl 2xl:text-7xl"
-        >
+      <div className="relative z-10 mx-auto flex min-h-[50vh] w-full max-w-7xl flex-col justify-center px-4 py-12 sm:px-6 sm:py-16 md:py-24 lg:px-8 2xl:max-w-[1440px]">
+        {/* Heading: Restrained to roughly half-width on desktop to clear the bottle */}
+        <h1 className="font-jost-bold inline-block cursor-default text-[clamp(1.75rem,4vw,4.5rem)] leading-tight text-balance text-white uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:drop-shadow-[0_10px_30px_rgba(197,168,50,0.45)] md:max-w-[50%] lg:max-w-[55%]">
           {heading}
         </h1>
 
-        <p className="mt-3 max-w-xl cursor-default text-sm leading-relaxed text-white/90 text-pretty transition-all duration-500 ease-out hover:-translate-y-1 hover:text-white sm:mt-4 sm:max-w-2xl sm:text-base md:text-lg lg:mt-6 lg:text-xl 2xl:mt-8 2xl:max-w-3xl 2xl:text-2xl">
+        {/* Paragraph: Forced to wrap downward on medium screens and up */}
+        <p className="mt-4 w-full cursor-default text-[clamp(0.875rem,1.5vw,1.25rem)] leading-relaxed text-pretty text-white/90 transition-all duration-500 ease-out hover:-translate-y-1 hover:text-white md:max-w-[45%] lg:max-w-[50%]">
           {paragraph}
         </p>
       </div>
@@ -53,15 +46,15 @@ export function TheStoryHero({ data }: Props) {
 
 export function TheStoryHeroSkeleton() {
   return (
-    <section className="relative flex min-h-[60vh] animate-pulse items-center overflow-hidden bg-muted sm:min-h-[70vh] lg:min-h-screen">
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-28 md:pt-32 lg:px-8 lg:pb-24 lg:pt-40 2xl:max-w-screen-2xl 2xl:px-20 2xl:pb-36 2xl:pt-52">
+    <section className="bg-muted relative flex min-h-[60vh] animate-pulse items-center overflow-hidden sm:min-h-[70vh] lg:min-h-screen">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pt-20 pb-12 sm:px-6 sm:pt-28 sm:pb-16 md:pt-32 lg:px-8 lg:pt-40 lg:pb-24 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-52 2xl:pb-36">
         {/* Heading */}
-        <div className="h-9 w-56 rounded-md bg-muted-foreground/20 sm:h-11 sm:w-72 lg:h-14 lg:w-96 2xl:h-16 2xl:w-120" />
+        <div className="bg-muted-foreground/20 h-9 w-56 rounded-md sm:h-11 sm:w-72 lg:h-14 lg:w-96 2xl:h-16 2xl:w-120" />
         {/* Paragraph */}
         <div className="mt-3 max-w-xl space-y-2 sm:mt-4 sm:max-w-2xl lg:mt-6 2xl:mt-8 2xl:max-w-3xl">
-          <div className="h-4 w-full rounded bg-muted-foreground/15 sm:h-5 2xl:h-6" />
-          <div className="h-4 w-5/6 rounded bg-muted-foreground/15 sm:h-5 2xl:h-6" />
-          <div className="h-4 w-3/4 rounded bg-muted-foreground/15 sm:h-5 2xl:h-6" />
+          <div className="bg-muted-foreground/15 h-4 w-full rounded sm:h-5 2xl:h-6" />
+          <div className="bg-muted-foreground/15 h-4 w-5/6 rounded sm:h-5 2xl:h-6" />
+          <div className="bg-muted-foreground/15 h-4 w-3/4 rounded sm:h-5 2xl:h-6" />
         </div>
       </div>
     </section>
