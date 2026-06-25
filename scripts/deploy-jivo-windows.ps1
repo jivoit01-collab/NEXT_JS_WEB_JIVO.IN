@@ -144,8 +144,14 @@ try {
     throw ('Server working tree has uncommitted changes. Refusing deploy to avoid overwriting: ' + ($dirtyStatus -join '; '))
   }
 
-  $currentBranch = (& git branch --show-current).Trim()
-  $previousCommit = (& git rev-parse HEAD).Trim()
+  $currentBranch = [string](& git branch --show-current)
+  $currentBranch = $currentBranch.Trim()
+  if ([string]::IsNullOrWhiteSpace($currentBranch)) {
+    $currentBranch = '(detached HEAD)'
+  }
+
+  $previousCommit = [string](& git rev-parse HEAD)
+  $previousCommit = $previousCommit.Trim()
 
   Write-Host ('Current branch: ' + $currentBranch)
   Write-Host ('Commit before deploy: ' + $previousCommit)
@@ -158,8 +164,8 @@ try {
     Write-Host 'Server is already on origin/main. Build and restart will still run to refresh the service.'
   }
 
-  Invoke-Step 'Pull latest code' 'git' @('pull', '--ff-only', 'origin', 'main')
-  Write-Host ('Commit after pull: ' + (& git rev-parse --short HEAD).Trim())
+  Invoke-Step 'Checkout latest code' 'git' @('reset', '--hard', 'origin/main')
+  Write-Host ('Commit after checkout: ' + (& git rev-parse --short HEAD).Trim())
 
   Invoke-Step 'Install dependencies' 'npm.cmd' @('install')
   Invoke-Step 'Build application before restart' 'npm.cmd' @('run', 'build')
