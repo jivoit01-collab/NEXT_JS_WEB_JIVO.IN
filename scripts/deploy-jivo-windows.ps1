@@ -144,14 +144,18 @@ try {
     throw ('Server working tree has uncommitted changes. Refusing deploy to avoid overwriting: ' + ($dirtyStatus -join '; '))
   }
 
-  $currentBranch = [string](& git branch --show-current)
-  $currentBranch = $currentBranch.Trim()
-  if ([string]::IsNullOrWhiteSpace($currentBranch)) {
+  $currentBranchOutput = & git branch --show-current
+  if ([string]::IsNullOrWhiteSpace($currentBranchOutput)) {
     $currentBranch = '(detached HEAD)'
+  } else {
+    $currentBranch = ([string]$currentBranchOutput).Trim()
   }
 
-  $previousCommit = [string](& git rev-parse HEAD)
-  $previousCommit = $previousCommit.Trim()
+  $previousCommitOutput = & git rev-parse HEAD
+  if ([string]::IsNullOrWhiteSpace($previousCommitOutput)) {
+    throw 'Unable to read current HEAD commit.'
+  }
+  $previousCommit = ([string]$previousCommitOutput).Trim()
 
   Write-Host ('Current branch: ' + $currentBranch)
   Write-Host ('Commit before deploy: ' + $previousCommit)
