@@ -22,7 +22,7 @@ export function BaruSahibAssociationHero({ data }: BaruSahibAssociationHeroProps
         alt=""
         fill
         priority
-        quality={78}
+        quality={90}
         className="object-cover object-center"
         sizes={HERO_IMAGE_SIZES}
       />

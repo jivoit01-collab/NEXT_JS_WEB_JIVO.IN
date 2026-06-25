@@ -20,7 +20,7 @@ export function TheStoryHero({ data }: Props) {
           fill
           priority
           fetchPriority="high"
-          quality={78}
+          quality={90}
           className="object-cover"
           sizes="100vw"
         />

@@ -9,7 +9,9 @@ const nextConfig: NextConfig = {
   compress: true,
 
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // WebP-only: AVIF encode is the slowest stage in the optimizer (image audit fix #1).
+    // Sources are already WebP, so there is no visual quality loss at these display sizes.
+    formats: ['image/webp'],
     remotePatterns: [
       { protocol: 'https', hostname: 'utfs.io' },
       { protocol: 'https', hostname: 'uploadthing.com' },
