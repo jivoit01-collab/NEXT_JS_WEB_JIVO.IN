@@ -336,7 +336,7 @@ Copy this checklist into the task notes before finishing any new or edited page.
 
 Performance:
 
-- [ ] Hero/LCP image is WebP/AVIF and around `200KB`.
+- [ ] Hero/LCP image is WebP/AVIF and around `200KB`. (Exception: essence hero images intentionally run higher — ~`435KB` at `quality={90}` — to prioritize sharpness over size. This is a deliberate tradeoff; do NOT re-compress or downscale them to hit 200KB, as that reintroduces the blur.)
 - [ ] Hero/LCP image uses `priority`, `fetchPriority="high"`, and accurate `sizes`.
 - [ ] Below-the-fold images are lazy-loaded.
 - [ ] All non-`fill` images have `width` and `height`.

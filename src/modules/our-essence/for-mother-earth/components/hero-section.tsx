@@ -24,7 +24,8 @@ export function MotherEarthHeroSection({ data }: MotherEarthHeroSectionProps) {
         alt=""
         fill
         priority
-        quality={80}
+        fetchPriority="high"
+        quality={90}
         placeholder="blur"
         blurDataURL={HERO_BLUR}
         className="object-cover object-[50%_48%] sm:object-[50%_46%] md:object-center"

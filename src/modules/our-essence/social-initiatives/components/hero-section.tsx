@@ -33,7 +33,7 @@ export function SocialInitiativesHero({ data }: SocialInitiativesHeroProps) {
           alt=""
           fill
           priority
-          quality={80}
+          quality={90}
           fetchPriority="high"
           placeholder="blur"
           blurDataURL={HERO_BLUR}
