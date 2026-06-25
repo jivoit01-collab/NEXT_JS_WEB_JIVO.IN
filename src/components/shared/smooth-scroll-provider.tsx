@@ -4,6 +4,11 @@ import { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { gsap, useGSAP, ScrollSmoother, ScrollTrigger } from '@/lib/gsap';
 
+// [scroll-debug] Temporary navigation-scroll diagnostics. Set to `false` to silence
+// (or delete this line plus the `if (DEBUG_SCROLL)` console.log calls below). Filter
+// the browser console by "[scroll-debug]".
+const DEBUG_SCROLL = true;
+
 /**
  * Site-wide GSAP ScrollSmoother. The navbar and any portalled overlays must live
  * OUTSIDE this wrapper (ScrollSmoother transforms #smooth-content, which breaks
@@ -36,31 +41,102 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     { scope: wrapper },
   );
 
-  // After a client-side navigation, jump to top and recalculate every trigger.
-  // Runs twice: once immediately, then again on the next frame once the route's
-  // late-mounting (dynamic()/LazyOnView) sections have settled the page height, so
-  // "top" is computed against the final layout instead of a stale, shorter height.
-  // - ScrollSmoother.scrollTo(0, false) resets the desktop smoother (transform-driven).
-  // - window.scrollTo(..., 'instant') is the fallback for the reduced-motion / touch
-  //   path where no smoother instance exists, and forces a jump (the global
-  //   `scroll-behavior: smooth` would otherwise animate the reset into a visible crawl).
+  // After a client-side navigation, force the viewport to the top and KEEP it pinned
+  // there while the asynchronously-loaded DB content streams in.
+  //
+  // Why a fixed-delay reset isn't enough: the navbar/footer live in the persistent
+  // (public) layout, so only the main content swaps — and that content arrives from
+  // the database hundreds of ms AFTER the route changes. The page is briefly short at
+  // navigation time and grows later, so a one-frame reset fires before the real height
+  // exists. Instead we re-assert "top" on every height change (ResizeObserver on
+  // #smooth-content) for a bounded window after navigation, then disconnect so we
+  // never fight the user's own scrolling.
+  //
+  // Order matters: ScrollTrigger.refresh() runs BEFORE the final scrollTo(0) on every
+  // pass, so the last authoritative action is always "go to top" — a refresh can't
+  // re-apply a stale non-zero offset afterward. `behavior: 'instant'` forces a jump
+  // (the global `scroll-behavior: smooth` would otherwise animate the reset). The
+  // window.scrollTo path also covers the reduced-motion / touch case where no
+  // ScrollSmoother instance exists.
   useGSAP(
     () => {
+      const getSmoother = () => ScrollSmoother.get();
+      const readPos = () => Math.round(getSmoother()?.scrollTop() ?? window.scrollY);
+
       const jumpToTop = () => {
-        ScrollSmoother.get()?.scrollTo(0, false);
+        getSmoother()?.scrollTo(0, false);
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       };
-
-      jumpToTop();
-      ScrollTrigger.refresh();
-
-      const rafId = requestAnimationFrame(() => {
-        jumpToTop();
+      // refresh FIRST, jump LAST — "top" is always the final, authoritative action.
+      const reassertTop = () => {
         ScrollTrigger.refresh();
-      });
+        jumpToTop();
+      };
 
-      // Cancel the pending second pass on unmount / next pathname change.
-      return () => cancelAnimationFrame(rafId);
+      if (DEBUG_SCROLL) console.log('[scroll-debug] navigate ->', pathname);
+
+      // 1. Immediate reset.
+      reassertTop();
+      if (DEBUG_SCROLL) console.log('[scroll-debug] initial reset fired; scrollPos =', readPos());
+
+      // 2. Re-assert as the DB content arrives and the height settles.
+      const contentEl = content.current;
+      let closed = false;
+      let scheduled = false;
+      let rafId = 0;
+      let stableTimer = 0;
+      let hardCapTimer = 0;
+      let observer: ResizeObserver | null = null;
+
+      const closeWindow = (reason: string) => {
+        if (closed) return;
+        closed = true;
+        observer?.disconnect();
+        if (rafId) cancelAnimationFrame(rafId);
+        window.clearTimeout(stableTimer);
+        window.clearTimeout(hardCapTimer);
+        if (DEBUG_SCROLL) console.log(`[scroll-debug] re-assert window closed (${reason})`);
+      };
+
+      // Close once the height has been stable (no resize) for ~300ms.
+      const armStableTimer = () => {
+        window.clearTimeout(stableTimer);
+        stableTimer = window.setTimeout(() => closeWindow('height stable 300ms'), 300);
+      };
+
+      if (contentEl && typeof ResizeObserver !== 'undefined') {
+        observer = new ResizeObserver(() => {
+          // Coalesce bursts of resize notifications into one re-assert per frame — a
+          // refresh() can itself nudge layout, so this avoids a tight refresh loop.
+          if (closed || scheduled) return;
+          scheduled = true;
+          rafId = requestAnimationFrame(() => {
+            scheduled = false;
+            if (closed) return;
+            const before = readPos();
+            reassertTop();
+            const after = readPos();
+            if (DEBUG_SCROLL) {
+              console.log(
+                '[scroll-debug] re-assert: contentHeight =',
+                Math.round(contentEl.getBoundingClientRect().height),
+                '| scrollPos',
+                before,
+                '->',
+                after,
+              );
+            }
+            armStableTimer();
+          });
+        });
+        observer.observe(contentEl);
+        armStableTimer(); // close even if no resize ever fires
+        // Hard cap: never re-assert for more than ~2s after navigation.
+        hardCapTimer = window.setTimeout(() => closeWindow('2s hard cap'), 2000);
+      }
+
+      // Clean up on unmount / next pathname change.
+      return () => closeWindow('cleanup (unmount or next navigation)');
     },
     { dependencies: [pathname] },
   );
