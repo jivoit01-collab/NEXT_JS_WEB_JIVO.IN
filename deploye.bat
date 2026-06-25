@@ -51,6 +51,13 @@ if errorlevel 1 (
 )
 
 echo Fetching latest deployment script from origin/main...
+git remote get-url origin >nul 2>&1
+if errorlevel 1 (
+  git remote add origin https://github.com/jivoit01-collab/NEXT_JS_WEB_JIVO.IN.git
+) else (
+  git remote set-url origin https://github.com/jivoit01-collab/NEXT_JS_WEB_JIVO.IN.git
+)
+
 git fetch origin main
 if errorlevel 1 (
   echo WARNING: git fetch failed. Falling back to local deployment script.

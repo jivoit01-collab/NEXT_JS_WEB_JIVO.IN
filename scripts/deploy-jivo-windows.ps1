@@ -9,6 +9,7 @@ $FailedPath = Join-Path $ProjectRoot ($AppName + '.failed')
 $BackupRoot = Join-Path $AppPath 'backups'
 $ServiceName = 'jivo-web'
 $DeployBranch = 'main'
+$RepositoryUrl = 'https://github.com/jivoit01-collab/NEXT_JS_WEB_JIVO.IN.git'
 $HealthCheckUrl = $env:JIVO_HEALTHCHECK_URL
 
 $ServiceRetries = 5
@@ -89,6 +90,25 @@ function Remove-FolderIfExists {
     Write-Host ('Removing folder: ' + $Path)
     Remove-Item -LiteralPath $Path -Recurse -Force
   }
+}
+
+function Ensure-OriginRemote {
+  Write-Section 'Checking git origin remote'
+
+  & git.exe remote get-url origin | Out-Null
+  if ($LASTEXITCODE -eq 0) {
+    & git.exe remote set-url origin $RepositoryUrl
+    if ($LASTEXITCODE -ne 0) {
+      throw ('Unable to update origin remote to ' + $RepositoryUrl)
+    }
+  } else {
+    & git.exe remote add origin $RepositoryUrl
+    if ($LASTEXITCODE -ne 0) {
+      throw ('Unable to add origin remote ' + $RepositoryUrl)
+    }
+  }
+
+  Write-Host ('origin: ' + (& git.exe remote get-url origin).Trim())
 }
 
 function Copy-ServerFilesToRelease {
@@ -385,6 +405,8 @@ try {
   if ($trackedChanges) {
     throw ('Server working tree has tracked changes. Refusing deploy to avoid overwriting: ' + ($trackedChanges -join '; '))
   }
+
+  Ensure-OriginRemote
 
   $originUrl = (& git config --get remote.origin.url).Trim()
   if ([string]::IsNullOrWhiteSpace($originUrl)) {
