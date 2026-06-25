@@ -37,10 +37,30 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
   );
 
   // After a client-side navigation, jump to top and recalculate every trigger.
+  // Runs twice: once immediately, then again on the next frame once the route's
+  // late-mounting (dynamic()/LazyOnView) sections have settled the page height, so
+  // "top" is computed against the final layout instead of a stale, shorter height.
+  // - ScrollSmoother.scrollTo(0, false) resets the desktop smoother (transform-driven).
+  // - window.scrollTo(..., 'instant') is the fallback for the reduced-motion / touch
+  //   path where no smoother instance exists, and forces a jump (the global
+  //   `scroll-behavior: smooth` would otherwise animate the reset into a visible crawl).
   useGSAP(
     () => {
-      ScrollSmoother.get()?.scrollTo(0, false);
+      const jumpToTop = () => {
+        ScrollSmoother.get()?.scrollTo(0, false);
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      };
+
+      jumpToTop();
       ScrollTrigger.refresh();
+
+      const rafId = requestAnimationFrame(() => {
+        jumpToTop();
+        ScrollTrigger.refresh();
+      });
+
+      // Cancel the pending second pass on unmount / next pathname change.
+      return () => cancelAnimationFrame(rafId);
     },
     { dependencies: [pathname] },
   );
