@@ -24,6 +24,7 @@ export function TheJivoCapitalHero({ data }: TheJivoCapitalHeroProps) {
         alt=""
         fill
         priority
+        fetchPriority="high"
         quality={90}
         placeholder="blur"
         blurDataURL={HERO_BLUR}

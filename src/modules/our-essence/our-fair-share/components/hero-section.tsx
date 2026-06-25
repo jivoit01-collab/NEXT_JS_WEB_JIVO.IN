@@ -24,6 +24,7 @@ export function OurFairShareHeroSection({ data }: OurFairShareHeroSectionProps) 
         alt=""
         fill
         priority
+        fetchPriority="high"
         quality={90}
         placeholder="blur"
         blurDataURL={HERO_BLUR}
