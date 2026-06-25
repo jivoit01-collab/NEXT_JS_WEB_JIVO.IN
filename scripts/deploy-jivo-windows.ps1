@@ -217,6 +217,59 @@ function Start-JivoService {
   throw ('Service did not start. Current state: ' + (Get-JivoService).Status)
 }
 
+function Stop-AppProcessesUsingPath {
+  param([string] $Path)
+
+  Write-Section ('Checking for processes using ' + $Path)
+
+  $escapedPath = [regex]::Escape($Path)
+  for ($attempt = 1; $attempt -le 6; $attempt++) {
+    $processes = @(Get-CimInstance Win32_Process | Where-Object {
+      $_.ProcessId -ne $PID -and (
+        ($_.ExecutablePath -and $_.ExecutablePath -match ('^' + $escapedPath)) -or
+        ($_.CommandLine -and $_.CommandLine -match $escapedPath)
+      )
+    })
+
+    if ($processes.Count -eq 0) {
+      Write-Host 'No leftover app processes found.'
+      return
+    }
+
+    Write-Host ('Found {0} process(es) still using the app folder.' -f $processes.Count)
+    foreach ($process in $processes) {
+      Write-Host ('PID {0}: {1}' -f $process.ProcessId, $process.Name)
+    }
+
+    if ($attempt -lt 4) {
+      Start-Sleep -Seconds 3
+      continue
+    }
+
+    Write-Host 'Terminating leftover app processes after service stop.'
+    foreach ($process in $processes) {
+      try {
+        Invoke-CimMethod -InputObject $process -MethodName Terminate | Out-Null
+      } catch {
+        Write-Host ('Could not terminate PID {0}: {1}' -f $process.ProcessId, $_.Exception.Message)
+      }
+    }
+
+    Start-Sleep -Seconds 2
+  }
+
+  $remaining = @(Get-CimInstance Win32_Process | Where-Object {
+    $_.ProcessId -ne $PID -and (
+      ($_.ExecutablePath -and $_.ExecutablePath -match ('^' + $escapedPath)) -or
+      ($_.CommandLine -and $_.CommandLine -match $escapedPath)
+    )
+  })
+
+  if ($remaining.Count -gt 0) {
+    throw ('Processes are still using the live app folder after service stop: ' + (($remaining | ForEach-Object { $_.ProcessId }) -join ', '))
+  }
+}
+
 function Test-Health {
   if ([string]::IsNullOrWhiteSpace($HealthCheckUrl)) {
     Write-Host 'No JIVO_HEALTHCHECK_URL was provided. Skipping HTTP health check.'
@@ -261,6 +314,14 @@ function Restore-OldRelease {
   }
 
   Set-Location -LiteralPath $ProjectRoot
+
+  if (-not $LiveMoved -and -not $NewMoved -and (Test-Path -LiteralPath $AppPath)) {
+    Write-Host 'Live folder was never moved. Starting the existing release again.'
+    Start-JivoService
+    Test-Health
+    Write-Host 'Existing release is running again.'
+    return
+  }
 
   if ($NewMoved -and (Test-Path -LiteralPath $AppPath)) {
     Remove-FolderIfExists -Path $FailedPath
@@ -375,6 +436,7 @@ try {
 
   $serviceWasTouched = $true
   Stop-JivoService
+  Stop-AppProcessesUsingPath -Path $AppPath
 
   Rename-Item -LiteralPath $AppPath -NewName ($AppName + '.rollback')
   $liveMoved = $true
