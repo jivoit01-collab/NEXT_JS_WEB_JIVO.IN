@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $AppPath = 'C:\LiveProjects\NEXT_JS_WEB_JIVO.IN'
 $ServiceName = 'jivo-web'
-$LogDir = 'C:\LiveProjects\deploy-logs'
+$LogDir = 'C:\LiveProjects\NEXT_JS_WEB_JIVO.IN\deploy-logs'
 $HealthCheckUrl = $env:JIVO_HEALTHCHECK_URL
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
