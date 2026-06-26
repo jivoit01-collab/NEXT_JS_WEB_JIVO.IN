@@ -5,6 +5,7 @@ const MAX_VIDEO_UPLOAD_MB = 400;
 const MULTIPART_OVERHEAD_MB = 20;
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   poweredByHeader: false,
   compress: true,
 
