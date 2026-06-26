@@ -103,7 +103,7 @@ function Restore-PreviousCommit {
   }
 
   try {
-    Invoke-Step 'Restoring dependencies for previous commit' 'npm.cmd' @('install')
+    Invoke-Step 'Restoring dependencies for previous commit' 'npm.cmd' @('ci')
     Invoke-Step 'Rebuilding previous commit' 'npm.cmd' @('run', 'build')
   } catch {
     Write-Host ('Rollback rebuild failed: ' + $_.Exception.Message)
@@ -171,7 +171,7 @@ try {
   Invoke-Step 'Checkout latest code' 'git' @('reset', '--hard', 'origin/main')
   Write-Host ('Commit after checkout: ' + (& git rev-parse --short HEAD).Trim())
 
-  Invoke-Step 'Install dependencies' 'npm.cmd' @('install')
+  Invoke-Step 'Install dependencies' 'npm.cmd' @('ci')
   Invoke-Step 'Build application before restart' 'npm.cmd' @('run', 'build')
 
   $serviceWasTouched = $true
