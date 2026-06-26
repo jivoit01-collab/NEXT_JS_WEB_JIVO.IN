@@ -12,3 +12,4 @@ export { LazyOnView } from './lazy-on-view';
 export { SectionSkeleton } from './section-skeleton';
 export { Section } from './section';
 export { SplitWords } from './split-words';
+export { JivoLogo } from './jivo-logo';
