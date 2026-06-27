@@ -9,6 +9,14 @@ export {
   deleteLink,
   getFooterSetting,
   updateFooterSetting,
+  getAllSocialLinks,
+  createSocialLink,
+  updateSocialLink,
+  deleteSocialLink,
+  getAllCertificates,
+  createCertificate,
+  updateCertificate,
+  deleteCertificate,
 } from './actions';
 
 export {
@@ -17,14 +25,36 @@ export {
   footerLinkSchema,
   footerLinkUpdateSchema,
   footerSettingSchema,
+  footerSocialLinkSchema,
+  footerSocialLinkUpdateSchema,
+  footerCertificateSchema,
+  footerCertificateUpdateSchema,
+  SOCIAL_PLATFORMS,
+} from './validations';
+
+export type {
+  SocialPlatform,
+  FooterColumnInput,
+  FooterColumnUpdateInput,
+  FooterLinkInput,
+  FooterLinkUpdateInput,
+  FooterSettingInput,
+  FooterSocialLinkInput,
+  FooterSocialLinkUpdateInput,
+  FooterCertificateInput,
+  FooterCertificateUpdateInput,
 } from './validations';
 
 export type {
   FooterColumnRow,
   FooterLinkRow,
   FooterSettingRow,
+  FooterSocialLinkRow,
+  FooterCertificateRow,
   FooterColumnWithLinks,
   VisibleFooterColumnWithLinks,
   VisibleFooterSetting,
+  VisibleFooterSocialLink,
+  VisibleFooterCertificate,
   FooterData,
 } from './types';
