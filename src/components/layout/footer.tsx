@@ -11,24 +11,10 @@ function assetUrl(raw: string | null | undefined, fallback = '/api/uploads/place
   return raw.startsWith('/') || raw.startsWith('http') ? raw : `/api/uploads/${raw}`;
 }
 
-/**
- * Muted link with the brand "growing underline" hover: text brightens to white and a
- * green underline sweeps from 0 → full width. Gated to `hover: hover`, eased 300ms.
- * Render the link text inside <LinkText>…</LinkText> within a `group` anchor.
- */
-function LinkText({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="relative text-[#9b9b9b] transition-colors duration-300 [@media(hover:hover)]:group-hover:text-white">
-      {children}
-      <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 rounded-full bg-[#43a86c] transition-all duration-300 ease-out [@media(hover:hover)]:group-hover:w-full" />
-    </span>
-  );
-}
-
 function ColumnBody({ column }: { column: VisibleFooterColumnWithLinks }) {
   return (
     <>
-      <h4 className="font-jost-bold mb-3 text-sm tracking-[0.15em] text-white uppercase sm:mb-4 sm:text-base md:mb-5 md:text-lg 2xl:mb-6 2xl:text-xl">
+      <h4 className="font-jost-bold mb-3 text-sm tracking-[0.15em] text-[#222] uppercase sm:mb-4 sm:text-base md:mb-5 md:text-lg 2xl:mb-6 2xl:text-xl">
         {column.title}
       </h4>
       <ul className="space-y-2 sm:space-y-2.5 md:space-y-3 2xl:space-y-4">
@@ -36,10 +22,14 @@ function ColumnBody({ column }: { column: VisibleFooterColumnWithLinks }) {
           <li key={link.id}>
             <Link
               href={link.href}
-              className="group inline-flex items-start gap-1.5 text-xs leading-snug sm:gap-2 sm:text-sm md:text-base 2xl:text-lg"
+              className="group relative inline-flex items-start gap-1.5 text-xs leading-snug text-[#555] transition-colors duration-300 sm:gap-2 sm:text-sm md:text-base 2xl:text-lg"
             >
-              <span className="mt-[1px] shrink-0 text-[#43a86c]">&gt;</span>
-              <LinkText>{link.title}</LinkText>
+              <span className="mt-[1px] shrink-0 text-[#0a7d3f]">&gt;</span>
+              {/* Growing underline on hover (gated to hover-capable devices). */}
+              <span className="relative break-words transition-colors duration-300 [@media(hover:hover)]:group-hover:text-[#111]">
+                {link.title}
+                <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
+              </span>
             </Link>
           </li>
         ))}
@@ -57,7 +47,7 @@ export async function Footer() {
   const followLabel = setting.followLabel || 'FOLLOW US';
 
   return (
-    <footer className="bg-[#141414] text-[#9b9b9b]">
+    <footer className="bg-[#e8e8e8] text-[#333]">
       {/* ── Upper section: brand block + link columns ──────────── */}
       <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-12 md:py-14 lg:px-8 lg:py-12 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-16">
         <div className="grid gap-10 sm:gap-12 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:gap-0 2xl:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
@@ -73,29 +63,29 @@ export async function Footer() {
 
             {/* —— WELLNESS —— lockup */}
             <div className="mt-2 flex items-center gap-2">
-              <span className="h-px w-5 bg-[#43a86c]/70 sm:w-6" aria-hidden />
-              <span className="font-jost-medium text-[10px] tracking-[0.34em] text-[#43a86c] uppercase sm:text-xs">
+              <span className="h-px w-5 bg-[#bbb] sm:w-6" aria-hidden />
+              <span className="font-jost-medium text-[10px] tracking-[0.34em] text-[#666] uppercase sm:text-xs">
                 Wellness
               </span>
-              <span className="h-px w-5 bg-[#43a86c]/70 sm:w-6" aria-hidden />
+              <span className="h-px w-5 bg-[#bbb] sm:w-6" aria-hidden />
             </div>
 
             {setting.tagline && (
-              <p className="mt-4 max-w-xs text-sm leading-relaxed text-pretty text-[#b0b0b0] sm:text-base 2xl:max-w-sm 2xl:text-lg">
+              <p className="mt-4 max-w-xs text-sm leading-relaxed text-pretty text-[#555] sm:text-base 2xl:max-w-sm 2xl:text-lg">
                 {setting.tagline}
               </p>
             )}
 
-            <div className="mt-5 h-px w-12 bg-[#43a86c]/70 2xl:mt-6" />
+            <div className="mt-5 h-px w-12 bg-[#bbb] 2xl:mt-6" />
 
-            <p className="font-jost-bold mt-5 text-xs tracking-[0.2em] text-white uppercase sm:text-sm 2xl:mt-6 2xl:text-base">
+            <p className="font-jost-bold mt-5 text-xs tracking-[0.2em] text-[#222] uppercase sm:text-sm 2xl:mt-6 2xl:text-base">
               {followLabel}
             </p>
             <FooterSocialIcons socials={socials} className="mt-3 2xl:mt-4" />
           </div>
 
           {/* Link columns — vertical dividers between them at md+, content unchanged */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:gap-y-10 md:grid-cols-4 md:gap-x-0 md:gap-y-12 md:divide-x md:divide-[#2e2e2e] lg:border-l lg:border-[#2e2e2e]">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:gap-y-10 md:grid-cols-4 md:gap-x-0 md:gap-y-12 md:divide-x md:divide-[#ccc] lg:border-l lg:border-[#ccc]">
             {columns.map((column, idx) => (
               <div
                 key={column.id}
@@ -109,9 +99,9 @@ export async function Footer() {
       </div>
 
       {/* ── Bottom section: single 4-column row ────────────────── */}
-      <div className="border-t border-[#2e2e2e]">
+      <div className="border-t border-[#c4c4c4]">
         <div className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 sm:py-8 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-10">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-[#2e2e2e]">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-[#c4c4c4]">
             {/* Col 1 — Certifications */}
             <div className="lg:px-6 lg:first:pl-0">
               {certificates.length > 0 && (
@@ -129,7 +119,7 @@ export async function Footer() {
                 </div>
               )}
               {setting.certificationText && (
-                <p className="text-xs leading-relaxed whitespace-pre-line text-[#9b9b9b] sm:text-sm 2xl:text-base">
+                <p className="text-xs leading-relaxed whitespace-pre-line text-[#555] sm:text-sm 2xl:text-base">
                   {setting.certificationText}
                 </p>
               )}
@@ -137,7 +127,7 @@ export async function Footer() {
 
             {/* Col 2 — Copyright (no logo) */}
             <div className="lg:px-6">
-              <p className="text-xs leading-relaxed whitespace-pre-line text-[#9b9b9b] sm:text-sm 2xl:text-base">
+              <p className="text-xs leading-relaxed whitespace-pre-line text-[#555] sm:text-sm 2xl:text-base">
                 {copyright}
               </p>
             </div>
@@ -147,26 +137,26 @@ export async function Footer() {
               {setting.email && (
                 <Link
                   href={`mailto:${setting.email}`}
-                  className="group flex items-center gap-2 text-xs sm:text-sm 2xl:text-base"
+                  className="group flex items-center gap-2 text-xs text-[#555] transition-colors duration-300 sm:text-sm 2xl:text-base"
                 >
                   <Mail className="h-4 w-4 shrink-0 text-[#888] 2xl:h-5 2xl:w-5" />
-                  <LinkText>
-                    <span className="break-all sm:break-normal">{setting.email}</span>
-                  </LinkText>
+                  <span className="relative break-all transition-colors duration-300 sm:break-normal [@media(hover:hover)]:group-hover:text-[#111]">
+                    {setting.email}
+                    <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
+                  </span>
                 </Link>
               )}
               {setting.phone && (
                 <Link
                   href={`tel:${setting.phone.replace(/\s+/g, '')}`}
-                  className="group flex items-center gap-2 text-xs sm:text-sm 2xl:text-base"
+                  className="group flex items-center gap-2 text-xs text-[#555] transition-colors duration-300 sm:text-sm 2xl:text-base"
                 >
                   <Phone className="h-4 w-4 shrink-0 text-[#888] 2xl:h-5 2xl:w-5" />
-                  <LinkText>
-                    <span className="whitespace-nowrap">
-                      {setting.phone}
-                      {setting.phoneLabel ? ` ${setting.phoneLabel}` : ''}
-                    </span>
-                  </LinkText>
+                  <span className="relative whitespace-nowrap transition-colors duration-300 [@media(hover:hover)]:group-hover:text-[#111]">
+                    {setting.phone}
+                    {setting.phoneLabel ? ` ${setting.phoneLabel}` : ''}
+                    <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
+                  </span>
                 </Link>
               )}
             </div>
@@ -174,15 +164,15 @@ export async function Footer() {
             {/* Col 4 — Address + made-in */}
             <div className="flex flex-col gap-2 lg:px-6 lg:last:pr-0 2xl:gap-2.5">
               {setting.address && (
-                <div className="flex items-start gap-2 text-xs leading-relaxed text-[#9b9b9b] sm:text-sm 2xl:text-base">
+                <div className="flex items-start gap-2 text-xs leading-relaxed text-[#555] sm:text-sm 2xl:text-base">
                   <MapPin className="mt-px h-4 w-4 shrink-0 text-[#888] 2xl:h-5 2xl:w-5" />
                   <span className="break-words">{setting.address}</span>
                 </div>
               )}
               {setting.madeInText && (
-                <div className="flex items-center gap-2 text-xs text-[#9b9b9b] sm:text-sm 2xl:text-base">
+                <div className="flex items-center gap-2 text-xs text-[#555] sm:text-sm 2xl:text-base">
                   <Heart
-                    className="h-4 w-4 shrink-0 text-[#43a86c] 2xl:h-5 2xl:w-5"
+                    className="h-4 w-4 shrink-0 text-[#0a7d3f] 2xl:h-5 2xl:w-5"
                     fill="currentColor"
                   />
                   <span>{setting.madeInText}</span>
