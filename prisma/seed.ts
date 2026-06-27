@@ -408,14 +408,14 @@ async function main() {
         ? {
             logoUrl: 'jivo-logo.png',
             logoAlt: 'Jivo',
-            copyrightText: `All Right Reserved © ${new Date().getFullYear()}`,
+            copyrightText: `©${new Date().getFullYear()} Jivo Wellness Pvt. Ltd\nAll Right Reserved.`,
             address: 'Jt/190, Nehru Market, Rajouri Garden, New Delhi - 110027',
             email: 'info@jivo.in',
             phone: '1800 137 4433',
             phoneLabel: '(TOLL FREE)',
             tagline: "Bringing nature's finest to your everyday wellness.",
             followLabel: 'FOLLOW US',
-            certificationText: 'Proudly Certified. Committed to Quality.',
+            certificationText: 'Proudly Certified.\nCommitted to Quality.',
             madeInText: 'Made with care in India',
           }
         : {},
