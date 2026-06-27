@@ -1,8 +1,15 @@
 import Link from 'next/link';
-import { MapPin, Mail, Phone } from 'lucide-react';
+import { MapPin, Mail, Phone, Heart } from 'lucide-react';
 import { SafeImage } from '@/components/shared/public';
 import { getVisibleFooter } from '@/modules/footer';
 import type { VisibleFooterColumnWithLinks } from '@/modules/footer/types';
+import { FooterSocialIcons } from './footer-social-icons';
+
+/** Resolve a stored asset value (bare filename, absolute path, or URL) to a src. */
+function assetUrl(raw: string | null | undefined, fallback = '/api/uploads/placeholder.png') {
+  if (!raw) return fallback;
+  return raw.startsWith('/') || raw.startsWith('http') ? raw : `/api/uploads/${raw}`;
+}
 
 function ColumnBody({ column }: { column: VisibleFooterColumnWithLinks }) {
   return (
@@ -17,12 +24,11 @@ function ColumnBody({ column }: { column: VisibleFooterColumnWithLinks }) {
               href={link.href}
               className="group relative inline-flex items-start gap-1.5 text-xs leading-snug text-[#555] transition-colors duration-300 sm:gap-2 sm:text-sm md:text-base 2xl:text-lg"
             >
-              <span className="mt-[1px] shrink-0 transition-transform duration-300 group-hover:translate-x-1">
-                &gt;
-              </span>
-              <span className="relative break-words transition-colors duration-300 group-hover:text-[#111]">
+              <span className="mt-[1px] shrink-0 text-[#0a7d3f]">&gt;</span>
+              {/* Growing underline on hover (gated to hover-capable devices). */}
+              <span className="relative break-words transition-colors duration-300 [@media(hover:hover)]:group-hover:text-[#111]">
                 {link.title}
-                <span className="absolute -bottom-0.5 left-0 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
               </span>
             </Link>
           </li>
@@ -33,108 +39,146 @@ function ColumnBody({ column }: { column: VisibleFooterColumnWithLinks }) {
 }
 
 export async function Footer() {
-  const { columns, setting } = await getVisibleFooter();
+  const { columns, setting, socials, certificates } = await getVisibleFooter();
 
-  // When there are 5 columns, the last one (Quick Links) leaves a blank cell
-  // in the 2/3/4-col grids used below `lg`. Stack it under the first column
-  // on those breakpoints and restore it as its own cell at `lg`.
-  const hasOverflowColumn = columns.length >= 5;
-  const mainColumns = hasOverflowColumn ? columns.slice(0, -1) : columns;
-  const extraColumn = hasOverflowColumn ? columns[columns.length - 1] : null;
-
-  const raw = setting.logoUrl || '';
-  const logoSrc = !raw
-    ? '/api/uploads/placeholder.png'
-    : raw.startsWith('/') || raw.startsWith('http')
-      ? raw
-      : `/api/uploads/${raw}`;
-
+  const logoSrc = assetUrl(setting.logoUrl);
   const year = new Date().getFullYear();
   const copyright = setting.copyrightText || `All Right Reserved © ${year}`;
+  const followLabel = setting.followLabel || 'FOLLOW US';
 
   return (
     <footer className="bg-[#e8e8e8] text-[#333]">
-      {/* ── Link columns ──────────────────────────── */}
-      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-12 md:py-14 lg:px-8 lg:py-10 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-16">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 sm:gap-y-10 md:grid-cols-4 md:gap-x-4 md:gap-y-12 lg:grid-cols-5 lg:divide-x lg:divide-[#bbb] 2xl:gap-x-10 2xl:gap-y-14">
-          {mainColumns.map((column, idx) => (
-            <div
-              key={column.id}
-              className={`min-w-0 lg:px-4 2xl:px-6 ${idx === 0 ? 'lg:pl-0 2xl:pl-0' : ''}`}
-            >
-              <ColumnBody column={column} />
-
-              {idx === 0 && extraColumn && (
-                <div className="mt-8 sm:mt-10 md:mt-12 lg:hidden">
-                  <ColumnBody column={extraColumn} />
-                </div>
-              )}
-            </div>
-          ))}
-
-          {extraColumn && (
-            <div
-              key={extraColumn.id}
-              className="hidden min-w-0 lg:block lg:px-6 lg:pr-0 2xl:px-8 2xl:pr-0"
-            >
-              <ColumnBody column={extraColumn} />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Bottom bar ─────────────────────────────── */}
-      <div className="border-t border-[#ccc] bg-[#ddd]">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-4 py-5 text-center sm:gap-5 sm:px-6 sm:py-6 md:py-7 lg:flex-row lg:justify-between lg:gap-6 lg:px-8 lg:text-left xl:px-12 2xl:max-w-screen-2xl 2xl:gap-8 2xl:px-20 2xl:py-8">
-          {/* Logo + copyright */}
-          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3 md:gap-4 2xl:gap-5">
+      {/* ── Upper section: brand block + link columns ──────────── */}
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-12 md:py-14 lg:px-8 lg:py-12 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-16">
+        <div className="grid gap-10 sm:gap-12 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:gap-0 2xl:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+          {/* Brand block */}
+          <div className="min-w-0 lg:pr-10 2xl:pr-14">
             <SafeImage
               src={logoSrc}
               alt={setting.logoAlt || 'Jivo'}
-              width={140}
-              height={56}
-              className="h-7 w-auto object-contain sm:h-8 md:h-9 2xl:h-12"
+              width={160}
+              height={64}
+              className="h-9 w-auto object-contain sm:h-10 2xl:h-12"
             />
-            <p className="text-xs leading-snug text-[#555] sm:text-sm md:text-base 2xl:text-lg">
-              {copyright}
+
+            {/* —— WELLNESS —— lockup */}
+            <div className="mt-2 flex items-center gap-2">
+              <span className="h-px w-5 bg-[#bbb] sm:w-6" aria-hidden />
+              <span className="font-jost-medium text-[10px] tracking-[0.34em] text-[#666] uppercase sm:text-xs">
+                Wellness
+              </span>
+              <span className="h-px w-5 bg-[#bbb] sm:w-6" aria-hidden />
+            </div>
+
+            {setting.tagline && (
+              <p className="mt-4 max-w-xs text-sm leading-relaxed text-pretty text-[#555] sm:text-base 2xl:max-w-sm 2xl:text-lg">
+                {setting.tagline}
+              </p>
+            )}
+
+            <div className="mt-5 h-px w-12 bg-[#bbb] 2xl:mt-6" />
+
+            <p className="font-jost-bold mt-5 text-xs tracking-[0.2em] text-[#222] uppercase sm:text-sm 2xl:mt-6 2xl:text-base">
+              {followLabel}
             </p>
+            <FooterSocialIcons socials={socials} className="mt-3 2xl:mt-4" />
           </div>
 
-          {/* Contact */}
-          <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-5 sm:gap-y-2 md:gap-x-6 lg:gap-x-8 2xl:gap-x-10">
-            {setting.address && (
-              <div className="flex max-w-full items-center gap-1.5 text-xs text-[#555] sm:text-sm md:gap-2 md:text-base 2xl:gap-2.5 2xl:text-lg">
-                <MapPin className="h-4 w-4 shrink-0 md:h-5 md:w-5 2xl:h-6 2xl:w-6" />
-                <span className="break-words">{setting.address}</span>
+          {/* Link columns — vertical dividers between them at md+, content unchanged */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:gap-y-10 md:grid-cols-4 md:gap-x-0 md:gap-y-12 md:divide-x md:divide-[#ccc] lg:border-l lg:border-[#ccc]">
+            {columns.map((column, idx) => (
+              <div
+                key={column.id}
+                className={`min-w-0 md:px-5 2xl:px-7 ${idx === 0 ? 'md:pl-5 lg:pl-8 2xl:pl-10' : ''}`}
+              >
+                <ColumnBody column={column} />
               </div>
-            )}
+            ))}
+          </div>
+        </div>
+      </div>
 
-            {setting.email && (
-              <Link
-                href={`mailto:${setting.email}`}
-                className="group flex max-w-full items-center gap-1.5 text-xs text-[#555] transition-colors duration-300 hover:text-[#111] sm:text-sm md:gap-2 md:text-base 2xl:gap-2.5 2xl:text-lg"
-              >
-                <Mail className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110 md:h-5 md:w-5 2xl:h-6 2xl:w-6" />
-                <span className="relative break-all sm:break-normal">
-                  {setting.email}
-                  <span className="absolute -bottom-0.5 left-0 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
-                </span>
-              </Link>
-            )}
+      {/* ── Bottom section: single 4-column row ────────────────── */}
+      <div className="border-t border-[#c4c4c4]">
+        <div className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 sm:py-8 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20 2xl:py-10">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-[#c4c4c4]">
+            {/* Col 1 — Certifications */}
+            <div className="lg:px-6 lg:first:pl-0">
+              {certificates.length > 0 && (
+                <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  {certificates.map((cert) => (
+                    <SafeImage
+                      key={cert.id}
+                      src={assetUrl(cert.imageUrl)}
+                      alt={cert.alt || ''}
+                      width={88}
+                      height={44}
+                      className="h-9 w-auto object-contain sm:h-10 2xl:h-12"
+                    />
+                  ))}
+                </div>
+              )}
+              {setting.certificationText && (
+                <p className="text-xs leading-relaxed whitespace-pre-line text-[#555] sm:text-sm 2xl:text-base">
+                  {setting.certificationText}
+                </p>
+              )}
+            </div>
 
-            {setting.phone && (
-              <Link
-                href={`tel:${setting.phone.replace(/\s+/g, '')}`}
-                className="group flex items-center gap-1.5 text-xs text-[#555] transition-colors duration-300 hover:text-[#111] sm:text-sm md:gap-2 md:text-base 2xl:gap-2.5 2xl:text-lg"
-              >
-                <Phone className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110 md:h-5 md:w-5 2xl:h-6 2xl:w-6" />
-                <span className="relative whitespace-nowrap">
-                  {setting.phone}
-                  {setting.phoneLabel ? ` ${setting.phoneLabel}` : ''}
-                  <span className="absolute -bottom-0.5 left-0 h-[1px] w-0 bg-[#111] transition-all duration-300 group-hover:w-full" />
-                </span>
-              </Link>
-            )}
+            {/* Col 2 — Copyright (no logo) */}
+            <div className="lg:px-6">
+              <p className="text-xs leading-relaxed whitespace-pre-line text-[#555] sm:text-sm 2xl:text-base">
+                {copyright}
+              </p>
+            </div>
+
+            {/* Col 3 — Contact links */}
+            <div className="flex flex-col gap-2 lg:px-6 2xl:gap-2.5">
+              {setting.email && (
+                <Link
+                  href={`mailto:${setting.email}`}
+                  className="group flex items-center gap-2 text-xs text-[#555] transition-colors duration-300 sm:text-sm 2xl:text-base"
+                >
+                  <Mail className="h-4 w-4 shrink-0 text-[#888] 2xl:h-5 2xl:w-5" />
+                  <span className="relative break-all transition-colors duration-300 sm:break-normal [@media(hover:hover)]:group-hover:text-[#111]">
+                    {setting.email}
+                    <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
+                  </span>
+                </Link>
+              )}
+              {setting.phone && (
+                <Link
+                  href={`tel:${setting.phone.replace(/\s+/g, '')}`}
+                  className="group flex items-center gap-2 text-xs text-[#555] transition-colors duration-300 sm:text-sm 2xl:text-base"
+                >
+                  <Phone className="h-4 w-4 shrink-0 text-[#888] 2xl:h-5 2xl:w-5" />
+                  <span className="relative whitespace-nowrap transition-colors duration-300 [@media(hover:hover)]:group-hover:text-[#111]">
+                    {setting.phone}
+                    {setting.phoneLabel ? ` ${setting.phoneLabel}` : ''}
+                    <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
+                  </span>
+                </Link>
+              )}
+            </div>
+
+            {/* Col 4 — Address + made-in */}
+            <div className="flex flex-col gap-2 lg:px-6 lg:last:pr-0 2xl:gap-2.5">
+              {setting.address && (
+                <div className="flex items-start gap-2 text-xs leading-relaxed text-[#555] sm:text-sm 2xl:text-base">
+                  <MapPin className="mt-px h-4 w-4 shrink-0 text-[#888] 2xl:h-5 2xl:w-5" />
+                  <span className="break-words">{setting.address}</span>
+                </div>
+              )}
+              {setting.madeInText && (
+                <div className="flex items-center gap-2 text-xs text-[#555] sm:text-sm 2xl:text-base">
+                  <Heart
+                    className="h-4 w-4 shrink-0 text-[#0a7d3f] 2xl:h-5 2xl:w-5"
+                    fill="currentColor"
+                  />
+                  <span>{setting.madeInText}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

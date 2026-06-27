@@ -408,11 +408,15 @@ async function main() {
         ? {
             logoUrl: 'jivo-logo.png',
             logoAlt: 'Jivo',
-            copyrightText: `All Right Reserved © ${new Date().getFullYear()}`,
+            copyrightText: `©${new Date().getFullYear()} Jivo Wellness Pvt. Ltd\nAll Right Reserved.`,
             address: 'Jt/190, Nehru Market, Rajouri Garden, New Delhi - 110027',
             email: 'info@jivo.in',
             phone: '1800 137 4433',
             phoneLabel: '(TOLL FREE)',
+            tagline: "Bringing nature's finest to your everyday wellness.",
+            followLabel: 'FOLLOW US',
+            certificationText: 'Proudly Certified.\nCommitted to Quality.',
+            madeInText: 'Made with care in India',
           }
         : {},
       create: {
@@ -424,12 +428,36 @@ async function main() {
         email: 'info@jivo.in',
         phone: '1800 137 4433',
         phoneLabel: '(TOLL FREE)',
+        tagline: "Bringing nature's finest to your everyday wellness.",
+        followLabel: 'FOLLOW US',
+        certificationText: 'Proudly Certified. Committed to Quality.',
+        madeInText: 'Made with care in India',
       },
     });
     console.log(`✓ Footer settings: ${FORCE_RESET ? 'RESET' : 'created'}`);
   } else {
     console.log('✓ Footer settings: skipped (already exist)');
   }
+
+  // ── Footer social links (placeholder URLs — admin edits later) ─────
+  const socialCount = await prisma.footerSocialLink.count();
+  if (socialCount === 0 || FORCE_RESET) {
+    if (FORCE_RESET) await prisma.footerSocialLink.deleteMany();
+    await prisma.footerSocialLink.createMany({
+      data: [
+        { platform: 'instagram', url: 'https://instagram.com/jivowellness', sortOrder: 0 },
+        { platform: 'facebook', url: 'https://facebook.com/jivowellness', sortOrder: 1 },
+        { platform: 'youtube', url: 'https://youtube.com/@jivowellness', sortOrder: 2 },
+        { platform: 'linkedin', url: 'https://linkedin.com/company/jivowellness', sortOrder: 3 },
+      ],
+    });
+    console.log(`✓ Footer socials: ${FORCE_RESET ? 'RESET' : 'created'} (4)`);
+  } else {
+    console.log(`✓ Footer socials: skipped (${socialCount} already exist)`);
+  }
+
+  // ── Footer certificates: left empty — admin uploads badge images. ──
+  console.log('✓ Footer certificates: left empty (managed via /admin/footer)');
 
   // ── Navbar settings (only create if missing — never overwrite logo) ─
   const navSetting = await prisma.navbarSetting.findUnique({ where: { id: 'default' } });

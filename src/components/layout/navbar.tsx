@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown } from 'lucide-react';
-import { SafeImage } from '@/components/shared/public';
+import { JivoLogo } from '@/components/shared/public';
 import { useScroll } from '@/hooks';
 import { SITE_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -29,7 +29,7 @@ export type NavbarProps = {
   links: NavbarLink[];
 };
 
-export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
+export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
   const pathname = usePathname();
   const links = useMemo<NavbarLink[]>(
     () => (pathname === '/' ? navLinks : [HOME_LINK, ...navLinks]),
@@ -120,21 +120,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4 lg:h-16 lg:px-6 xl:px-8 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-12">
         {/* Logo */}
         <Link href="/" className="flex min-h-11 min-w-0 items-center" aria-label={altText}>
-          {logoUrl ? (
-            <SafeImage
-              src={logoUrl}
-              alt={altText}
-              width={160}
-              height={56}
-              loading="eager"
-              sizes="(max-width: 768px) 136px, (max-width: 1536px) 160px, 192px"
-              className="h-7 w-auto object-contain lg:h-9 2xl:h-12"
-            />
-          ) : (
-            <span className="truncate text-xl font-jost-bold tracking-tight text-white lg:text-2xl 2xl:text-3xl">
-              {altText}
-            </span>
-          )}
+          <JivoLogo title={altText} className="h-7 w-auto text-white lg:h-9 2xl:h-12" />
         </Link>
 
         {/* Desktop Nav */}
@@ -264,19 +250,7 @@ export function Navbar({ logoUrl, logoAlt, links: navLinks }: NavbarProps) {
             aria-label={altText}
             onClick={() => setMobileOpen(false)}
           >
-            {logoUrl ? (
-              <SafeImage
-                src={logoUrl}
-                alt={altText}
-                width={136}
-                height={48}
-                loading="eager"
-                sizes="136px"
-                className="h-8 w-auto object-contain"
-              />
-            ) : (
-              <span className="truncate text-lg font-jost-bold tracking-tight">{altText}</span>
-            )}
+            <JivoLogo title={altText} className="h-8 w-auto text-white" />
           </Link>
           <button
             type="button"
