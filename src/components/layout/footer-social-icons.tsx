@@ -43,7 +43,7 @@ export function FooterSocialIcons({ socials, className }: FooterSocialIconsProps
               target="_blank"
               rel="noopener noreferrer"
               aria-label={label}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#bbb] text-[#555] transition-all duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#e8e8e8] focus-visible:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-[#0a7d3f] [@media(hover:hover)]:hover:bg-[#0a7d3f] [@media(hover:hover)]:hover:text-white sm:h-10 sm:w-10"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#3a3a3a] text-[#9b9b9b] transition-all duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#43a86c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] focus-visible:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-[#43a86c] [@media(hover:hover)]:hover:bg-[#43a86c] [@media(hover:hover)]:hover:text-white sm:h-10 sm:w-10"
             >
               <Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" aria-hidden />
             </a>
