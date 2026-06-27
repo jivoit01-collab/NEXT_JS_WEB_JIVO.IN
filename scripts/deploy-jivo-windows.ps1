@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $AppPath = 'C:\LiveProjects\NEXT_JS_WEB_JIVO.IN'
 $ServiceName = 'jivo-web'
-$LogDir = 'C:\LiveProjects\deploy-logs'
+$LogDir = 'C:\LiveProjects\temp\deploy-logs'
 $HealthCheckUrl = $env:JIVO_HEALTHCHECK_URL
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
@@ -144,18 +144,8 @@ try {
     throw ('Server working tree has uncommitted changes. Refusing deploy to avoid overwriting: ' + ($dirtyStatus -join '; '))
   }
 
-  $currentBranchOutput = & git branch --show-current
-  if ([string]::IsNullOrWhiteSpace($currentBranchOutput)) {
-    $currentBranch = '(detached HEAD)'
-  } else {
-    $currentBranch = ([string]$currentBranchOutput).Trim()
-  }
-
-  $previousCommitOutput = & git rev-parse HEAD
-  if ([string]::IsNullOrWhiteSpace($previousCommitOutput)) {
-    throw 'Unable to read current HEAD commit.'
-  }
-  $previousCommit = ([string]$previousCommitOutput).Trim()
+  $currentBranch = (& git branch --show-current).Trim()
+  $previousCommit = (& git rev-parse HEAD).Trim()
 
   Write-Host ('Current branch: ' + $currentBranch)
   Write-Host ('Commit before deploy: ' + $previousCommit)
@@ -168,8 +158,8 @@ try {
     Write-Host 'Server is already on origin/main. Build and restart will still run to refresh the service.'
   }
 
-  Invoke-Step 'Checkout latest code' 'git' @('reset', '--hard', 'origin/main')
-  Write-Host ('Commit after checkout: ' + (& git rev-parse --short HEAD).Trim())
+  Invoke-Step 'Pull latest code' 'git' @('pull', '--ff-only', 'origin', 'main')
+  Write-Host ('Commit after pull: ' + (& git rev-parse --short HEAD).Trim())
 
   Invoke-Step 'Install dependencies' 'npm.cmd' @('install')
   Invoke-Step 'Build application before restart' 'npm.cmd' @('run', 'build')
