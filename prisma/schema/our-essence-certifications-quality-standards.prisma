@@ -1,0 +1,19 @@
+// ==========================================
+// OUR ESSENCE — CERTIFICATIONS & QUALITY STANDARDS page
+// Route: /our-essence/certifications-quality-standards
+// Admin: /jivo-dev/our-essence-certifications-quality-standards
+// Sections: hero, badges, featured
+// ==========================================
+
+model OurEssenceCertifications {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "badges", "featured"
+  title     String?
+  content   Json     // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

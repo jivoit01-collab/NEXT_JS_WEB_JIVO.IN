@@ -18,10 +18,13 @@ const ADMIN_TO_PUBLIC_ROUTE: Record<string, string> = {
   '/our-essence-the-story': '/our-essence/the-story',
   '/our-essence-core-values': '/our-essence/core-values',
   '/our-essence-baru-sahib-association': '/our-essence/baru-sahib-association',
+  '/our-essence-milestones-timeline': '/our-essence/milestones-timeline',
   '/our-essence-social-initiatives': '/our-essence/social-initiatives',
   '/our-essence-our-fair-share': '/our-essence/our-fair-share',
   '/our-essence-for-mother-earth': '/our-essence/for-mother-earth',
   '/our-essence-the-jivo-capital': '/our-essence/the-jivo-capital',
+  '/our-essence-certifications-quality-standards':
+    '/our-essence/certifications-quality-standards',
 };
 
 function normalizePathname(pathname: string): string {

@@ -278,8 +278,6 @@ async function main() {
   // ── Navbar links ───────────────────────────────────────────
   const navLinks = [
     { title: 'Our Essence', href: '/our-essence', sortOrder: 0 },
-    { title: 'Our Products', href: '/products', sortOrder: 1 },
-    { title: 'Jivo Media', href: '/media', sortOrder: 2 },
     { title: 'Community', href: '/community', sortOrder: 3 },
   ];
 
@@ -312,6 +310,10 @@ async function main() {
         { title: 'Social Initiatives', href: '/our-essence/social-initiatives' },
         { title: 'Baru Sahib Association', href: '/our-essence/baru-sahib-association' },
         { title: 'The Jivo Capital', href: '/our-essence/the-jivo-capital' },
+        {
+          title: 'Certifications & Quality Standards',
+          href: '/our-essence/certifications-quality-standards',
+        },
       ],
     },
     {
@@ -682,6 +684,36 @@ async function main() {
         '@type': 'AboutPage',
         name: 'The Jivo Capital',
         url: `${BASE}/our-essence/the-jivo-capital`,
+      },
+    },
+    {
+      page: 'our-essence-certifications-quality-standards',
+      metaTitle: 'Certifications & Quality Standards | Our Essence | Jivo Wellness',
+      metaDescription:
+        'FSSAI, FDA, ISO 9001, Halal, Kosher, FSSC 22000, BRCGS and more — the certifications and quality standards behind every Jivo Wellness product.',
+      keywords: [
+        'jivo certifications',
+        'jivo quality standards',
+        'fssai certified',
+        'fda approved',
+        'iso 9001',
+        'halal certified',
+        'kosher certified',
+        'fssc 22000',
+        'brcgs food safety',
+        'sedex certified',
+      ],
+      ogTitle: 'Certifications & Quality Standards — Trusted. Tested. Certified.',
+      ogDescription:
+        'The globally recognised certifications and quality standards that back every Jivo Wellness product.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/our-essence/certifications-quality-standards`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'AboutPage',
+        name: 'Certifications & Quality Standards',
+        url: `${BASE}/our-essence/certifications-quality-standards`,
       },
     },
   ];
@@ -1249,6 +1281,91 @@ async function main() {
           },
         });
         console.log(`  The Jivo Capital "${s.section}": created`);
+      }
+    }
+  }
+
+  // ── Our Essence — Certifications & Quality Standards sections ─
+  const certificationsSections = [
+    {
+      section: 'hero',
+      title: 'Hero',
+      sortOrder: 0,
+      content: {
+        heading: 'WE ARE CERTIFIED',
+        subheading: 'TRUSTED. TESTED. CERTIFIED.',
+        // Empty initially → a graceful gradient fallback renders until the
+        // admin uploads a real background image.
+        backgroundImage: '',
+      },
+    },
+    {
+      section: 'badges',
+      title: 'Certification Badges',
+      sortOrder: 1,
+      content: {
+        // Images start empty → each tile shows a labelled fallback until the
+        // admin uploads the real transparent logo.
+        items: [
+          { image: '', label: 'Halal Certified' },
+          { image: '', label: 'FDA Approved' },
+          { image: '', label: 'FSSC 22000 Certified' },
+          { image: '', label: 'Kosher Certified' },
+          { image: '', label: 'Sedex Certified' },
+          { image: '', label: 'Emirates Quality Mark' },
+          { image: '', label: 'OHSAS 18001 Certified' },
+          { image: '', label: 'BRCGS Food Safety Certified' },
+          { image: '', label: 'National Ayush Mission' },
+          { image: '', label: 'ISO 9001 Certified' },
+          { image: '', label: 'AEO Authorised Economic Operator' },
+          { image: '', label: 'FSSAI Certified' },
+        ],
+      },
+    },
+    {
+      section: 'featured',
+      title: 'Featured Badge',
+      sortOrder: 2,
+      content: {
+        enabled: true,
+        image: '',
+        label: 'U.S. Food & Drug Administration',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourEssenceCertifications.deleteMany();
+    for (const s of certificationsSections) {
+      await prisma.ourEssenceCertifications.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`Certifications: RESET (${certificationsSections.length} sections)`);
+  } else {
+    for (const s of certificationsSections) {
+      const exists = await prisma.ourEssenceCertifications.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  Certifications "${s.section}": skipped`);
+      } else {
+        await prisma.ourEssenceCertifications.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  Certifications "${s.section}": created`);
       }
     }
   }

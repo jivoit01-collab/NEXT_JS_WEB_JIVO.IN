@@ -23,6 +23,10 @@ type NavbarLink = {
 
 const HOME_LINK: NavbarLink = { title: 'Home', href: '/' };
 
+// Pages whose hero/video is meant to sit UNDER a fully transparent navbar — the
+// bar never gains its scrolled background here, so full-bleed media isn't covered.
+const TRANSPARENT_NAV_PAGES = new Set<string>(['/our-essence/baru-sahib-association']);
+
 export type NavbarProps = {
   logoUrl?: string | null;
   logoAlt?: string | null;
@@ -36,6 +40,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
     [pathname, navLinks],
   );
   const scrolled = useScroll(40);
+  const transparentNav = TRANSPARENT_NAV_PAGES.has(pathname);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [drawerMounted, setDrawerMounted] = useState(false);
   const [expandedMobile, setExpandedMobile] = useState<Record<string, boolean>>({});
@@ -112,7 +117,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
       <header
         className={cn(
           'fixed top-0 z-50 w-full transition-all duration-300',
-          scrolled
+          scrolled && !transparentNav
             ? 'bg-black/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl'
             : 'bg-transparent',
         )}

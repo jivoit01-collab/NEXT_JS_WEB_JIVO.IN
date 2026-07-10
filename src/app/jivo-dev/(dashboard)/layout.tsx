@@ -26,6 +26,8 @@ import {
   Factory,
   Scale,
   Leaf,
+  Award,
+  Film,
   ChevronDown,
   LogOut,
   ArrowLeft,
@@ -76,6 +78,11 @@ const SIDEBAR: NavSection[] = [
         icon: Landmark,
       },
       {
+        title: 'Milestones Timeline',
+        href: '/jivo-dev/our-essence-milestones-timeline',
+        icon: Film,
+      },
+      {
         title: 'Social Initiatives',
         href: '/jivo-dev/our-essence-social-initiatives',
         icon: Users,
@@ -94,6 +101,11 @@ const SIDEBAR: NavSection[] = [
         title: 'The Jivo Capital',
         href: '/jivo-dev/our-essence-the-jivo-capital',
         icon: Factory,
+      },
+      {
+        title: 'Certifications & Quality Standards',
+        href: '/jivo-dev/our-essence-certifications-quality-standards',
+        icon: Award,
       },
     ],
   },
@@ -130,6 +142,12 @@ const SIDEBAR: NavSection[] = [
         tab: 'seo',
       },
       {
+        title: 'Milestones Timeline',
+        href: '/jivo-dev/our-essence-milestones-timeline',
+        icon: Film,
+        tab: 'seo',
+      },
+      {
         title: 'Social Initiatives',
         href: '/jivo-dev/our-essence-social-initiatives',
         icon: Users,
@@ -151,6 +169,12 @@ const SIDEBAR: NavSection[] = [
         title: 'The Jivo Capital',
         href: '/jivo-dev/our-essence-the-jivo-capital',
         icon: Factory,
+        tab: 'seo',
+      },
+      {
+        title: 'Certifications & Quality Standards',
+        href: '/jivo-dev/our-essence-certifications-quality-standards',
+        icon: Award,
         tab: 'seo',
       },
     ],
