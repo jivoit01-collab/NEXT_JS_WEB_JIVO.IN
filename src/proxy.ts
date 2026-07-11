@@ -118,7 +118,9 @@ export async function proxy(req: NextRequest) {
     const origin = req.headers.get('origin');
 
     if (origin) {
-      const host = req.headers.get('host') ?? '';
+      // Behind a reverse proxy (IIS ARR / nginx) the `host` header is often the
+      // backend (127.0.0.1:3001), so trust the forwarded host first.
+      const host = req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? '';
       let originHost: string;
 
       try {
@@ -143,8 +145,12 @@ export async function proxy(req: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
+  // Derive HTTPS from AUTH_URL first so the secure-cookie name is chosen correctly
+  // even when the proxy (IIS ARR) doesn't forward x-forwarded-proto.
   const isHttps =
-    req.headers.get('x-forwarded-proto') === 'https' || req.nextUrl.protocol === 'https:';
+    process.env.AUTH_URL?.startsWith('https://') === true ||
+    req.headers.get('x-forwarded-proto') === 'https' ||
+    req.nextUrl.protocol === 'https:';
 
   const token = await getToken({
     req,
