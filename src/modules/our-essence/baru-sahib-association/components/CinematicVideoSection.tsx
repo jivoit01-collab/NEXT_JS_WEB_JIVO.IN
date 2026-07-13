@@ -279,7 +279,7 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-dvh w-full overflow-hidden bg-black"
+      className="relative w-full overflow-hidden bg-black lg:min-h-dvh"
       style={{ contentVisibility: 'auto', contain: 'layout paint', containIntrinsicSize: '1000px' }}
     >
       <div
@@ -294,14 +294,16 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
 
-          <div className="relative aspect-video h-dvh min-h-[360px] w-full">
+          <div className="relative w-full min-h-[280px] lg:aspect-video lg:h-dvh lg:min-h-[360px]">
             {hasVideo && hasMountedVideo ? (
               <>
                 <video
                   key={sourceKey}
                   ref={videoRef}
                   className={cn(
-                    'h-full w-full object-cover transition-opacity duration-700 ease-out',
+                    // Small screens: natural height (h-auto) so the section wraps the
+                    // video snugly — no crop, no empty space. Desktop unchanged (cover).
+                    'h-auto w-full transition-opacity duration-700 ease-out lg:h-full lg:object-cover',
                     isVideoReady && !hasVideoError ? 'opacity-100' : 'opacity-0',
                   )}
                   muted={isMuted}
