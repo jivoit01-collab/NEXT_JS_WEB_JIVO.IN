@@ -5,6 +5,7 @@ import type { MilestonesTimelineVideoContent } from '../types';
 
 export const defaultVideoContent: MilestonesTimelineVideoContent = {
   video: '',
+  videoMobile: '',
 };
 
 export const defaultSections = {

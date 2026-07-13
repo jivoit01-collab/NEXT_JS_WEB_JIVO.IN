@@ -119,12 +119,30 @@ export default function MilestonesTimelineManager() {
 
         <div className="space-y-4 p-4 sm:space-y-6 sm:p-6 2xl:p-8">
           {activeTab === 'video' && (
-            <div className="space-y-4">
-              <FieldLabel label="Timeline Video" />
-              <VideoUpload
-                value={video.video}
-                onChange={(uploadedVideo) => setVideo({ video: uploadedVideo })}
-              />
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <FieldLabel label="Desktop Video (landscape — e.g. 1920×1080)" />
+                <VideoUpload
+                  value={video.video}
+                  onChange={(uploadedVideo) =>
+                    setVideo((prev) => ({ ...prev, video: uploadedVideo }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <FieldLabel label="Mobile Video (portrait — e.g. 1080×1920)" />
+                <VideoUpload
+                  value={video.videoMobile}
+                  onChange={(uploadedVideo) =>
+                    setVideo((prev) => ({ ...prev, videoMobile: uploadedVideo }))
+                  }
+                />
+                <p className="text-muted-foreground text-xs">
+                  Shown on phones/small screens. Optional — if left empty, the desktop video
+                  is used everywhere. Only one video ever loads per device (no performance cost).
+                </p>
+              </div>
             </div>
           )}
 

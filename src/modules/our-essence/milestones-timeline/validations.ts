@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const milestonesTimelineVideoSchema = z.object({
   video: z.string().optional().default(''),
+  videoMobile: z.string().optional().default(''),
 });
 
 export const milestonesTimelineSectionSchemas = {
