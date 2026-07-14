@@ -43,7 +43,14 @@ model FooterSetting {
   email             String?
   phone             String?
   phoneLabel        String?  // e.g. "(TOLL FREE)"
+  addressMapUrl     String?  @db.Text // Google Maps (or any) link opened when the address is clicked
   tagline           String?  // "Bringing nature's finest to your everyday wellness."
+  brandPromise      String?  // brand block promise line, e.g. "Pure. Natural. Trusted."
+  brandPromiseSub   String?  // sub-line under the promise, e.g. "Since 2016"
+  ctaLabel          String?  // brand block CTA button label, e.g. "Explore Products"
+  ctaHref           String?  // brand block CTA button link, e.g. "/products"
+  leafImageTop      String?  // decorative leaf image, top-left of the brand card
+  leafImageBottom   String?  // decorative leaf image, bottom-right of the brand card
   followLabel       String?  @default("FOLLOW US")
   certificationText String?  // shared caption, e.g. "Proudly Certified. Committed to Quality."
   madeInText        String?  // optional, e.g. "Made with care in India"

@@ -67,10 +67,17 @@ interface FooterSetting {
   logoAlt: string | null;
   copyrightText: string | null;
   address: string | null;
+  addressMapUrl: string | null;
   email: string | null;
   phone: string | null;
   phoneLabel: string | null;
   tagline: string | null;
+  brandPromise: string | null;
+  brandPromiseSub: string | null;
+  ctaLabel: string | null;
+  ctaHref: string | null;
+  leafImageTop: string | null;
+  leafImageBottom: string | null;
   followLabel: string | null;
   certificationText: string | null;
   madeInText: string | null;
@@ -134,10 +141,17 @@ export default function AdminFooterPage() {
     logoAlt: '',
     copyrightText: '',
     address: '',
+    addressMapUrl: '',
     email: '',
     phone: '',
     phoneLabel: '',
     tagline: '',
+    brandPromise: '',
+    brandPromiseSub: '',
+    ctaLabel: '',
+    ctaHref: '',
+    leafImageTop: '',
+    leafImageBottom: '',
     followLabel: '',
     certificationText: '',
     madeInText: '',
@@ -184,10 +198,17 @@ export default function AdminFooterPage() {
           logoAlt: settingJson.data.logoAlt ?? '',
           copyrightText: settingJson.data.copyrightText ?? '',
           address: settingJson.data.address ?? '',
+          addressMapUrl: settingJson.data.addressMapUrl ?? '',
           email: settingJson.data.email ?? '',
           phone: settingJson.data.phone ?? '',
           phoneLabel: settingJson.data.phoneLabel ?? '',
           tagline: settingJson.data.tagline ?? '',
+          brandPromise: settingJson.data.brandPromise ?? '',
+          brandPromiseSub: settingJson.data.brandPromiseSub ?? '',
+          ctaLabel: settingJson.data.ctaLabel ?? '',
+          ctaHref: settingJson.data.ctaHref ?? '',
+          leafImageTop: settingJson.data.leafImageTop ?? '',
+          leafImageBottom: settingJson.data.leafImageBottom ?? '',
           followLabel: settingJson.data.followLabel ?? '',
           certificationText: settingJson.data.certificationText ?? '',
           madeInText: settingJson.data.madeInText ?? '',
@@ -201,6 +222,8 @@ export default function AdminFooterPage() {
   }, []);
 
   useEffect(() => {
+    // Initial data load; fetchAll updates state after awaits (not synchronously).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAll();
   }, [fetchAll]);
 
@@ -610,6 +633,67 @@ export default function AdminFooterPage() {
             </div>
           </div>
 
+          {/* Brand block promise + CTA button */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Brand promise line</Label>
+              <Input
+                value={settingsForm.brandPromise}
+                onChange={(e) => setSettingsForm({ ...settingsForm, brandPromise: e.target.value })}
+                placeholder="Pure. Natural. Trusted."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Brand promise sub-line</Label>
+              <Input
+                value={settingsForm.brandPromiseSub}
+                onChange={(e) =>
+                  setSettingsForm({ ...settingsForm, brandPromiseSub: e.target.value })
+                }
+                placeholder="Since 2016"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>CTA button label</Label>
+              <Input
+                value={settingsForm.ctaLabel}
+                onChange={(e) => setSettingsForm({ ...settingsForm, ctaLabel: e.target.value })}
+                placeholder="Explore Products"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>CTA button link</Label>
+              <Input
+                value={settingsForm.ctaHref}
+                onChange={(e) => setSettingsForm({ ...settingsForm, ctaHref: e.target.value })}
+                placeholder="/products"
+              />
+            </div>
+          </div>
+
+          {/* Decorative leaf images (brand card corners) */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Leaf image — top-left (decorative, transparent PNG)</Label>
+              <ImageUpload
+                value={settingsForm.leafImageTop}
+                onChange={(url) => setSettingsForm({ ...settingsForm, leafImageTop: url })}
+                onRemove={() => setSettingsForm({ ...settingsForm, leafImageTop: '' })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Leaf image — bottom-right (decorative, transparent PNG)</Label>
+              <ImageUpload
+                value={settingsForm.leafImageBottom}
+                onChange={(url) => setSettingsForm({ ...settingsForm, leafImageBottom: url })}
+                onRemove={() => setSettingsForm({ ...settingsForm, leafImageBottom: '' })}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label>Address</Label>
             <Textarea
@@ -618,6 +702,19 @@ export default function AdminFooterPage() {
               onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
               placeholder="Jt/190, Nehru Market, Rajouri Garden, New Delhi - 110027"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Address map link (opens on click)</Label>
+            <Input
+              value={settingsForm.addressMapUrl}
+              onChange={(e) => setSettingsForm({ ...settingsForm, addressMapUrl: e.target.value })}
+              placeholder="https://maps.google.com/?q=..."
+            />
+            <p className="text-muted-foreground text-xs">
+              Optional. If empty, clicking the address opens a Google Maps search for the address
+              text above.
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
