@@ -5,9 +5,15 @@ import { Loader2, Upload, X } from 'lucide-react';
 import { MAX_VIDEO_UPLOAD_SIZE } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
+export interface VideoUploadMeta {
+  width: number;
+  height: number;
+}
+
 interface VideoUploadProps {
   value?: string;
-  onChange: (filename: string) => void;
+  /** `meta` carries the video's intrinsic pixel size so callers can reserve exact space (no CLS). */
+  onChange: (filename: string, meta?: VideoUploadMeta) => void;
   onRemove?: () => void;
   className?: string;
 }
@@ -44,6 +50,24 @@ async function uploadFile(file: File): Promise<UploadResponse> {
   return res.json();
 }
 
+/** Read the video's intrinsic size in the browser before upload (for CLS-free space reservation). */
+async function readVideoDimensions(file: File): Promise<VideoUploadMeta> {
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
+    const probe = document.createElement('video');
+    const done = (meta: VideoUploadMeta) => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(meta);
+    };
+
+    probe.preload = 'metadata';
+    probe.onloadedmetadata = () =>
+      done({ width: probe.videoWidth || 0, height: probe.videoHeight || 0 });
+    probe.onerror = () => done({ width: 0, height: 0 });
+    probe.src = objectUrl;
+  });
+}
+
 async function deleteFile(filename: string): Promise<void> {
   await fetch('/api/upload', {
     method: 'DELETE',
@@ -69,9 +93,10 @@ export function VideoUpload({ value, onChange, onRemove, className }: VideoUploa
           return;
         }
 
+        const dimensions = await readVideoDimensions(file);
         const result = await uploadFile(file);
         if (result.success && result.data) {
-          onChange(result.data.filename);
+          onChange(result.data.filename, dimensions);
         } else {
           setError(result.error ?? 'Upload failed');
         }

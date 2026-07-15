@@ -64,6 +64,17 @@ export function MilestonesTimelineVideo({ data }: MilestonesTimelineVideoProps) 
   const showLoading =
     hasVideo && (isDesktop === null || (!hasError && !hasEnded && (!isReady || isLoading)));
 
+  // Reserve the EXACT box each video will occupy, per breakpoint, straight from SSR —
+  // so the skeleton and the loaded video are identical in size (zero layout jump).
+  // Sizes are captured on upload; the fallbacks match typical landscape/portrait cuts.
+  const desktopAspect =
+    data?.videoWidth && data?.videoHeight ? `${data.videoWidth}/${data.videoHeight}` : '16/9';
+  const mobileAspect = !mobileSrc
+    ? desktopAspect // no portrait cut → the desktop file is used on phones too
+    : data?.videoMobileWidth && data?.videoMobileHeight
+      ? `${data.videoMobileWidth}/${data.videoMobileHeight}`
+      : '3/4';
+
   const toggleMute = () => {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
@@ -99,9 +110,13 @@ export function MilestonesTimelineVideo({ data }: MilestonesTimelineVideoProps) 
       <h1 className="sr-only">Milestones Timeline</h1>
       <section
         aria-label="Milestones timeline video"
-        className={`relative w-full overflow-hidden bg-black ${
-          !isReady && !hasError ? 'min-h-[60svh]' : ''
-        }`}
+        style={
+          {
+            '--video-aspect-m': mobileAspect,
+            '--video-aspect-d': desktopAspect,
+          } as React.CSSProperties
+        }
+        className="relative aspect-[var(--video-aspect-m)] w-full overflow-hidden bg-black lg:aspect-[var(--video-aspect-d)]"
       >
         {hasVideo ? (
           <>
@@ -109,11 +124,9 @@ export function MilestonesTimelineVideo({ data }: MilestonesTimelineVideoProps) 
               <video
                 key={activeSrc}
                 ref={videoRef}
-                // Full width at natural height (h-auto) on every screen: the whole
-                // video shows (no crop) and covers the full screen width. On wide
-                // desktops the 16:9 frame runs a bit taller than the viewport, so
-                // you scroll down a little to see the bottom rows + footer.
-                className="h-auto w-full bg-black"
+                // The section already reserves this video's exact aspect box, so the
+                // video simply fills it — full width, whole frame, no crop, no jump.
+                className="h-full w-full bg-black object-contain"
                 autoPlay
                 muted={isMuted}
                 playsInline
@@ -228,7 +241,8 @@ function VideoStatus({ label }: { label: string }) {
 export function MilestonesTimelineVideoSkeleton() {
   return (
     <main className="milestones-timeline-page relative w-full bg-black" aria-hidden="true">
-      <section className="relative min-h-[60svh] w-full overflow-hidden bg-black">
+      {/* Same aspect box as the real video section, so there is no jump when it swaps in. */}
+      <section className="relative aspect-[3/4] w-full overflow-hidden bg-black lg:aspect-video">
         <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]" />
         <VideoLoadingOverlay />
       </section>

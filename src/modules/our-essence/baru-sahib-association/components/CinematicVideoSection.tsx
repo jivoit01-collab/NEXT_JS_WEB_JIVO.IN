@@ -82,6 +82,11 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   );
   const posterSrc = useMemo(() => resolveMediaSrc(content.poster), [content.poster]);
   const hasVideo = videoSources.length > 0;
+  // Exact aspect box for small screens (size captured on upload); 16/9 is the safe default.
+  const videoAspect =
+    content.videoWidth && content.videoHeight
+      ? `${content.videoWidth}/${content.videoHeight}`
+      : '16/9';
 
   const [isMuted, setIsMuted] = useState(true);
   const [hasMountedVideo, setHasMountedVideo] = useState(false);
@@ -294,16 +299,23 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
 
-          <div className="relative w-full min-h-[280px] lg:aspect-video lg:h-dvh lg:min-h-[360px]">
+          {/* Reserves the video's exact aspect box on small screens (captured on upload),
+              so the skeleton and the loaded video are identical in size — no jump.
+              Desktop keeps its fixed full-height stage. */}
+          <div
+            style={{ '--bs-video-aspect': videoAspect } as React.CSSProperties}
+            className="relative aspect-[var(--bs-video-aspect)] w-full lg:aspect-auto lg:h-dvh lg:min-h-[360px]"
+          >
             {hasVideo && hasMountedVideo ? (
               <>
                 <video
                   key={sourceKey}
                   ref={videoRef}
                   className={cn(
-                    // Small screens: natural height (h-auto) so the section wraps the
-                    // video snugly — no crop, no empty space. Desktop unchanged (cover).
-                    'h-auto w-full transition-opacity duration-700 ease-out lg:h-full lg:object-cover',
+                    // The frame already reserves this video's exact aspect box on small
+                    // screens, so the video just fills it (no crop, no jump).
+                    // Desktop unchanged (fills the full-height stage, cover).
+                    'h-full w-full object-contain transition-opacity duration-700 ease-out lg:object-cover',
                     isVideoReady && !hasVideoError ? 'opacity-100' : 'opacity-0',
                   )}
                   muted={isMuted}
@@ -398,7 +410,8 @@ function PosterPreview({ poster }: { poster: string }) {
 
 function VideoFrameSkeleton({ poster }: { poster?: string }) {
   return (
-    <div className="relative h-full min-h-[240px] overflow-hidden bg-[#0c100d] sm:min-h-[360px] lg:min-h-0">
+    // Fills the frame's reserved aspect box exactly — same size as the video.
+    <div className="relative h-full w-full overflow-hidden bg-[#0c100d]">
       {poster ? (
         <PosterPreview poster={poster} />
       ) : (
@@ -488,7 +501,8 @@ export function CinematicVideoSectionSkeleton() {
         <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
-        <div className="h-dvh min-h-[360px] w-full">
+        {/* Mirrors the live frame's reserved box (default 16/9 on mobile, full-height on desktop). */}
+        <div className="aspect-video w-full lg:aspect-auto lg:h-dvh lg:min-h-[360px]">
           <VideoFrameSkeleton />
         </div>
       </div>

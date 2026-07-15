@@ -3,6 +3,11 @@ export interface MilestonesTimelineVideoContent {
   video: string;
   /** Optional small-screen / portrait video (e.g. 1080×1920). Used only on phones. */
   videoMobile: string;
+  /** Intrinsic pixel size, captured on upload — used to reserve exact space (no layout jump). */
+  videoWidth: number;
+  videoHeight: number;
+  videoMobileWidth: number;
+  videoMobileHeight: number;
 }
 
 export type MilestonesTimelineSectionKey = 'video';
