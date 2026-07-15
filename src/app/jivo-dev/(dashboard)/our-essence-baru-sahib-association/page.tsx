@@ -184,8 +184,21 @@ export default function BaruSahibAssociationManager() {
               <FieldLabel label="Video Upload" />
               <VideoUpload
                 value={video.video}
-                onChange={(uploadedVideo) => setVideo({ ...video, video: uploadedVideo })}
+                onChange={(uploadedVideo, meta) =>
+                  setVideo({
+                    ...video,
+                    video: uploadedVideo,
+                    videoWidth: meta?.width ?? 0,
+                    videoHeight: meta?.height ?? 0,
+                  })
+                }
               />
+              {video.videoWidth ? (
+                <p className="text-muted-foreground text-xs">
+                  Detected size: {video.videoWidth}×{video.videoHeight}px — used to reserve exact
+                  space while loading (no layout jump).
+                </p>
+              ) : null}
             </div>
           )}
 

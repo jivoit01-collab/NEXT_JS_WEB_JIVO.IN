@@ -124,20 +124,41 @@ export default function MilestonesTimelineManager() {
                 <FieldLabel label="Desktop Video (landscape — e.g. 1920×1080)" />
                 <VideoUpload
                   value={video.video}
-                  onChange={(uploadedVideo) =>
-                    setVideo((prev) => ({ ...prev, video: uploadedVideo }))
+                  onChange={(uploadedVideo, meta) =>
+                    setVideo((prev) => ({
+                      ...prev,
+                      video: uploadedVideo,
+                      videoWidth: meta?.width ?? 0,
+                      videoHeight: meta?.height ?? 0,
+                    }))
                   }
                 />
+                {video.videoWidth > 0 && (
+                  <p className="text-muted-foreground text-xs">
+                    Detected size: {video.videoWidth}×{video.videoHeight}px — used to reserve exact
+                    space while loading.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <FieldLabel label="Mobile Video (portrait — e.g. 1080×1920)" />
                 <VideoUpload
                   value={video.videoMobile}
-                  onChange={(uploadedVideo) =>
-                    setVideo((prev) => ({ ...prev, videoMobile: uploadedVideo }))
+                  onChange={(uploadedVideo, meta) =>
+                    setVideo((prev) => ({
+                      ...prev,
+                      videoMobile: uploadedVideo,
+                      videoMobileWidth: meta?.width ?? 0,
+                      videoMobileHeight: meta?.height ?? 0,
+                    }))
                   }
                 />
+                {video.videoMobileWidth > 0 && (
+                  <p className="text-muted-foreground text-xs">
+                    Detected size: {video.videoMobileWidth}×{video.videoMobileHeight}px
+                  </p>
+                )}
                 <p className="text-muted-foreground text-xs">
                   Shown on phones/small screens. Optional — if left empty, the desktop video
                   is used everywhere. Only one video ever loads per device (no performance cost).

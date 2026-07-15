@@ -10,6 +10,8 @@ export const baruSahibAssociationVideoSchema = z.object({
   video: z.string().optional().default(''),
   videoWebm: z.string().optional().default(''),
   poster: z.string().optional().default(''),
+  videoWidth: z.coerce.number().int().min(0).optional().default(0),
+  videoHeight: z.coerce.number().int().min(0).optional().default(0),
 });
 
 export const baruSahibAssociationHumanitySchema = z.object({
