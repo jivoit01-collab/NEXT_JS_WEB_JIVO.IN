@@ -354,7 +354,8 @@ async function breakdownTopPages(ctx: WidgetContext): Promise<WidgetData> {
   if (!w) return { status: 'empty', breakdown: [] };
   const rows = await prisma.analyticsEvent.groupBy({
     by: ['page'],
-    where: { ...w, eventType: 'PAGE_VIEW', page: { not: null } },
+    // AND so the scoped page filter (from `w`) is NOT overwritten by `page: not null`.
+    where: { AND: [w, { eventType: 'PAGE_VIEW', page: { not: null } }] },
     _count: { _all: true },
     orderBy: { _count: { page: 'desc' } },
     take: 8,
@@ -385,7 +386,7 @@ async function breakdownTopModules(ctx: WidgetContext): Promise<WidgetData> {
   if (!w) return { status: 'empty', breakdown: [] };
   const rows = await prisma.analyticsEvent.groupBy({
     by: ['page'],
-    where: { ...w, eventType: 'PAGE_VIEW', page: { not: null } },
+    where: { AND: [w, { eventType: 'PAGE_VIEW', page: { not: null } }] },
     _count: { _all: true },
     orderBy: { _count: { page: 'desc' } },
     take: 300,

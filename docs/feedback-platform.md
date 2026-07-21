@@ -130,6 +130,49 @@ Delivery, CRM, Support, Knowledge Base — all attach via `entityType/entityId` 
 render in the same dashboard module. Flip a `FEEDBACK_FEATURES` flag to light up a
 capability; no schema/route/widget redesign.
 
+## 10.1 Completion & public integration (Phase 6.1)
+
+### Public website integration (one form everywhere)
+`<PageFeedback>` (built on the SAME `FeedbackForm`) is mounted **once** in the
+public layout → every public page shows a "Was this page helpful?" block (⭐ +
+message), auto-scoped to the current page (`type: PAGE`, `entityType: PAGE`,
+`entityId = pathname`). The footer has a **Send feedback** link (→ `#feedback`).
+`ThumbsFeedback` / any preset form can be dropped anywhere and all hit the same
+backend — no duplicate forms.
+
+### Analytics pages — completed, each scoped to its own feedback
+The **Feedback** module dashboard + its 8 pages (General · Page Feedback · Product
+Reviews · AI Feedback · Bug Reports · Feature Requests · Support · Resolved) each
+render the full widget set: **KPIs** (Total/Open/Pending/Resolved/Avg Rating/
+Positive/Neutral/Negative) · **Trend** · **By Type / Sentiment / Sources** ·
+**Top Pages** · **Recent Feedback**.
+
+### Filtering strategy
+The feedback data source maps each page id → a `FeedbackFilter`:
+`general→type GENERAL`, `page-feedback→PAGE`, `product-reviews→PRODUCT`,
+`ai-feedback→AI`, `bug-reports→BUG`, `feature-requests→FEATURE`, `support→SUPPORT`,
+`resolved→status RESOLVED`; the module dashboard = all. **Every page queries only
+its own feedback.**
+
+### Widget reuse
+No new widget components — feedback reuses the shared `overview` (KPI),
+`makeTrendWidget`, `makeBreakdownWidget` and `makeFactsWidget` factories; only the
+data source differs. All widget states (loading / ready / empty / placeholder /
+error) are supported.
+
+### Resilience (never break the page)
+Each widget is wrapped in a **`WidgetBoundary`** (per-widget error boundary) on top
+of the data source's own try/catch — a single failing widget shows a small
+"couldn't load" card instead of a full-page error. Also fixed a scoping bug where
+`page: { not: null }` overwrote the scoped page filter in top-pages/top-modules
+(now `AND`-combined), so page dashboards no longer leak global data.
+
+> Note: after a Prisma schema change the running `next dev` holds a **stale Prisma
+> client** until restarted — the usual cause of a transient "Something went wrong"
+> on a data page. Restart `next dev` after schema changes.
+
+---
+
 ## 11. Verified (live DB)
 Created BUG/NEGATIVE (rating 2) → stats `{ total: 1, negative: 1, avgRating: 2 }`,
 byType `[BUG:1]` → cleaned up. Build / ESLint / TypeScript / Prisma all pass.

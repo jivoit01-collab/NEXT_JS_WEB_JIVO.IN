@@ -191,6 +191,12 @@ export async function Footer() {
                 <p className="text-xs leading-relaxed whitespace-pre-line text-[#586055] sm:text-sm 2xl:text-base">
                   {copyright}
                 </p>
+                <a
+                  href="#feedback"
+                  className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-[#586055] underline-offset-2 transition-colors [@media(hover:hover)]:hover:text-[#0a7d3f] hover:underline"
+                >
+                  Send feedback
+                </a>
               </div>
             </div>
 

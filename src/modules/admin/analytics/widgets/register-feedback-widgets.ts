@@ -5,14 +5,17 @@
 
 import { FEEDBACK_ANALYTICS_WIDGETS } from '@/modules/platform/feedback/analytics';
 import { registerAnalyticsWidget } from './registry';
-import { makeBreakdownWidget, makeFactsWidget } from './components';
+import { makeBreakdownWidget, makeFactsWidget, makeTrendWidget } from './components';
 import type { WidgetCategory, WidgetSize } from './types';
 
 for (const w of FEEDBACK_ANALYTICS_WIDGETS) {
+  const opts = { title: w.title, description: w.description, icon: w.icon };
   const component =
     w.kind === 'facts'
-      ? makeFactsWidget({ title: w.title, description: w.description, icon: w.icon })
-      : makeBreakdownWidget({ title: w.title, description: w.description, icon: w.icon });
+      ? makeFactsWidget(opts)
+      : w.kind === 'trend'
+        ? makeTrendWidget(opts)
+        : makeBreakdownWidget(opts);
 
   registerAnalyticsWidget({
     id: w.id,

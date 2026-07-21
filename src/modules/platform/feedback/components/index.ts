@@ -1,5 +1,6 @@
 export { StarRating } from './star-rating';
 export { ThumbsFeedback } from './thumbs-feedback';
+export { PageFeedback } from './page-feedback';
 export {
   FeedbackForm,
   SimpleFeedbackForm,

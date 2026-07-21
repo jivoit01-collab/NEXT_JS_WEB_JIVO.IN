@@ -125,6 +125,42 @@ export async function feedbackTopPages(filter: FeedbackFilter = {}) {
   return rows.map((r) => ({ label: r.pageUrl ?? '—', value: r._count._all }));
 }
 
+/** Ranked breakdown by source. */
+export async function feedbackBySource(filter: FeedbackFilter = {}) {
+  const rows = await prisma.feedback.groupBy({
+    by: ['source'],
+    where: buildFeedbackWhere(filter),
+    _count: { _all: true },
+    orderBy: { _count: { source: 'desc' } },
+    take: 10,
+  });
+  return rows.map((r) => ({ label: r.source, value: r._count._all }));
+}
+
+/** Feedback submissions bucketed by day (last N days). */
+export async function feedbackTrend(
+  filter: FeedbackFilter = {},
+  days = 30,
+): Promise<{ label: string; value: number }[]> {
+  const now = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
+  const rows = await prisma.feedback.findMany({
+    where: { ...buildFeedbackWhere(filter), createdAt: { gte: from } },
+    select: { createdAt: true },
+    take: 50000,
+  });
+  const buckets = new Map<string, number>();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
+    buckets.set(`${d.getMonth() + 1}/${d.getDate()}`, 0);
+  }
+  for (const r of rows) {
+    const k = `${r.createdAt.getMonth() + 1}/${r.createdAt.getDate()}`;
+    if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? 0) + 1);
+  }
+  return [...buckets.entries()].map(([label, value]) => ({ label, value }));
+}
+
 /** Most recent feedback (compact). */
 export async function recentFeedback(filter: FeedbackFilter = {}, limit = 6): Promise<FeedbackDTO[]> {
   const rows = await prisma.feedback.findMany({

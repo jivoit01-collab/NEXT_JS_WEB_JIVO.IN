@@ -17,6 +17,7 @@
 export {
   StarRating,
   ThumbsFeedback,
+  PageFeedback,
   FeedbackForm,
   SimpleFeedbackForm,
   DetailedFeedbackForm,

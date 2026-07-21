@@ -19,7 +19,9 @@ import {
   getFeedbackStats,
   feedbackByType,
   feedbackBySentiment,
+  feedbackBySource,
   feedbackTopPages,
+  feedbackTrend,
   recentFeedback,
 } from '@/modules/platform/feedback/data';
 import { humanizeEnum } from '@/modules/platform/feedback/utils';
@@ -90,12 +92,21 @@ export const feedbackDataSource: AnalyticsDataSource = {
       return { status: s.total > 0 ? 'ready' : 'empty', metrics };
     }
 
+    if (widgetId === 'feedback-trend') {
+      const points = await feedbackTrend(filter);
+      const hasData = points.some((p) => p.value > 0);
+      return { status: hasData ? 'ready' : 'empty', trend: points };
+    }
     if (widgetId === 'feedback-by-type') {
       const rows = await feedbackByType(filter);
       return breakdown(rows.map((r) => ({ label: humanizeEnum(r.label), value: r.value })));
     }
     if (widgetId === 'feedback-sentiment') {
       const rows = await feedbackBySentiment(filter);
+      return breakdown(rows.map((r) => ({ label: humanizeEnum(r.label), value: r.value })));
+    }
+    if (widgetId === 'feedback-sources') {
+      const rows = await feedbackBySource(filter);
       return breakdown(rows.map((r) => ({ label: humanizeEnum(r.label), value: r.value })));
     }
     if (widgetId === 'feedback-top-pages') {

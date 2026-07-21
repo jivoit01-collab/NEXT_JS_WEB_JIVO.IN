@@ -15,6 +15,8 @@ import {
   CheckCircle2,
   Tags,
   SmilePlus,
+  TrendingUp,
+  Radar,
 } from 'lucide-react';
 
 const ROOT = '/jivo-dev/analytics/feedback';
@@ -33,8 +35,10 @@ export const FEEDBACK_ANALYTICS_PAGES = [
 
 /** Feedback-specific analytics widgets (registered on the widget platform). */
 export const FEEDBACK_ANALYTICS_WIDGETS = [
+  { id: 'feedback-trend', title: 'Feedback Trend', description: 'Submissions over the last 30 days.', icon: TrendingUp, size: 'full', category: 'charts', kind: 'trend' },
   { id: 'feedback-by-type', title: 'By Type', description: 'Feedback grouped by type.', icon: Tags, size: 'medium', category: 'tables', kind: 'breakdown' },
   { id: 'feedback-sentiment', title: 'Sentiment', description: 'Positive / neutral / negative.', icon: SmilePlus, size: 'medium', category: 'summary', kind: 'breakdown' },
+  { id: 'feedback-sources', title: 'Top Sources', description: 'Where feedback comes from.', icon: Radar, size: 'medium', category: 'traffic', kind: 'breakdown' },
   { id: 'feedback-top-pages', title: 'Top Pages', description: 'Pages with the most feedback.', icon: FileText, size: 'medium', category: 'tables', kind: 'breakdown' },
   { id: 'feedback-recent', title: 'Recent Feedback', description: 'Latest submissions.', icon: MessageSquare, size: 'full', category: 'custom', kind: 'facts' },
 ] as const;
@@ -48,19 +52,30 @@ export const FEEDBACK_ANALYTICS_MODULE = {
   category: 'business' as const,
   description: 'Website, page, product, AI, bug, feature and support feedback.',
   order: 85,
+  // Module dashboard — all feedback across the site.
   widgets: [
     'overview',
+    'feedback-trend',
     'feedback-by-type',
     'feedback-sentiment',
-    'feedback-recent',
+    'feedback-sources',
     'feedback-top-pages',
+    'feedback-recent',
     'module-pages',
   ],
+  // Each page shows the SAME widgets, scoped by its own type/status.
   pages: FEEDBACK_ANALYTICS_PAGES.map((p) => ({
     id: p.id,
     name: p.name,
     icon: p.icon,
     route: `${ROOT}/${p.id}`,
-    widgets: ['overview', 'feedback-recent'],
+    widgets: [
+      'overview',
+      'feedback-trend',
+      'feedback-sentiment',
+      'feedback-sources',
+      'feedback-top-pages',
+      'feedback-recent',
+    ],
   })),
 };
