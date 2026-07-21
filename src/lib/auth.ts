@@ -1,10 +1,13 @@
-import NextAuth, { CredentialsSignin } from 'next-auth';
+import NextAuth, { CredentialsSignin, type NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { authConfig } from '@/lib/auth.config';
 import { recordFailedAttempt } from '@/lib/admin-security-store';
+import { handleOAuthSignIn } from '@/modules/platform/auth/services/oauth';
+import { AUTH_FEATURES } from '@/modules/platform/auth/config';
 
 class AdminIpBlockedError extends CredentialsSignin {
   code = 'blocked';
@@ -60,15 +63,15 @@ async function recordFailedLogin(ip: string): Promise<null> {
   return null;
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
-  providers: [
-    Credentials({
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
+// Providers are attached here (Node runtime only). Google is added ONLY when
+// configured, so existing deployments without Google env keep working.
+const providers: NextAuthConfig['providers'] = [
+  Credentials({
+    credentials: {
+      email: { label: 'Email', type: 'email' },
+      password: { label: 'Password', type: 'password' },
+    },
+    async authorize(credentials) {
         const ip = await getClientIp();
         const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
         const password = credentials?.password as string | undefined;
@@ -112,5 +115,59 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return recordFailedLogin(ip);
       },
     }),
-  ],
+];
+
+// Attach Google ONLY when the feature flag is on AND credentials are configured.
+// Disabling the flag (Marketing Website mode) removes the provider entirely —
+// no OAuth endpoint, no button — controlled purely by config.
+if (AUTH_FEATURES.googleLogin && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.push(
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Link Google to an existing user with the same verified email.
+      allowDangerousEmailAccountLinking: true,
+    }),
+  );
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  providers,
+  callbacks: {
+    ...authConfig.callbacks,
+    // Persist OAuth users under the JWT strategy (no DB adapter): upsert the
+    // User + Account. Credentials sign-in is unchanged (returns true here).
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'google') {
+        return handleOAuthSignIn({
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          account,
+          profile,
+        });
+      }
+      return true;
+    },
+    // Enrich the JWT with the DB user id + role (both credentials and OAuth).
+    async jwt({ token, user, account }) {
+      if (user) {
+        if (account?.provider === 'google') {
+          const email = user.email?.toLowerCase();
+          if (email) {
+            const dbUser = await prisma.user.findUnique({ where: { email } });
+            if (dbUser) {
+              token.id = dbUser.id;
+              token.role = dbUser.role;
+            }
+          }
+        } else {
+          token.id = (user.id as string) ?? token.id;
+          token.role = (user as { role?: string }).role ?? 'CUSTOMER';
+        }
+      }
+      return token;
+    },
+  },
 });

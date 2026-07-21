@@ -131,4 +131,7 @@ export const localRateLimit = {
 
   /** General API reads: 120 per minute per IP. */
   general: (ip: string): LimitResult => checkLimit(`general:${ip}`, 120, 60 * 1000),
+
+  /** Public analytics ingestion (page views, clicks, sessions): 200 per minute per IP. */
+  analytics: (ip: string): LimitResult => checkLimit(`analytics:${ip}`, 200, 60 * 1000),
 };

@@ -1,0 +1,204 @@
+// ==========================================
+// CORE ANALYTICS PLATFORM — foundation infrastructure
+// Consumed by src/modules/core/* (visitor, session, cookie, analytics).
+// Privacy-first: IPs are hashed (never stored raw); internal `id` is never
+// exposed publicly — the public identifiers are `visitorId` / `sessionId`.
+// Docs: docs/analytics-platform.md
+// ==========================================
+
+// ── Enums ─────────────────────────────────────────────────────
+
+enum CookieConsentStatus {
+  UNKNOWN
+  ACCEPTED
+  REJECTED
+  CUSTOMIZED
+}
+
+enum CookieCategory {
+  NECESSARY
+  ANALYTICS
+  MARKETING
+  PREFERENCES
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  BUTTON_CLICK
+  LINK_CLICK
+  SCROLL
+  SEARCH
+  DOWNLOAD
+  VIDEO_PLAY
+  VIDEO_PAUSE
+  VIDEO_COMPLETE
+  FORM_OPEN
+  FORM_START
+  FORM_SUBMIT
+  FORM_SUCCESS
+  FORM_ERROR
+  CUSTOM
+}
+
+enum AnalyticsDeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+  UNKNOWN
+}
+
+// ── Visitor ───────────────────────────────────────────────────
+// One row per anonymous visitor (identified by a client-generated `visitorId`).
+
+model Visitor {
+  id        String @id @default(cuid()) // internal PK — never exposed
+  visitorId String @unique // public anonymous identifier
+
+  // Geo / locale (best-effort, may be null)
+  country  String?
+  city     String?
+  language String?
+  timezone String?
+
+  // Network / client — IP is stored ONLY as a salted hash
+  ipHash         String?
+  userAgent      String? @db.Text
+  browser        String?
+  browserVersion String?
+  os             String?
+  device         String?
+  deviceType     AnalyticsDeviceType @default(UNKNOWN)
+  screenWidth    Int?
+  screenHeight   Int?
+
+  // Acquisition
+  referrer    String? @db.Text
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+
+  // Lifecycle counters
+  firstVisit DateTime @default(now())
+  lastVisit  DateTime @default(now())
+  visitCount Int      @default(1)
+
+  // Relations
+  sessions   VisitorSession[]
+  events     AnalyticsEvent[]
+  consent    CookieConsent?
+  deviceInfo DeviceInfo?
+
+  // Timestamps + soft delete (GDPR erasure / anonymisation)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lastSeen  DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@index([ipHash])
+  @@index([country])
+  @@index([lastSeen])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+// ── Visitor Session ───────────────────────────────────────────
+// A single browsing session for a visitor.
+
+model VisitorSession {
+  id        String @id @default(cuid())
+  sessionId String @unique // public session identifier
+  visitorId String
+
+  visitor Visitor          @relation(fields: [visitorId], references: [visitorId], onDelete: Cascade)
+  events  AnalyticsEvent[]
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  duration  Int? // seconds
+  entryPage String?
+  exitPage  String?
+  isBounce  Boolean   @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([visitorId])
+  @@index([startedAt])
+  @@index([deletedAt])
+}
+
+// ── Cookie Consent ────────────────────────────────────────────
+// One consent record per visitor (upserted when they choose).
+
+model CookieConsent {
+  id        String @id @default(cuid())
+  visitorId String @unique
+
+  visitor Visitor @relation(fields: [visitorId], references: [visitorId], onDelete: Cascade)
+
+  status             CookieConsentStatus @default(UNKNOWN)
+  acceptedCategories CookieCategory[]
+  version            String              @default("1.0")
+  acceptedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ── Analytics Event ───────────────────────────────────────────
+// Universal, append-only event log. EVERY interaction (page view, click,
+// download, video play, …) is ONE row here — never a separate table.
+
+model AnalyticsEvent {
+  id String @id @default(cuid())
+
+  eventType  AnalyticsEventType
+  page       String?
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  timestamp  DateTime           @default(now())
+
+  sessionId String?
+  visitorId String?
+
+  session VisitorSession? @relation(fields: [sessionId], references: [sessionId], onDelete: SetNull)
+  visitor Visitor?        @relation(fields: [visitorId], references: [visitorId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([eventType])
+  @@index([page])
+  @@index([timestamp])
+  @@index([visitorId])
+  @@index([sessionId])
+  @@index([entityType, entityId])
+}
+
+// ── Device Info ───────────────────────────────────────────────
+// Latest device snapshot per visitor (upserted).
+
+model DeviceInfo {
+  id        String @id @default(cuid())
+  visitorId String @unique
+
+  visitor Visitor @relation(fields: [visitorId], references: [visitorId], onDelete: Cascade)
+
+  deviceType     AnalyticsDeviceType @default(UNKNOWN)
+  browser        String?
+  os             String?
+  platform       String?
+  viewportWidth  Int?
+  viewportHeight Int?
+  isMobile       Boolean             @default(false)
+  isTablet       Boolean             @default(false)
+  isDesktop      Boolean             @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([deviceType])
+}

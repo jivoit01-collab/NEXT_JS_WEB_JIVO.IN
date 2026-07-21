@@ -11,29 +11,17 @@ import { useTheme } from '@/providers/theme-provider';
 import {
   Menu,
   X,
-  LayoutDashboard,
-  Home,
-  Navigation,
-  PanelBottom,
   Globe,
-  Sparkles,
-  Package,
-  Newspaper,
-  Users,
-  BookOpen,
-  Compass,
-  Landmark,
-  Factory,
-  Scale,
-  Leaf,
-  Award,
-  Film,
   ChevronDown,
   LogOut,
   ArrowLeft,
   Moon,
   Sun,
+  BarChart3,
 } from 'lucide-react';
+import { getCmsModules, getSeoPages } from '@/modules/admin/cms';
+import { getAnalyticsNavTree, ANALYTICS_ROOT } from '@/modules/admin/analytics/services';
+import type { AnalyticsNavItem } from '@/modules/admin/analytics';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -42,6 +30,8 @@ interface NavChild {
   href: string;
   icon: React.ElementType;
   tab?: string;
+  /** Match the URL exactly (used for hub/overview links). */
+  exact?: boolean;
 }
 
 interface NavSection {
@@ -49,137 +39,43 @@ interface NavSection {
   href: string;
   icon: React.ElementType;
   children: NavChild[];
+  /** Analytics section only — a registry-driven hierarchical tree. */
+  tree?: AnalyticsNavItem[];
 }
 
-// Every sidebar item is a section with a dropdown.
-// Even if it has only one child, the UI stays consistent.
+// The sidebar is generated from the SINGLE SOURCE OF TRUTH:
+//   • CMS + SEO sections  ← the CMS page registry (@/modules/admin/cms)
+//   • Analytics tree      ← the analytics module registry (mirrors the CMS)
+// Adding a CMS page makes it appear in management, SEO AND analytics — no edit here.
 
-const SIDEBAR: NavSection[] = [
-  {
-    title: 'Dashboard',
-    href: '/jivo-dev',
-    icon: LayoutDashboard,
-    children: [
-      { title: 'Home Page', href: '/jivo-dev/home', icon: Home },
-      { title: 'Navbar', href: '/jivo-dev/navbar', icon: Navigation },
-      { title: 'Footer', href: '/jivo-dev/footer', icon: PanelBottom },
-    ],
-  },
-  {
-    title: 'Our Essence',
-    href: '/jivo-dev/our-essence',
-    icon: Sparkles,
-    children: [
-      { title: 'The Story', href: '/jivo-dev/our-essence-the-story', icon: BookOpen },
-      { title: 'Core Values', href: '/jivo-dev/our-essence-core-values', icon: Compass },
-      {
-        title: 'Baru Sahib Association',
-        href: '/jivo-dev/our-essence-baru-sahib-association',
-        icon: Landmark,
-      },
-      {
-        title: 'Milestones Timeline',
-        href: '/jivo-dev/our-essence-milestones-timeline',
-        icon: Film,
-      },
-      {
-        title: 'Social Initiatives',
-        href: '/jivo-dev/our-essence-social-initiatives',
-        icon: Users,
-      },
-      {
-        title: 'Our Fair Share',
-        href: '/jivo-dev/our-essence-our-fair-share',
-        icon: Scale,
-      },
-      {
-        title: 'For Mother Earth',
-        href: '/jivo-dev/our-essence-for-mother-earth',
-        icon: Leaf,
-      },
-      {
-        title: 'The Jivo Capital',
-        href: '/jivo-dev/our-essence-the-jivo-capital',
-        icon: Factory,
-      },
-      {
-        title: 'Certifications & Quality Standards',
-        href: '/jivo-dev/our-essence-certifications-quality-standards',
-        icon: Award,
-      },
-    ],
-  },
-  {
-    title: 'Our Products',
-    href: '/jivo-dev/our-products',
-    icon: Package,
-    children: [],
-  },
-  {
-    title: 'Jivo Media',
-    href: '/jivo-dev/media',
-    icon: Newspaper,
-    children: [],
-  },
-  {
-    title: 'Community',
-    href: '/jivo-dev/community',
-    icon: Users,
-    children: [],
-  },
-  {
-    title: 'SEO Manager',
-    href: '/jivo-dev/seo',
-    icon: Globe,
-    children: [
-      { title: 'Home', href: '/jivo-dev/home', icon: Home, tab: 'seo' },
-      { title: 'The Story', href: '/jivo-dev/our-essence-the-story', icon: BookOpen, tab: 'seo' },
-      { title: 'Core Values', href: '/jivo-dev/our-essence-core-values', icon: Compass, tab: 'seo' },
-      {
-        title: 'Baru Sahib Association',
-        href: '/jivo-dev/our-essence-baru-sahib-association',
-        icon: Landmark,
-        tab: 'seo',
-      },
-      {
-        title: 'Milestones Timeline',
-        href: '/jivo-dev/our-essence-milestones-timeline',
-        icon: Film,
-        tab: 'seo',
-      },
-      {
-        title: 'Social Initiatives',
-        href: '/jivo-dev/our-essence-social-initiatives',
-        icon: Users,
-        tab: 'seo',
-      },
-      {
-        title: 'Our Fair Share',
-        href: '/jivo-dev/our-essence-our-fair-share',
-        icon: Scale,
-        tab: 'seo',
-      },
-      {
-        title: 'For Mother Earth',
-        href: '/jivo-dev/our-essence-for-mother-earth',
-        icon: Leaf,
-        tab: 'seo',
-      },
-      {
-        title: 'The Jivo Capital',
-        href: '/jivo-dev/our-essence-the-jivo-capital',
-        icon: Factory,
-        tab: 'seo',
-      },
-      {
-        title: 'Certifications & Quality Standards',
-        href: '/jivo-dev/our-essence-certifications-quality-standards',
-        icon: Award,
-        tab: 'seo',
-      },
-    ],
-  },
-];
+const CMS_SECTIONS: NavSection[] = getCmsModules().map((m) => ({
+  title: m.name,
+  href: m.adminHref,
+  icon: m.icon,
+  children: m.pages.map((p) => ({ title: p.name, href: p.adminHref, icon: p.icon })),
+}));
+
+const SEO_SECTION: NavSection = {
+  title: 'SEO Manager',
+  href: '/jivo-dev/seo',
+  icon: Globe,
+  children: getSeoPages().map((p) => ({
+    title: p.name,
+    href: p.adminHref,
+    icon: p.icon,
+    tab: 'seo',
+  })),
+};
+
+const ANALYTICS_SECTION: NavSection = {
+  title: 'Analytics',
+  href: ANALYTICS_ROOT,
+  icon: BarChart3,
+  children: [],
+  tree: getAnalyticsNavTree(),
+};
+
+const SIDEBAR: NavSection[] = [...CMS_SECTIONS, ANALYTICS_SECTION, SEO_SECTION];
 
 // ── Layout ───────────────────────────────────────────────────
 
@@ -203,16 +99,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => window.clearTimeout(id);
   }, [pathname]);
 
-  // Auto-expand the section that contains the active page
+  // Auto-expand the section (and analytics group) that contains the active page
   useEffect(() => {
     for (const section of SIDEBAR) {
-      const hasActiveChild = section.children.some((c) => {
-        if (!pathname.startsWith(c.href)) return false;
-        if (c.tab) return tabParam === c.tab;
-        return !tabParam;
-      });
       const isSelfActive = pathname === section.href;
-      if (hasActiveChild || isSelfActive) {
+      const inAnalytics = !!section.tree && pathname.startsWith(`${ANALYTICS_ROOT}/`);
+      const hasActiveChild =
+        !section.tree &&
+        section.children.some((c) => {
+          if (!pathname.startsWith(c.href)) return false;
+          if (c.tab) return tabParam === c.tab;
+          return !tabParam;
+        });
+      if (hasActiveChild || isSelfActive || inAnalytics) {
         window.setTimeout(() => {
           setExpanded((prev) => ({ ...prev, [section.title]: true }));
         }, 0);
@@ -246,14 +145,90 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   /** True when this child link matches current URL (path + optional tab param). */
   const isChildActive = (child: NavChild) => {
+    if (child.exact) return pathname === child.href;
     if (!pathname.startsWith(child.href)) return false;
     if (child.tab) return tabParam === child.tab;
     return !tabParam;
   };
 
+  /** True when the current path is at, or nested under, an analytics route. */
+  const pathUnder = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
   /** True when this section's hub OR any of its children is the current page. */
-  const isSectionActive = (section: NavSection) =>
-    pathname === section.href || section.children.some((c) => isChildActive(c));
+  const isSectionActive = (section: NavSection) => {
+    if (section.tree) return pathUnder(ANALYTICS_ROOT);
+    return pathname === section.href || section.children.some((c) => isChildActive(c));
+  };
+
+  // Shared classes for analytics nav links.
+  const leafCls =
+    'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition 2xl:px-3 2xl:py-2.5 2xl:text-sm';
+  const activeCls = 'bg-primary/15 font-jost-medium text-primary';
+  const idleCls = 'text-muted-foreground hover:bg-accent hover:text-foreground';
+
+  /** Render the registry-driven analytics tree (leaves + collapsible groups). */
+  const renderAnalyticsTree = (tree: AnalyticsNavItem[]) =>
+    tree.map((item) => {
+      if (item.kind === 'leaf') {
+        const LeafIcon = item.icon;
+        return (
+          <Link
+            key={item.id}
+            href={item.href}
+            className={cn(leafCls, pathname === item.href ? activeCls : idleCls)}
+          >
+            <LeafIcon size={14} className="shrink-0" />
+            <span className="truncate">{item.title}</span>
+          </Link>
+        );
+      }
+
+      const GroupIcon = item.icon;
+      const groupKey = `grp:${item.id}`;
+      const groupOpen = expanded[groupKey] ?? pathUnder(item.href);
+      const groupActive = pathUnder(item.href);
+
+      return (
+        <div key={item.id}>
+          <div className="flex items-center">
+            <Link
+              href={item.href}
+              className={cn(leafCls, 'flex-1', groupActive ? 'text-primary font-jost-medium' : idleCls)}
+            >
+              <GroupIcon size={14} className="shrink-0" />
+              <span className="truncate">{item.title}</span>
+            </Link>
+            <button
+              onClick={() => toggle(groupKey)}
+              className="text-muted-foreground cursor-pointer px-2 py-2"
+              aria-label={groupOpen ? `Collapse ${item.title}` : `Expand ${item.title}`}
+            >
+              <ChevronDown
+                size={13}
+                className={cn('transition-transform duration-200', groupOpen && 'rotate-180')}
+              />
+            </button>
+          </div>
+          {groupOpen && (
+            <div className="border-border/50 ml-3 border-l pl-2">
+              {item.children.map((c) => {
+                const CIcon = c.icon;
+                return (
+                  <Link
+                    key={c.id}
+                    href={c.href}
+                    className={cn(leafCls, pathname === c.href ? activeCls : idleCls)}
+                  >
+                    {CIcon && <CIcon size={13} className="shrink-0" />}
+                    <span className="truncate">{c.title}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    });
 
   return (
     <div className="bg-background flex min-h-screen">
@@ -338,37 +313,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div
                   className={cn(
                     'overflow-hidden transition-all duration-250 ease-in-out',
-                    isOpen ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0',
+                    isOpen
+                      ? cn('opacity-100', section.tree ? 'max-h-[2000px]' : 'max-h-125')
+                      : 'max-h-0 opacity-0',
                   )}
                 >
-                  <div className="border-border/50 ml-4 border-l py-1 pl-3">
-                    {section.children.length === 0 ? (
-                      <span className="text-muted-foreground/50 block py-2 text-[11px] italic">
-                        No pages yet
-                      </span>
-                    ) : (
-                      section.children.map((child) => {
-                        const ChildIcon = child.icon;
-                        const childActive = isChildActive(child);
-                        const childHref = child.tab ? `${child.href}?tab=${child.tab}` : child.href;
-                        return (
-                          <Link
-                            key={childHref}
-                            href={childHref}
-                            className={cn(
-                              'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition 2xl:px-3 2xl:py-2.5 2xl:text-sm',
-                              childActive
-                                ? 'bg-primary/15 font-jost-medium text-primary'
-                                : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                            )}
-                          >
-                            <ChildIcon size={14} className="shrink-0" />
-                            <span className="truncate">{child.title}</span>
-                          </Link>
-                        );
-                      })
-                    )}
-                  </div>
+                  {section.tree ? (
+                    <div className="ml-1 space-y-0.5 py-1">{renderAnalyticsTree(section.tree)}</div>
+                  ) : (
+                    <div className="border-border/50 ml-4 border-l py-1 pl-3">
+                      {section.children.length === 0 ? (
+                        <span className="text-muted-foreground/50 block py-2 text-[11px] italic">
+                          No pages yet
+                        </span>
+                      ) : (
+                        section.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          const childActive = isChildActive(child);
+                          const childHref = child.tab
+                            ? `${child.href}?tab=${child.tab}`
+                            : child.href;
+                          return (
+                            <Link
+                              key={childHref}
+                              href={childHref}
+                              className={cn(
+                                'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition 2xl:px-3 2xl:py-2.5 2xl:text-sm',
+                                childActive
+                                  ? 'bg-primary/15 font-jost-medium text-primary'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                              )}
+                            >
+                              <ChildIcon size={14} className="shrink-0" />
+                              <span className="truncate">{child.title}</span>
+                            </Link>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );
