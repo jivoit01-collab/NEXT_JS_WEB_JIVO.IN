@@ -8,10 +8,7 @@ import { AlertTriangle } from 'lucide-react';
  * load" card instead of crashing the whole analytics page. Combined with the
  * data source's own try/catch, the dashboard can never show a full-page error.
  */
-export class WidgetBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean }
-> {
+export class WidgetBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
 
   static getDerivedStateFromError() {

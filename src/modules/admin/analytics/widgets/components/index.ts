@@ -1,5 +1,8 @@
 export { makePlaceholderWidget } from './placeholder-widget';
+export { AnalyticsChart, type AnalyticsChartType, type ChartPoint } from './analytics-chart';
+export { makeChartWidget } from './chart-widget';
 export { makeBreakdownWidget } from './breakdown-widget';
+export { makeDonutWidget } from './donut-widget';
 export { makeTrendWidget } from './trend-widget';
 export { makeFactsWidget } from './facts-widget';
 export { ComparisonWidget } from './comparison-widget';

@@ -4,6 +4,7 @@ import { AnalyticsLayout } from '../components/analytics-layout';
 import { PlaceholderPanel } from '../components/placeholder-panel';
 import { SectionHeading } from '../components/section-heading';
 import { WidgetRenderer, DEFAULT_PAGE_WIDGETS, type WidgetContext } from '../widgets';
+import type { PageSelectorData } from '../components/page-selector';
 
 /**
  * The ONE reusable leaf page — a CMS page or a standalone module (Authentication,
@@ -19,6 +20,7 @@ export function ModuleAnalyticsPage({
   widgets,
   context,
   breadcrumbParent,
+  pageSelector,
 }: {
   title: string;
   icon?: ElementType;
@@ -27,6 +29,7 @@ export function ModuleAnalyticsPage({
   widgets?: string[];
   context: WidgetContext;
   breadcrumbParent?: { name: string; href: string };
+  pageSelector?: PageSelectorData;
 }) {
   return (
     <AnalyticsLayout
@@ -35,6 +38,8 @@ export function ModuleAnalyticsPage({
       breadcrumbParent={breadcrumbParent}
       icon={icon}
       description={description}
+      pageSelector={pageSelector}
+      exportContext={context}
     >
       {sections && sections.length > 0 ? (
         // Legacy named-section placeholders (e.g. auth) until it registers widgets.

@@ -26,7 +26,8 @@ registerAnalyticsModule({
   description: 'Who is visiting — new vs returning, devices, geography.',
   order: 50,
   standalone: true,
-  widgets: ['overview', 'new-returning', 'devices', 'browsers', 'os', 'countries', 'languages', 'trend'],
+  // Phase 6.1 refinement: KPIs · Visitors Trend (full) · Countries + Devices in one row.
+  widgets: ['overview', 'visitors-trend', 'countries', 'devices'],
 });
 
 // Traffic — acquisition intelligence (where visitors come from). No device/page analytics.
@@ -39,7 +40,8 @@ registerAnalyticsModule({
   description: 'Where visitors come from — sources, referrers, campaigns.',
   order: 60,
   standalone: true,
-  widgets: ['overview', 'traffic-sources', 'referrers', 'landing-pages', 'top-pages', 'trend'],
+  // Phase 6.1: KPIs · Traffic Trend · Traffic Sources · Referrers · Landing Pages · Campaigns.
+  widgets: ['overview', 'traffic-trend', 'traffic-sources', 'referrers', 'landing-pages', 'campaigns'],
 });
 
 // Reports — reporting & exports only (placeholders until implemented).
@@ -52,13 +54,13 @@ registerAnalyticsModule({
   description: 'Scheduled reports and exports.',
   order: 70,
   standalone: true,
+  // Phase 6.1: export moved to the toolbar (Export CSV / Export PDF), so the
+  // Export Center + Quick Reports widgets are dropped. Reports stays BI-only.
   widgets: [
     'overview', // Summary (Total/Scheduled/Recent Exports/Last Export)
-    'report-activity', // Recent Activity
-    'report-comparison', // Current vs Previous
-    'report-exports', // Export Center (CSV/Excel/PDF)
-    'report-quick', // Quick Reports
-    'report-saved', // Saved Reports (empty)
-    'report-scheduled', // Scheduled Reports (empty)
+    'report-activity', // Export History
+    'report-comparison', // Compare Reports (current vs previous)
+    'report-saved', // Report Templates (empty state)
+    'report-scheduled', // Scheduled Reports (empty state)
   ],
 });

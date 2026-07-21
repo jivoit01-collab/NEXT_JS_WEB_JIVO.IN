@@ -14,13 +14,36 @@ export interface FeedbackFormProps {
   entityId?: string;
   showRating?: boolean;
   showTitle?: boolean;
+  /** Collect one "Email or Mobile Number" field (stored in metadata.contact). */
+  showContact?: boolean;
+  /** Heading text; pass an empty string to hide the form's own header (e.g. in a dialog). */
   heading?: string;
   description?: string;
   titlePlaceholder?: string;
   messagePlaceholder?: string;
   submitLabel?: string;
+  /** When set, a Cancel button is shown beside Submit (used by the dialog). */
+  onCancel?: () => void;
+  /** Drop the card chrome (border/bg/padding) — for embedding inside a dialog. */
+  bare?: boolean;
   onSuccess?: () => void;
   className?: string;
+}
+
+/**
+ * Validate the single contact field: an "@" means email, otherwise a mobile
+ * number. Empty is allowed (the field is optional); non-empty must be valid.
+ */
+function validateContact(raw: string): { ok: boolean; type?: 'email' | 'phone'; error?: string } {
+  const v = raw.trim();
+  if (!v) return { ok: true };
+  if (v.includes('@')) {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    return ok ? { ok: true, type: 'email' } : { ok: false, error: 'Enter a valid email address.' };
+  }
+  const digits = v.replace(/[\s\-().]/g, '');
+  const ok = /^\+?\d{7,15}$/.test(digits);
+  return ok ? { ok: true, type: 'phone' } : { ok: false, error: 'Enter a valid mobile number.' };
 }
 
 /**
@@ -34,11 +57,14 @@ export function FeedbackForm({
   entityId,
   showRating = false,
   showTitle = false,
+  showContact = false,
   heading = 'Share your feedback',
   description,
   titlePlaceholder = 'Subject',
   messagePlaceholder = 'Tell us more…',
   submitLabel = 'Send feedback',
+  onCancel,
+  bare = false,
   onSuccess,
   className,
 }: FeedbackFormProps) {
@@ -46,14 +72,19 @@ export function FeedbackForm({
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+  const [contact, setContact] = useState('');
+  const [contactError, setContactError] = useState<string | null>(null);
 
   if (isSuccess) {
     return (
       <div
         className={cn(
-          'bg-card flex flex-col items-center gap-2 rounded-2xl border p-6 text-center',
+          'flex flex-col items-center gap-2 p-6 text-center',
+          !bare && 'bg-card rounded-2xl border',
           className,
         )}
+        role="status"
+        aria-live="polite"
       >
         <span className="bg-primary/10 text-primary flex h-11 w-11 items-center justify-center rounded-full">
           <Check size={20} />
@@ -66,6 +97,19 @@ export function FeedbackForm({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Contact is optional, but if provided it must be a valid email or mobile.
+    let metadata: Record<string, unknown> | undefined;
+    if (showContact) {
+      const check = validateContact(contact);
+      if (!check.ok) {
+        setContactError(check.error ?? 'Enter a valid email or mobile number.');
+        return;
+      }
+      setContactError(null);
+      if (contact.trim()) metadata = { contact: contact.trim(), contactType: check.type };
+    }
+
     const ok = await submit({
       type,
       source,
@@ -74,6 +118,7 @@ export function FeedbackForm({
       rating: showRating && rating ? rating : undefined,
       title: showTitle && title.trim() ? title.trim() : undefined,
       message: message.trim() || undefined,
+      metadata,
     });
     if (ok) onSuccess?.();
   };
@@ -82,11 +127,16 @@ export function FeedbackForm({
     'w-full rounded-xl border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
 
   return (
-    <form onSubmit={onSubmit} className={cn('bg-card space-y-3 rounded-2xl border p-5', className)}>
-      <div>
-        <h3 className="font-jost-bold text-base">{heading}</h3>
-        {description && <p className="text-muted-foreground mt-0.5 text-xs">{description}</p>}
-      </div>
+    <form
+      onSubmit={onSubmit}
+      className={cn('space-y-3', !bare && 'bg-card rounded-2xl border p-5', className)}
+    >
+      {heading && (
+        <div>
+          <h3 className="font-jost-bold text-base">{heading}</h3>
+          {description && <p className="text-muted-foreground mt-0.5 text-xs">{description}</p>}
+        </div>
+      )}
 
       {showRating && (
         <div>
@@ -117,16 +167,60 @@ export function FeedbackForm({
         aria-label="Message"
       />
 
+      {showContact && (
+        <div>
+          <input
+            type="text"
+            value={contact}
+            onChange={(e) => {
+              setContact(e.target.value);
+              if (contactError) setContactError(null);
+            }}
+            onBlur={() => {
+              const check = validateContact(contact);
+              setContactError(check.ok ? null : (check.error ?? null));
+            }}
+            placeholder="Email or Mobile Number"
+            className={cn(inputCls, contactError && 'border-red-500 focus:ring-red-500/20')}
+            aria-label="Email or Mobile Number"
+            aria-invalid={!!contactError}
+            aria-describedby={contactError ? 'feedback-contact-error' : undefined}
+            inputMode="text"
+            autoComplete="off"
+          />
+          {contactError && (
+            <p id="feedback-contact-error" className="mt-1 text-xs text-red-500">
+              {contactError}
+            </p>
+          )}
+        </div>
+      )}
+
       {error && <p className="text-xs text-red-500">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="bg-primary text-primary-foreground inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-jost-medium transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={15} />}
-        {submitLabel}
-      </button>
+      <div className={cn('flex gap-2', onCancel ? 'flex-col-reverse sm:flex-row sm:justify-end' : '')}>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="border-input hover:bg-accent inline-flex min-h-10 items-center justify-center rounded-xl border px-4 py-2 text-sm font-jost-medium transition-colors disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={cn(
+            'bg-primary text-primary-foreground inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-jost-medium transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60',
+            onCancel ? 'sm:min-w-40' : 'w-full',
+          )}
+        >
+          {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={15} />}
+          {submitLabel}
+        </button>
+      </div>
     </form>
   );
 }

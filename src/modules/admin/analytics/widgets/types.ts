@@ -39,6 +39,16 @@ export interface WidgetContext {
 }
 
 /**
+ * A SERIALIZABLE subset of WidgetContext safe to pass to Client Components. It
+ * drops `pages` (whose entries carry lucide icon COMPONENTS, which cannot cross
+ * the server→client boundary). Used by the toolbar CSV export.
+ */
+export type AnalyticsExportContext = Pick<
+  WidgetContext,
+  'scope' | 'title' | 'moduleId' | 'moduleName' | 'moduleRoute' | 'pageId'
+>;
+
+/**
  * Lifecycle of a widget's data:
  *  - `loading`     — fetch in flight (renderer shows a skeleton via Suspense)
  *  - `ready`       — real data available

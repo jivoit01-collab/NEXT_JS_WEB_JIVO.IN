@@ -18,6 +18,8 @@ export {
   StarRating,
   ThumbsFeedback,
   PageFeedback,
+  FeedbackDialog,
+  type FeedbackDialogProps,
   FeedbackForm,
   SimpleFeedbackForm,
   DetailedFeedbackForm,

@@ -46,7 +46,8 @@ export default async function AnalyticsCatchAllPage({
         <ModuleDashboardPage module={entry.module} />
       );
 
-    case 'page':
+    case 'page': {
+      const siblingPages = entry.module.pages ?? [];
       return (
         <ModuleAnalyticsPage
           title={entry.page.name}
@@ -54,6 +55,16 @@ export default async function AnalyticsCatchAllPage({
           description={`Analytics for ${entry.page.name}.`}
           widgets={entry.page.widgets}
           breadcrumbParent={{ name: entry.module.name, href: entry.module.route }}
+          pageSelector={
+            siblingPages.length > 0
+              ? {
+                  moduleName: entry.module.name,
+                  moduleRoute: entry.module.route,
+                  pages: siblingPages.map((p) => ({ name: p.name, route: p.route })),
+                  currentRoute: entry.page.route,
+                }
+              : undefined
+          }
           context={{
             scope: 'page',
             title: entry.page.name,
@@ -64,6 +75,7 @@ export default async function AnalyticsCatchAllPage({
           }}
         />
       );
+    }
 
     default:
       notFound();

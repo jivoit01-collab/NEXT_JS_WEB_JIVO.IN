@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { MapPin, Mail, Phone, Copyright, ArrowRight, Leaf } from 'lucide-react';
+import { MapPin, Mail, Phone, Copyright, ArrowRight, Leaf, MessageSquarePlus } from 'lucide-react';
 import { SafeImage } from '@/components/shared/public';
+import { FeedbackDialog } from '@/modules/platform/feedback';
 import { getVisibleFooter } from '@/modules/footer';
 import type { VisibleFooterSetting } from '@/modules/footer/types';
 import { FooterSocialIcons } from './footer-social-icons';
@@ -191,12 +192,18 @@ export async function Footer() {
                 <p className="text-xs leading-relaxed whitespace-pre-line text-[#586055] sm:text-sm 2xl:text-base">
                   {copyright}
                 </p>
-                <a
-                  href="#feedback"
-                  className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-[#586055] underline-offset-2 transition-colors [@media(hover:hover)]:hover:text-[#0a7d3f] hover:underline"
-                >
-                  Send feedback
-                </a>
+                {/* Opens the reusable Feedback dialog (Phase 6.2). */}
+                <FeedbackDialog
+                  trigger={
+                    <button
+                      type="button"
+                      className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#0a7d3f]/30 bg-[#0a7d3f]/5 px-3 py-1.5 text-xs font-jost-medium text-[#0a7d3f] transition-colors [@media(hover:hover)]:hover:bg-[#0a7d3f] [@media(hover:hover)]:hover:text-white"
+                    >
+                      <MessageSquarePlus className="h-3.5 w-3.5" />
+                      Share Feedback
+                    </button>
+                  }
+                />
               </div>
             </div>
 

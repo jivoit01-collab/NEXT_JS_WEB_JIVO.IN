@@ -25,6 +25,7 @@ import {
 import { registerAnalyticsWidget } from './registry';
 import {
   makePlaceholderWidget,
+  makeChartWidget,
   makeBreakdownWidget,
   makeTrendWidget,
   makeFactsWidget,
@@ -53,6 +54,23 @@ registerAnalyticsWidget({
   order: 20,
   component: makeTrendWidget({ title: 'Trend', description: 'Events over the last 30 days.', icon: TrendingUp }),
 });
+// Visitors / Traffic trends — same area chart, distinct titles per Phase 6.1.
+registerAnalyticsWidget({
+  id: 'visitors-trend',
+  title: 'Visitors Trend',
+  category: 'charts',
+  size: 'full',
+  order: 21,
+  component: makeChartWidget({ title: 'Visitors Trend', description: 'Visitors over the last 30 days.', icon: TrendingUp, type: 'area', source: 'trend' }),
+});
+registerAnalyticsWidget({
+  id: 'traffic-trend',
+  title: 'Traffic Trend',
+  category: 'charts',
+  size: 'full',
+  order: 22,
+  component: makeChartWidget({ title: 'Traffic Trend', description: 'Traffic over the last 30 days.', icon: Activity, type: 'area', source: 'trend' }),
+});
 
 function breakdown(
   id: string,
@@ -76,19 +94,64 @@ function breakdown(
 breakdown('top-pages', 'Top Pages', 'Most-visited pages by views.', ListOrdered, 'tables', 30);
 breakdown('top-modules', 'Top Modules', 'Most-engaged sections.', Layers, 'tables', 32);
 breakdown('top-cta', 'Top CTAs', 'Most-clicked buttons & links.', MousePointerClick, 'conversions', 34);
-breakdown('traffic-sources', 'Traffic Sources', 'Direct, referral and campaigns.', Radar, 'traffic', 40);
 breakdown('referrers', 'Referrers', 'Sites sending visitors.', ExternalLink, 'traffic', 42);
 breakdown('landing-pages', 'Landing Pages', 'Where sessions start.', DoorOpen, 'traffic', 44);
-breakdown('devices', 'Devices', 'Mobile / tablet / desktop.', MonitorSmartphone, 'engagement', 46);
+
+// Traffic Sources & Devices read best as share-of-total donut charts.
+registerAnalyticsWidget({
+  id: 'traffic-sources',
+  title: 'Traffic Sources',
+  category: 'traffic',
+  size: 'medium',
+  order: 40,
+  component: makeChartWidget({
+    title: 'Traffic Sources',
+    description: 'Direct, referral and campaigns.',
+    icon: Radar,
+    type: 'doughnut',
+    source: 'breakdown',
+  }),
+});
+registerAnalyticsWidget({
+  id: 'devices',
+  title: 'Devices',
+  category: 'engagement',
+  size: 'medium',
+  order: 46,
+  component: makeChartWidget({
+    title: 'Devices',
+    description: 'Mobile / tablet / desktop.',
+    icon: MonitorSmartphone,
+    type: 'doughnut',
+    source: 'breakdown',
+  }),
+});
 breakdown('browsers', 'Browsers', 'Browser share.', Globe, 'engagement', 48);
 breakdown('os', 'Operating Systems', 'OS share.', Cpu, 'engagement', 50);
-breakdown('countries', 'Countries', 'Visitors by geography.', Map, 'maps', 52);
+// Countries reads best as a pie chart (share of visitors by geography).
+registerAnalyticsWidget({
+  id: 'countries',
+  title: 'Countries',
+  category: 'maps',
+  size: 'medium',
+  order: 52,
+  component: makeChartWidget({ title: 'Countries', description: 'Visitors by geography.', icon: Map, type: 'pie', source: 'breakdown' }),
+});
 breakdown('languages', 'Languages', 'Visitor languages.', Languages, 'engagement', 54);
-breakdown('new-returning', 'New vs Returning', 'First-time vs repeat visitors.', UserCheck, 'engagement', 56);
+// New vs Returning reads best as a two-slice doughnut.
+registerAnalyticsWidget({
+  id: 'new-returning',
+  title: 'New vs Returning',
+  category: 'engagement',
+  size: 'medium',
+  order: 56,
+  component: makeChartWidget({ title: 'New vs Returning', description: 'First-time vs repeat visitors.', icon: UserCheck, type: 'doughnut', source: 'breakdown' }),
+});
 
 // ── Placeholder widgets (no real source yet) ─────────────────
 registerAnalyticsWidget({ id: 'scroll-depth', title: 'Scroll Depth', category: 'engagement', size: 'medium', order: 58, component: makePlaceholderWidget({ title: 'Scroll depth', description: '25 / 50 / 75 / 100% reach.', icon: ArrowDownWideNarrow }) });
 registerAnalyticsWidget({ id: 'cta-performance', title: 'CTA Performance', category: 'conversions', size: 'medium', order: 60, component: makePlaceholderWidget({ title: 'CTA performance', description: 'Conversion on calls-to-action.', icon: MousePointerClick }) });
+registerAnalyticsWidget({ id: 'campaigns', title: 'Campaigns', category: 'traffic', size: 'medium', order: 45, component: makePlaceholderWidget({ title: 'Campaigns', description: 'UTM campaign performance.', icon: Radar }) });
 registerAnalyticsWidget({ id: 'insights', title: 'Insights', category: 'insights', size: 'full', order: 90, component: makePlaceholderWidget({ title: 'Automated insights', description: 'AI-assisted highlights and anomalies.', icon: Lightbulb }) });
 registerAnalyticsWidget({ id: 'export', title: 'Export', category: 'custom', size: 'small', order: 95, component: ExportWidget });
 

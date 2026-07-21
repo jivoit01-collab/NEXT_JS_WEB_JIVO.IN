@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   Tags,
   SmilePlus,
-  TrendingUp,
   Radar,
 } from 'lucide-react';
 
@@ -33,13 +32,16 @@ export const FEEDBACK_ANALYTICS_PAGES = [
   { id: 'resolved', name: 'Resolved', icon: CheckCircle2 },
 ] as const;
 
-/** Feedback-specific analytics widgets (registered on the widget platform). */
+/**
+ * Feedback-specific analytics widgets (registered on the widget platform).
+ * Phase 6.1: Feedback Trend removed; Sentiment is a doughnut, Feedback Types a
+ * pie. Only feedback-related analytics appear here.
+ */
 export const FEEDBACK_ANALYTICS_WIDGETS = [
-  { id: 'feedback-trend', title: 'Feedback Trend', description: 'Submissions over the last 30 days.', icon: TrendingUp, size: 'full', category: 'charts', kind: 'trend' },
-  { id: 'feedback-by-type', title: 'By Type', description: 'Feedback grouped by type.', icon: Tags, size: 'medium', category: 'tables', kind: 'breakdown' },
-  { id: 'feedback-sentiment', title: 'Sentiment', description: 'Positive / neutral / negative.', icon: SmilePlus, size: 'medium', category: 'summary', kind: 'breakdown' },
-  { id: 'feedback-sources', title: 'Top Sources', description: 'Where feedback comes from.', icon: Radar, size: 'medium', category: 'traffic', kind: 'breakdown' },
+  { id: 'feedback-sentiment', title: 'Sentiment', description: 'Positive / neutral / negative.', icon: SmilePlus, size: 'medium', category: 'summary', kind: 'doughnut' },
+  { id: 'feedback-by-type', title: 'Feedback Types', description: 'Feedback grouped by type.', icon: Tags, size: 'medium', category: 'tables', kind: 'pie' },
   { id: 'feedback-top-pages', title: 'Top Pages', description: 'Pages with the most feedback.', icon: FileText, size: 'medium', category: 'tables', kind: 'breakdown' },
+  { id: 'feedback-sources', title: 'Top Sources', description: 'Where feedback comes from.', icon: Radar, size: 'medium', category: 'traffic', kind: 'breakdown' },
   { id: 'feedback-recent', title: 'Recent Feedback', description: 'Latest submissions.', icon: MessageSquare, size: 'full', category: 'custom', kind: 'facts' },
 ] as const;
 
@@ -52,14 +54,14 @@ export const FEEDBACK_ANALYTICS_MODULE = {
   category: 'business' as const,
   description: 'Website, page, product, AI, bug, feature and support feedback.',
   order: 85,
-  // Module dashboard — all feedback across the site.
+  // Module dashboard — all feedback across the site (Phase 6.1). KPIs cover Open
+  // Feedback / Resolved Feedback / Average Rating; no Feedback Trend.
   widgets: [
     'overview',
-    'feedback-trend',
-    'feedback-by-type',
     'feedback-sentiment',
-    'feedback-sources',
+    'feedback-by-type',
     'feedback-top-pages',
+    'feedback-sources',
     'feedback-recent',
     'module-pages',
   ],
@@ -71,10 +73,10 @@ export const FEEDBACK_ANALYTICS_MODULE = {
     route: `${ROOT}/${p.id}`,
     widgets: [
       'overview',
-      'feedback-trend',
       'feedback-sentiment',
-      'feedback-sources',
+      'feedback-by-type',
       'feedback-top-pages',
+      'feedback-sources',
       'feedback-recent',
     ],
   })),

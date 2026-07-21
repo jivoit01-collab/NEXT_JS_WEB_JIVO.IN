@@ -5,16 +5,7 @@ import 'server-only';
 // contract. Registered for the `feedback` module; overrides the default.
 // Dependency is one-way: admin/analytics → platform/feedback.
 
-import {
-  MessagesSquare,
-  Inbox,
-  Clock,
-  CheckCircle2,
-  Star,
-  Smile,
-  Meh,
-  Frown,
-} from 'lucide-react';
+import { MessagesSquare, Inbox, Star, Frown } from 'lucide-react';
 import {
   getFeedbackStats,
   feedbackByType,
@@ -79,15 +70,13 @@ export const feedbackDataSource: AnalyticsDataSource = {
 
     if (widgetId === 'overview') {
       const s = await getFeedbackStats(filter);
+      // Phase 6.1/6.2: a consistent four-card KPI row — Pending/Resolved dropped
+      // (not actioned here); Negative surfaces feedback needing attention.
       const metrics: AnalyticsMetric[] = [
         { id: 'total', label: 'Total Feedback', value: s.total, icon: MessagesSquare, hint: 'All time' },
         { id: 'open', label: 'Open', value: s.open, icon: Inbox, hint: 'Unactioned' },
-        { id: 'pending', label: 'Pending', value: s.pending, icon: Clock, hint: 'In progress' },
-        { id: 'resolved', label: 'Resolved', value: s.resolved, icon: CheckCircle2, hint: 'Closed out' },
         { id: 'avg-rating', label: 'Average Rating', value: s.avgRating != null ? Number(s.avgRating.toFixed(1)) : null, icon: Star, hint: 'Out of 5' },
-        { id: 'positive', label: 'Positive', value: s.positive, icon: Smile, hint: 'Sentiment' },
-        { id: 'neutral', label: 'Neutral', value: s.neutral, icon: Meh, hint: 'Sentiment' },
-        { id: 'negative', label: 'Negative', value: s.negative, icon: Frown, hint: 'Sentiment' },
+        { id: 'negative', label: 'Negative', value: s.negative, icon: Frown, hint: 'Needs attention' },
       ];
       return { status: s.total > 0 ? 'ready' : 'empty', metrics };
     }

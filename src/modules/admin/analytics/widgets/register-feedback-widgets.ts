@@ -5,7 +5,7 @@
 
 import { FEEDBACK_ANALYTICS_WIDGETS } from '@/modules/platform/feedback/analytics';
 import { registerAnalyticsWidget } from './registry';
-import { makeBreakdownWidget, makeFactsWidget, makeTrendWidget } from './components';
+import { makeBreakdownWidget, makeChartWidget, makeFactsWidget } from './components';
 import type { WidgetCategory, WidgetSize } from './types';
 
 for (const w of FEEDBACK_ANALYTICS_WIDGETS) {
@@ -13,9 +13,11 @@ for (const w of FEEDBACK_ANALYTICS_WIDGETS) {
   const component =
     w.kind === 'facts'
       ? makeFactsWidget(opts)
-      : w.kind === 'trend'
-        ? makeTrendWidget(opts)
-        : makeBreakdownWidget(opts);
+      : w.kind === 'doughnut'
+        ? makeChartWidget({ ...opts, type: 'doughnut', source: 'breakdown' })
+        : w.kind === 'pie'
+          ? makeChartWidget({ ...opts, type: 'pie', source: 'breakdown' })
+          : makeBreakdownWidget(opts);
 
   registerAnalyticsWidget({
     id: w.id,

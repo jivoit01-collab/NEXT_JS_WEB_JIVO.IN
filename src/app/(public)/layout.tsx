@@ -5,7 +5,6 @@ import { SmoothScrollProvider } from '@/components/shared/smooth-scroll-provider
 import { CookieProvider } from '@/modules/core/cookie-consent';
 import { TrackingProvider } from '@/modules/core/tracking';
 import { AuthProvider } from '@/modules/platform/auth';
-import { PageFeedback } from '@/modules/platform/feedback';
 import { getNavbarSetting, getVisibleNavLinks } from '@/modules/navbar';
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -44,8 +43,7 @@ export default async function PublicLayout({ children }: { children: React.React
         <SmoothScrollProvider>
           <div className="flex min-h-screen flex-col">
             {children}
-            {/* Reusable page feedback (same FeedbackForm everywhere), above the footer. */}
-            <PageFeedback />
+            {/* Feedback now lives in the reusable FeedbackDialog (opened from the footer CTA). */}
             <Suspense fallback={null}>
               <Footer />
             </Suspense>
