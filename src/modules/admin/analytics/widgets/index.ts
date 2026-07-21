@@ -8,6 +8,7 @@
 
 import './register-default-widgets';
 import './register-auth-widgets';
+import './register-feedback-widgets';
 
 export { WidgetRenderer } from './widget-renderer';
 export {
