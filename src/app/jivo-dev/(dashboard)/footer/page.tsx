@@ -24,6 +24,7 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { ImageUpload } from '@/components/shared/admin';
+import { SafeImage } from '@/components/shared/public';
 import {
   Plus,
   Pencil,
@@ -35,7 +36,11 @@ import {
   Save,
   Columns3,
   Layers,
+  Share2,
+  Award,
 } from 'lucide-react';
+import { SOCIAL_ICONS } from '@/components/layout/footer-social-icons';
+import { SOCIAL_PLATFORMS, type SocialPlatform } from '@/modules/footer';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -62,9 +67,36 @@ interface FooterSetting {
   logoAlt: string | null;
   copyrightText: string | null;
   address: string | null;
+  addressMapUrl: string | null;
   email: string | null;
   phone: string | null;
   phoneLabel: string | null;
+  tagline: string | null;
+  brandPromise: string | null;
+  brandPromiseSub: string | null;
+  ctaLabel: string | null;
+  ctaHref: string | null;
+  leafImageTop: string | null;
+  leafImageBottom: string | null;
+  followLabel: string | null;
+  certificationText: string | null;
+  madeInText: string | null;
+}
+
+interface FooterSocialLink {
+  id: string;
+  platform: string;
+  url: string;
+  sortOrder: number;
+  isVisible: boolean;
+}
+
+interface FooterCertificate {
+  id: string;
+  imageUrl: string;
+  alt: string | null;
+  sortOrder: number;
+  isVisible: boolean;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -96,6 +128,8 @@ export default function AdminFooterPage() {
   const [deleteTarget, setDeleteTarget] = useState<
     | { type: 'column'; id: string; title: string }
     | { type: 'link'; id: string; title: string }
+    | { type: 'social'; id: string; title: string }
+    | { type: 'certificate'; id: string; title: string }
     | null
   >(null);
 
@@ -107,11 +141,39 @@ export default function AdminFooterPage() {
     logoAlt: '',
     copyrightText: '',
     address: '',
+    addressMapUrl: '',
     email: '',
     phone: '',
     phoneLabel: '',
+    tagline: '',
+    brandPromise: '',
+    brandPromiseSub: '',
+    ctaLabel: '',
+    ctaHref: '',
+    leafImageTop: '',
+    leafImageBottom: '',
+    followLabel: '',
+    certificationText: '',
+    madeInText: '',
   });
   const [savingSettings, setSavingSettings] = useState(false);
+
+  // Social links
+  const [socials, setSocials] = useState<FooterSocialLink[]>([]);
+  const [socialDialogOpen, setSocialDialogOpen] = useState(false);
+  const [editingSocial, setEditingSocial] = useState<FooterSocialLink | null>(null);
+  const [socialForm, setSocialForm] = useState<{
+    platform: SocialPlatform;
+    url: string;
+    sortOrder: number;
+    isVisible: boolean;
+  }>({ platform: 'instagram', url: '', sortOrder: 0, isVisible: true });
+
+  // Certificates
+  const [certificates, setCertificates] = useState<FooterCertificate[]>([]);
+  const [certDialogOpen, setCertDialogOpen] = useState(false);
+  const [editingCert, setEditingCert] = useState<FooterCertificate | null>(null);
+  const [certForm, setCertForm] = useState({ imageUrl: '', alt: '', sortOrder: 0, isVisible: true });
 
   // ── Fetch ──────────────────────────────────────────────────
   const fetchAll = useCallback(async () => {
@@ -124,6 +186,8 @@ export default function AdminFooterPage() {
       const settingJson = await settingRes.json();
       if (colsJson.success) {
         setColumns(colsJson.data.columns);
+        setSocials(colsJson.data.socials ?? []);
+        setCertificates(colsJson.data.certificates ?? []);
         // Pin the first column as active if nothing's selected yet
         setActiveColumnId((curr) => curr ?? colsJson.data.columns[0]?.id ?? null);
       }
@@ -134,9 +198,20 @@ export default function AdminFooterPage() {
           logoAlt: settingJson.data.logoAlt ?? '',
           copyrightText: settingJson.data.copyrightText ?? '',
           address: settingJson.data.address ?? '',
+          addressMapUrl: settingJson.data.addressMapUrl ?? '',
           email: settingJson.data.email ?? '',
           phone: settingJson.data.phone ?? '',
           phoneLabel: settingJson.data.phoneLabel ?? '',
+          tagline: settingJson.data.tagline ?? '',
+          brandPromise: settingJson.data.brandPromise ?? '',
+          brandPromiseSub: settingJson.data.brandPromiseSub ?? '',
+          ctaLabel: settingJson.data.ctaLabel ?? '',
+          ctaHref: settingJson.data.ctaHref ?? '',
+          leafImageTop: settingJson.data.leafImageTop ?? '',
+          leafImageBottom: settingJson.data.leafImageBottom ?? '',
+          followLabel: settingJson.data.followLabel ?? '',
+          certificationText: settingJson.data.certificationText ?? '',
+          madeInText: settingJson.data.madeInText ?? '',
         });
       }
     } catch {
@@ -147,6 +222,8 @@ export default function AdminFooterPage() {
   }, []);
 
   useEffect(() => {
+    // Initial data load; fetchAll updates state after awaits (not synchronously).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAll();
   }, [fetchAll]);
 
@@ -276,17 +353,25 @@ export default function AdminFooterPage() {
     if (!deleteTarget) return;
     setSaving(true);
     try {
-      const endpoint =
-        deleteTarget.type === 'column'
-          ? `/api/footer/columns/${deleteTarget.id}`
-          : `/api/footer/links/${deleteTarget.id}`;
-      const res = await fetch(endpoint, { method: 'DELETE' });
+      const endpointByType: Record<typeof deleteTarget.type, string> = {
+        column: `/api/footer/columns/${deleteTarget.id}`,
+        link: `/api/footer/links/${deleteTarget.id}`,
+        social: `/api/footer/socials/${deleteTarget.id}`,
+        certificate: `/api/footer/certificates/${deleteTarget.id}`,
+      };
+      const res = await fetch(endpointByType[deleteTarget.type], { method: 'DELETE' });
       const data = await res.json();
       if (!data.success) {
         toast.error(data.error ?? 'Delete failed');
         return;
       }
-      toast.success(`${deleteTarget.type === 'column' ? 'Column' : 'Link'} deleted`);
+      const labelByType = {
+        column: 'Column',
+        link: 'Link',
+        social: 'Social link',
+        certificate: 'Certificate',
+      } as const;
+      toast.success(`${labelByType[deleteTarget.type]} deleted`);
       // If we deleted the active column, fall back to the first remaining one
       if (deleteTarget.type === 'column' && deleteTarget.id === activeColumnId) {
         setActiveColumnId(null);
@@ -323,6 +408,122 @@ export default function AdminFooterPage() {
     } finally {
       setSavingSettings(false);
     }
+  };
+
+  // ── Social link handlers ───────────────────────────────────
+  const openCreateSocial = () => {
+    setEditingSocial(null);
+    setSocialForm({ platform: 'instagram', url: '', sortOrder: socials.length, isVisible: true });
+    setSocialDialogOpen(true);
+  };
+  const openEditSocial = (social: FooterSocialLink) => {
+    setEditingSocial(social);
+    setSocialForm({
+      platform: (SOCIAL_PLATFORMS as readonly string[]).includes(social.platform)
+        ? (social.platform as SocialPlatform)
+        : 'instagram',
+      url: social.url,
+      sortOrder: social.sortOrder,
+      isVisible: social.isVisible,
+    });
+    setSocialDialogOpen(true);
+  };
+  const saveSocial = async () => {
+    setSaving(true);
+    try {
+      const isEdit = !!editingSocial;
+      const url = isEdit ? `/api/footer/socials/${editingSocial.id}` : '/api/footer/socials';
+      const res = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(socialForm),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.error ?? 'Failed to save');
+        return;
+      }
+      toast.success(`Social link ${isEdit ? 'updated' : 'created'}`);
+      setSocialDialogOpen(false);
+      await fetchAll();
+      router.refresh();
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setSaving(false);
+    }
+  };
+  const toggleSocialVisibility = async (social: FooterSocialLink) => {
+    const res = await fetch(`/api/footer/socials/${social.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isVisible: !social.isVisible }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast.success(`Social link ${social.isVisible ? 'hidden' : 'published'}`);
+      await fetchAll();
+      router.refresh();
+    } else toast.error(data.error ?? 'Update failed');
+  };
+
+  // ── Certificate handlers ───────────────────────────────────
+  const openCreateCert = () => {
+    setEditingCert(null);
+    setCertForm({ imageUrl: '', alt: '', sortOrder: certificates.length, isVisible: true });
+    setCertDialogOpen(true);
+  };
+  const openEditCert = (cert: FooterCertificate) => {
+    setEditingCert(cert);
+    setCertForm({
+      imageUrl: cert.imageUrl,
+      alt: cert.alt ?? '',
+      sortOrder: cert.sortOrder,
+      isVisible: cert.isVisible,
+    });
+    setCertDialogOpen(true);
+  };
+  const saveCert = async () => {
+    if (!certForm.imageUrl) {
+      toast.error('Please upload a badge image');
+      return;
+    }
+    setSaving(true);
+    try {
+      const isEdit = !!editingCert;
+      const url = isEdit ? `/api/footer/certificates/${editingCert.id}` : '/api/footer/certificates';
+      const res = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(certForm),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.error ?? 'Failed to save');
+        return;
+      }
+      toast.success(`Certificate ${isEdit ? 'updated' : 'created'}`);
+      setCertDialogOpen(false);
+      await fetchAll();
+      router.refresh();
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setSaving(false);
+    }
+  };
+  const toggleCertVisibility = async (cert: FooterCertificate) => {
+    const res = await fetch(`/api/footer/certificates/${cert.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isVisible: !cert.isVisible }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast.success(`Certificate ${cert.isVisible ? 'hidden' : 'published'}`);
+      await fetchAll();
+      router.refresh();
+    } else toast.error(data.error ?? 'Update failed');
   };
 
   if (loading) {
@@ -413,6 +614,86 @@ export default function AdminFooterPage() {
             </div>
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Tagline</Label>
+              <Input
+                value={settingsForm.tagline}
+                onChange={(e) => setSettingsForm({ ...settingsForm, tagline: e.target.value })}
+                placeholder="Bringing nature's finest to your everyday wellness."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Follow label</Label>
+              <Input
+                value={settingsForm.followLabel}
+                onChange={(e) => setSettingsForm({ ...settingsForm, followLabel: e.target.value })}
+                placeholder="FOLLOW US"
+              />
+            </div>
+          </div>
+
+          {/* Brand block promise + CTA button */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Brand promise line</Label>
+              <Input
+                value={settingsForm.brandPromise}
+                onChange={(e) => setSettingsForm({ ...settingsForm, brandPromise: e.target.value })}
+                placeholder="Pure. Natural. Trusted."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Brand promise sub-line</Label>
+              <Input
+                value={settingsForm.brandPromiseSub}
+                onChange={(e) =>
+                  setSettingsForm({ ...settingsForm, brandPromiseSub: e.target.value })
+                }
+                placeholder="Since 2016"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>CTA button label</Label>
+              <Input
+                value={settingsForm.ctaLabel}
+                onChange={(e) => setSettingsForm({ ...settingsForm, ctaLabel: e.target.value })}
+                placeholder="Explore Products"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>CTA button link</Label>
+              <Input
+                value={settingsForm.ctaHref}
+                onChange={(e) => setSettingsForm({ ...settingsForm, ctaHref: e.target.value })}
+                placeholder="/products"
+              />
+            </div>
+          </div>
+
+          {/* Decorative leaf images (brand card corners) */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Leaf image — top-left (decorative, transparent PNG)</Label>
+              <ImageUpload
+                value={settingsForm.leafImageTop}
+                onChange={(url) => setSettingsForm({ ...settingsForm, leafImageTop: url })}
+                onRemove={() => setSettingsForm({ ...settingsForm, leafImageTop: '' })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Leaf image — bottom-right (decorative, transparent PNG)</Label>
+              <ImageUpload
+                value={settingsForm.leafImageBottom}
+                onChange={(url) => setSettingsForm({ ...settingsForm, leafImageBottom: url })}
+                onRemove={() => setSettingsForm({ ...settingsForm, leafImageBottom: '' })}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label>Address</Label>
             <Textarea
@@ -421,6 +702,19 @@ export default function AdminFooterPage() {
               onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
               placeholder="Jt/190, Nehru Market, Rajouri Garden, New Delhi - 110027"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Address map link (opens on click)</Label>
+            <Input
+              value={settingsForm.addressMapUrl}
+              onChange={(e) => setSettingsForm({ ...settingsForm, addressMapUrl: e.target.value })}
+              placeholder="https://maps.google.com/?q=..."
+            />
+            <p className="text-muted-foreground text-xs">
+              Optional. If empty, clicking the address opens a Google Maps search for the address
+              text above.
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -450,6 +744,291 @@ export default function AdminFooterPage() {
               />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════ */}
+      {/* SOCIAL LINKS                                   */}
+      {/* ══════════════════════════════════════════════ */}
+      <div className="bg-card rounded-xl border shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
+          <div>
+            <h2 className="font-jost-bold flex items-center gap-2 text-sm">
+              <Share2 className="h-4 w-4" /> Social Links
+            </h2>
+            <p className="text-muted-foreground text-xs">
+              Shown under the FOLLOW US label in the footer brand block.
+            </p>
+          </div>
+          <Button onClick={openCreateSocial} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" /> Add Social
+          </Button>
+        </div>
+        <div className="p-5">
+          {socials.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              No social links yet. Click <b>Add Social</b> to create one.
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 hover:bg-muted/40">
+                    <TableHead className="w-16">Order</TableHead>
+                    <TableHead>Platform</TableHead>
+                    <TableHead>URL</TableHead>
+                    <TableHead className="w-28">Status</TableHead>
+                    <TableHead className="w-32 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {socials.map((social) => {
+                    const entry = SOCIAL_ICONS[social.platform as SocialPlatform];
+                    const Icon = entry?.Icon;
+                    const label = entry?.label ?? social.platform;
+                    return (
+                      <TableRow key={social.id}>
+                        <TableCell className="text-muted-foreground font-mono text-xs">
+                          #{social.sortOrder}
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-jost-medium flex items-center gap-2 capitalize">
+                            {Icon ? <Icon className="h-4 w-4" /> : null}
+                            {label}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground max-w-[220px] truncate text-xs">
+                          {social.url}
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => toggleSocialVisibility(social)}
+                            className="cursor-pointer"
+                            title={social.isVisible ? 'Click to hide' : 'Click to publish'}
+                          >
+                            <Badge
+                              variant={social.isVisible ? 'default' : 'secondary'}
+                              className={
+                                social.isVisible
+                                  ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                                  : 'hover:bg-secondary/80'
+                              }
+                            >
+                              <span
+                                className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                                  social.isVisible ? 'bg-primary' : 'bg-muted-foreground'
+                                }`}
+                              />
+                              {social.isVisible ? 'Active' : 'Hidden'}
+                            </Badge>
+                          </button>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => toggleSocialVisibility(social)}
+                              title={social.isVisible ? 'Hide' : 'Publish'}
+                              className="hover:bg-accent"
+                            >
+                              {social.isVisible ? (
+                                <Eye className="h-4 w-4" />
+                              ) : (
+                                <EyeOff className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => openEditSocial(social)}
+                              title="Edit"
+                              className="hover:bg-primary/10 hover:text-primary"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                setDeleteTarget({ type: 'social', id: social.id, title: label })
+                              }
+                              title="Delete"
+                              className="text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════ */}
+      {/* CERTIFICATIONS                                 */}
+      {/* ══════════════════════════════════════════════ */}
+      <div className="bg-card rounded-xl border shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
+          <div>
+            <h2 className="font-jost-bold flex items-center gap-2 text-sm">
+              <Award className="h-4 w-4" /> Certifications
+            </h2>
+            <p className="text-muted-foreground text-xs">
+              Badge images, shared caption, and optional made-in text for the bottom bar.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={saveSettings}
+              disabled={savingSettings}
+              size="sm"
+              variant="outline"
+              className="gap-2"
+            >
+              {savingSettings ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Save text
+            </Button>
+            <Button onClick={openCreateCert} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" /> Add Badge
+            </Button>
+          </div>
+        </div>
+        <div className="space-y-4 p-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Caption</Label>
+              <Input
+                value={settingsForm.certificationText}
+                onChange={(e) =>
+                  setSettingsForm({ ...settingsForm, certificationText: e.target.value })
+                }
+                placeholder="Proudly Certified. Committed to Quality."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Made-in text (optional)</Label>
+              <Input
+                value={settingsForm.madeInText}
+                onChange={(e) => setSettingsForm({ ...settingsForm, madeInText: e.target.value })}
+                placeholder="Made with care in India"
+              />
+            </div>
+          </div>
+
+          {certificates.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              No badges yet. Click <b>Add Badge</b> to upload one.
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 hover:bg-muted/40">
+                    <TableHead className="w-16">Order</TableHead>
+                    <TableHead className="w-24">Badge</TableHead>
+                    <TableHead>Alt text</TableHead>
+                    <TableHead className="w-28">Status</TableHead>
+                    <TableHead className="w-32 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {certificates.map((cert) => (
+                    <TableRow key={cert.id}>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
+                        #{cert.sortOrder}
+                      </TableCell>
+                      <TableCell>
+                        <SafeImage
+                          src={cert.imageUrl}
+                          alt={cert.alt ?? ''}
+                          width={64}
+                          height={40}
+                          className="h-9 w-auto rounded border bg-white object-contain p-1"
+                        />
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {cert.alt || <span className="italic">—</span>}
+                      </TableCell>
+                      <TableCell>
+                        <button
+                          onClick={() => toggleCertVisibility(cert)}
+                          className="cursor-pointer"
+                          title={cert.isVisible ? 'Click to hide' : 'Click to publish'}
+                        >
+                          <Badge
+                            variant={cert.isVisible ? 'default' : 'secondary'}
+                            className={
+                              cert.isVisible
+                                ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                                : 'hover:bg-secondary/80'
+                            }
+                          >
+                            <span
+                              className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                                cert.isVisible ? 'bg-primary' : 'bg-muted-foreground'
+                              }`}
+                            />
+                            {cert.isVisible ? 'Active' : 'Hidden'}
+                          </Badge>
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => toggleCertVisibility(cert)}
+                            title={cert.isVisible ? 'Hide' : 'Publish'}
+                            className="hover:bg-accent"
+                          >
+                            {cert.isVisible ? (
+                              <Eye className="h-4 w-4" />
+                            ) : (
+                              <EyeOff className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => openEditCert(cert)}
+                            title="Edit"
+                            className="hover:bg-primary/10 hover:text-primary"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() =>
+                              setDeleteTarget({
+                                type: 'certificate',
+                                id: cert.id,
+                                title: cert.alt || 'badge',
+                              })
+                            }
+                            title="Delete"
+                            className="text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -815,6 +1394,147 @@ export default function AdminFooterPage() {
             <Button onClick={saveLink} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editingLink ? 'Save changes' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════════════════════════════════════════════ */}
+      {/* Social Dialog                                  */}
+      {/* ══════════════════════════════════════════════ */}
+      <Dialog open={socialDialogOpen} onOpenChange={setSocialDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingSocial ? 'Edit social link' : 'Add social link'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Platform</Label>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {SOCIAL_PLATFORMS.map((p) => {
+                  const { Icon, label } = SOCIAL_ICONS[p];
+                  const active = socialForm.platform === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setSocialForm({ ...socialForm, platform: p })}
+                      title={label}
+                      className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-[11px] transition ${
+                        active
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border hover:border-muted-foreground hover:bg-accent'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span className="capitalize">{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>URL</Label>
+              <Input
+                value={socialForm.url}
+                onChange={(e) => setSocialForm({ ...socialForm, url: e.target.value })}
+                placeholder="https://instagram.com/jivowellness"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Sort order</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={socialForm.sortOrder}
+                  onChange={(e) =>
+                    setSocialForm({ ...socialForm, sortOrder: parseInt(e.target.value) || 0 })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Visibility</Label>
+                <Button
+                  type="button"
+                  variant={socialForm.isVisible ? 'default' : 'secondary'}
+                  className="w-full"
+                  onClick={() => setSocialForm({ ...socialForm, isVisible: !socialForm.isVisible })}
+                >
+                  {socialForm.isVisible ? 'Active' : 'Hidden'}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSocialDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveSocial} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingSocial ? 'Save changes' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════════════════════════════════════════════ */}
+      {/* Certificate Dialog                             */}
+      {/* ══════════════════════════════════════════════ */}
+      <Dialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingCert ? 'Edit badge' : 'Add badge'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Badge image</Label>
+              <ImageUpload
+                value={certForm.imageUrl}
+                onChange={(url) => setCertForm({ ...certForm, imageUrl: url })}
+                onRemove={() => setCertForm({ ...certForm, imageUrl: '' })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Alt text (optional)</Label>
+              <Input
+                value={certForm.alt}
+                onChange={(e) => setCertForm({ ...certForm, alt: e.target.value })}
+                placeholder="ISO 9001 Certified"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Sort order</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={certForm.sortOrder}
+                  onChange={(e) =>
+                    setCertForm({ ...certForm, sortOrder: parseInt(e.target.value) || 0 })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Visibility</Label>
+                <Button
+                  type="button"
+                  variant={certForm.isVisible ? 'default' : 'secondary'}
+                  className="w-full"
+                  onClick={() => setCertForm({ ...certForm, isVisible: !certForm.isVisible })}
+                >
+                  {certForm.isVisible ? 'Active' : 'Hidden'}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCertDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveCert} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingCert ? 'Save changes' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

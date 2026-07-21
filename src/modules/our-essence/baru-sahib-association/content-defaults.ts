@@ -20,6 +20,8 @@ export const videoSectionData: BaruSahibAssociationVideoContent = {
   video: '',
   videoWebm: '',
   poster: '',
+  videoWidth: 0,
+  videoHeight: 0,
 };
 
 export const humanitySectionData: BaruSahibAssociationHumanityContent = {

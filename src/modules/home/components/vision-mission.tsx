@@ -1,10 +1,8 @@
 'use client';
 
-import { SafeImage, SplitWords } from '@/components/shared/public';
 import { visionMissionContent as defaults } from '../data/home-content';
 import type { VisionMissionContent } from '../types';
-import { motion } from 'framer-motion';
-import { container, fadeUp, defaultViewport } from '@/lib/animation-variants';
+import { GsapReveal, ParallaxBg, SplitReveal } from './home-motion';
 
 interface VisionMissionProps {
   data?: VisionMissionContent;
@@ -18,75 +16,70 @@ export function VisionMission({ data, isLoading }: VisionMissionProps) {
 
   return (
     <section className="relative w-full overflow-hidden py-16 sm:py-20 md:py-24 lg:py-28 2xl:py-36">
-      <SafeImage
-        src={content.backgroundImage || defaults.backgroundImage}
-        alt="Nature background"
-        fill
-        className="object-cover"
-      />
+      <ParallaxBg src={content.backgroundImage || defaults.backgroundImage} sizes="100vw" />
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/25" />
+      {/* Legibility scrim — leans left where the body copy sits. */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/35 to-black/20" />
 
-      <motion.div
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={defaultViewport}
-        className="relative z-10 mx-auto max-w-6xl px-4 text-white sm:px-6 md:px-8 2xl:max-w-7xl"
-      >
-
+      <div className="relative z-10 mx-auto max-w-6xl px-4 text-white sm:px-6 md:px-8 2xl:max-w-7xl">
         {/* HEADING */}
-        <motion.div variants={fadeUp}>
-          <h2 className="font-sans text-center mb-10 text-2xl font-jost-bold uppercase tracking-[0.15em] sm:mb-12 sm:text-3xl md:mb-14 md:text-4xl lg:text-5xl 2xl:mb-16 2xl:text-6xl">
-            <SplitWords text={content.heading} inheritParent />
-          </h2>
-        </motion.div>
+        <SplitReveal
+          as="h2"
+          text={content.heading}
+          type="words"
+          className="font-jost-bold mb-10 block text-center font-sans text-[clamp(1.5rem,1rem+2vw,3.25rem)] tracking-[0.1em] text-balance uppercase sm:mb-12 sm:tracking-[0.15em] md:mb-14 2xl:mb-16"
+        />
 
         {/* INTRO TEXT */}
-        <motion.div variants={fadeUp} className="w-full md:w-3/4 lg:w-2/4">
-          <p className="text-base italic text-white/80 md:text-lg lg:text-xl 2xl:text-2xl">
+        <GsapReveal stagger={0.1} y={28} className="w-full md:w-3/4 lg:w-2/4">
+          <p className="text-pretty text-base italic text-white/85 md:text-lg lg:text-xl 2xl:text-2xl">
             {content.subtitle}
           </p>
 
           {content.intro && (
-            <p className="mt-6 text-sm leading-relaxed text-white/80 md:text-base 2xl:text-lg">
+            <p className="mt-6 text-base leading-relaxed text-pretty text-white/80 md:text-lg 2xl:text-xl">
               {content.intro}
             </p>
           )}
 
           {content.intro2 && (
-            <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base 2xl:text-lg">
+            <p className="mt-4 text-base leading-relaxed text-pretty text-white/80 md:text-lg 2xl:text-xl">
               {content.intro2}
             </p>
           )}
-        </motion.div>
+        </GsapReveal>
 
         {/* VISION + MISSION */}
-        <div className="mt-14 grid grid-cols-1 gap-10 sm:mt-16 md:mt-20 md:grid-cols-2 md:gap-16 lg:gap-24 2xl:mt-24 2xl:gap-28">
-
+        <GsapReveal
+          stagger={0.16}
+          y={36}
+          className="mt-14 grid grid-cols-1 gap-10 sm:mt-16 md:mt-20 md:grid-cols-2 md:gap-16 lg:gap-24 2xl:mt-24 2xl:gap-28"
+        >
           {/* VISION */}
-          <motion.div variants={fadeUp} className="max-w-md 2xl:max-w-xl">
-            <h3 className="mb-4 font-sans text-2xl font-jost-extrabold uppercase tracking-[0.15em] sm:mb-6 sm:text-3xl md:text-4xl 2xl:text-5xl">
-              <SplitWords text="Vision" inheritParent />
-            </h3>
-            <p className="text-sm leading-relaxed text-white/85 md:text-base lg:text-lg 2xl:text-xl">
+          <div className="max-w-md 2xl:max-w-xl">
+            <SplitReveal
+              as="h3"
+              text="Vision"
+              className="font-jost-extrabold mb-4 block font-sans text-[clamp(1.5rem,1.1rem+1.4vw,2.75rem)] tracking-[0.15em] uppercase sm:mb-6"
+            />
+            <p className="text-base leading-relaxed text-pretty text-white/85 md:text-lg 2xl:text-xl">
               {content.vision}
             </p>
-          </motion.div>
+          </div>
 
           {/* MISSION */}
-          <motion.div variants={fadeUp} className="max-w-md md:ml-auto 2xl:max-w-xl">
-            <h3 className="mb-4 font-sans text-2xl font-jost-extrabold uppercase tracking-[0.15em] sm:mb-6 sm:text-3xl md:text-4xl 2xl:text-5xl">
-              <SplitWords text="Mission" inheritParent />
-            </h3>
-            <p className="text-sm leading-relaxed text-white/85 md:text-base lg:text-lg 2xl:text-xl">
+          <div className="max-w-md md:ml-auto 2xl:max-w-xl">
+            <SplitReveal
+              as="h3"
+              text="Mission"
+              className="font-jost-extrabold mb-4 block font-sans text-[clamp(1.5rem,1.1rem+1.4vw,2.75rem)] tracking-[0.15em] uppercase sm:mb-6"
+            />
+            <p className="text-base leading-relaxed text-pretty text-white/85 md:text-lg 2xl:text-xl">
               {content.mission}
             </p>
-          </motion.div>
-
-        </div>
-      </motion.div>
+          </div>
+        </GsapReveal>
+      </div>
     </section>
   );
 }

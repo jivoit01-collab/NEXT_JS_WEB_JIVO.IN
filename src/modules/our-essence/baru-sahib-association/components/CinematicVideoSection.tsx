@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { SafeImage } from '@/components/shared/public';
 import { cn } from '@/lib/utils';
+import { gsap, ScrollTrigger, ScrollSmoother } from '@/lib/gsap';
 import type { BaruSahibAssociationVideoContent } from '../types';
 
 interface CinematicVideoSectionProps {
@@ -81,6 +82,11 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
   );
   const posterSrc = useMemo(() => resolveMediaSrc(content.poster), [content.poster]);
   const hasVideo = videoSources.length > 0;
+  // Exact aspect box for small screens (size captured on upload); 16/9 is the safe default.
+  const videoAspect =
+    content.videoWidth && content.videoHeight
+      ? `${content.videoWidth}/${content.videoHeight}`
+      : '16/9';
 
   const [isMuted, setIsMuted] = useState(true);
   const [hasMountedVideo, setHasMountedVideo] = useState(false);
@@ -241,6 +247,40 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
     return () => window.clearTimeout(playTimer);
   }, [hasMountedVideo, playWithAutoplayPolicy]);
 
+  // Instagram-Reels-style snap: when the user scrolls INTO this section, gently
+  // pull it so the video fills the screen (below the fixed navbar). Uses GSAP
+  // ScrollSmoother.scrollTo — CSS scroll-snap can't work because ScrollSmoother
+  // transforms #smooth-content instead of scrolling natively. onEnter/onEnterBack
+  // fire once per arrival, so the user is never trapped when scrolling past.
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || !hasVideo) return;
+
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const snapIntoView = () => {
+        const smoother = ScrollSmoother.get();
+        if (smoother) {
+          smoother.scrollTo(section, true, 'top top');
+        } else {
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+
+      const trigger = ScrollTrigger.create({
+        trigger: section,
+        start: 'top 60%',
+        end: 'bottom 40%',
+        onEnter: snapIntoView,
+        onEnterBack: snapIntoView,
+      });
+
+      return () => trigger.kill();
+    });
+
+    return () => mm.revert();
+  }, [hasVideo]);
+
   return (
     <section
       ref={sectionRef}
@@ -259,14 +299,23 @@ export function CinematicVideoSection({ data }: CinematicVideoSectionProps) {
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
 
-          <div className="relative aspect-video h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-dvh lg:min-h-dvh">
+          {/* Reserves the video's exact aspect box on small screens (captured on upload),
+              so the skeleton and the loaded video are identical in size — no jump.
+              Desktop keeps its fixed full-height stage. */}
+          <div
+            style={{ '--bs-video-aspect': videoAspect } as React.CSSProperties}
+            className="relative aspect-[var(--bs-video-aspect)] w-full lg:aspect-auto lg:h-dvh lg:min-h-[360px]"
+          >
             {hasVideo && hasMountedVideo ? (
               <>
                 <video
                   key={sourceKey}
                   ref={videoRef}
                   className={cn(
-                    'h-full w-full object-cover transition-opacity duration-700 ease-out',
+                    // The frame already reserves this video's exact aspect box on small
+                    // screens, so the video just fills it (no crop, no jump).
+                    // Desktop unchanged (fills the full-height stage, cover).
+                    'h-full w-full object-contain transition-opacity duration-700 ease-out lg:object-cover',
                     isVideoReady && !hasVideoError ? 'opacity-100' : 'opacity-0',
                   )}
                   muted={isMuted}
@@ -361,7 +410,8 @@ function PosterPreview({ poster }: { poster: string }) {
 
 function VideoFrameSkeleton({ poster }: { poster?: string }) {
   return (
-    <div className="relative h-full min-h-[240px] overflow-hidden bg-[#0c100d] sm:min-h-[360px] lg:min-h-0">
+    // Fills the frame's reserved aspect box exactly — same size as the video.
+    <div className="relative h-full w-full overflow-hidden bg-[#0c100d]">
       {poster ? (
         <PosterPreview poster={poster} />
       ) : (
@@ -441,7 +491,7 @@ function VideoErrorOverlay() {
 
 export function CinematicVideoSectionSkeleton() {
   return (
-    <section aria-hidden className="relative w-full overflow-hidden bg-black">
+    <section aria-hidden className="relative min-h-dvh w-full overflow-hidden bg-black">
       <div className="relative z-20 bg-black px-5 py-3 sm:px-6 sm:py-4 lg:px-8">
         <div className="h-3 w-48 animate-pulse rounded-full bg-[#d8c187]/18 sm:w-60" />
       </div>
@@ -451,7 +501,8 @@ export function CinematicVideoSectionSkeleton() {
         <div className="pointer-events-none absolute inset-0 z-10 ring-1 ring-white/10 ring-inset" />
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-linear-to-b from-black/30 to-transparent sm:h-24" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-linear-to-t from-black/34 to-transparent sm:h-24" />
-        <div className="h-[50svh] min-h-[280px] w-full sm:h-[55svh] sm:min-h-[340px] md:h-[62svh] lg:h-dvh lg:min-h-dvh">
+        {/* Mirrors the live frame's reserved box (default 16/9 on mobile, full-height on desktop). */}
+        <div className="aspect-video w-full lg:aspect-auto lg:h-dvh lg:min-h-[360px]">
           <VideoFrameSkeleton />
         </div>
       </div>

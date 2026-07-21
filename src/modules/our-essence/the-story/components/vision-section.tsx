@@ -21,26 +21,36 @@ export function VisionSection({ data }: Props) {
   const containerVariant = prefersReducedMotion ? reducedMotion : container;
   const revealVariant = prefersReducedMotion ? reducedMotion : fadeUpSlow;
 
+  const hoverLift = prefersReducedMotion
+    ? undefined
+    : { y: -8, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } };
+
   return (
-    <section className="bg-[#7eaf7e] py-16 sm:py-20 md:py-24 lg:py-28 2xl:py-36">
+    <section className="relative overflow-hidden bg-[#7eaf7e] py-16 sm:py-20 md:py-24 lg:py-28 2xl:py-36">
+      {/* Decorative soft glows that drift behind the content */}
+      <div className="pointer-events-none absolute -left-24 top-12 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-[#0a7362]/20 blur-3xl" />
+
       <LazyMotion features={domAnimation}>
         <m.div
           variants={containerVariant}
           initial="hidden"
           whileInView="show"
           viewport={defaultViewport}
-          className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20"
+          className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 2xl:max-w-screen-2xl 2xl:px-20"
         >
           <m.h2
             variants={revealVariant}
-            className="mb-10 text-center font-jost-bold text-2xl uppercase tracking-[0.12em] text-white sm:mb-12 sm:text-3xl md:mb-14 md:text-4xl lg:mb-16 lg:text-5xl 2xl:mb-20 2xl:text-6xl"
+            whileHover={hoverLift}
+            className="mb-8 inline-block w-full cursor-default text-center font-jost-bold text-2xl uppercase tracking-[0.12em] text-white transition-[text-shadow] duration-500 hover:[text-shadow:0_8px_30px_rgba(255,255,255,0.35)] sm:mb-10 sm:text-3xl md:mb-12 md:text-4xl lg:mb-14 lg:text-5xl 2xl:mb-16 2xl:text-6xl"
           >
             <SplitWords text={sectionHeading} inheritParent />
           </m.h2>
 
           <m.h3
             variants={revealVariant}
-            className="mb-8 font-jost-medium text-base uppercase tracking-wider text-white/90 sm:mb-10 sm:text-lg md:text-xl lg:mb-14 lg:text-2xl 2xl:mb-16 2xl:text-3xl"
+            whileHover={hoverLift}
+            className="mb-8 inline-block cursor-default font-jost-medium text-base uppercase tracking-wider text-white/90 transition-all duration-300 hover:tracking-[0.18em] hover:text-white sm:mb-10 sm:text-lg md:text-xl lg:mb-14 lg:text-2xl 2xl:mb-16 2xl:text-3xl"
           >
             {title}
           </m.h3>
@@ -48,14 +58,16 @@ export function VisionSection({ data }: Props) {
           <div className="grid gap-8 sm:gap-10 md:gap-12 lg:grid-cols-2 lg:gap-16 2xl:gap-20">
             <m.p
               variants={revealVariant}
-              className="min-w-0 text-sm leading-relaxed text-white/85 sm:text-base md:text-lg lg:text-xl 2xl:text-2xl"
+              whileHover={hoverLift}
+              className="min-w-0 cursor-default text-sm leading-relaxed text-white/80 transition-colors duration-300 hover:text-white sm:text-base md:text-lg lg:text-xl 2xl:text-2xl"
             >
               {leftColumn}
             </m.p>
 
             <m.p
               variants={revealVariant}
-              className="min-w-0 text-sm leading-relaxed text-white/85 sm:text-base md:text-lg lg:text-xl 2xl:text-2xl"
+              whileHover={hoverLift}
+              className="min-w-0 cursor-default text-sm leading-relaxed text-white/80 transition-colors duration-300 hover:text-white sm:text-base md:text-lg lg:text-xl 2xl:text-2xl"
             >
               {rightColumn}
             </m.p>

@@ -7,6 +7,14 @@ import { WifiOff, RefreshCw, ArrowRight } from 'lucide-react';
 const PROBE_URL = '/favicon.ico';
 const PROBE_INTERVAL_MS = 5000;
 const PROBE_TIMEOUT_MS = 4000;
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
+
+function shouldDisableOfflineOverlay() {
+  return (
+    typeof window !== 'undefined' &&
+    (LOCAL_HOSTNAMES.has(window.location.hostname) || window.location.hostname.endsWith('.local'))
+  );
+}
 
 async function probeNetwork(): Promise<boolean> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -35,6 +43,11 @@ export function OfflineIndicator() {
   const sinceStartRef = useRef<number>(0);
 
   const verify = useCallback(async () => {
+    if (shouldDisableOfflineOverlay()) {
+      setIsOffline(false);
+      return true;
+    }
+
     const online = await probeNetwork();
     setIsOffline(!online);
     return online;
@@ -42,6 +55,7 @@ export function OfflineIndicator() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (shouldDisableOfflineOverlay()) return;
 
     const initialStatusTimer = window.setTimeout(() => {
       setIsOffline(!navigator.onLine);

@@ -87,3 +87,41 @@ export type {
   TheJivoCapitalPlantContent,
   TheJivoCapitalSectionKey,
 } from './the-jivo-capital';
+
+export {
+  CertificationsMain,
+  CertificationsHero,
+  BadgesGridSection,
+  FeaturedBadgeSection,
+  getCertificationsPageSectionsAction,
+  getAllCertificationsSectionsAction,
+  getCertificationsSectionAction,
+  upsertCertificationsSectionAction,
+  deleteCertificationsSectionAction,
+  defaultSeo as certificationsDefaultSeo,
+} from './certifications-quality-standards';
+
+export type {
+  CertificationsHeroContent,
+  CertificationsBadgesContent,
+  CertificationsFeaturedContent,
+  CertificationBadge,
+  CertificationsSectionKey,
+} from './certifications-quality-standards';
+
+export {
+  MilestonesTimelineMain,
+  MilestonesTimelineVideo,
+  MilestonesTimelineVideoSkeleton,
+  getMilestonesTimelinePageSectionsAction,
+  getAllMilestonesTimelineSectionsAction,
+  getMilestonesTimelineSectionAction,
+  upsertMilestonesTimelineSectionAction,
+  deleteMilestonesTimelineSectionAction,
+  defaultSeo as milestonesTimelineDefaultSeo,
+} from './milestones-timeline';
+
+export type {
+  MilestonesTimelineVideoContent,
+  MilestonesTimelineSectionKey,
+} from './milestones-timeline';

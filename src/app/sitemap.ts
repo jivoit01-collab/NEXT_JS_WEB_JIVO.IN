@@ -16,6 +16,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/our-essence/the-story', priority: 0.8 as const, changefreq: 'weekly' as const },
     { path: '/our-essence/core-values', priority: 0.8 as const, changefreq: 'weekly' as const },
     {
+      path: '/our-essence/milestones-timeline',
+      priority: 0.8 as const,
+      changefreq: 'weekly' as const,
+    },
+    {
       path: '/our-essence/baru-sahib-association',
       priority: 0.8 as const,
       changefreq: 'weekly' as const,
@@ -33,6 +38,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       path: '/our-essence/the-jivo-capital',
+      priority: 0.8 as const,
+      changefreq: 'weekly' as const,
+    },
+    {
+      path: '/our-essence/certifications-quality-standards',
       priority: 0.8 as const,
       changefreq: 'weekly' as const,
     },

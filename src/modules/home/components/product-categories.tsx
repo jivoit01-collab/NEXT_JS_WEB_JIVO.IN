@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { SafeImage, SplitWords } from '@/components/shared/public';
 import { productCategories as defaults } from '../data/home-content';
 import type { CategoriesContent } from '../types';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { memo, useCallback, useRef, useState } from 'react';
 import { container, scaleIn, defaultViewport } from '@/lib/animation-variants';
 
@@ -60,7 +60,8 @@ export function ProductCategories({ data, isLoading }: ProductCategoriesProps) {
                         alt={category.name}
                         width={400}
                         height={400}
-                        className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                        className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                       />
                     </div>
 
@@ -120,20 +121,23 @@ export function ProductCategoriesSkeleton() {
 // 🔥 Tilt + Ripple (Optimized)
 const TiltCard = memo(function TiltCard({ children }: { children: React.ReactNode }) {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const prefersReduced = useReducedMotion();
   const [ripples, setRipples] = useState<Ripple[]>([]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (prefersReduced || !cardRef.current) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-    const rotateX = -(y - rect.height / 2) / 12;
-    const rotateY = (x - rect.width / 2) / 12;
+      const rotateX = -(y - rect.height / 2) / 12;
+      const rotateY = (x - rect.width / 2) / 12;
 
-    if (cardRef.current) {
       cardRef.current.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-    }
-  }, []);
+    },
+    [prefersReduced],
+  );
 
   const handleMouseLeave = useCallback(() => {
     if (cardRef.current) {

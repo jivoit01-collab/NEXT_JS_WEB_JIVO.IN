@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $AppPath = 'C:\LiveProjects\NEXT_JS_WEB_JIVO.IN'
 $ServiceName = 'jivo-web'
-$LogDir = 'C:\LiveProjects\deploy-logs'
+$LogDir = 'C:\LiveProjects\temp\deploy-logs'
 $HealthCheckUrl = $env:JIVO_HEALTHCHECK_URL
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
@@ -138,6 +138,43 @@ try {
   }
 
   Set-Location -LiteralPath $AppPath
+
+  $dirtyStatusBeforeLockCleanup = @(& git status --porcelain)
+  $packageLockDirty = @(
+    $dirtyStatusBeforeLockCleanup | Where-Object {
+      if ([string]::IsNullOrWhiteSpace($_) -or $_.Length -lt 4) {
+        $false
+      } else {
+        $statusPath = $_.Substring(3).Trim()
+        $statusPath -eq 'package-lock.json' -or $statusPath -eq '"package-lock.json"'
+      }
+    }
+  )
+
+  if ($packageLockDirty.Count -gt 0) {
+    $otherDirtyStatus = @(
+      $dirtyStatusBeforeLockCleanup | Where-Object {
+        if ([string]::IsNullOrWhiteSpace($_) -or $_.Length -lt 4) {
+          $true
+        } else {
+          $statusPath = $_.Substring(3).Trim()
+          -not ($statusPath -eq 'package-lock.json' -or $statusPath -eq '"package-lock.json"')
+        }
+      }
+    )
+
+    if ($otherDirtyStatus.Count -gt 0) {
+      Write-Host ('package-lock.json is dirty, but other local changes also exist: ' + ($otherDirtyStatus -join '; '))
+      Write-Host 'Auto-discarding package-lock.json only; dirty-tree guard will still verify remaining changes.'
+    }
+
+    & git checkout -- package-lock.json
+    if ($LASTEXITCODE -eq 0) {
+      Write-Host 'Auto-discarded package-lock.json changes (generated file, safe to reset).'
+    } else {
+      Write-Host ('Auto-discard package-lock.json failed with exit code ' + $LASTEXITCODE + '. Existing dirty-tree guard will decide whether to stop deploy.')
+    }
+  }
 
   $dirtyStatus = (& git status --porcelain)
   if ($dirtyStatus) {

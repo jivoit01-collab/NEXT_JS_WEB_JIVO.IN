@@ -22,17 +22,18 @@ export function BaruSahibAssociationHero({ data }: BaruSahibAssociationHeroProps
         alt=""
         fill
         priority
-        quality={78}
+        fetchPriority="high"
+        quality={90}
         className="object-cover object-center"
         sizes={HERO_IMAGE_SIZES}
       />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl px-4 pt-20 pb-10 sm:px-6 sm:pt-24 sm:pb-12 md:pt-28 md:pb-14 lg:justify-end lg:px-8 lg:pt-20 lg:pb-24 2xl:max-w-screen-2xl 2xl:px-20 2xl:pt-52 2xl:pb-36">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl px-3 pt-20 pb-10 sm:px-4 sm:pt-24 sm:pb-12 md:pt-28 md:pb-14 lg:justify-end lg:px-6 lg:pt-20 lg:pb-24 xl:px-8 2xl:max-w-screen-2xl 2xl:px-12 2xl:pt-52 2xl:pb-36">
         <div className="max-w-3xl min-w-0 lg:w-[54%]">
-          <h1 className="font-jost-extrabold text-3xl leading-[0.95] text-balance text-white uppercase sm:text-4xl md:text-6xl lg:text-5xl 2xl:text-7xl">
+          <h1 className="font-jost-extrabold inline-block cursor-default text-3xl leading-[0.95] text-balance text-white uppercase drop-shadow-[0_3px_14px_rgba(0,0,0,0.5)] transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:drop-shadow-[0_12px_34px_rgba(216,193,135,0.45)] sm:text-4xl md:text-6xl lg:text-5xl 2xl:text-7xl">
             {title}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-pretty text-white/90 sm:text-base md:text-lg lg:mt-5 lg:text-xl 2xl:mt-7 2xl:max-w-3xl 2xl:text-2xl">
+          <p className="mt-4 max-w-2xl cursor-default text-sm leading-relaxed text-pretty text-white/90 transition-all duration-500 ease-out hover:-translate-y-1 hover:text-white sm:text-base md:text-lg lg:mt-5 lg:text-xl 2xl:mt-7 2xl:max-w-3xl 2xl:text-2xl">
             {description}
           </p>
         </div>

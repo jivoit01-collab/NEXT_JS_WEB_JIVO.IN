@@ -1,237 +1,405 @@
-﻿# performance.md - jivo-web Performance & Lighthouse Rules (STRICT)
+# Web Performance and Lighthouse Standard
 
-> **How to use this file:** Read in full before optimizing any page. These are hard constraints. Always **MEASURE FIRST** (Section 10), fix per these rules, then **RE-MEASURE and report** what changed and which Lighthouse audit each fix targeted. Never sacrifice the rules in `responsive.md` to gain a performance point. Both must pass.
+This is the permanent performance, accessibility, best-practices, and SEO ruleset for this Next.js project. Every new or edited page must pass the checklist at the end of this file before the work is considered done.
 
----
+## 1. How To Use This File
 
-## 0. Locked project context (do NOT re-derive)
+**ABSOLUTE RULE — DO NOT CHANGE STYLING:**
+When applying any fix from this file, you must not change the visual appearance of any page. Specifically:
 
-- **Framework:** Next.js 16 (App Router, `src/app/`), TypeScript, Turbopack dev.
-- **Styling:** Tailwind v4 via `globals.css` (`@theme inline`). No config file.
-- **Font:** Jost via `next/font/local` (`--font-jost`, `display: swap`, 7 weight files).
-- **Animation:** Motion (framer-motion v12) across ~27 client components; centralized `src/lib/animation-variants.ts`. Existing rule: **never animate the hero/LCP element** - keep it.
-- **Images:** `next/image` via `safe-image` / `image-with-fallback` wrappers.
+- Do not change Tailwind classes, colors, spacing, fonts, sizes, layout, or animations that affect how the page looks.
+- Do not rename, reorder, or restyle existing markup beyond what a fix strictly requires.
+- Fixes are about HOW content is delivered and rendered (server vs client, prefetch, image pipeline, placeholder heights, semantics, metadata) — NOT how it looks. The page must look pixel-identical before and after, on mobile and desktop.
+- If a correct fix would unavoidably change appearance, STOP and ask the user first instead of proceeding.
 
----
+Read this file before creating or editing any public page, shared page component, image-heavy section, layout, metadata helper, or CMS-driven page module.
 
-## 1. Golden rules (read first)
+Every page should target Lighthouse scores as close as possible to `100 / 100 / 100 / 100` for Performance, Accessibility, Best Practices, and SEO. If a page cannot meet a rule because of CMS content, document the reason and fix the source content when possible.
 
-- [ ] **MEASURE ON A CLEAN RUN.** Lighthouse must be run in Incognito with browser extensions disabled, using mobile preset, on the HTTPS production domain.
-- [ ] Never trust a score from a run where Lighthouse warns about extensions or an incomplete/timed-out load (for example the previous 29 score on `our-fair-share`).
-- [ ] **MEASURE before and after.** Never claim a fix without a before/after number or a named Lighthouse audit (Section 10).
-- [ ] **The LCP element is sacred.** Identify it, load it `priority`, never lazy-load it, never animate it, reserve its space.
-- [ ] **Default to Server Components.** Add `"use client"` ONLY to components that need interactivity/animation. Keep client boundaries as small and as low in the tree as possible.
-- [ ] **Reserve space for everything** (images, media, dynamic content) to keep CLS near 0.
-- [ ] **Ship less JavaScript.** Lazy-load below-the-fold and heavy client components.
-- [ ] **Fix every console error/warning** - they cap Best Practices.
-- [ ] **Re-test Best Practices on the HTTPS production domain**, not the HTTP dev IP.
-- [ ] Never break `responsive.md` rules to gain performance.
+## 2. Performance
 
----
+### Images
 
-## 2. Baseline & targets
+Use `SafeImage` from `@/components/shared/public` for project images. It wraps `next/image` and resolves CMS/upload paths safely.
 
-Measured pages (HTTP dev `103.89.45.75:3001`, extensions active):
+Hero/LCP rules:
 
-| Route | Performance | Accessibility | Best Practices | SEO |
-| --- | ---: | ---: | ---: | ---: |
-| `/our-essence/the-story` | 66 | 96 | 70 | 100 |
-| `/our-essence/core-values` | 68 | 100 | 70 | 100 |
-| `/our-essence/baru-sahib-association` | 70 | 98 | 70 | 100 |
-| `/our-essence/social-initiatives` | 43 | 98 | 70 | 100 |
-| `/our-essence/our-fair-share` | 29 *(UNRELIABLE: extensions + incomplete/timed-out load)* | 98 | 70 | 100 |
-
-Note: these values are not clean baselines. Real scores must be taken from an **Incognito, extensions-disabled, mobile Lighthouse run on the HTTPS production domain**.
-
-Targets:
-- [ ] Performance >= 90
-- [ ] Best Practices >= 95 (most of the gap is HTTP + console errors)
-- [ ] Keep Accessibility >= 96 and SEO 100 (do NOT regress them)
-
-Core Web Vitals targets (mobile): **LCP < 2.5s, CLS < 0.1, TBT < 200ms, FCP < 1.8s**.
-
----
-
-## 3. Images & LCP (the biggest lever)
-
-- [ ] Identify the LCP element first (DevTools > Performance/Lighthouse > "Largest Contentful Paint element"). On hero pages it's the hero image or the hero heading.
-- [ ] The LCP image MUST set `priority` (preloads, disables lazy-load). Below-the-fold images MUST NOT use `priority` (default lazy-load is correct).
-- [ ] Every `next/image` MUST have an accurate `sizes`, e.g. full-bleed hero: `sizes="100vw"`; half-width: `sizes="(max-width: 768px) 100vw, 50vw"`. Wrong `sizes` = oversized downloads = slow LCP.
-- [ ] Provide intrinsic dimensions: explicit `width`/`height`, OR `fill` inside a container that has a reserved aspect ratio (`aspect-[16/9]` / fixed `min-h`). Prevents CLS.
-- [ ] Tune `quality` (try `quality={70-80}`) - large hero JPEGs are often the heaviest byte cost.
-- [ ] Enable modern formats in `next.config`: `images: { formats: ['image/avif', 'image/webp'] }`.
-- [ ] Source images MUST NOT be larger than needed. If a hero source is multi-MB or >2500px wide, downscale it at the source.
-- [ ] Background-image heroes set via CSS (not `next/image`) are NOT optimized; convert decorative-but-large backgrounds to `next/image` with `fill` where feasible.
-
----
-
-## 4. Fonts (Jost / next/font)
-
-- [ ] Keep `next/font/local` (self-hosted, no extra connection). Good as-is.
-- [ ] Preload ONLY the weights used above the fold; set `preload: true` on those, `preload: false` on rarely-used weights to cut bytes.
-- [ ] Keep `display: 'swap'`. Rely on next/font's automatic fallback metric adjustment to minimize CLS (don't disable it).
-- [ ] Avoid loading all 7 weights on every route if a route uses only 2-3; subset where practical.
-- [ ] Do NOT add external font CDNs.
-
----
-
-## 5. JavaScript & TBT (Motion hydration cost)
-
-- [ ] Make `LazyMotion` + `m` the default Motion pattern across this codebase (around 27 Motion client components). Avoid importing full `motion` unless there is a proven reason.
-- [ ] Wrap Motion use with `LazyMotion` + `m`:
-  ```jsx
-  "use client";
-  import { LazyMotion, domAnimation, m } from "framer-motion";
-  <LazyMotion features={domAnimation}>
-    <m.div initial="hidden" whileInView="show" variants={fadeUp} />
-  </LazyMotion>
-  ```
-  (`m` + `domAnimation` ships far less JS than `motion`.)
-- [ ] Below-the-fold heavy client sections MUST be `next/dynamic` imported so their JS is not in the initial bundle:
-  ```jsx
-  const CinematicVideoSection = dynamic(() => import("./CinematicVideoSection"));
-  ```
-  (Use `ssr: false` when SEO value is intentionally absent.)
-- [ ] Keep `"use client"` boundaries small. A single client leaf should not force a full route subtree to become client-rendered.
-- [ ] Split static content into Server Components.
-- [ ] Don't run scroll/resize listeners without throttle; prefer the existing `use-scroll` hook / Intersection Observer (Motion's `whileInView` already uses observers).
-- [ ] Remove unused imports/dead code flagged by Lighthouse as reduce unused JavaScript.
-
----
-
-## 6. CLS - layout stability
-
-- [ ] Every image/video/embed has reserved space (Section 3). No exceptions.
-- [ ] Never insert content above existing content after load (banners, late hero text).
-- [ ] Animations animate `transform`/`opacity` only - never layout props (already in responsive.md).
-- [ ] Hero text/heading must occupy its final box from first paint (font fallback metrics handle the swap).
-
----
-
-## 7. Render path - FCP / Speed Index
-
-- [ ] No render-blocking third-party scripts. Defer/async anything non-critical; load analytics via `next/script` with `strategy="afterInteractive"` or `lazyOnload`.
-- [ ] `preconnect`/`dns-prefetch` only for origins used early (for example image CDN). Don't over-preconnect.
-- [ ] Keep critical CSS minimal - Tailwind v4 purges unused; avoid importing large unused CSS.
-- [ ] Avoid large client-side data fetching that blocks first paint; fetch on the server (Server Components / route handlers) where possible.
-
----
-
-## 8. Best Practices fixes (currently 70)
-
-- [ ] **HTTPS:** re-run Lighthouse on the HTTPS production domain. The HTTP dev IP (`103.89.45.75:3001`) penalizes Best Practices.
-- [ ] **Console errors/warnings:** open the Console, fix EVERY error and warning (the report shows active shared errors). Common culprits: failed image/resource loads, hydration mismatches, deprecated API usage, missing keys.
-- [ ] **Image aspect ratio:** ensure rendered `width:height` matches source natural ratio (Lighthouse flags distortions). Use correct dimensions / `object-cover` with fixed box.
-- [ ] **No deprecated APIs**; no `document.write`; no mixed content.
-- [ ] Add baseline security headers in `next.config` where possible (for example `X-Content-Type-Options: nosniff`) and keep scripts secure.
-
----
-
-## 9. next.config / network
-
-- [ ] `images.formats: ['image/avif','image/webp']`.
-- [ ] Confirm compression is on (default in Next) and static assets are cache-headed by the host.
-- [ ] Verify `images.deviceSizes`/`imageSizes` are sane for the `sizes` in use (defaults are usually fine).
-
----
-
-## 10. Measurement workflow (MANDATORY - do this every time)
-
-1. **Before:** run Lighthouse (mobile, incognito, HTTPS production) on the target route. Record Performance, Best Practices, and four vitals (LCP, CLS, TBT, FCP) + the LCP element + top opportunities/diagnostics.
-2. Note the **specific failing audits** (for example "Properly size images", "Reduce unused JavaScript", "Largest Contentful Paint element", "Avoid large layout shifts").
-3. Apply fixes mapped to those exact audits and the relevant canonical sections below.
-4. **After:** re-run Lighthouse the same way and record new numbers.
-5. **Report**: audit => what changed => before/after metric. No fix is complete without this table.
-
-> If Lighthouse cannot run here, reason from the audit list and report expected impact, then ask for a clean re-run.
-
----
-
-## 11. Per-page workflow
-
-1. Read this file and `responsive.md`.
-2. Run a clean baseline (Section 1, Section 10).
-3. Run Network tab > sort by size and identify the heaviest resource first (Section 16).
-4. Fix in this order:
-   - Shared recurring console errors (Section 13).
-   - Apply `standard hero/section image pattern` (Section 14) where relevant.
-   - Apply `video performance` rules if cinematic media is present (Section 15).
-   - Apply canonical JS/TBT reductions (Section 5).
-5. Re-check `responsive.md` at all six widths (no regressions).
-6. Re-measure with the same clean run.
-7. Submit the before->after table (Section 10).
-
----
-
-## 12. Definition of done (final gate)
-
-- [ ] Clean baseline + re-measure are recorded on HTTPS production.
-- [ ] LCP element identified, priority set, space-reserved, not animated.
-- [ ] All `next/image` have correct `sizes` + intrinsic dimensions/space reservation.
-- [ ] AVIF/WebP enabled and oversized sources downscaled.
-- [ ] Shared recurring console errors fixed once (Section 13).
-- [ ] Motion uses `LazyMotion`/`m` as default; heavy below-the-fold sections are dynamic imports.
-- [ ] CLS < 0.1 (everything reserved); TBT < 200ms; LCP < 2.5s.
-- [ ] Report table delivered (audit => change => before/after).
-- [ ] Accessibility and SEO not regressed.
-- [ ] `responsive.md` rules pass at all six widths.
-
----
-
-## 13. Recurring site-wide issues (fix once, helps every page)
-
-- [ ] Best Practices is pinned near 70 on all measured essence pages. Treat this as a shared issue: recurring shared-code console error(s) + HTTP dev context.
-- [ ] Fix the recurring console error in shared runtime/layout paths once (layout, providers, navbar, footer, offline-indicator).
-- [ ] If any route has low Performance for the same reasons, treat it as pattern debt first: image payloads + above-the-fold Motion hydration.
-
-## 14. Standard hero/section image pattern (reuse everywhere)
-
-- [ ] next/image with `fill`, priority ONLY on LCP hero, `sizes="100vw"` for full-bleed sections.
-- [ ] Reserve a stable container size (`min-h-*` or aspect ratio) so CLS stays near zero.
-- [ ] Use `quality={70-80}` for large section/hero assets.
-- [ ] Enable AVIF/WebP output via `next.config`.
-- [ ] Add a contrast scrim for text over images.
-- [ ] Large decorative CSS backgrounds MUST be converted to this pattern.
+- Use WebP or AVIF for CMS uploads whenever possible.
+- Keep hero/LCP images around `200KB` after compression.
+- Never lazy-load the hero image.
+- Use `priority` and `fetchPriority="high"` for the LCP image.
+- Always provide `sizes`.
+- For `fill`, the parent must have stable dimensions.
+- For non-`fill`, provide explicit `width` and `height`.
+- Lazy-load all below-the-fold images by leaving `priority` off.
 
 ```tsx
-<section className="relative min-h-[60svh]">
-  <SafeImage
-    src={heroImage}
-    alt="..."
-    fill
-    priority
-    sizes="100vw"
-    quality={80}
-    className="object-cover"
-  />
-  <div className="absolute inset-0 bg-linear-to-r from-black/30 via-black/10 to-black/20" />
-  <div className="relative z-10">...</div>
-</section>
+import { SafeImage } from '@/components/shared/public';
+
+export function PageHero({ image, title }: { image: string; title: string }) {
+  return (
+    <section className="relative min-h-[60svh] overflow-hidden bg-[#1c261f] lg:min-h-screen">
+      <SafeImage
+        src={image}
+        alt={title}
+        fill
+        priority
+        fetchPriority="high"
+        quality={90}
+        className="object-cover object-center"
+        sizes="(max-width: 768px) 100vw, 1920px"
+      />
+      <div className="absolute inset-0 bg-black/35" />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-16">
+        <h1 className="font-jost-extrabold text-3xl text-white lg:text-6xl">{title}</h1>
+      </div>
+    </section>
+  );
+}
 ```
 
-## 15. Video performance (cinematic sections)
-
-- [ ] Never eager-load heavy video files.
-- [ ] Use `poster` + `preload="metadata"`.
-- [ ] Load and play only when visible (Intersection Observer or `next/dynamic` with `ssr: false`).
-- [ ] Compress source media.
-- [ ] Use this pattern for cinematic sections, especially `CinematicVideoSection`.
+Decorative background images must use empty alt text. Content images must describe the content.
 
 ```tsx
-<video
-  poster="/path/poster.webp"
-  preload="metadata"
-  controls
-  playsInline
-  muted
+<SafeImage src={backgroundImage} alt="" fill className="object-cover" sizes="100vw" />
+<SafeImage src={founderImage} alt="Baba Iqbal Singh Ji, founding father" width={384} height={384} />
+```
+
+### Fonts
+
+Use WOFF2 only for production fonts. This project currently loads Jost from `public/fonts` as `.ttf`; convert these to `.woff2` and update `src/app/layout.tsx`.
+
+```tsx
+import localFont from 'next/font/local';
+
+const jost = localFont({
+  src: [
+    { path: '../../public/fonts/Jost-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/Jost-Bold.woff2', weight: '700', style: 'normal' },
+    { path: '../../public/fonts/Jost-ExtraBold.woff2', weight: '800', style: 'normal' },
+  ],
+  variable: '--font-jost',
+  display: 'swap',
+  preload: true,
+});
+```
+
+Font rules:
+
+- Use `font-display: swap`.
+- Self-host fonts in `public/fonts`.
+- Keep only the weights used by the UI.
+- Preload the headline font through `next/font/local`.
+- Avoid loading remote font CSS.
+
+### JS and CSS
+
+Production builds are minified by Next.js. Keep page code split by using server components, `next/dynamic`, and lazy client islands.
+
+```tsx
+import dynamic from 'next/dynamic';
+
+const PrinciplesSection = dynamic(
+  () => import('./principles-section').then((mod) => mod.PrinciplesSection),
+  { loading: () => <PrinciplesSectionSkeleton /> },
+);
+```
+
+Rules:
+
+- Keep interactive components client-side only when they need hooks.
+- Do not put `use client` on full page trees unless required.
+- Defer non-critical widgets with `LazyOnView`.
+- Remove unused CSS and avoid one-off global CSS.
+- Inline only truly critical above-the-fold styles through component classes.
+- Do not initialize sliders, observers, video, or animation loops before the page is interactive.
+- Use `useReducedMotion()` for heavy motion.
+
+### Server and Caching
+
+`next.config.ts` already enables compression and production cache headers for static assets. Keep this pattern:
+
+```ts
+const nextConfig = {
+  poweredByHeader: false,
+  compress: true,
+  async headers() {
+    return [
+      {
+        source: '/_next/static/(.*)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        source: '/api/uploads/(.*)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, s-maxage=604800' }],
+      },
+    ];
+  },
+};
+```
+
+At deploy time, enable Brotli and Gzip at Nginx/CDN. Do not depend on local dev for compression audits.
+
+## 3. Best Practices
+
+### HTTPS and Security Headers
+
+HTTPS and real-domain certificate checks happen in production, not on `localhost` or a local IP.
+
+Deploy checklist:
+
+- Redirect all HTTP traffic to HTTPS.
+- Serve with a valid TLS certificate.
+- Add CSP after verifying all image/script/style sources used by the app.
+- Keep zero console errors and zero 404s.
+- Serve images at their display dimensions.
+- Avoid deprecated browser and React/Next APIs.
+
+```nginx
+server {
+  listen 80;
+  server_name jivo.in www.jivo.in;
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  server_name jivo.in www.jivo.in;
+
+  add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: https://utfs.io https://uploadthing.com https://lh3.googleusercontent.com; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; frame-ancestors 'none';" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header X-Frame-Options "DENY" always;
+
+  brotli on;
+  gzip on;
+
+  location / {
+    proxy_pass http://127.0.0.1:3001;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto https;
+  }
+}
+```
+
+## 4. Accessibility
+
+Rules:
+
+- Text contrast must be at least `4.5:1`.
+- Photo backgrounds with text must include a dark overlay.
+- Every content image needs useful `alt`.
+- Decorative images use `alt=""`.
+- Icon-only buttons need `aria-label`.
+- Every input needs a visible label or `aria-label`.
+- Use one `<h1>` per page.
+- Keep heading order logical: `h1`, then `h2`, then `h3`.
+- Root layout must keep `<html lang="en">`.
+- Interactive elements must have visible focus styles.
+
+```tsx
+<button
+  type="button"
+  aria-label="Open navigation menu"
+  className="rounded-md focus-visible:ring-2 focus-visible:ring-white"
 >
-  <source src="/videos/scene-compressed.mp4" type="video/mp4" />
-</video>
+  <Menu className="h-5 w-5" />
+</button>
 ```
 
-## 16. Triage by score
+## 5. SEO
 
-- [ ] If a page scores < 50, start with Network tab "Sort by size" and fix the single largest resource first.
-- [ ] One oversized/heaviest asset usually dominates the score and should be fixed before smaller cleanup items.
+Every indexable public page needs:
 
+- Unique title.
+- Unique meta description.
+- Canonical URL.
+- Open Graph title, description, and image.
+- Twitter card metadata.
+- Descriptive link text.
+- `viewport` meta from the root layout.
+- Inclusion in `src/app/sitemap.ts` when public.
+- Valid robots policy in `src/app/robots.ts`.
+- JSON-LD when the page represents a business, article, product, event, or about page.
 
+Use the existing SEO helpers:
+
+```tsx
+import { JsonLd } from '@/components/shared/public';
+import { getStructuredData, resolveSeo } from '@/modules/seo/utils';
+import { defaultSeo } from '@/modules/our-essence/core-values/data/defaults';
+
+export async function generateMetadata() {
+  return resolveSeo('our-essence-core-values', defaultSeo);
+}
+
+export default async function CoreValuesPage() {
+  const structuredData = await getStructuredData('our-essence-core-values', defaultSeo);
+
+  return (
+    <>
+      {structuredData && <JsonLd data={structuredData} />}
+      <main>{/* page sections */}</main>
+    </>
+  );
+}
+```
+
+## 6. Semantic HTML
+
+Prefer semantic elements and real controls. Do not ship clickable `div`s.
+
+| Use this                               | Instead of this                                |
+| -------------------------------------- | ---------------------------------------------- |
+| `<header>`                             | `<div className="header">`                     |
+| `<nav aria-label="Main">`              | `<div className="nav">`                        |
+| `<main>`                               | `<div id="main">`                              |
+| `<section aria-labelledby="...">`      | unrelated nested `<div>` wrappers              |
+| `<article>`                            | repeated content cards as plain `<div>`        |
+| `<aside>`                              | sidebar/complementary content as plain `<div>` |
+| `<footer>`                             | `<div className="footer">`                     |
+| `<button type="button">`               | `<div onClick={...}>`                          |
+| `<a href="/path">Descriptive text</a>` | `<button>` for navigation                      |
+
+```tsx
+<main>
+  <section aria-labelledby="quality-heading" className="py-16">
+    <h2 id="quality-heading">Quality From Farm To Bottle</h2>
+    <p>Describe the section clearly.</p>
+  </section>
+</main>
+```
+
+## 7. Meta Tags
+
+In this app-router project, pages should use `generateMetadata()` instead of hand-writing `<head>`. The rendered head must be equivalent to this:
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Jivo Capital | Jivo Wellness</title>
+  <meta name="description" content="A concise unique page description." />
+  <link rel="canonical" href="https://jivo.in/our-essence/the-jivo-capital" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="The Jivo Capital | Jivo Wellness" />
+  <meta property="og:description" content="A concise unique page description." />
+  <meta property="og:image" content="https://jivo.in/api/uploads/hero.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://utfs.io" crossorigin />
+  <link rel="preload" href="/fonts/Jost-ExtraBold.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="icon" href="/favicon.ico" />
+</head>
+```
+
+Project-style SEO defaults:
+
+```ts
+import { SITE_URL } from '@/lib/constants';
+import { definePageSeo } from '@/modules/seo';
+
+export const defaultSeo = definePageSeo({
+  metaTitle: 'The Jivo Capital | Our Essence | Jivo Wellness',
+  metaDescription: 'Explore Jivo Wellness manufacturing excellence and quality standards.',
+  ogTitle: 'The Jivo Capital | Jivo Wellness',
+  ogDescription: 'A cinematic look at Jivo Wellness manufacturing and quality.',
+  ogImage: '/api/uploads/the-jivo-capital-hero.webp',
+  twitterCard: 'summary_large_image',
+  canonicalUrl: `${SITE_URL}/our-essence/the-jivo-capital`,
+  robots: 'index,follow',
+  structuredData: {
+    '@type': 'AboutPage',
+    name: 'The Jivo Capital',
+    url: `${SITE_URL}/our-essence/the-jivo-capital`,
+  },
+});
+```
+
+JSON-LD:
+
+```tsx
+import { JsonLd } from '@/components/shared/public';
+
+<JsonLd
+  data={{
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'The Jivo Capital',
+    url: 'https://jivo.in/our-essence/the-jivo-capital',
+  }}
+/>;
+```
+
+## 8. Per-Page Checklist
+
+Copy this checklist into the task notes before finishing any new or edited page.
+
+Performance:
+
+- [ ] Hero/LCP image is WebP/AVIF and around `200KB`. (Exception: essence hero images intentionally run higher — ~`435KB` at `quality={90}` — to prioritize sharpness over size. This is a deliberate tradeoff; do NOT re-compress or downscale them to hit 200KB, as that reintroduces the blur.)
+- [ ] Hero/LCP image uses `priority`, `fetchPriority="high"`, and accurate `sizes`.
+- [ ] Below-the-fold images are lazy-loaded.
+- [ ] All non-`fill` images have `width` and `height`.
+- [ ] All `fill` images have stable parent dimensions.
+- [ ] Fonts are WOFF2, self-hosted, preloaded through `next/font/local`, and use `display: swap`.
+- [ ] Client JS is split; no unnecessary `use client` at page level.
+- [ ] Heavy animations/sliders wait until after interaction or viewport entry.
+- [ ] Production cache headers and compression remain intact.
+
+Best Practices:
+
+- [ ] Page has no console errors.
+- [ ] Page has no missing assets or 404s.
+- [ ] No deprecated APIs are introduced.
+- [ ] Image dimensions match display needs.
+- [ ] HTTPS/security-header deployment checklist is still satisfied.
+
+Accessibility:
+
+- [ ] One `<h1>` exists on the page.
+- [ ] Heading order is logical.
+- [ ] Text contrast is at least `4.5:1`.
+- [ ] Text over images has a readable overlay.
+- [ ] Content images have meaningful alt text.
+- [ ] Decorative images use `alt=""`.
+- [ ] Icon-only buttons have `aria-label`.
+- [ ] Inputs have labels.
+- [ ] Focus states are visible.
+- [ ] Keyboard navigation works.
+
+SEO:
+
+- [ ] Unique title and meta description are configured.
+- [ ] Canonical URL is correct.
+- [ ] Open Graph and Twitter metadata are configured.
+- [ ] Public page is present in `src/app/sitemap.ts`.
+- [ ] Robots rules do not block the page.
+- [ ] Links use descriptive text.
+- [ ] JSON-LD is present when relevant.
+
+## 9. Remediation Plan (from production audit)
+
+A production audit found five root causes behind three reported symptoms: a 1–2s delay before content appears on navigation, images appearing 4–5s after text, and an occasional blank screen before anything renders. Fix them in the priority order below, one page/area at a time.
+
+Priority order:
+
+1. **Image delivery (biggest win, fixes the 4–5s image delay).** Images are tiny on the wire (~40KB) but slow because sharp re-encodes AVIF/WebP on every request with no CDN and a cold cache. Fix: put a CDN/edge cache in front of `/_next/image` and `/api/uploads`, raise `images.minimumCacheTTL`, pre-generate derivatives so sharp never runs on the request path, and downscale oversized source images (some are ~1MB / 2000px). Files: `route.ts`, `next.config.ts`, `safe-image.tsx`.
+2. **Un-defer static sections (fixes skeleton-then-content + blank).** The 5 essence pages wrap static CMS content in `LazyOnView` + `dynamic()`, making SEO-relevant content client-only. Fix: render those sections as plain Server Components so they ship in the ISR HTML; reserve `next/dynamic` for genuinely heavy client widgets only. Files: `social-initiatives-main.tsx`, `baru-sahib-association`, `the-jivo-capital`, `our-fair-share`, `for-mother-earth`. (`the-story`, `core-values`, and `home` already use the correct pattern — make the others consistent.)
+3. **Prefetch warming (fixes the 1–2s click delay).** Routes are ISR and fast, but primary nav links are hidden in dropdowns/footer/off-screen drawer, so Next never prefetches them. Fix: prefetch primary destinations on menu hover/intent. Files: `navbar.tsx`, `footer.tsx`.
+4. **Skeleton/CLS height + cold-ISR (fixes occasional blank).** Placeholder heights are only reserved at the `lg:` breakpoint, so mobile skeletons collapse to near-zero and read as empty; cold-ISR loads also flash white. Fix: reserve placeholder height at ALL breakpoints; add on-demand revalidation so the cache is rarely cold. Files: `loading.tsx` + sibling skeletons, `*-main.tsx` (`minHeight` values).
+5. **Font trim (polish).** 7 Jost weights (~420KB) preload and compete with the LCP image; 2 italics are unused. Fix: set `preload: false` on rarely-used weights. Files: `layout.tsx`.
+
+Confirmed NOT problems (do not "fix" these): ISR/SSG/CSR render split is correct; data layer is correct; nav/footer already use `<Link>` (no full reloads); no public CSR data provider; CSS is a single build-time Tailwind bundle; fonts use `display: swap`.
+
+## 10. Per-Page Remediation Workflow
+
+Fix ONE page (or one area) at a time, so changes stay small and reversible:
+
+1. Pick one page/area from the priority list in Section 9.
+2. State which root cause(s) apply to it and the exact files involved.
+3. Take a "before" baseline: note current Lighthouse scores and confirm the page's current visual appearance on mobile and desktop.
+4. Apply ONLY the delivery/rendering fix — never touch styling (see Section 1 rule).
+5. Run a production build (`npm run build`) and test that build, not the dev server.
+6. Verify: the page looks pixel-identical to before, the targeted symptom is gone, and the per-page checklist in Section 8 still passes.
+7. Commit that single page's change on its own branch/commit with a clear message before moving to the next page.
+8. Never batch multiple pages or multiple root causes into one change set.

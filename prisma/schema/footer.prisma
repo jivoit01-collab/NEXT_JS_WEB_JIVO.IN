@@ -35,13 +35,50 @@ model FooterLink {
 // Singleton — only one row with id = "default". Holds brand + contact info
 // shown in the footer bottom bar.
 model FooterSetting {
-  id            String   @id @default("default")
-  logoUrl       String?  // Uploaded brand logo
-  logoAlt       String?  // Alt text fallback
-  copyrightText String?  // e.g. "All Right Reserved © 2026"
-  address       String?  @db.Text
-  email         String?
-  phone         String?
-  phoneLabel    String?  // e.g. "(TOLL FREE)"
-  updatedAt     DateTime @updatedAt
+  id                String   @id @default("default")
+  logoUrl           String?  // Uploaded brand logo
+  logoAlt           String?  // Alt text fallback
+  copyrightText     String?  // e.g. "All Right Reserved © 2026"
+  address           String?  @db.Text
+  email             String?
+  phone             String?
+  phoneLabel        String?  // e.g. "(TOLL FREE)"
+  addressMapUrl     String?  @db.Text // Google Maps (or any) link opened when the address is clicked
+  tagline           String?  // "Bringing nature's finest to your everyday wellness."
+  brandPromise      String?  // brand block promise line, e.g. "Pure. Natural. Trusted."
+  brandPromiseSub   String?  // sub-line under the promise, e.g. "Since 2016"
+  ctaLabel          String?  // brand block CTA button label, e.g. "Explore Products"
+  ctaHref           String?  // brand block CTA button link, e.g. "/products"
+  leafImageTop      String?  // decorative leaf image, top-left of the brand card
+  leafImageBottom   String?  // decorative leaf image, bottom-right of the brand card
+  followLabel       String?  @default("FOLLOW US")
+  certificationText String?  // shared caption, e.g. "Proudly Certified. Committed to Quality."
+  madeInText        String?  // optional, e.g. "Made with care in India"
+  updatedAt         DateTime @updatedAt
+}
+
+// Social profile links shown in the footer brand block (FOLLOW US row).
+model FooterSocialLink {
+  id        String   @id @default(cuid())
+  platform  String // "instagram" | "facebook" | "youtube" | "linkedin" | "x" ...
+  url       String // full profile URL
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+// Certification badge images shown in the footer bottom bar.
+model FooterCertificate {
+  id        String   @id @default(cuid())
+  imageUrl  String // uploaded badge image
+  alt       String? // accessibility alt text
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
 }

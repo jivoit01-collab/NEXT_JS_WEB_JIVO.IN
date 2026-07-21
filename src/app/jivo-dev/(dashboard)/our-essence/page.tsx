@@ -12,6 +12,8 @@ import {
   Scale,
   Leaf,
   Factory,
+  Award,
+  Film,
 } from 'lucide-react';
 
 interface PageEntry {
@@ -45,6 +47,13 @@ const SECTION_PAGES: PageEntry[] = [
     color: 'from-emerald-500/20 to-emerald-600/5',
   },
   {
+    label: 'Milestones Timeline',
+    href: '/jivo-dev/our-essence-milestones-timeline',
+    icon: Film,
+    description: 'Single full-screen timeline video',
+    color: 'from-violet-500/20 to-violet-600/5',
+  },
+  {
     label: 'Social Initiatives',
     href: '/jivo-dev/our-essence-social-initiatives',
     icon: Users,
@@ -71,6 +80,13 @@ const SECTION_PAGES: PageEntry[] = [
     icon: Factory,
     description: 'Manufacturing excellence, oil plant & water plant',
     color: 'from-slate-500/20 to-slate-600/5',
+  },
+  {
+    label: 'Certifications & Quality Standards',
+    href: '/jivo-dev/our-essence-certifications-quality-standards',
+    icon: Award,
+    description: 'Certification badges grid & featured badge',
+    color: 'from-indigo-500/20 to-indigo-600/5',
   },
 ];
 

@@ -25,9 +25,17 @@ function imageWithFallback(image: string) {
 
 export function PlantSection({ data, fallback }: PlantSectionProps) {
   const section = data ?? (fallback === 'oil' ? defaultOilPlantContent : defaultWaterPlantContent);
-  const alignRight = section.align === 'right';
+  // `align: 'right'` is used by the water plant — it anchors the copy to the TOP
+  // (vs. the oil plant at the bottom); both columns stay left-aligned per design.
+  const anchorTop = section.align === 'right';
   const prefersReducedMotion = useReducedMotion();
   const revealItem = prefersReducedMotion ? reducedMotion : fadeUpSlow;
+  const hoverLift = prefersReducedMotion
+    ? undefined
+    : { y: -6, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } };
+  const hoverHeading = prefersReducedMotion
+    ? undefined
+    : { y: -6, scale: 1.012, transition: { type: 'spring' as const, stiffness: 280, damping: 18 } };
 
   return (
     <LazyMotion features={domAnimation}>
@@ -44,19 +52,20 @@ export function PlantSection({ data, fallback }: PlantSectionProps) {
           sizes={PLANT_IMAGE_SIZES}
         />
         <div className="absolute inset-0 bg-black/6" />
+        {/* Scrim darkens the left column (and top edge for the top-anchored variant) for legible copy. */}
         <div
           className={
-            alignRight
-              ? 'absolute inset-0 bg-linear-to-b from-black/8 via-transparent to-black/8'
+            anchorTop
+              ? 'absolute inset-0 bg-linear-to-br from-black/32 via-black/8 to-transparent'
               : 'absolute inset-0 bg-linear-to-r from-black/24 via-black/5 to-transparent'
           }
         />
 
         <div
-          className={`relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl px-5 py-16 text-white sm:px-8 2xl:max-w-screen-2xl 2xl:px-20 ${
-            alignRight
-              ? 'items-start justify-end pt-[clamp(3.25rem,7svh,5rem)] text-right lg:justify-end lg:text-right'
-              : 'items-end justify-start pb-[clamp(3rem,8svh,5rem)] text-left'
+          className={`relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl px-3 py-16 text-left text-white sm:px-4 lg:px-6 xl:px-8 2xl:max-w-screen-2xl 2xl:px-12 ${
+            anchorTop
+              ? 'items-start pt-[clamp(3.25rem,7svh,5rem)]'
+              : 'items-end pb-[clamp(3rem,8svh,5rem)]'
           }`}
         >
           <m.div
@@ -64,21 +73,21 @@ export function PlantSection({ data, fallback }: PlantSectionProps) {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.35 }}
-            className={
-              alignRight
-                ? 'ml-auto w-full max-w-[780px] -translate-y-3 sm:-translate-y-5 lg:mr-[2vw] lg:-translate-y-7'
-                : 'w-full max-w-[760px] lg:ml-[1vw]'
-            }
+            className={anchorTop ? 'w-full max-w-[1150px]' : 'w-full max-w-[760px]'}
           >
             <m.h2
               variants={revealItem}
-              className="font-jost-extrabold text-[clamp(2rem,3.25vw,4.2rem)] leading-[1.08] text-balance drop-shadow-[0_4px_18px_rgba(0,0,0,0.5)]"
+              whileHover={hoverHeading}
+              className={`font-jost-extrabold inline-block cursor-default text-balance leading-[1.1] drop-shadow-[0_4px_18px_rgba(0,0,0,0.5)] ${
+                anchorTop ? 'text-[clamp(1.4rem,2.2vw,2.1rem)]' : 'text-[clamp(2rem,3.25vw,4.2rem)]'
+              }`}
             >
               {section.title}
             </m.h2>
             <m.p
               variants={revealItem}
-              className="mt-5 max-w-[820px] text-[clamp(0.86rem,1vw,1.12rem)] leading-relaxed text-pretty text-white/94 drop-shadow-[0_3px_12px_rgba(0,0,0,0.52)]"
+              whileHover={hoverLift}
+              className="mt-5 max-w-[760px] cursor-default text-[clamp(0.86rem,1vw,1.12rem)] leading-relaxed text-pretty text-white/94 drop-shadow-[0_3px_12px_rgba(0,0,0,0.52)] transition-colors duration-300 hover:text-white"
             >
               {section.description}
             </m.p>
@@ -97,18 +106,18 @@ export function PlantSectionSkeleton({ align = 'left' }: { align?: 'left' | 'rig
       <div className="absolute inset-0 bg-white/10" />
       <div className="absolute inset-0 bg-black/22" />
       <div
-        className={`relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl px-5 py-16 sm:px-8 2xl:max-w-screen-2xl 2xl:px-20 ${
+        className={`relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl px-3 py-16 sm:px-4 lg:px-6 xl:px-8 2xl:max-w-screen-2xl 2xl:px-12 ${
           alignRight
-            ? 'items-start justify-end pt-[clamp(7rem,14svh,10rem)] text-right lg:justify-end'
-            : 'items-end justify-start pb-[clamp(3rem,8svh,5rem)]'
+            ? 'items-start pt-[clamp(3.25rem,7svh,5rem)]'
+            : 'items-end pb-[clamp(3rem,8svh,5rem)]'
         }`}
       >
-        <div className={alignRight ? 'w-full max-w-[780px]' : 'w-full max-w-[760px]'}>
-          <div className={`h-16 w-full max-w-2xl rounded bg-white/24 ${alignRight ? 'ml-auto' : ''}`} />
+        <div className={alignRight ? 'w-full max-w-[1150px]' : 'w-full max-w-[760px]'}>
+          <div className="h-16 w-full max-w-2xl rounded bg-white/24" />
           <div className="mt-5 space-y-2">
-            <div className={`h-4 w-full rounded bg-white/16 ${alignRight ? 'ml-auto' : ''}`} />
-            <div className={`h-4 w-5/6 rounded bg-white/16 ${alignRight ? 'ml-auto' : ''}`} />
-            <div className={`h-4 w-2/3 rounded bg-white/16 ${alignRight ? 'ml-auto' : ''}`} />
+            <div className="h-4 w-full rounded bg-white/16" />
+            <div className="h-4 w-5/6 rounded bg-white/16" />
+            <div className="h-4 w-2/3 rounded bg-white/16" />
           </div>
         </div>
       </div>

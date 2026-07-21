@@ -41,33 +41,36 @@ export function HeroSection({ data, slides, isLoading }: HeroSectionProps) {
 
 function StaticHero({ logoSrc, slide }: { logoSrc: string; slide: HeroSlideData }) {
   return (
-    <section className="relative h-[60vh] w-full overflow-hidden sm:h-[70vh] lg:h-screen lg:min-h-150">
+    <section className="relative min-h-dvh w-full overflow-hidden bg-[#11160f]">
       <SafeImage
         src={slide.backgroundImage}
-        alt={slide.headline}
+        alt=""
         fill
         priority
+        fetchPriority="high"
         quality={90}
-        sizes="(max-width: 768px) 100vw, 1920px"
+        sizes="100vw"
         className="object-cover object-[center_30%]"
       />
-      <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12 2xl:gap-16">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="relative z-10 flex min-h-dvh w-full flex-col items-center justify-center gap-5 px-6 text-center text-white sm:gap-7 md:gap-9 lg:gap-12 2xl:gap-16">
         <SafeImage
           src={logoSrc}
-          alt="Jivo Logo"
+          alt="Jivo"
           width={520}
           height={220}
           loading="eager"
+          fetchPriority="high"
           quality={90}
           sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, (max-width: 1024px) 320px, (max-width: 1536px) 400px, 520px"
-          className="h-auto w-24 sm:w-40 md:w-52 lg:w-64 xl:w-72 2xl:w-96"
+          className="h-auto w-28 sm:w-40 md:w-52 lg:w-64 xl:w-72 2xl:w-96"
         />
 
         <div className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4 2xl:gap-6">
-          <h1 className="font-jost-bold font-sans text-xl leading-tight tracking-wide text-white uppercase sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
+          <h1 className="font-jost-bold font-sans text-[clamp(1.4rem,1rem+2.6vw,3.25rem)] leading-[1.08] tracking-tight text-balance text-white uppercase sm:tracking-[0.06em] lg:tracking-[0.1em]">
             {slide.headline}
           </h1>
-          <p className="font-jost-light max-w-xs text-xs leading-relaxed text-white/80 sm:max-w-md sm:text-sm md:max-w-xl md:text-base lg:text-lg 2xl:max-w-2xl 2xl:text-xl">
+          <p className="font-jost-light max-w-2xl text-[clamp(1rem,0.95rem+0.3vw,1.2rem)] leading-relaxed text-pretty text-white/85">
             {slide.subtitle}
           </p>
         </div>
@@ -78,8 +81,8 @@ function StaticHero({ logoSrc, slide }: { logoSrc: string; slide: HeroSlideData 
 
 export function HeroSkeleton() {
   return (
-    <section className="bg-muted relative h-[60vh] w-full animate-pulse overflow-hidden sm:h-[70vh] lg:h-screen lg:min-h-150">
-      <div className="flex h-full flex-col items-center justify-center gap-8 px-6 sm:gap-10 md:gap-12 lg:gap-14 2xl:gap-16">
+    <section className="bg-muted relative min-h-dvh w-full animate-pulse overflow-hidden">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6 sm:gap-10 md:gap-12 lg:gap-14 2xl:gap-16">
         <div className="bg-muted-foreground/20 h-16 w-40 rounded-lg sm:h-20 sm:w-52 md:w-60 lg:w-72 2xl:h-24 2xl:w-96" />
         <div className="bg-muted-foreground/20 h-9 w-3/4 max-w-lg rounded-md sm:h-11 md:h-12 2xl:h-16 2xl:max-w-2xl" />
         <div className="-mt-4 flex flex-col items-center gap-2 sm:-mt-6 md:-mt-8">
