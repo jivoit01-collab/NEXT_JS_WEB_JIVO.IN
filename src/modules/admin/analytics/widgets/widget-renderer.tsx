@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { resolveWidgets } from './registry';
 import { loadWidgetData } from '../data-sources';
 import { WidgetSkeleton } from './components/widget-skeleton';
+import { WidgetBoundary } from './components/widget-boundary';
 import type { AnalyticsWidgetDefinition, WidgetContext, WidgetSize } from './types';
 
 /**
@@ -36,10 +37,13 @@ export function WidgetRenderer({
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {resolved.map((w) => (
         <section key={w.id} className={cn('min-w-0', SIZE_SPAN[w.size])} data-widget={w.id}>
-          <Suspense fallback={<WidgetSkeleton size={w.size} />}>
-            {/* Async slot: fetches this widget's data, then renders it. */}
-            <WidgetSlot widget={w} context={context} />
-          </Suspense>
+          {/* A single widget failing never crashes the page. */}
+          <WidgetBoundary>
+            <Suspense fallback={<WidgetSkeleton size={w.size} />}>
+              {/* Async slot: fetches this widget's data, then renders it. */}
+              <WidgetSlot widget={w} context={context} />
+            </Suspense>
+          </WidgetBoundary>
         </section>
       ))}
     </div>
