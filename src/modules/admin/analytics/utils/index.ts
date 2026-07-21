@@ -8,6 +8,7 @@ export const DATE_RANGE_OPTIONS: { value: DateRangePreset; label: string }[] = [
   { value: '90d', label: 'Last 90 days' },
   { value: 'ytd', label: 'Year to date' },
   { value: 'all', label: 'All time' },
+  { value: 'custom', label: 'Custom range' },
 ];
 
 export const DEFAULT_DATE_RANGE: DateRangePreset = '30d';

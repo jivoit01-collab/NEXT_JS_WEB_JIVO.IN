@@ -6,7 +6,6 @@ import type { VisibleFooterSetting } from '@/modules/footer/types';
 import { FooterSocialIcons } from './footer-social-icons';
 import { FooterColumns } from './footer-columns';
 import { FooterCertificates } from './footer-certificates';
-import { CookieSettingsButton } from '@/modules/core/cookie-consent';
 
 /** Resolve a stored asset value (bare filename, absolute path, or URL) to a src. */
 function assetUrl(raw: string | null | undefined, fallback = '/api/uploads/placeholder.png') {
@@ -185,14 +184,13 @@ export async function Footer() {
               />
             </div>
 
-            {/* Copyright + cookie settings */}
+            {/* Copyright */}
             <div className="flex items-start gap-2.5 py-4 sm:py-0 lg:px-6">
               <Copyright className="mt-0.5 h-5 w-5 shrink-0 text-[#0a7d3f]" aria-hidden />
               <div className="min-w-0">
                 <p className="text-xs leading-relaxed whitespace-pre-line text-[#586055] sm:text-sm 2xl:text-base">
                   {copyright}
                 </p>
-                <CookieSettingsButton className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-[#586055] transition-colors [@media(hover:hover)]:hover:text-[#111] focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:outline-none" />
               </div>
             </div>
 

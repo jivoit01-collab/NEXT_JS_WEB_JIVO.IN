@@ -81,7 +81,7 @@ export function CookiePreferencesModal() {
             Cookie Preferences
           </DialogTitle>
           <DialogDescription className="text-sm text-[#586055] dark:text-white/70">
-            Choose which cookies you allow. You can change this at any time from the footer.
+            Choose which cookies you allow.
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +118,7 @@ export function CookiePreferencesModal() {
             onClick={rejectAll}
             className="min-h-11 rounded-xl border border-black/15 px-4 py-2.5 text-sm font-jost-medium text-[#3a423a] transition-colors hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:outline-none dark:border-white/20 dark:text-white/85 dark:hover:bg-white/10"
           >
-            Reject All
+            Reject Non-Essential
           </button>
           <button
             type="button"
