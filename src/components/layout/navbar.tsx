@@ -155,7 +155,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                     {link.title}
                     <ChevronDown
                       className={cn(
-                        'h-3.5 w-3.5 transition-transform duration-300 2xl:h-4 2xl:w-4',
+                        'h-3.5 w-3.5 transition-transform duration-300 motion-reduce:transition-none 2xl:h-4 2xl:w-4',
                         isActive && 'rotate-180',
                       )}
                     />
@@ -180,7 +180,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                 {hasSubLinks && (
                   <div
                     className={cn(
-                      'absolute top-full -left-6 z-50 pt-4 transition-all duration-200 ease-out 2xl:pt-5',
+                      'absolute top-full -left-6 z-50 pt-4 transition-all duration-200 ease-out motion-reduce:transition-none 2xl:pt-5',
                       isActive
                         ? 'pointer-events-auto translate-y-0 opacity-100'
                         : 'pointer-events-none translate-y-2 opacity-0',
@@ -251,7 +251,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/12 bg-white/5 px-5">
           <Link
             href="/"
-            className="flex min-w-0 items-center"
+            className="flex min-w-0 items-center rounded-md focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             aria-label={altText}
             onClick={() => setMobileOpen(false)}
           >
@@ -278,7 +278,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                 <div
                   key={key}
                   className={cn(
-                    'transition-[transform,opacity] duration-500 ease-out',
+                    'transition-[transform,opacity] duration-500 ease-out motion-reduce:transition-none',
                     mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0',
                   )}
                   style={{ transitionDelay: mobileOpen ? `${120 + index * 35}ms` : '0ms' }}
@@ -292,11 +292,11 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                     >
                       <span className="relative inline-block min-w-0 text-pretty">
                         {link.title}
-                        <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                        <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full motion-reduce:transition-none" />
                       </span>
                       <ChevronDown
                         className={cn(
-                          'h-5 w-5 shrink-0 transition-transform duration-300',
+                          'h-5 w-5 shrink-0 transition-transform duration-300 motion-reduce:transition-none',
                           isExpanded && 'rotate-180',
                         )}
                       />
@@ -321,7 +321,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                   {hasSubLinks && (
                     <div
                       className={cn(
-                        'grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out',
+                        'grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out motion-reduce:transition-none',
                         isExpanded
                           ? 'grid-rows-[1fr] translate-y-0 opacity-100'
                           : 'grid-rows-[0fr] -translate-y-1 opacity-0',
