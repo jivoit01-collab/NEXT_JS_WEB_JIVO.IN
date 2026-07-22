@@ -43,6 +43,7 @@ export default async function PublicLayout({ children }: { children: React.React
         <SmoothScrollProvider>
           <div className="flex min-h-screen flex-col">
             {children}
+            {/* Feedback now lives in the reusable FeedbackDialog (opened from the footer CTA). */}
             <Suspense fallback={null}>
               <Footer />
             </Suspense>

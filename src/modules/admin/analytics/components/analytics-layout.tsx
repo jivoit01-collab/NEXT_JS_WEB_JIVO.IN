@@ -1,7 +1,9 @@
 import { AnalyticsBreadcrumb } from './analytics-breadcrumb';
 import { DateFilter } from './date-filter';
-import { PageSearch } from './page-search';
-import { ExportButton, RefreshButton } from './toolbar-actions';
+import { PageSelector, type PageSelectorData } from './page-selector';
+import { ToolbarExport } from './toolbar-export';
+import { RefreshButton } from './toolbar-actions';
+import type { AnalyticsExportContext } from '../widgets/types';
 
 /**
  * The ONE reusable shell every analytics page uses — breadcrumb, title,
@@ -17,6 +19,8 @@ export function AnalyticsLayout({
   icon: Icon,
   breadcrumb,
   breadcrumbParent,
+  pageSelector,
+  exportContext,
   children,
 }: {
   title: string;
@@ -26,6 +30,10 @@ export function AnalyticsLayout({
   breadcrumb?: string;
   /** Parent crumb for nested pages (e.g. the module a page belongs to). */
   breadcrumbParent?: { name: string; href: string };
+  /** Toolbar page selector — present only for modules that own CMS pages. */
+  pageSelector?: PageSelectorData;
+  /** Widget context used by the toolbar CSV export (this page's data). */
+  exportContext?: AnalyticsExportContext;
   children: React.ReactNode;
 }) {
   return (
@@ -50,11 +58,11 @@ export function AnalyticsLayout({
           </div>
         </div>
 
-        {/* Toolbar — search sits before the date filter */}
+        {/* Toolbar — page selector · export (CSV/PDF) · date filter · refresh */}
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-          <PageSearch />
+          {pageSelector && <PageSelector {...pageSelector} />}
+          {exportContext && <ToolbarExport context={exportContext} />}
           <DateFilter />
-          <ExportButton />
           <RefreshButton />
         </div>
       </div>

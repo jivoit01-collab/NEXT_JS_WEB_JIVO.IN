@@ -1,0 +1,151 @@
+import 'server-only';
+
+// Feedback analytics data source — consumes the Feedback Platform's query
+// functions (never Prisma directly) and maps them to the analytics WidgetData
+// contract. Registered for the `feedback` module; overrides the default.
+// Dependency is one-way: admin/analytics → platform/feedback.
+
+import { MessagesSquare, Inbox, Star, Frown } from 'lucide-react';
+import {
+  getFeedbackStats,
+  feedbackByType,
+  feedbackBySentiment,
+  feedbackBySource,
+  feedbackTopPages,
+  feedbackTrend,
+  recentFeedback,
+} from '@/modules/platform/feedback/data';
+import { humanizeEnum } from '@/modules/platform/feedback/utils';
+import type { FeedbackFilter } from '@/modules/platform/feedback/types';
+import { registerAnalyticsDataSource } from './registry';
+import type { AnalyticsDataSource, AnalyticsPageData } from './types';
+import type { WidgetContext, WidgetData, WidgetDatum, WidgetFeedbackRecord } from '../widgets/types';
+import type { AnalyticsMetric } from '../types';
+import type { FeedbackDTO } from '@/modules/platform/feedback/types';
+
+/** Map a feedback DTO → the serializable record widgets/dialogs consume. */
+function toRecord(f: FeedbackDTO): WidgetFeedbackRecord {
+  const contact = (f.metadata?.contact as string | undefined) ?? null;
+  const contactType = (f.metadata?.contactType as string | undefined) ?? null;
+  return {
+    id: f.id,
+    type: humanizeEnum(f.type),
+    rating: f.rating,
+    sentiment: f.sentiment,
+    message: f.message ?? f.title ?? null,
+    contact,
+    contactType,
+    source: humanizeEnum(f.source),
+    page: f.pageUrl,
+    createdAt: f.createdAt,
+  };
+}
+
+/** Map a feedback analytics page id → a Feedback filter. */
+function filterFor(ctx: WidgetContext): FeedbackFilter {
+  switch (ctx.pageId) {
+    case 'general':
+      return { type: 'GENERAL' };
+    case 'page-feedback':
+      return { type: 'PAGE' };
+    case 'product-reviews':
+      return { type: 'PRODUCT' };
+    case 'ai-feedback':
+      return { type: 'AI' };
+    case 'bug-reports':
+      return { type: 'BUG' };
+    case 'feature-requests':
+      return { type: 'FEATURE' };
+    case 'support':
+      return { type: 'SUPPORT' };
+    case 'resolved':
+      return { status: 'RESOLVED' };
+    default:
+      return {}; // module dashboard → all feedback
+  }
+}
+
+function breakdown(rows: WidgetDatum[]): WidgetData {
+  return { status: rows.length ? 'ready' : 'empty', breakdown: rows };
+}
+
+function emptyPage(scope: WidgetContext['scope'], title: string): AnalyticsPageData {
+  return { scope, title, widgets: {} };
+}
+
+export const feedbackDataSource: AnalyticsDataSource = {
+  async getOverview(ctx) {
+    return emptyPage('overview', ctx.title);
+  },
+  async getModule(_id, ctx) {
+    return emptyPage('module', ctx.title);
+  },
+  async getPage(_m, _p, ctx) {
+    return emptyPage('page', ctx.title);
+  },
+
+  async getWidget(widgetId, ctx): Promise<WidgetData> {
+    const filter = filterFor(ctx);
+
+    if (widgetId === 'overview') {
+      const s = await getFeedbackStats(filter);
+      // Phase 6.1/6.2: a consistent four-card KPI row — Pending/Resolved dropped
+      // (not actioned here); Negative surfaces feedback needing attention.
+      const metrics: AnalyticsMetric[] = [
+        { id: 'total', label: 'Total Feedback', value: s.total, icon: MessagesSquare, hint: 'All time' },
+        { id: 'open', label: 'Open', value: s.open, icon: Inbox, hint: 'Unactioned' },
+        { id: 'avg-rating', label: 'Average Rating', value: s.avgRating != null ? Number(s.avgRating.toFixed(1)) : null, icon: Star, hint: 'Out of 5' },
+        { id: 'negative', label: 'Negative', value: s.negative, icon: Frown, hint: 'Needs attention' },
+      ];
+      return { status: s.total > 0 ? 'ready' : 'empty', metrics };
+    }
+
+    if (widgetId === 'feedback-trend') {
+      const points = await feedbackTrend(filter);
+      const hasData = points.some((p) => p.value > 0);
+      return { status: hasData ? 'ready' : 'empty', trend: points };
+    }
+    if (widgetId === 'feedback-by-type') {
+      const rows = await feedbackByType(filter);
+      return breakdown(rows.map((r) => ({ label: humanizeEnum(r.label), value: r.value })));
+    }
+    if (widgetId === 'feedback-sentiment') {
+      const rows = await feedbackBySentiment(filter);
+      return breakdown(rows.map((r) => ({ label: humanizeEnum(r.label), value: r.value })));
+    }
+    if (widgetId === 'feedback-sources') {
+      const rows = await feedbackBySource(filter);
+      return breakdown(rows.map((r) => ({ label: humanizeEnum(r.label), value: r.value })));
+    }
+    if (widgetId === 'feedback-top-pages') {
+      const rows = await feedbackTopPages(filter);
+      return breakdown(rows);
+    }
+    if (widgetId === 'feedback-recent') {
+      const rows = await recentFeedback(filter, 12);
+      const records = rows.map(toRecord);
+      return { status: records.length ? 'ready' : 'empty', records };
+    }
+    if (widgetId === 'feedback-top-comments') {
+      // Best (highest-rated) feedback that actually left a comment — top 5.
+      const rows = await recentFeedback(filter, 40);
+      const records = rows
+        .filter((f) => (f.rating ?? 0) >= 4 && (f.message ?? f.title ?? '').trim().length > 0)
+        .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+        .slice(0, 5)
+        .map(toRecord);
+      return { status: records.length ? 'ready' : 'empty', records };
+    }
+
+    // KPI is handled above; other generic widgets fall back to placeholder.
+    return { status: 'placeholder' };
+  },
+};
+
+registerAnalyticsDataSource({
+  id: 'feedback',
+  source: feedbackDataSource,
+  modules: ['feedback'],
+  enabled: true,
+  priority: 10,
+});

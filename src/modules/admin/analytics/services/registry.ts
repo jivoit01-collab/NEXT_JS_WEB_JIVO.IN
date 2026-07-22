@@ -106,6 +106,33 @@ export function getAnalyticsModule(id: string): AnalyticsModuleDefinition | unde
   return registry.get(id);
 }
 
+/**
+ * Flat, top-level sidebar entries — every module (incl. the Overview hub) as a
+ * single leaf. Child CMS pages are NOT included; drilling into pages happens via
+ * the toolbar page selector, not the sidebar (Phase 4.7). Returns the module's
+ * icon COMPONENT — call from a SERVER component and pre-render it to a node so
+ * the client sidebar never imports this side-effect-carrying registry.
+ */
+export function getAnalyticsSidebarModules(): {
+  id: string;
+  name: string;
+  route: string;
+  icon: AnalyticsModuleDefinition['icon'];
+  hasPages: boolean;
+}[] {
+  return getAnalyticsModules()
+    // The Analytics section header already links to the Overview hub, so the
+    // Overview module is NOT repeated as a separate sidebar leaf.
+    .filter((m) => m.route !== ANALYTICS_ROOT)
+    .map((m) => ({
+      id: m.id,
+      name: m.name,
+      route: m.route,
+      icon: m.icon,
+      hasPages: !m.standalone && (m.pages?.length ?? 0) > 0,
+    }));
+}
+
 /** Grouped by category (for a sectioned dashboard, if desired). */
 export function getAnalyticsModulesByCategory(): Record<string, AnalyticsModuleDefinition[]> {
   const out: Record<string, AnalyticsModuleDefinition[]> = {};

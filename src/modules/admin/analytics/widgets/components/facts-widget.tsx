@@ -21,8 +21,8 @@ export function makeFactsWidget(opts: { title: string; description: string; icon
           <p className="font-jost-medium text-sm 2xl:text-base">{opts.title}</p>
         </div>
         <ul className="divide-border/60 divide-y">
-          {facts.map((f) => (
-            <li key={f.label} className="flex items-center justify-between gap-3 px-4 py-2.5 text-xs 2xl:px-5 2xl:text-sm">
+          {facts.map((f, i) => (
+            <li key={`${f.label}-${i}`} className="flex items-center justify-between gap-3 px-4 py-2.5 text-xs 2xl:px-5 2xl:text-sm">
               <span className="text-muted-foreground shrink-0">{f.label}</span>
               <span className="text-foreground/90 min-w-0 truncate text-right font-jost-medium">
                 {f.value}

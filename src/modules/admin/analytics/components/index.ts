@@ -3,6 +3,6 @@ export { AnalyticsBreadcrumb } from './analytics-breadcrumb';
 export { MetricCard, MetricCardGrid } from './metric-card';
 export { PlaceholderPanel } from './placeholder-panel';
 export { DateFilter } from './date-filter';
-export { PageSearch } from './page-search';
+export { PageSelector, type PageSelectorData, type PageSelectorOption } from './page-selector';
 export { RefreshButton, ExportButton } from './toolbar-actions';
 export { SectionHeading } from './section-heading';

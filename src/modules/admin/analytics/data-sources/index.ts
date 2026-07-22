@@ -6,6 +6,7 @@
 // ==========================================================================
 
 import './default-data-sources';
+import './feedback-source';
 
 export {
   registerAnalyticsDataSource,

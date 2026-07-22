@@ -59,7 +59,8 @@ export const defaultAnalyticsDataSource: AnalyticsDataSource = {
       if (ctx.moduleId === 'reports') return getReportsKpis();
       return ctx.scope === 'overview' ? getOverviewData() : getModuleData(ctx);
     }
-    if (widgetId === 'trend') return getTrend(ctx);
+    if (widgetId === 'trend' || widgetId === 'visitors-trend' || widgetId === 'traffic-trend')
+      return getTrend(ctx);
     if (widgetId === 'report-activity') return getReportsActivity();
     if (widgetId === 'report-comparison') return getReportsComparison();
     if (BREAKDOWN_WIDGETS.has(widgetId)) return getBreakdown(widgetId, ctx);

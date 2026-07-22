@@ -6,7 +6,9 @@
 // once — no renderer or page changes.
 // ==========================================================================
 
-import type { AnalyticsWidgetDefinition } from './types';
+import type { AnalyticsWidgetDefinition, WidgetSize } from './types';
+
+const SIZES: readonly WidgetSize[] = ['small', 'medium', 'large', 'full'];
 
 const globalRef = globalThis as typeof globalThis & {
   __jivoAnalyticsWidgets?: Map<string, AnalyticsWidgetDefinition>;
@@ -37,10 +39,16 @@ export function getAnalyticsWidgets(): AnalyticsWidgetDefinition[] {
   );
 }
 
-/** Resolve an ordered list of widget ids to their definitions (skips unknown/disabled). */
+/**
+ * Resolve an ordered list of widget ids to their definitions (skips unknown/
+ * disabled). A config entry may carry a per-page SIZE OVERRIDE as `id@size`
+ * (e.g. `visitors-trend@medium`), so the same widget can be full-width on one
+ * page and half-width on another without a duplicate registration.
+ */
 export function resolveWidgets(ids: string[]): AnalyticsWidgetDefinition[] {
   const out: AnalyticsWidgetDefinition[] = [];
-  for (const id of ids) {
+  for (const entry of ids) {
+    const [id, sizeRaw] = entry.split('@');
     const w = registry.get(id);
     if (!w) {
       if (process.env.NODE_ENV !== 'production') {
@@ -49,7 +57,8 @@ export function resolveWidgets(ids: string[]): AnalyticsWidgetDefinition[] {
       continue;
     }
     if (w.enabled === false) continue;
-    out.push(w);
+    const size = SIZES.includes(sizeRaw as WidgetSize) ? (sizeRaw as WidgetSize) : w.size;
+    out.push(size === w.size ? w : { ...w, size });
   }
   return out;
 }

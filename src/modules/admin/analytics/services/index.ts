@@ -17,6 +17,7 @@ export {
   getAnalyticsPageByRoute,
   getAnalyticsModulesByCategory,
   getAnalyticsNavTree,
+  getAnalyticsSidebarModules,
   getAnalyticsEntry,
   type AnalyticsEntry,
 } from './registry';

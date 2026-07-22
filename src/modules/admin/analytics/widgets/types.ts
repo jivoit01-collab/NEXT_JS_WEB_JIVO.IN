@@ -39,6 +39,16 @@ export interface WidgetContext {
 }
 
 /**
+ * A SERIALIZABLE subset of WidgetContext safe to pass to Client Components. It
+ * drops `pages` (whose entries carry lucide icon COMPONENTS, which cannot cross
+ * the server→client boundary). Used by the toolbar CSV export.
+ */
+export type AnalyticsExportContext = Pick<
+  WidgetContext,
+  'scope' | 'title' | 'moduleId' | 'moduleName' | 'moduleRoute' | 'pageId'
+>;
+
+/**
  * Lifecycle of a widget's data:
  *  - `loading`     — fetch in flight (renderer shows a skeleton via Suspense)
  *  - `ready`       — real data available
@@ -70,6 +80,25 @@ export interface WidgetComparison {
 }
 
 /**
+ * A single feedback record surfaced to a widget (Recent Feedback table, Top
+ * Comments). Fully serializable so client widgets can render/filter it and open
+ * a detail dialog. Produced by the feedback data source from its DTOs.
+ */
+export interface WidgetFeedbackRecord {
+  id: string;
+  type: string;
+  rating: number | null;
+  sentiment: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE' | null;
+  message: string | null;
+  contact: string | null;
+  contactType: string | null;
+  source: string;
+  page: string | null;
+  /** ISO timestamp. */
+  createdAt: string;
+}
+
+/**
  * The data a widget renders. Produced by the Analytics Data Source layer, NOT by
  * the widget itself — widgets are 100% presentation.
  */
@@ -87,6 +116,8 @@ export interface WidgetData {
   comparison?: WidgetComparison[];
   /** Optional grand total (for percentages / context). */
   total?: number;
+  /** Feedback records (Recent Feedback table, Top Comments). */
+  records?: WidgetFeedbackRecord[];
   /** Freeform extras. */
   meta?: Record<string, unknown>;
 }
@@ -114,4 +145,10 @@ export interface AnalyticsWidgetDefinition {
   permissions?: string[];
   /** Optional platform feature flag that also gates the widget. */
   featureFlag?: string;
+  /**
+   * The component is a Client Component. The renderer then hands it a SERIALIZABLE
+   * context (page icons stripped), since server→client props can't carry the
+   * lucide icon components in `context.pages`.
+   */
+  client?: boolean;
 }

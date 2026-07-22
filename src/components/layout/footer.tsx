@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { MapPin, Mail, Phone, Copyright, ArrowRight, Leaf } from 'lucide-react';
+import { MapPin, Mail, Phone, Copyright, ArrowRight, Leaf, MessageSquarePlus } from 'lucide-react';
 import { SafeImage } from '@/components/shared/public';
+import { FeedbackDialog } from '@/modules/platform/feedback';
 import { getVisibleFooter } from '@/modules/footer';
 import type { VisibleFooterSetting } from '@/modules/footer/types';
 import { FooterSocialIcons } from './footer-social-icons';
@@ -62,7 +63,7 @@ export async function Footer() {
   const followLabel = setting.followLabel || 'FOLLOW US';
   const brandPromise = setting.brandPromise || 'Pure. Natural. Trusted.';
   const brandPromiseSub = setting.brandPromiseSub || 'Since 2016';
-  const ctaLabel = setting.ctaLabel || 'Explore Products';
+  const ctaLabel = setting.ctaLabel || 'Products';
   const { href: ctaHref, external: ctaExternal } = resolveCtaLink(setting.ctaHref || '/products');
   const mapHref = resolveMapHref(setting);
   const leafTop = setting.leafImageTop;
@@ -74,7 +75,7 @@ export async function Footer() {
         {/* ── Top: brand card + link columns ─────────────────────── */}
         <div className="grid gap-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-8 2xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
           {/* ── Brand card ── */}
-          <div className="relative overflow-hidden rounded-3xl bg-[#edece4] px-6 pt-10 pb-7 sm:px-8 sm:pt-12 sm:pb-8 2xl:px-10">
+          <div className="relative overflow-hidden rounded-3xl bg-[#edece4] px-6 pt-8 pb-6 sm:px-7 sm:pt-9 sm:pb-7 2xl:px-9">
             {/* Decorative leaves (top-left, bottom-right) — admin images, else icon */}
             {leafTop ? (
               <SafeImage
@@ -145,17 +146,34 @@ export async function Footer() {
                 </p>
               )}
 
-              {/* Explore Products CTA */}
-              {ctaLabel && (
-                <Link
-                  href={ctaHref}
-                  {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  className="group mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0a7d3f] px-6 py-3 text-sm font-jost-medium text-white shadow-[0_10px_24px_rgba(10,125,63,0.28)] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#edece4] focus-visible:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:bg-[#0c6f39] sm:w-auto 2xl:text-base"
-                >
-                  {ctaLabel}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 [@media(hover:hover)]:group-hover:translate-x-1" />
-                </Link>
-              )}
+              {/* CTAs — Explore Products (primary) + Share Feedback (secondary).
+                  Stacked on mobile; side by side from sm up. Equal-width with
+                  small no-wrap text so both fit one row in the narrow lg card. */}
+              <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-stretch sm:gap-2">
+                {ctaLabel && (
+                  <Link
+                    href={ctaHref}
+                    {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    className="group inline-flex min-h-10 w-full min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0a7d3f] px-4 py-2 text-sm whitespace-nowrap font-jost-medium text-white shadow-[0_10px_24px_rgba(10,125,63,0.28)] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#edece4] focus-visible:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:bg-[#0c6f39] 2xl:text-sm"
+                  >
+                    {ctaLabel}
+                    <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-300 [@media(hover:hover)]:group-hover:translate-x-1" />
+                  </Link>
+                )}
+
+                {/* Opens the reusable Feedback dialog (Phase 6.2) — secondary/outline. */}
+                <FeedbackDialog
+                  trigger={
+                    <button
+                      type="button"
+                      className="inline-flex min-h-10 w-full min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#0a7d3f]/40 bg-transparent px-2.5 py-2 text-sm whitespace-nowrap font-jost-medium text-[#0a7d3f] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#edece4] focus-visible:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:bg-[#0a7d3f]/8 2xl:text-sm"
+                    >
+                      <MessageSquarePlus className="h-3.5 w-3.5 shrink-0" />
+                     Feedback
+                    </button>
+                  }
+                />
+              </div>
 
               {/* Follow us */}
               <p className="font-jost-bold mt-7 text-xs tracking-[0.2em] text-[#3a423a] uppercase 2xl:text-sm">
