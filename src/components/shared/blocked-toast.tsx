@@ -32,7 +32,7 @@ export function BlockedToast() {
         description: '!mt-1 !text-sm !leading-snug !text-red-100/90',
       },
       description:
-        'Your IP has been temporarily suspended for 48 hours due to multiple failed login attempts. Please contact your system administrator.',
+        'Error 429: Account temporarily locked due to security policy. Please contact developer support team.',
     });
   }, []);
 
