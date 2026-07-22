@@ -19,8 +19,27 @@ import { humanizeEnum } from '@/modules/platform/feedback/utils';
 import type { FeedbackFilter } from '@/modules/platform/feedback/types';
 import { registerAnalyticsDataSource } from './registry';
 import type { AnalyticsDataSource, AnalyticsPageData } from './types';
-import type { WidgetContext, WidgetData, WidgetDatum } from '../widgets/types';
+import type { WidgetContext, WidgetData, WidgetDatum, WidgetFeedbackRecord } from '../widgets/types';
 import type { AnalyticsMetric } from '../types';
+import type { FeedbackDTO } from '@/modules/platform/feedback/types';
+
+/** Map a feedback DTO → the serializable record widgets/dialogs consume. */
+function toRecord(f: FeedbackDTO): WidgetFeedbackRecord {
+  const contact = (f.metadata?.contact as string | undefined) ?? null;
+  const contactType = (f.metadata?.contactType as string | undefined) ?? null;
+  return {
+    id: f.id,
+    type: humanizeEnum(f.type),
+    rating: f.rating,
+    sentiment: f.sentiment,
+    message: f.message ?? f.title ?? null,
+    contact,
+    contactType,
+    source: humanizeEnum(f.source),
+    page: f.pageUrl,
+    createdAt: f.createdAt,
+  };
+}
 
 /** Map a feedback analytics page id → a Feedback filter. */
 function filterFor(ctx: WidgetContext): FeedbackFilter {
@@ -103,12 +122,19 @@ export const feedbackDataSource: AnalyticsDataSource = {
       return breakdown(rows);
     }
     if (widgetId === 'feedback-recent') {
-      const rows = await recentFeedback(filter, 6);
-      const facts = rows.map((f) => ({
-        label: `${humanizeEnum(f.type)}${f.rating ? ` · ${f.rating}★` : ''}`,
-        value: (f.message ?? f.title ?? '—').slice(0, 60),
-      }));
-      return { status: facts.length ? 'ready' : 'empty', facts };
+      const rows = await recentFeedback(filter, 12);
+      const records = rows.map(toRecord);
+      return { status: records.length ? 'ready' : 'empty', records };
+    }
+    if (widgetId === 'feedback-top-comments') {
+      // Best (highest-rated) feedback that actually left a comment — top 5.
+      const rows = await recentFeedback(filter, 40);
+      const records = rows
+        .filter((f) => (f.rating ?? 0) >= 4 && (f.message ?? f.title ?? '').trim().length > 0)
+        .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+        .slice(0, 5)
+        .map(toRecord);
+      return { status: records.length ? 'ready' : 'empty', records };
     }
 
     // KPI is handled above; other generic widgets fall back to placeholder.

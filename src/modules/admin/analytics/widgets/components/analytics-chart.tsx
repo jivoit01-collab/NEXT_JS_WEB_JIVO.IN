@@ -125,6 +125,8 @@ function PieChart({
     const mid = (start + frac / 2) * TAU - Math.PI / 2;
     const [lx, ly] = polar(C, C, labelR, mid);
     return {
+      label: row.label,
+      value: row.value,
       color: PALETTE[i % PALETTE.length],
       start,
       frac,
@@ -137,19 +139,29 @@ function PieChart({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Chart — centred */}
+      {/* Chart — centred. Slices lift + brighten on hover; native title = tooltip. */}
       <div className="relative" style={{ height: 168, width: 168 }}>
-        <svg width="168" height="168" viewBox="0 0 160 160" aria-hidden>
-          {segs.map((s, i) =>
-            s.single ? (
+        <svg width="168" height="168" viewBox="0 0 160 160" role="img">
+          {segs.map((s, i) => {
+            const tip = `${s.label}: ${s.value.toLocaleString()} (${s.pct}%)`;
+            return s.single ? (
               <g key={i}>
-                <circle cx={C} cy={C} r={R} fill={s.color} />
+                <circle cx={C} cy={C} r={R} fill={s.color}>
+                  <title>{tip}</title>
+                </circle>
                 {doughnut && <circle cx={C} cy={C} r={r} className="fill-card" />}
               </g>
             ) : (
-              <path key={i} d={arcPath(s.start, s.frac, C, C, R, r)} fill={s.color} />
-            ),
-          )}
+              <path
+                key={i}
+                d={arcPath(s.start, s.frac, C, C, R, r)}
+                fill={s.color}
+                className="cursor-default transition-opacity duration-200 hover:opacity-80"
+              >
+                <title>{tip}</title>
+              </path>
+            );
+          })}
           {segs.map((s, i) =>
             s.pct >= 6 ? (
               <text
@@ -158,7 +170,7 @@ function PieChart({
                 y={s.ly}
                 textAnchor="middle"
                 dominantBaseline="central"
-                className="font-jost-medium"
+                className="pointer-events-none font-jost-medium"
                 fontSize="11"
                 fill="#ffffff"
               >
@@ -177,18 +189,15 @@ function PieChart({
         )}
       </div>
 
-      {/* Legend — below the chart so the chart stays centred */}
-      <ul className="grid w-full grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">
-        {slices.map((row, i) => (
-          <li key={row.label} className="flex items-center gap-2 text-xs 2xl:text-sm">
-            <span
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: segs[i].color }}
-            />
-            <span className="text-foreground/90 min-w-0 flex-1 truncate">{row.label}</span>
+      {/* Legend — left-aligned, value + % sit right beside each label. */}
+      <ul className="grid w-full grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        {segs.map((s) => (
+          <li key={s.label} className="flex items-center gap-2 text-xs 2xl:text-sm">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+            <span className="text-foreground/90 min-w-0 truncate">{s.label}</span>
             <span className="text-muted-foreground shrink-0 font-jost-medium tabular-nums">
-              {showValues && row.value.toLocaleString()}
-              <span className="ml-1 opacity-70">{segs[i].pct}%</span>
+              {showValues && `${s.value.toLocaleString()} · `}
+              {s.pct}%
             </span>
           </li>
         ))}
@@ -204,9 +213,11 @@ function HorizontalBarChart({ rows, showValues }: { rows: ChartPoint[]; showValu
   return (
     <ul className="space-y-2.5">
       {top.map((r, i) => (
-        <li key={r.label}>
+        <li key={`${r.label}-${i}`} className="group/bar" title={`${r.label}: ${r.value.toLocaleString()}`}>
           <div className="mb-1 flex items-center justify-between gap-3 text-xs 2xl:text-sm">
-            <span className="text-foreground/90 min-w-0 truncate">{r.label}</span>
+            <span className="text-foreground/90 min-w-0 truncate transition-colors group-hover/bar:text-foreground">
+              {r.label}
+            </span>
             <span className="text-muted-foreground shrink-0 font-jost-medium tabular-nums">
               {showValues && r.value.toLocaleString()}
               {r.hint ? <span className="ml-1 opacity-70">{r.hint}</span> : null}
@@ -214,7 +225,7 @@ function HorizontalBarChart({ rows, showValues }: { rows: ChartPoint[]; showValu
           </div>
           <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
             <div
-              className="h-full rounded-full"
+              className="h-full rounded-full transition-opacity duration-200 group-hover/bar:opacity-80"
               style={{
                 width: `${Math.max(3, Math.round((r.value / max) * 100))}%`,
                 backgroundColor: PALETTE[i % PALETTE.length],

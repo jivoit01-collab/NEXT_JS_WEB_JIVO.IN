@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Tags,
   SmilePlus,
-  Radar,
+  ThumbsUp,
 } from 'lucide-react';
 
 const ROOT = '/jivo-dev/analytics/feedback';
@@ -41,8 +41,8 @@ export const FEEDBACK_ANALYTICS_WIDGETS = [
   { id: 'feedback-sentiment', title: 'Sentiment', description: 'Positive / neutral / negative.', icon: SmilePlus, size: 'medium', category: 'summary', kind: 'doughnut' },
   { id: 'feedback-by-type', title: 'Feedback Types', description: 'Feedback grouped by type.', icon: Tags, size: 'medium', category: 'tables', kind: 'pie' },
   { id: 'feedback-top-pages', title: 'Top Pages', description: 'Pages with the most feedback.', icon: FileText, size: 'medium', category: 'tables', kind: 'breakdown' },
-  { id: 'feedback-sources', title: 'Top Sources', description: 'Where feedback comes from.', icon: Radar, size: 'medium', category: 'traffic', kind: 'breakdown' },
-  { id: 'feedback-recent', title: 'Recent Feedback', description: 'Latest submissions.', icon: MessageSquare, size: 'full', category: 'custom', kind: 'facts' },
+  { id: 'feedback-top-comments', title: 'Top Comments', description: 'Best-rated comments from users.', icon: ThumbsUp, size: 'medium', category: 'custom', kind: 'comments' },
+  { id: 'feedback-recent', title: 'Recent Feedback', description: 'Latest submissions.', icon: MessageSquare, size: 'full', category: 'custom', kind: 'recent' },
 ] as const;
 
 /** The module descriptor + widget configs (module dashboard + per-page). */
@@ -61,7 +61,7 @@ export const FEEDBACK_ANALYTICS_MODULE = {
     'feedback-sentiment',
     'feedback-by-type',
     'feedback-top-pages',
-    'feedback-sources',
+    'feedback-top-comments',
     'feedback-recent',
     'module-pages',
   ],
@@ -76,7 +76,7 @@ export const FEEDBACK_ANALYTICS_MODULE = {
       'feedback-sentiment',
       'feedback-by-type',
       'feedback-top-pages',
-      'feedback-sources',
+      'feedback-top-comments',
       'feedback-recent',
     ],
   })),

@@ -69,6 +69,10 @@ export function FeedbackDialog({
           heading=""
           showRating
           showContact
+          contactFirst
+          requireRating
+          requireMessage
+          requireContact
           submitLabel="Submit Feedback"
           messagePlaceholder="Tell us what's on your mind…"
           onCancel={() => setOpen(false)}

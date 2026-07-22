@@ -60,5 +60,11 @@ async function WidgetSlot({
 }) {
   const data = await loadWidgetData(context, widget.id);
   const Widget = widget.component;
-  return <Widget context={context} data={data} />;
+  // Client widgets can't receive `context.pages` (lucide icon components don't
+  // serialize across the server→client boundary) — hand them a plain context.
+  const safeContext =
+    widget.client && context.pages
+      ? { ...context, pages: context.pages.map((p) => ({ id: p.id, name: p.name, route: p.route })) }
+      : context;
+  return <Widget context={safeContext} data={data} />;
 }

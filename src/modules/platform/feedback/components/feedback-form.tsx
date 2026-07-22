@@ -16,6 +16,14 @@ export interface FeedbackFormProps {
   showTitle?: boolean;
   /** Collect one "Email or Mobile Number" field (stored in metadata.contact). */
   showContact?: boolean;
+  /** Render the contact field ABOVE the rating (e.g. in the review dialog). */
+  contactFirst?: boolean;
+  /** Require a rating before submit. */
+  requireRating?: boolean;
+  /** Require a message before submit. */
+  requireMessage?: boolean;
+  /** Require the contact field before submit. */
+  requireContact?: boolean;
   /** Heading text; pass an empty string to hide the form's own header (e.g. in a dialog). */
   heading?: string;
   description?: string;
@@ -32,7 +40,8 @@ export interface FeedbackFormProps {
 
 /**
  * Validate the single contact field: an "@" means email, otherwise a mobile
- * number. Empty is allowed (the field is optional); non-empty must be valid.
+ * number (exactly 10 digits, optional country code). Empty is treated as valid
+ * here — required-ness is enforced separately by the caller.
  */
 function validateContact(raw: string): { ok: boolean; type?: 'email' | 'phone'; error?: string } {
   const v = raw.trim();
@@ -41,9 +50,10 @@ function validateContact(raw: string): { ok: boolean; type?: 'email' | 'phone'; 
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
     return ok ? { ok: true, type: 'email' } : { ok: false, error: 'Enter a valid email address.' };
   }
-  const digits = v.replace(/[\s\-().]/g, '');
-  const ok = /^\+?\d{7,15}$/.test(digits);
-  return ok ? { ok: true, type: 'phone' } : { ok: false, error: 'Enter a valid mobile number.' };
+  // Strip formatting; require a 10-digit mobile (with an optional 1–3 digit country code).
+  const digits = v.replace(/\D/g, '');
+  const ok = /^\d{1,3}?\d{10}$/.test(digits) && digits.length >= 10 && digits.length <= 13;
+  return ok ? { ok: true, type: 'phone' } : { ok: false, error: 'Enter a valid 10-digit mobile number.' };
 }
 
 /**
@@ -58,6 +68,10 @@ export function FeedbackForm({
   showRating = false,
   showTitle = false,
   showContact = false,
+  contactFirst = false,
+  requireRating = false,
+  requireMessage = false,
+  requireContact = false,
   heading = 'Share your feedback',
   description,
   titlePlaceholder = 'Subject',
@@ -74,6 +88,8 @@ export function FeedbackForm({
   const [message, setMessage] = useState('');
   const [contact, setContact] = useState('');
   const [contactError, setContactError] = useState<string | null>(null);
+  const [ratingError, setRatingError] = useState<string | null>(null);
+  const [messageError, setMessageError] = useState<string | null>(null);
 
   if (isSuccess) {
     return (
@@ -98,17 +114,37 @@ export function FeedbackForm({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Contact is optional, but if provided it must be a valid email or mobile.
+    let invalid = false;
+
+    // Rating (required when asked).
+    if (showRating && requireRating && !rating) {
+      setRatingError('Please select a rating.');
+      invalid = true;
+    } else setRatingError(null);
+
+    // Message (required when asked).
+    if (requireMessage && !message.trim()) {
+      setMessageError('Please write your feedback.');
+      invalid = true;
+    } else setMessageError(null);
+
+    // Contact — required when asked; if present it must be a valid email/mobile.
     let metadata: Record<string, unknown> | undefined;
     if (showContact) {
       const check = validateContact(contact);
-      if (!check.ok) {
+      if (requireContact && !contact.trim()) {
+        setContactError('Email or mobile number is required.');
+        invalid = true;
+      } else if (!check.ok) {
         setContactError(check.error ?? 'Enter a valid email or mobile number.');
-        return;
+        invalid = true;
+      } else {
+        setContactError(null);
+        if (contact.trim()) metadata = { contact: contact.trim(), contactType: check.type };
       }
-      setContactError(null);
-      if (contact.trim()) metadata = { contact: contact.trim(), contactType: check.type };
     }
+
+    if (invalid) return;
 
     const ok = await submit({
       type,
@@ -126,6 +162,38 @@ export function FeedbackForm({
   const inputCls =
     'w-full rounded-xl border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
 
+  // The contact field — placed above the rating (contactFirst) or after the message.
+  const contactField = showContact ? (
+    <div>
+      <input
+        type="text"
+        value={contact}
+        onChange={(e) => {
+          setContact(e.target.value);
+          if (contactError) setContactError(null);
+        }}
+        onBlur={() => {
+          if (!contact.trim()) return;
+          const check = validateContact(contact);
+          setContactError(check.ok ? null : (check.error ?? null));
+        }}
+        placeholder="Email or Mobile Number"
+        className={cn(inputCls, contactError && 'border-red-500 focus:ring-red-500/20')}
+        aria-label="Email or Mobile Number"
+        aria-required={requireContact}
+        aria-invalid={!!contactError}
+        aria-describedby={contactError ? 'feedback-contact-error' : undefined}
+        inputMode="text"
+        autoComplete="off"
+      />
+      {contactError && (
+        <p id="feedback-contact-error" className="mt-1 text-xs text-red-500">
+          {contactError}
+        </p>
+      )}
+    </div>
+  ) : null;
+
   return (
     <form
       onSubmit={onSubmit}
@@ -138,10 +206,16 @@ export function FeedbackForm({
         </div>
       )}
 
+      {/* Contact first (e.g. the review dialog) — above the rating. */}
+      {contactFirst && contactField}
+
       {showRating && (
         <div>
-          <span className="text-muted-foreground mb-1.5 block text-xs font-jost-medium">Rating</span>
-          <StarRating value={rating} onChange={setRating} />
+          <span className="text-muted-foreground mb-1.5 block text-xs font-jost-medium">
+            Rating{requireRating ? ' *' : ''}
+          </span>
+          <StarRating value={rating} onChange={(v) => { setRating(v); if (ratingError) setRatingError(null); }} />
+          {ratingError && <p className="mt-1 text-xs text-red-500">{ratingError}</p>}
         </div>
       )}
 
@@ -157,44 +231,26 @@ export function FeedbackForm({
         />
       )}
 
-      <textarea
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder={messagePlaceholder}
-        rows={4}
-        maxLength={5000}
-        className={cn(inputCls, 'resize-y')}
-        aria-label="Message"
-      />
+      <div>
+        <textarea
+          value={message}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            if (messageError) setMessageError(null);
+          }}
+          placeholder={messagePlaceholder}
+          rows={4}
+          maxLength={5000}
+          className={cn(inputCls, 'resize-y', messageError && 'border-red-500 focus:ring-red-500/20')}
+          aria-label="Message"
+          aria-required={requireMessage}
+          aria-invalid={!!messageError}
+        />
+        {messageError && <p className="mt-1 text-xs text-red-500">{messageError}</p>}
+      </div>
 
-      {showContact && (
-        <div>
-          <input
-            type="text"
-            value={contact}
-            onChange={(e) => {
-              setContact(e.target.value);
-              if (contactError) setContactError(null);
-            }}
-            onBlur={() => {
-              const check = validateContact(contact);
-              setContactError(check.ok ? null : (check.error ?? null));
-            }}
-            placeholder="Email or Mobile Number"
-            className={cn(inputCls, contactError && 'border-red-500 focus:ring-red-500/20')}
-            aria-label="Email or Mobile Number"
-            aria-invalid={!!contactError}
-            aria-describedby={contactError ? 'feedback-contact-error' : undefined}
-            inputMode="text"
-            autoComplete="off"
-          />
-          {contactError && (
-            <p id="feedback-contact-error" className="mt-1 text-xs text-red-500">
-              {contactError}
-            </p>
-          )}
-        </div>
-      )}
+      {/* Contact after the message (default placement). */}
+      {!contactFirst && contactField}
 
       {error && <p className="text-xs text-red-500">{error}</p>}
 
