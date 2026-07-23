@@ -29,6 +29,30 @@ function Invoke-Step {
   }
 }
 
+# Like Invoke-Step, but NON-FATAL: on failure it warns and continues instead of
+# throwing. Used for the database steps (schema sync / seed). A transient DB
+# problem must NOT abort the whole deploy or trigger a rollback — the build has
+# already succeeded, so we still restart the service; the DB syncs on the next
+# run once it's reachable again.
+function Invoke-StepOptional {
+  param(
+    [string] $Label,
+    [string] $Command,
+    [string[]] $Arguments = @()
+  )
+
+  Write-Section $Label
+  & $Command @Arguments
+
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host (
+      'WARNING: ' + $Label + ' failed with exit code ' + $LASTEXITCODE +
+      ' — continuing (run it manually once the database is reachable).'
+    )
+    $global:LASTEXITCODE = 0
+  }
+}
+
 function Test-IsAdministrator {
   $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
   $principal = New-Object Security.Principal.WindowsPrincipal($identity)
@@ -200,6 +224,15 @@ try {
 
   Invoke-Step 'Install dependencies' 'npm.cmd' @('install')
   Invoke-Step 'Build application before restart' 'npm.cmd' @('run', 'build')
+
+  # Sync the live database AFTER the build (schema + Prisma client are ready) and
+  # BEFORE the restart, so the new service starts against an up-to-date DB. These
+  # read DATABASE_URL from .env.production (see prisma.config.ts / prisma/seed.ts)
+  # — on this server the host must be `localhost`. They are NON-FATAL: a DB blip
+  # never breaks the deploy or rolls back a good build.
+  #   db:push → create/update tables    db:seed → insert missing data (insert-only)
+  Invoke-StepOptional 'Sync database schema (db:push)' 'npm.cmd' @('run', 'db:push')
+  Invoke-StepOptional 'Seed database (db:seed)' 'npm.cmd' @('run', 'db:seed')
 
   $serviceWasTouched = $true
   Restart-JivoService
