@@ -8,7 +8,10 @@
  */
 import 'dotenv/config';
 import { config as loadEnv } from 'dotenv';
+// The live server only has a .env.production file, so load it too (db:seed runs
+// there). dotenv won't override an already-set value → .env.local wins locally.
 loadEnv({ path: '.env.local' });
+loadEnv({ path: '.env.production' });
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
