@@ -13,14 +13,52 @@ model User {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  password      String
+  // Optional: OAuth users (e.g. Google) have no password. Credentials users do.
+  password      String?
   phone         String?
   role          UserRole  @default(CUSTOMER)
   emailVerified DateTime?
   image         String?
   accounts      Account[]
+  // Phase 5 — Authentication Platform (all additive):
+  profile       UserProfile?
+  identities    UserVisitorLink[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+// Modular profile — everything that expands per-user lives here (or in future
+// sibling models: addresses, orders, loyalty, wishlist, aiProfile) so the core
+// User row stays lean and additive.
+model UserProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarUrl         String?
+  language          String?
+  timezone          String?
+  marketingOptIn    Boolean  @default(false)
+  // Flexible JSON bags — additive without migrations:
+  notificationPrefs Json?
+  privacyPrefs      Json?
+  preferences       Json?
+  aiProfile         Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Visitor → User merge link. Associates an anonymous Core `Visitor` (by its
+// public `visitorId`) with an authenticated user, so analytics / sessions /
+// events / feedback are never lost on login. `visitorId` is a SOFT reference
+// (no FK) so the frozen Core `Visitor` model is not modified.
+model UserVisitorLink {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visitorId String   @unique
+  linkedAt  DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Account {

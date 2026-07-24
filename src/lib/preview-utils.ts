@@ -43,10 +43,42 @@ function toAbsolutePublicUrl(publicPath: string): string {
   return publicPath === '/' ? `${base}/` : `${base}${publicPath}`;
 }
 
+/**
+ * Map an analytics dashboard path to the PUBLIC page it reports on.
+ * `rest` is the path after `/analytics` (e.g. '', '/our-essence/the-story',
+ * '/site/home'). Non-content analytics (auth/visitors/traffic/reports) and the
+ * overview point at the homepage.
+ */
+function analyticsToPublicPath(rest: string): string {
+  const segs = rest.split('/').filter(Boolean);
+  if (segs.length === 0) return '/'; // overview → home
+  const [moduleId, ...pageSegs] = segs;
+  const pageId = pageSegs.join('/');
+  switch (moduleId) {
+    case 'site':
+      return '/'; // home / navbar / footer live on the homepage
+    case 'our-essence':
+      return pageId ? `/our-essence/${pageId}` : '/our-essence';
+    case 'products':
+      return '/our-products';
+    case 'media':
+      return '/media';
+    case 'community':
+      return '/community';
+    default:
+      return '/'; // authentication / visitors / traffic / reports → home
+  }
+}
+
 export function getPublicPreviewUrl(adminPathname: string): string {
   const adminPath = normalizePathname(adminPathname);
-  const mappedPath = ADMIN_TO_PUBLIC_ROUTE[adminPath];
 
+  // Analytics dashboard → the public page it reports on (never the /analytics URL).
+  if (adminPath === '/analytics' || adminPath.startsWith('/analytics/')) {
+    return toAbsolutePublicUrl(analyticsToPublicPath(adminPath.slice('/analytics'.length)));
+  }
+
+  const mappedPath = ADMIN_TO_PUBLIC_ROUTE[adminPath];
   if (mappedPath) {
     return toAbsolutePublicUrl(mappedPath);
   }

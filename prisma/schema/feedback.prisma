@@ -1,0 +1,121 @@
+// ==========================================================================
+// UNIVERSAL FEEDBACK PLATFORM (Phase 6)
+// One reusable Feedback model for EVERY feature (website, page, product, AI,
+// bug, feature request, support, order, delivery, review, …). Entity-based
+// (entityType + entityId) so any business module attaches feedback with no new
+// table. visitorId / userId / sessionId are SOFT references (no FK) so the
+// frozen Core Visitor / Auth models are never modified.
+// Docs: docs/feedback-platform.md
+// ==========================================================================
+
+enum FeedbackType {
+  GENERAL
+  PAGE
+  PRODUCT
+  CONTACT
+  AI
+  BUG
+  FEATURE
+  SUPPORT
+  ORDER
+  DELIVERY
+  REVIEW
+}
+
+enum FeedbackSource {
+  WEBSITE
+  PAGE
+  FOOTER
+  HEADER
+  CONTACT_FORM
+  AI_CHATBOT
+  PRODUCT_PAGE
+  COMMUNITY
+  MOBILE_APP
+  API
+}
+
+enum FeedbackEntityType {
+  PAGE
+  PRODUCT
+  BLOG
+  AI_CHAT
+  ORDER
+  CATEGORY
+  VIDEO
+  RECIPE
+  GENERAL
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  SPAM
+}
+
+enum FeedbackSentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum FeedbackPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Feedback {
+  id String @id @default(cuid())
+
+  // Identity — soft references (no FK to keep Core/Auth frozen).
+  visitorId String?
+  userId    String?
+  sessionId String?
+
+  // Classification
+  type       FeedbackType        @default(GENERAL)
+  source     FeedbackSource      @default(WEBSITE)
+  entityType FeedbackEntityType?
+  entityId   String?
+
+  // Context
+  pageUrl   String?
+  pageTitle String?
+
+  // Content
+  rating    Int? // 1–5
+  sentiment FeedbackSentiment?
+  title     String?
+  message   String?            @db.Text
+  metadata  Json?
+
+  // Workflow
+  status      FeedbackStatus   @default(OPEN)
+  priority    FeedbackPriority @default(MEDIUM)
+  assignedTo  String? // future
+  response    String?          @db.Text // future
+  respondedAt DateTime?
+  resolvedAt  DateTime?
+
+  // Client hints (non-PII)
+  deviceType String?
+  browser    String?
+  language   String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete
+
+  @@index([type])
+  @@index([status])
+  @@index([sentiment])
+  @@index([visitorId])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([deletedAt])
+}

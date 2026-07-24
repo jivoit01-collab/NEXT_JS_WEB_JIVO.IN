@@ -5,16 +5,6 @@ import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import type { VisibleFooterColumnWithLinks } from '@/modules/footer/types';
 
-/** Text with the shared green growing-underline hover effect. */
-function HoverUnderlineText({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="relative transition-colors duration-300 [@media(hover:hover)]:group-hover:text-[#111]">
-      {children}
-      <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
-    </span>
-  );
-}
-
 /**
  * Footer link columns.
  *  - Mobile (< md): collapsible accordion — tap a header to expand its links.
@@ -24,13 +14,13 @@ export function FooterColumns({ columns }: { columns: VisibleFooterColumnWithLin
   const [openId, setOpenId] = useState<string | null>(null);
 
   return (
-    <div className="divide-y divide-[#dcdbd0] md:grid md:grid-cols-4 md:gap-x-4 md:divide-y-0 lg:gap-x-5 2xl:gap-x-6">
+    <div className="divide-y divide-[#dcdbd0] md:grid md:h-full md:grid-cols-4 md:grid-rows-1 md:gap-x-5 md:divide-y-0 lg:gap-x-6 2xl:gap-x-7">
       {columns.map((column) => {
         const isOpen = openId === column.id;
         return (
           <div
             key={column.id}
-            className="min-w-0 md:border-l md:border-[#dcdbd0] md:pl-4 md:first:border-l-0 md:first:pl-0 lg:pl-5 2xl:pl-6"
+            className="min-w-0 md:border-l md:border-[#d0cfc2] md:pl-5 md:first:border-l-0 md:first:pl-0 lg:pl-6 2xl:pl-7"
           >
             <button
               type="button"
@@ -38,7 +28,7 @@ export function FooterColumns({ columns }: { columns: VisibleFooterColumnWithLin
               aria-expanded={isOpen}
               className="flex w-full items-center justify-between gap-2 py-4 text-left md:pointer-events-none md:py-0"
             >
-              <h3 className="font-jost-bold text-sm tracking-[0.14em] text-[#1f3524] uppercase sm:text-[15px] 2xl:text-base">
+              <h3 className="font-jost-bold text-[15px] tracking-[0.14em] text-[#1f3524] uppercase sm:text-base 2xl:text-lg">
                 {column.title}
               </h3>
               <ChevronDown
@@ -58,12 +48,17 @@ export function FooterColumns({ columns }: { columns: VisibleFooterColumnWithLin
                 <li key={link.id}>
                   <Link
                     href={link.href}
-                    className="group inline-flex items-start gap-2 text-[13px] leading-snug text-[#586055] transition-colors duration-300 sm:text-sm 2xl:text-base"
+                    className="group flex items-start gap-2 text-sm leading-snug text-[#586055] transition-colors duration-300 sm:text-[15px] 2xl:text-lg [@media(hover:hover)]:hover:text-[#111]"
                   >
                     <span className="mt-[1px] shrink-0 text-[#0a7d3f]" aria-hidden>
                       &gt;
                     </span>
-                    <HoverUnderlineText>{link.title}</HoverUnderlineText>
+                    {/* Block wrapper → the growing underline spans a consistent
+                        width for every link, single- or multi-line. */}
+                    <span className="relative min-w-0 flex-1 pb-1">
+                      {link.title}
+                      <span className="absolute bottom-0 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
+                    </span>
                   </Link>
                 </li>
               ))}
