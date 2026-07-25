@@ -9,6 +9,10 @@
 import './register-default-widgets';
 import './register-auth-widgets';
 import './register-feedback-widgets';
+import './register-knowledge-widgets';
+import './register-conversation-widgets';
+import './register-ai-provider-widgets';
+import './register-observability-widgets';
 
 export { WidgetRenderer } from './widget-renderer';
 export {

@@ -1,0 +1,57 @@
+// ==========================================================================
+// AI Observability (Phase 7.9) — execution METADATA only, for debugging and
+// optimization. It stores NO conversation content (that lives in the Conversation
+// Platform); it references it by soft id. One row per AI Gateway request.
+// ==========================================================================
+
+model AIExecution {
+  id String @id @default(cuid())
+
+  // Correlation / soft references (NO FKs to conversation — no duplication).
+  correlationId String
+  conversationId String?
+  messageId      String?
+  visitorId      String?
+  userId         String?
+
+  // Channel + prompt provenance.
+  channel        String  @default("web")
+  promptTemplate String?
+  promptVersion  Int?
+
+  // Knowledge / context provenance.
+  knowledgeVersion Int?
+  contextStrategy  String?
+  retrievedDocs    Int    @default(0)
+
+  // Provider / model.
+  provider     String?
+  model        String?
+  fromFallback Boolean @default(false)
+
+  // Metrics.
+  responseTimeMs Int   @default(0)
+  promptTokens   Int   @default(0)
+  completionTokens Int @default(0)
+  totalTokens    Int   @default(0)
+  estimatedCost  Float @default(0) // USD estimate (model-agnostic table)
+
+  // Experience.
+  experienceCards Int @default(0)
+
+  // Outcome.
+  success   Boolean            @default(true)
+  errorType String?
+  quality   Float? // 0..1 response validation quality
+
+  // Future link to feedback (soft ref; set when a user rates the answer).
+  feedbackId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([correlationId])
+  @@index([conversationId])
+  @@index([provider])
+  @@index([success])
+  @@index([createdAt])
+}

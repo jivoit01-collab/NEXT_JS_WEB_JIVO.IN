@@ -1,0 +1,189 @@
+// ==========================================================================
+// KNOWLEDGE PLATFORM (Phase 7.0)
+// The reusable knowledge layer that powers every future AI feature (Chatbot,
+// Search, Recommendations, Voice, WhatsApp, Mobile, Employee AI). It knows
+// NOTHING about any LLM — LLMs consume this platform, never the reverse.
+//
+// Design:
+//   • Embeddings live in a SEPARATE table (KnowledgeEmbedding), never on the
+//     document — so a document row stays small and one document can carry
+//     several provider/model embeddings.
+//   • Documents are chunk-based (chunkIndex) so long content scales.
+//   • Denormalized counts + rich indexes → 100k+ docs / millions of searches.
+//   • Soft references only (entityType/entityId/externalKey) — no FK into
+//     business/Core models, so nothing frozen is touched.
+// Docs: docs/knowledge-platform.md
+// ==========================================================================
+
+enum KnowledgeSourceType {
+  CMS_PAGE
+  PRODUCT
+  BLOG
+  FAQ
+  RECIPE
+  MEDIA
+  COMMUNITY
+  POLICY
+  SHOP_PRODUCT // future
+  MOBILE_CONTENT // future
+  CUSTOM
+}
+
+enum KnowledgeDocumentStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+  DELETED
+}
+
+/** Lifecycle of a document's embedding (vector search readiness). */
+enum KnowledgeEmbeddingStatus {
+  PENDING // never embedded
+  STALE // content changed since last embed → needs re-index
+  READY // embedding is current
+  FAILED
+  DISABLED
+}
+
+enum KnowledgeEmbeddingProvider {
+  GEMINI
+  OPENAI
+  VOYAGE
+  LOCAL
+  NONE
+}
+
+enum KnowledgeSyncJobType {
+  FULL
+  INCREMENTAL
+  REINDEX
+  SINGLE
+}
+
+enum KnowledgeSyncJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+/** A registered knowledge source (CMS pages, products, FAQs, …). */
+model KnowledgeSource {
+  id            String              @id @default(cuid())
+  key           String              @unique // stable id: "cms-pages", "products"
+  name          String
+  type          KnowledgeSourceType
+  description   String?
+  enabled       Boolean             @default(true)
+  config        Json? // adapter-specific settings
+  documentCount Int                 @default(0) // denormalized for fast reads
+  lastSyncedAt  DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  documents KnowledgeDocument[]
+  syncJobs  KnowledgeSyncJob[]
+
+  @@index([type])
+  @@index([enabled])
+}
+
+/** A searchable grouping (Our Essence, Products, Recipes, FAQ, …). */
+model KnowledgeCollection {
+  id            String   @id @default(cuid())
+  key           String   @unique // "our-essence", "products"
+  name          String
+  description   String?
+  enabled       Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  documentCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  documents KnowledgeDocument[]
+
+  @@index([enabled])
+}
+
+/** One unit (chunk) of knowledge — the searchable/retrievable text. */
+model KnowledgeDocument {
+  id           String               @id @default(cuid())
+  sourceId     String
+  source       KnowledgeSource      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  collectionId String?
+  collection   KnowledgeCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+
+  // Soft provenance (no FK to business models).
+  entityType  String // "PAGE", "PRODUCT", …
+  entityId    String? // id/slug in the source system
+  externalKey String // stable unique key within the source (upsert target)
+
+  title           String
+  content         String                   @db.Text // searchable text
+  excerpt         String?                  @db.Text
+  url             String? // public URL
+  language        String                   @default("en")
+  chunkIndex      Int                      @default(0) // long content → multiple chunks
+  tokenCount      Int                      @default(0)
+  contentHash     String // change detection → mark embedding stale
+  metadata        Json?
+  status          KnowledgeDocumentStatus  @default(ACTIVE)
+  embeddingStatus KnowledgeEmbeddingStatus @default(PENDING)
+  version         Int                      @default(1) // bumped on each re-index (observability provenance)
+  indexedAt       DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  embeddings KnowledgeEmbedding[]
+
+  @@unique([sourceId, externalKey, chunkIndex])
+  @@index([sourceId])
+  @@index([collectionId])
+  @@index([status])
+  @@index([embeddingStatus])
+  @@index([entityType, entityId])
+  @@index([contentHash])
+}
+
+/** A document's embedding vector — separate table, one row per provider/model. */
+model KnowledgeEmbedding {
+  id          String                     @id @default(cuid())
+  documentId  String
+  document    KnowledgeDocument          @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  provider    KnowledgeEmbeddingProvider
+  model       String // "text-embedding-004", …
+  dimensions  Int                        @default(0)
+  // The vector. Empty until generation lands. A future migration swaps this for a
+  // pgvector column + ANN index without touching the rest of the platform.
+  vector      Float[]
+  contentHash String // hash the vector was computed from
+  createdAt   DateTime                   @default(now())
+  updatedAt   DateTime                   @updatedAt
+
+  @@unique([documentId, provider, model])
+  @@index([documentId])
+  @@index([provider])
+}
+
+/** A background (re)indexing job — audit + progress for automatic sync. */
+model KnowledgeSyncJob {
+  id        String                 @id @default(cuid())
+  sourceId  String?
+  source    KnowledgeSource?       @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  type      KnowledgeSyncJobType   @default(INCREMENTAL)
+  status    KnowledgeSyncJobStatus @default(PENDING)
+  processed Int                    @default(0)
+  created   Int                    @default(0)
+  updated   Int                    @default(0)
+  failed    Int                    @default(0)
+  error     String?                @db.Text
+  startedAt DateTime?
+  finishedAt DateTime?
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  @@index([status])
+  @@index([sourceId])
+  @@index([createdAt])
+}

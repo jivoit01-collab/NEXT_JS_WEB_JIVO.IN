@@ -5,6 +5,7 @@ import { SmoothScrollProvider } from '@/components/shared/smooth-scroll-provider
 import { CookieProvider } from '@/modules/core/cookie-consent';
 import { TrackingProvider } from '@/modules/core/tracking';
 import { AuthProvider } from '@/modules/platform/auth';
+import { SiteChat } from '@/components/shared/site-chat';
 import { getNavbarSetting, getVisibleNavLinks } from '@/modules/navbar';
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -50,6 +51,11 @@ export default async function PublicLayout({ children }: { children: React.React
           </div>
         </SmoothScrollProvider>
         <PublicRuntimeLoader />
+        {/* AI Chat Widget (Phase 7.8). Self-gates on the master AI flag, the
+            'web' channel and PREFERENCES consent — renders nothing otherwise.
+            Talks ONLY to the AI Gateway. Kept outside the smooth wrapper so its
+            `fixed` launcher/panel positioning works. */}
+        <SiteChat />
       </TrackingProvider>
     </CookieProvider>
     </AuthProvider>

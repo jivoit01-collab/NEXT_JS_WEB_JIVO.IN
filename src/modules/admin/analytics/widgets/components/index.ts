@@ -7,6 +7,7 @@ export { makeTrendWidget } from './trend-widget';
 export { makeFactsWidget } from './facts-widget';
 export { RecentFeedbackWidget } from './recent-feedback-widget';
 export { makeTopCommentsWidget } from './top-comments-widget';
+export { KnowledgeSearchWidget } from './knowledge-search-widget';
 export { ComparisonWidget } from './comparison-widget';
 export { ExportCenterWidget } from './export-center-widget';
 export { QuickReportsWidget } from './quick-reports-widget';

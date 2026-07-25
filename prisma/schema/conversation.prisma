@@ -1,0 +1,134 @@
+// ==========================================================================
+// AI CONVERSATION PLATFORM (Phase 7.1)
+// The reusable conversation layer: lifecycle, live state, message storage and
+// memory. It knows NOTHING about any LLM/Gemini/Prompt Builder/Chat UI — those
+// consume this platform, never the reverse.
+//
+// Design:
+//   • METADATA (Conversation) is separate from STATE (ConversationState),
+//     MESSAGES (ConversationMessage) and MEMORY (ConversationMemory) — so the
+//     hot "current state" read never scans messages, and the message table can
+//     grow to MILLIONS of rows without slowing anything else.
+//   • Soft references only (visitorId/userId/sessionId/feedbackId) — no FK into
+//     the frozen Core Visitor/Auth or the Feedback model.
+//   • Cursor pagination via ([conversationId, createdAt]).
+// Docs: docs/conversation-platform.md
+// ==========================================================================
+
+enum ConversationStatus {
+  ACTIVE
+  IDLE
+  ENDED
+  ARCHIVED
+}
+
+enum ConversationRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+enum ConversationMessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  TOOL_CALL
+  EVENT
+}
+
+enum ConversationMemoryType {
+  PREFERENCE
+  PROFILE
+  SHOPPING
+  HEALTH
+  BUSINESS
+  TEMPORARY
+  LONG_TERM
+}
+
+/** Conversation METADATA only — small, hot, never scans messages. */
+model Conversation {
+  id            String             @id @default(cuid())
+  visitorId     String? // soft ref (Core Visitor)
+  userId        String? // soft ref (Auth User)
+  sessionId     String? // soft ref (Core Session)
+  title         String?
+  language      String             @default("en")
+  status        ConversationStatus @default(ACTIVE)
+  startedAt     DateTime           @default(now())
+  endedAt       DateTime?
+  lastMessageAt DateTime?
+  messageCount  Int                @default(0)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  state    ConversationState?
+  messages ConversationMessage[]
+  memories ConversationMemory[]
+
+  @@index([visitorId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([status])
+  @@index([lastMessageAt])
+}
+
+/** The single source of truth for a conversation's LIVE state (one row each). */
+model ConversationState {
+  id               String       @id @default(cuid())
+  conversationId   String       @unique
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  currentIntent    String?
+  currentTopic     String?
+  summary          String?      @db.Text
+  lastMessageId    String?
+  contextVersion   Int          @default(0)
+  knowledgeVersion Int          @default(0)
+  estimatedTokens  Int          @default(0)
+  streamingEnabled Boolean      @default(false)
+  modelProvider    String? // which provider WILL run (no LLM coupling here)
+  temperature      Float        @default(0.7)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+/** Every message. Grows to MILLIONS — kept lean + heavily indexed. */
+model ConversationMessage {
+  id             String                  @id @default(cuid())
+  conversationId String
+  conversation   Conversation            @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           ConversationRole
+  content        String                  @db.Text
+  messageType    ConversationMessageType @default(TEXT)
+  tokens         Int                     @default(0)
+  responseTime   Int? // ms to produce (assistant)
+  confidence     Float?
+  feedbackId     String? // soft ref → one optional Feedback record (no duplication)
+  metadata       Json?
+  createdAt      DateTime                @default(now())
+
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+  @@index([conversationId, createdAt]) // cursor pagination
+}
+
+/** Reusable conversation memory (preferences, profile, shopping, …). */
+model ConversationMemory {
+  id             String                 @id @default(cuid())
+  conversationId String
+  conversation   Conversation           @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  type           ConversationMemoryType
+  key            String
+  value          String                 @db.Text
+  importance     Float                  @default(0.5) // 0..1 — retrieval/eviction priority
+  expiresAt      DateTime? // temporary memory auto-expires
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@unique([conversationId, type, key])
+  @@index([conversationId])
+  @@index([type])
+  @@index([expiresAt])
+}

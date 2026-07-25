@@ -16,8 +16,10 @@ export const PLATFORM_FEATURES = {
   /** In-process platform event bus (platform emits, business subscribes). */
   eventBus: true,
 
-  // ── Not built yet — flip on when the module lands (keeps callers stable). ──
-  ai: false,
+  // ── AI Platform (Phase 7.x) has landed — master switch for the whole stack.
+  //    An env override (AI_ENABLED / NEXT_PUBLIC_AI_ENABLED) can force it off in
+  //    an environment without a code change (resolved in platform/gateway). ──
+  ai: true,
   chatbot: false,
   recommendations: false,
   productAnalytics: false,

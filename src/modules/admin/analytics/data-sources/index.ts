@@ -7,6 +7,10 @@
 
 import './default-data-sources';
 import './feedback-source';
+import './knowledge-source';
+import './conversation-source';
+import './ai-provider-source';
+import './observability-source';
 
 export {
   registerAnalyticsDataSource,
