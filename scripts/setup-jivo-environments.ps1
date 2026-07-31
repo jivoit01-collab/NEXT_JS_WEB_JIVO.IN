@@ -21,11 +21,33 @@
   must point at its own database and its own AUTH_URL. You create that file
   yourself (the script tells you when).
 
+  TWO SUPPORTED WORKFLOWS
+  -----------------------
+  Normal — the script performs everything:
+
+      setup-jivo-environments.ps1
+
+  Recovery — the administrator has already stopped jivo-web, moved the app
+  folder to _LIVE and cloned the testing branch into _TEST by hand, and wants
+  the script to pick up from there:
+
+      setup-jivo-environments.ps1 -SkipFolderMigration
+
+  Both are safe to run repeatedly. Every step tests for its own result first, so
+  a run that stops halfway can simply be started again — nothing is done twice.
+  Before registering any service the script verifies that both application
+  folders actually exist, so an incomplete manual migration is reported clearly
+  instead of producing services that fail to start.
+
 .EXAMPLE
   powershell -NoProfile -ExecutionPolicy Bypass -File setup-jivo-environments.ps1
 
 .EXAMPLE
   powershell -NoProfile -ExecutionPolicy Bypass -File setup-jivo-environments.ps1 -WhatIfOnly
+
+.EXAMPLE
+  # After migrating the folders by hand
+  powershell -NoProfile -ExecutionPolicy Bypass -File setup-jivo-environments.ps1 -SkipFolderMigration
 #>
 
 [CmdletBinding()]
@@ -38,7 +60,20 @@ param(
   [int]    $TestPort    = 3002,
 
   # Print the plan without changing anything.
-  [switch] $WhatIfOnly
+  [switch] $WhatIfOnly,
+
+  # Recovery mode for a MANUAL folder migration.
+  #
+  # When the administrator has already stopped jivo-web, moved/copied the app
+  # folder to _LIVE and cloned the testing branch into _TEST by hand, this flag
+  # tells the script to skip both folder-migration steps outright (no Move-Item,
+  # no git clone) and carry on with service registration and the rest.
+  #
+  # Not normally needed: both steps already detect existing folders and skip
+  # themselves. Use this when you want that skip to be explicit and guaranteed —
+  # for example when _LIVE exists but you would rather the script never even
+  # consider touching $OldAppPath.
+  [switch] $SkipFolderMigration
 )
 
 $ErrorActionPreference = 'Stop'
@@ -200,7 +235,17 @@ if ($old -and $old.Status -ne 'Stopped') {
 
 # ---------------------------------------------------------------------------
 Step 'Move existing working copy to _LIVE'
-if (Test-Path -LiteralPath $LivePath) {
+if ($SkipFolderMigration) {
+  if (Test-Path -LiteralPath $LivePath) {
+    Skip 'Live application already migrated.'
+  } else {
+    # Do not claim it is migrated when it plainly is not — the folder
+    # verification step below turns this into a clear, actionable failure.
+    Skip 'Move-Item skipped by -SkipFolderMigration (folder not found yet).'
+  }
+  Skip '-SkipFolderMigration was specified; Move-Item will not run.'
+} elseif (Test-Path -LiteralPath $LivePath) {
+  Skip 'Live application already migrated.'
   Skip ($LivePath + ' already exists')
 } elseif (-not (Test-Path -LiteralPath $OldAppPath)) {
   Skip ($OldAppPath + ' not found — assuming already migrated')
@@ -230,7 +275,15 @@ if (Test-Path -LiteralPath $LivePath) {
 
 # ---------------------------------------------------------------------------
 Step 'Clone testing branch into _TEST'
-if (Test-Path -LiteralPath $TestPath) {
+if ($SkipFolderMigration) {
+  if (Test-Path -LiteralPath $TestPath) {
+    Skip 'Testing clone already exists.'
+  } else {
+    Skip 'git clone skipped by -SkipFolderMigration (folder not found yet).'
+  }
+  Skip '-SkipFolderMigration was specified; git clone will not run.'
+} elseif (Test-Path -LiteralPath $TestPath) {
+  Skip 'Testing clone already exists.'
   Skip ($TestPath + ' already exists')
 } else {
   if (-not $WhatIfOnly) {
@@ -240,6 +293,41 @@ if (Test-Path -LiteralPath $TestPath) {
     }
   }
   Did ($TestPath + ' cloned from ' + $RepoUrl + ' (branch: testing)')
+}
+
+# ---------------------------------------------------------------------------
+# Verify the manual migration actually happened before anything is registered
+# against these paths. A service whose AppDirectory does not exist installs
+# without complaint and then fails at start time with an unhelpful error, so
+# catching it here — while the operator is still watching — is far cheaper.
+Step 'Verify application folders are present'
+$missingFolders = @()
+foreach ($check in @(
+  @{ Label = 'Production (_LIVE)'; Path = $LivePath },
+  @{ Label = 'Testing (_TEST)';    Path = $TestPath }
+)) {
+  if (Test-Path -LiteralPath $check.Path -PathType Container) {
+    Did ($check.Label + ' -> ' + $check.Path)
+  } else {
+    $missingFolders += $check
+    Write-Host ('    [MISSING] ' + $check.Label + ' -> ' + $check.Path)
+  }
+}
+
+if ($missingFolders.Count -gt 0 -and -not $WhatIfOnly) {
+  throw (
+    'Cannot register services: ' + $missingFolders.Count + ' application folder(s) missing.' + [Environment]::NewLine +
+    ($missingFolders | ForEach-Object { '  - ' + $_.Label + ': ' + $_.Path }) -join [Environment]::NewLine + [Environment]::NewLine +
+    [Environment]::NewLine +
+    'If you are migrating manually, complete these steps first:' + [Environment]::NewLine +
+    ('  1. Stop the old service:  nssm stop ' + $OldService) + [Environment]::NewLine +
+    ('  2. Move  ' + $OldAppPath + '  ->  ' + $LivePath) + [Environment]::NewLine +
+    ('  3. Clone the testing branch into  ' + $TestPath + ':') + [Environment]::NewLine +
+    ('       git clone --branch testing ' + $RepoUrl + ' "' + $TestPath + '"') + [Environment]::NewLine +
+    [Environment]::NewLine +
+    'Then re-run this script with -SkipFolderMigration.' + [Environment]::NewLine +
+    'Alternatively, drop -SkipFolderMigration and let the script perform the migration itself.'
+  )
 }
 
 # ---------------------------------------------------------------------------
