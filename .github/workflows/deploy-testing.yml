@@ -1,0 +1,38 @@
+name: Deploy Testing (abc.jivo.in)
+
+# Testing deploys ONLY from the testing branch. Pushes to main never reach this
+# workflow, and this workflow only ever passes Testing paths/service to the
+# deployment script.
+on:
+  push:
+    branches:
+      - testing
+  workflow_dispatch:
+
+# Testing has its own concurrency group, independent of production.
+concurrency:
+  group: deploy-testing
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy testing to abc.jivo.in
+    runs-on: ubuntu-latest
+    environment: testing
+
+    env:
+      APP_PATH: C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST
+      DEPLOY_SCRIPT_DIR: C:\LiveProjects\JIVO_WEBSITE\Deploy
+
+    steps:
+      - name: Deploy to Windows Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 30m
+          envs: APP_PATH,DEPLOY_SCRIPT_DIR
+          script: |
+            cmd.exe /D /S /C "cd /d %APP_PATH% && git fetch origin testing && (if not exist "%DEPLOY_SCRIPT_DIR%" mkdir "%DEPLOY_SCRIPT_DIR%") && git show origin/testing:scripts/deploy-jivo-windows.ps1 > "%DEPLOY_SCRIPT_DIR%\deploy-testing.ps1" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%DEPLOY_SCRIPT_DIR%\deploy-testing.ps1" -Environment Testing"
