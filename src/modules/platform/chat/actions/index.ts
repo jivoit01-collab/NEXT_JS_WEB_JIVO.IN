@@ -12,6 +12,7 @@ import { platformEvents } from '@/modules/core/events';
 import {
   startConversation as startConversationManager,
   restoreConversation,
+  findLatestConversationByVisitor,
 } from '@/modules/platform/conversation/manager';
 import { execute } from '@/modules/platform/gateway/services';
 import { CHAT_CONFIG } from '../config';
@@ -22,9 +23,18 @@ import type { ChatSession, ChatTurnResult, ChatMessage } from '../types';
 type Fail = { success: false; error: string };
 const fail = (e: unknown): Fail => ({ success: false, error: e instanceof Error ? e.message : 'Chat failed' });
 
-// ── Start a new chat ─────────────────────────────────────────
+// ── Start (or resume) the visitor's SINGLE chat ──────────────
+// One anonymous visitor = one conversation. If the visitor already has a
+// conversation, resume it (and load its messages) instead of creating another —
+// preventing duplicate conversations / DB growth. A brand-new visitor gets one.
 export async function startChatAction(input: { visitorId?: string; userId?: string; sessionId?: string }) {
   try {
+    // Reuse the visitor's existing conversation when we can identify them.
+    if (input.visitorId) {
+      const existing = await findLatestConversationByVisitor(input.visitorId);
+      if (existing) return restoreChatAction(existing.id);
+    }
+
     const conversation = await startConversationManager({
       visitorId: input.visitorId,
       userId: input.userId,

@@ -15,8 +15,6 @@ import {
   ExternalLink,
   MessageCircle,
   Phone,
-  Share2,
-  ThumbsUp,
   ShoppingCart,
   ArrowRight,
 } from 'lucide-react';
@@ -56,7 +54,8 @@ const ProductCard: CardComponent = ({ card, ctx }) => {
   return (
     <Shell icon={Package}>
       <div className="font-medium">{d.title}</div>
-      <LinkRow label="View product" onClick={() => ctx.onCardAction(card, 'view_product', d.entityId ?? d.url ?? undefined)} />
+      {/* Always opens the storefront (shop.jivo.in) in a new tab — routed by the widget. */}
+      <LinkRow label="View Products" onClick={() => ctx.onCardAction(card, 'view_product')} />
     </Shell>
   );
 };
@@ -66,10 +65,7 @@ const BuyProductCard: CardComponent = ({ card, ctx }) => {
   return (
     <Shell icon={ShoppingCart}>
       <div className="font-medium">{d.title}</div>
-      <LinkRow
-        label={d.available ? 'Buy now' : 'Coming soon'}
-        onClick={() => ctx.onCardAction(card, 'buy_product', d.entityId ?? undefined)}
-      />
+      <LinkRow label="View Products" onClick={() => ctx.onCardAction(card, 'buy_product')} />
     </Shell>
   );
 };
@@ -95,6 +91,8 @@ const ReadMoreCard: CardComponent = ({ card, ctx }) => {
 
 const CtaCard: CardComponent = ({ card, ctx }) => {
   const d = card.data as { label: string; action: string; target?: string };
+  // A contact CTA always reads "Contact our team" (never "Talk to our team").
+  const label = d.action === 'contact_support' ? 'Contact our team' : d.label;
   return (
     <button
       type="button"
@@ -102,61 +100,40 @@ const CtaCard: CardComponent = ({ card, ctx }) => {
       className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
     >
       <MessageCircle className="h-4 w-4" />
-      {d.label}
+      {label}
     </button>
   );
 };
 
 const ContactCard: CardComponent = ({ card, ctx }) => {
   const d = card.data as { prefill: { email?: string; phone?: string } };
+  const { phone, email } = d.prefill ?? {};
   return (
     <Shell icon={Phone}>
-      <div className="font-medium">Want us to reach out?</div>
-      <LinkRow label="Contact our team" onClick={() => ctx.onCardAction(card, 'contact_support', d.prefill.email ?? d.prefill.phone)} />
+      <div className="font-medium">Get in touch with Jivo</div>
+      {/* Surface any contact details the response extracted from Knowledge. */}
+      {phone ? (
+        <a href={`tel:${phone}`} className="mt-0.5 block text-sm text-emerald-700 hover:underline dark:text-emerald-400">
+          📞 {phone}
+        </a>
+      ) : null}
+      {email ? (
+        <a href={`mailto:${email}`} className="mt-0.5 block text-sm text-emerald-700 hover:underline dark:text-emerald-400">
+          ✉️ {email}
+        </a>
+      ) : null}
+      <LinkRow label="Contact our team" onClick={() => ctx.onCardAction(card, 'contact_support', email ?? phone)} />
     </Shell>
   );
 };
 
-const SocialCard: CardComponent = ({ card, ctx }) => {
-  const d = card.data as { message: string };
-  return (
-    <Shell icon={Share2}>
-      <LinkRow label={d.message} onClick={() => ctx.onCardAction(card, 'share')} />
-    </Shell>
-  );
-};
-
-const FeedbackCtaCard: CardComponent = ({ card, ctx }) => {
-  const d = card.data as { prompt: string; entityType: string; entityId: string | null };
-  return (
-    <Shell icon={ThumbsUp}>
-      <div className="flex items-center justify-between gap-2">
-        <span>{d.prompt}</span>
-        <span className="flex gap-1">
-          <button
-            type="button"
-            aria-label="Yes, helpful"
-            onClick={() => ctx.onCardAction(card, 'feedback_yes', d.entityId ?? undefined)}
-            className="rounded px-2 py-0.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
-          >
-            👍
-          </button>
-          <button
-            type="button"
-            aria-label="No, not helpful"
-            onClick={() => ctx.onCardAction(card, 'feedback_no', d.entityId ?? undefined)}
-            className="rounded px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/40"
-          >
-            👎
-          </button>
-        </span>
-      </div>
-    </Shell>
-  );
-};
-
-/** Client card registry. `suggested_questions` and `answer` are rendered by the
- *  message list, not here — so they are intentionally omitted. */
+/**
+ * Client card registry (Phase 8.2 simplification). Only the professional
+ * marketing cards are rendered: product · cms · read_more · cta · contact.
+ * `social` and `feedback_cta` (Was-this-helpful 👍/👎) are intentionally NOT
+ * rendered — the response stays clean. `answer` / `suggested_questions` are
+ * rendered by the message list / questions strip.
+ */
 const REGISTRY: Partial<Record<CardKind, CardComponent>> = {
   product: ProductCard,
   buy_product: BuyProductCard,
@@ -164,12 +141,24 @@ const REGISTRY: Partial<Record<CardKind, CardComponent>> = {
   read_more: ReadMoreCard,
   cta: CtaCard,
   contact: ContactCard,
-  social: SocialCard,
-  feedback_cta: FeedbackCtaCard,
 };
 
+/** Card kinds that are never rendered in the simplified chat. */
+const HIDDEN_KINDS = new Set<CardKind>(['answer', 'suggested_questions', 'social', 'feedback_cta']);
+
 export function ExperienceCards({ cards, ctx }: { cards: ExperienceCard[]; ctx: CardActionContext }) {
-  const renderable = cards.filter((c) => c.kind !== 'answer' && c.kind !== 'suggested_questions');
+  let renderable = cards.filter((c) => !HIDDEN_KINDS.has(c.kind));
+
+  // Exactly ONE contact button. The Experience Planner may emit BOTH a Contact
+  // card ("Contact our team") and a contact_support CTA ("Talk to our team");
+  // when a Contact card is present, drop the duplicate contact CTA.
+  const hasContactCard = renderable.some((c) => c.kind === 'contact');
+  if (hasContactCard) {
+    renderable = renderable.filter(
+      (c) => !(c.kind === 'cta' && (c.data as { action?: string }).action === 'contact_support'),
+    );
+  }
+
   if (renderable.length === 0) return null;
   return (
     <div className="mt-1 space-y-1">

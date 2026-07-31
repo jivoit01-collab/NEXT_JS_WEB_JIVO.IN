@@ -86,4 +86,4 @@ export async function restoreConversation(conversationId: string): Promise<Conve
 // Re-export the state + memory engines so callers use one manager surface.
 export { readState, updateState } from '../state';
 export { rememberFact, recallMemory, forgetExpired } from '../memory';
-export { getMessages } from '../data';
+export { getMessages, findLatestConversationByVisitor } from '../data';

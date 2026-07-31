@@ -46,19 +46,34 @@ export async function insertExecution(record: AIExecutionRecord): Promise<string
   return row.id;
 }
 
+/**
+ * The AIExecution delegate. If the Prisma client is stale (regenerated after the
+ * dev server started) the delegate can be undefined — guard so a dashboard widget
+ * degrades to "empty" instead of throwing a TypeError mid-render.
+ */
+function executionModel(): typeof prisma.aIExecution | null {
+  return prisma.aIExecution ?? null;
+}
+
 /** Recent executions (newest first). */
 export async function recentExecutions(limit = 25): Promise<AIExecutionDTO[]> {
-  const rows = await prisma.aIExecution.findMany({ orderBy: { createdAt: 'desc' }, take: limit });
+  const model = executionModel();
+  if (!model) return [];
+  const rows = await model.findMany({ orderBy: { createdAt: 'desc' }, take: limit });
   return rows.map(toDTO);
 }
 
 /** Aggregate stats over all executions. */
 export async function executionStats(): Promise<ObservabilityStats> {
+  const model = executionModel();
+  if (!model) {
+    return { totalExecutions: 0, successRate: 0, avgResponseTimeMs: 0, totalTokens: 0, totalEstimatedCost: 0, fallbackRate: 0 };
+  }
   const [total, ok, fallback, agg] = await Promise.all([
-    prisma.aIExecution.count(),
-    prisma.aIExecution.count({ where: { success: true } }),
-    prisma.aIExecution.count({ where: { fromFallback: true } }),
-    prisma.aIExecution.aggregate({
+    model.count(),
+    model.count({ where: { success: true } }),
+    model.count({ where: { fromFallback: true } }),
+    model.aggregate({
       _avg: { responseTimeMs: true },
       _sum: { totalTokens: true, estimatedCost: true },
     }),
@@ -77,13 +92,15 @@ export async function executionStats(): Promise<ObservabilityStats> {
 export async function executionsByProvider(): Promise<
   { provider: string; count: number; avgResponseTimeMs: number; totalTokens: number; estimatedCost: number; failures: number }[]
 > {
-  const rows = await prisma.aIExecution.groupBy({
+  const model = executionModel();
+  if (!model) return [];
+  const rows = await model.groupBy({
     by: ['provider'],
     _count: { _all: true },
     _avg: { responseTimeMs: true },
     _sum: { totalTokens: true, estimatedCost: true },
   });
-  const failures = await prisma.aIExecution.groupBy({
+  const failures = await model.groupBy({
     by: ['provider'],
     where: { success: false },
     _count: { _all: true },

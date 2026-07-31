@@ -224,6 +224,19 @@ export async function getConversation(id: string): Promise<ConversationDTO | nul
   return c ? toConversationDTO(c) : null;
 }
 
+/**
+ * The most recent non-ended conversation for an anonymous visitor. Read-only —
+ * lets a caller REUSE a visitor's single conversation instead of creating a new
+ * one each visit (reduces duplicate conversations / DB growth). Additive.
+ */
+export async function findLatestConversationByVisitor(visitorId: string): Promise<ConversationDTO | null> {
+  const c = await prisma.conversation.findFirst({
+    where: { visitorId, status: { not: 'ENDED' } },
+    orderBy: { updatedAt: 'desc' },
+  });
+  return c ? toConversationDTO(c) : null;
+}
+
 /** The single source of truth read — one small row, no message scan. */
 export async function getState(conversationId: string): Promise<ConversationStateDTO | null> {
   const s = await prisma.conversationState.findUnique({ where: { conversationId } });

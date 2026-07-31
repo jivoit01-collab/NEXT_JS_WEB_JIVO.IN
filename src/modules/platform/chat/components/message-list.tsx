@@ -1,9 +1,8 @@
 'use client';
 
-// Message list — modern chat transcript: avatars, markdown, Experience Cards,
-// per-message actions, timestamps, status, entry animation and auto-scroll.
-// Long conversations are windowed (only the most recent N are mounted) to keep
-// rendering cheap. Rows are memoized to avoid unnecessary re-renders.
+// Message list — clean chat transcript (simplified, Phase 8.2): avatars,
+// markdown, Experience Cards, timestamps, status, entry animation, auto-scroll.
+// No per-message actions/reactions. Long conversations are windowed; rows memoized.
 import { memo, useEffect, useMemo, useRef } from 'react';
 import { AlertCircle, Check } from 'lucide-react';
 import { platformEvents } from '@/modules/core/events';
@@ -15,7 +14,6 @@ import { formatTime } from '../utils';
 import { TypingIndicator } from './typing-indicator';
 import { ExperienceCards, type CardActionContext } from './cards/card-renderer';
 import { AiAvatar } from './ai-avatar';
-import { MessageActions, type MessageActionKind } from './message-actions';
 import { Markdown } from './markdown';
 
 const WINDOW = 60; // mount at most this many recent messages
@@ -27,22 +25,14 @@ function StatusIcon({ status }: { status: ChatMessage['status'] }) {
   return null;
 }
 
-interface RowProps {
-  m: ChatMessage;
-  busy: boolean;
-  reaction: 'like' | 'dislike' | null;
-  cardCtx: CardActionContext;
-  onMessageAction: (m: ChatMessage, kind: MessageActionKind) => void;
-}
-
-const MessageRow = memo(function MessageRow({ m, busy, reaction, cardCtx, onMessageAction }: RowProps) {
+const MessageRow = memo(function MessageRow({ m, cardCtx }: { m: ChatMessage; cardCtx: CardActionContext }) {
   const isUser = m.role === 'user';
   const streaming = m.status === 'streaming';
 
   return (
     <div className={`flex animate-[fadeIn_0.2s_ease] gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser ? <AiAvatar size={28} /> : null}
-      <div className={`group max-w-[82%] ${isUser ? 'order-2' : ''}`}>
+      <div className={`max-w-[82%] ${isUser ? 'order-2' : ''}`}>
         <div
           className={`rounded-2xl px-3 py-2 ${
             isUser
@@ -66,16 +56,6 @@ const MessageRow = memo(function MessageRow({ m, busy, reaction, cardCtx, onMess
           {formatTime(m.createdAt)}
           <StatusIcon status={m.status} />
         </div>
-
-        {/* Per-assistant-message actions. */}
-        {!isUser && !streaming ? (
-          <MessageActions
-            content={m.content}
-            disabled={busy}
-            reaction={reaction}
-            onAction={(kind) => onMessageAction(m, kind)}
-          />
-        ) : null}
       </div>
     </div>
   );
@@ -84,15 +64,11 @@ const MessageRow = memo(function MessageRow({ m, busy, reaction, cardCtx, onMess
 export function MessageList({
   messages,
   busy,
-  reactions,
   onCardAction,
-  onMessageAction,
 }: {
   messages: ChatMessage[];
   busy: boolean;
-  reactions: Record<string, 'like' | 'dislike'>;
   onCardAction: (card: ExperienceCard, action: string, target?: string) => void;
-  onMessageAction: (m: ChatMessage, kind: MessageActionKind) => void;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -116,19 +92,10 @@ export function MessageList({
   const hidden = messages.length - visible.length;
 
   return (
-    <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3" aria-live="polite" aria-label="Conversation">
-      {hidden > 0 ? (
-        <p className="py-1 text-center text-[11px] opacity-50">{hidden} earlier messages hidden</p>
-      ) : null}
+    <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3" aria-live="polite" aria-label="Conversation" aria-busy={busy}>
+      {hidden > 0 ? <p className="py-1 text-center text-[11px] opacity-50">{hidden} earlier messages hidden</p> : null}
       {visible.map((m) => (
-        <MessageRow
-          key={m.id}
-          m={m}
-          busy={busy}
-          reaction={reactions[m.id] ?? null}
-          cardCtx={cardCtx}
-          onMessageAction={onMessageAction}
-        />
+        <MessageRow key={m.id} m={m} cardCtx={cardCtx} />
       ))}
       <div ref={endRef} />
       <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}`}</style>

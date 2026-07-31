@@ -5,20 +5,22 @@
 export const CHAT_FEATURES = {
   widget: true,
   launcher: true,
-  conversationList: true,
   experienceCards: true,
   suggestedQuestions: true,
   typingIndicator: true,
   messageStatus: true,
   autoScroll: true,
-  restoreConversation: true,
+  restoreConversation: true, // one visitor = one conversation, auto-resumed
   minimize: true,
   themeSupport: true,
   welcomeScreen: true,
-  messageActions: true,
-  conversationHistory: true,
   launcherPulse: true,
   notificationBadge: true,
+
+  // Removed in the Phase 8.2 simplification (single-conversation, clean UI).
+  conversationList: false,
+  messageActions: false, // no like/dislike/copy/retry/share/regenerate
+  conversationHistory: false, // no history sidebar / new chat
 
   // Prepared UI only — off until wired (Future Ready section).
   streaming: false, // panel is streaming-READY; provider streaming lands later
@@ -47,12 +49,14 @@ export const CHAT_CONFIG = {
   },
   /** Max chars in the composer. */
   maxInputLength: 2000,
-  /** Default opening questions when no plan has run yet. */
+  /** Default follow-up questions when a plan hasn't suggested its own. */
   defaultQuestions: [
-    'What products do you offer?',
-    'Tell me about Jivo',
-    'How can I contact you?',
+    'Where can I buy Jivo products?',
+    'How do I contact Jivo?',
+    'Show me your certifications',
   ],
+  /** Shown when the assistant has no answer (Jivo-branded, not generic AI). */
+  unknownMessage: "I couldn't find that information on the Jivo website.",
   /** Welcome-screen suggested questions (6, per spec). */
   welcomeQuestions: [
     'Tell me about Jivo',

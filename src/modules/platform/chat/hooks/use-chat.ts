@@ -93,36 +93,6 @@ export function useChat(options: UseChatOptions = {}) {
     platformEvents.emit(CHAT_EVENTS.MINIMIZED, {});
   }, [conversationId, persist]);
 
-  /** Start a fresh conversation (frontend reset — a new one is created on next send). */
-  const newChat = useCallback(() => {
-    setConversationId(null);
-    setMessages([]);
-    setQuestions([...CHAT_CONFIG.defaultQuestions]);
-    setError(null);
-    try {
-      localStorage.removeItem(CHAT_CONFIG.storage.conversationId);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  /** Load a specific past conversation into the panel (history restore). */
-  const openConversation = useCallback(
-    async (id: string) => {
-      setBusy(true);
-      const res = await restoreChatAction(id);
-      if (res.success && 'data' in res) {
-        setConversationId(id);
-        setMessages(res.data.messages);
-        setQuestions(res.data.suggestedQuestions);
-        persist(id, 'open');
-        platformEvents.emit(CHAT_EVENTS.CONVERSATION_RESTORED, { conversationId: id });
-      }
-      setBusy(false);
-    },
-    [persist],
-  );
-
   const send = useCallback(
     async (content: string) => {
       const text = content.trim();
@@ -174,19 +144,6 @@ export function useChat(options: UseChatOptions = {}) {
     [busy, ensureConversation],
   );
 
-  /** Regenerate the last assistant answer by re-sending the last user message. */
-  const regenerate = useCallback(async () => {
-    if (busy) return;
-    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
-    if (!lastUser) return;
-    // Drop the trailing assistant message so the new answer replaces it.
-    setMessages((m) => {
-      const lastAssistantIdx = m.map((x) => x.role).lastIndexOf('assistant');
-      return lastAssistantIdx >= 0 ? m.slice(0, lastAssistantIdx) : m;
-    });
-    await send(lastUser.content);
-  }, [busy, messages, send]);
-
   return {
     panel,
     conversationId,
@@ -197,10 +154,7 @@ export function useChat(options: UseChatOptions = {}) {
     open,
     close,
     minimize,
-    newChat,
-    openConversation,
     send,
-    regenerate,
   };
 }
 

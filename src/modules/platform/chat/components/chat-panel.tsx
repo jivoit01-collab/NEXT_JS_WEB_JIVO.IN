@@ -1,57 +1,40 @@
 'use client';
 
-// Chat panel — responsive, theme-aware, accessible container. Header (avatar,
-// title, online, new chat, history, minimize, close) + body (welcome screen or
-// message list) + suggested questions + composer. Focus-trapped; ESC closes.
+// Chat panel — responsive, theme-aware, accessible container (simplified,
+// Phase 8.2). Header (avatar, title, online, minimize, close) + body (welcome
+// screen or messages) + suggested questions + composer. No history / new-chat /
+// reactions. Focus-trapped; ESC closes.
 import { useEffect, useRef } from 'react';
-import { Minus, X, Plus, History } from 'lucide-react';
+import { Minus, X } from 'lucide-react';
 import type { ExperienceCard } from '@/modules/platform/experience';
 import { CHAT_CONFIG, CHAT_FEATURES } from '../config';
-import type { ChatConversationSummary, ChatMessage } from '../types';
+import type { ChatMessage } from '../types';
 import { MessageList } from './message-list';
 import { Composer } from './composer';
 import { SuggestedQuestions } from './suggested-questions';
 import { WelcomeScreen } from './welcome-screen';
-import { ChatHistory } from './chat-history';
 import { AiAvatar } from './ai-avatar';
-import type { MessageActionKind } from './message-actions';
 
 export function ChatPanel({
   messages,
   questions,
   busy,
-  reactions,
-  conversations,
-  activeId,
-  showHistory,
-  onToggleHistory,
-  onSelectConversation,
-  onNewChat,
   onSend,
   onMinimize,
   onClose,
   onCardAction,
-  onMessageAction,
 }: {
   messages: ChatMessage[];
   questions: string[];
   busy: boolean;
-  reactions: Record<string, 'like' | 'dislike'>;
-  conversations: ChatConversationSummary[];
-  activeId?: string | null;
-  showHistory: boolean;
-  onToggleHistory: () => void;
-  onSelectConversation: (id: string) => void;
-  onNewChat: () => void;
   onSend: (text: string) => void;
   onMinimize: () => void;
   onClose: () => void;
   onCardAction: (card: ExperienceCard, action: string, target?: string) => void;
-  onMessageAction: (m: ChatMessage, kind: MessageActionKind) => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Accessibility: ESC closes, and focus is moved into the panel on open.
+  // Accessibility: ESC closes, and focus moves into the panel on open.
   useEffect(() => {
     const el = panelRef.current;
     el?.querySelector<HTMLElement>('textarea, button')?.focus();
@@ -109,14 +92,6 @@ export function ChatPanel({
           </div>
         </div>
         <div className="flex items-center gap-0.5">
-          <button type="button" aria-label="New chat" onClick={onNewChat} className="rounded p-1.5 hover:bg-white/15">
-            <Plus className="h-4 w-4" />
-          </button>
-          {CHAT_FEATURES.conversationHistory ? (
-            <button type="button" aria-label="Conversation history" onClick={onToggleHistory} className="rounded p-1.5 hover:bg-white/15">
-              <History className="h-4 w-4" />
-            </button>
-          ) : null}
           {CHAT_FEATURES.minimize ? (
             <button type="button" aria-label="Minimize" onClick={onMinimize} className="rounded p-1.5 hover:bg-white/15">
               <Minus className="h-4 w-4" />
@@ -133,25 +108,8 @@ export function ChatPanel({
         {empty && CHAT_FEATURES.welcomeScreen ? (
           <WelcomeScreen disabled={busy} onAsk={onSend} />
         ) : (
-          <MessageList
-            messages={messages}
-            busy={busy}
-            reactions={reactions}
-            onCardAction={onCardAction}
-            onMessageAction={onMessageAction}
-          />
+          <MessageList messages={messages} busy={busy} onCardAction={onCardAction} />
         )}
-
-        {/* History overlay. */}
-        {showHistory ? (
-          <ChatHistory
-            conversations={conversations}
-            activeId={activeId}
-            onSelect={onSelectConversation}
-            onNewChat={onNewChat}
-            onClose={onToggleHistory}
-          />
-        ) : null}
       </div>
 
       {/* Suggested questions (hidden on the welcome screen — it has its own). */}

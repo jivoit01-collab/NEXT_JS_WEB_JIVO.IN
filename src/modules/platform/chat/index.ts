@@ -27,9 +27,11 @@ export {
   MessageList,
   Composer,
   SuggestedQuestions,
-  ConversationList,
   TypingIndicator,
   ExperienceCards,
+  WelcomeScreen,
+  AiAvatar,
+  Markdown,
 } from './components';
 
 // Client session hook.
