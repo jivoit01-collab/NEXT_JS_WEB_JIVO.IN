@@ -43,6 +43,92 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# ---------------------------------------------------------------------------
+# Self-relocation bootstrap
+# ---------------------------------------------------------------------------
+# This script normally lives INSIDE the folder it is about to move
+# (C:\LiveProjects\NEXT_JS_WEB_JIVO.IN\scripts\). On Windows a running script
+# keeps a handle on its own file, and the shell's working directory keeps a
+# handle on the folder, so Move-Item on the app root can fail with "being used
+# by another process".
+#
+# Fix: when we detect that we are executing from inside $OldAppPath, copy
+# ourselves to %TEMP%, re-launch there with the identical parameters, wait, and
+# exit with the child's exit code. The copy is outside the moved tree, so
+# nothing this script owns holds the folder open.
+#
+# Recursion is impossible: the child runs from %TEMP%, which is never inside
+# $OldAppPath, so its own check below is false and it proceeds to migrate.
+if (-not [System.IO.Path]::IsPathRooted($OldAppPath)) {
+  throw ("-OldAppPath must be an absolute path (got '$OldAppPath').")
+}
+
+$selfPath    = $PSCommandPath
+$oldAppFull  = [System.IO.Path]::GetFullPath($OldAppPath).TrimEnd('\') + '\'
+$runningFrom = if ([string]::IsNullOrWhiteSpace($selfPath)) { '' } else { [System.IO.Path]::GetFullPath($selfPath) }
+
+# Belt and braces: only relocate when we are inside the doomed folder AND we are
+# not already the relocated copy. The second test matches THIS run's temp copy by
+# full path rather than "anywhere under %TEMP%", so the guard still works if the
+# app folder itself ever sits under %TEMP% (as it does in the test sandbox).
+$tempScript  = Join-Path $env:TEMP 'setup-jivo-environments-temp.ps1'
+$tempHelper  = Join-Path $env:TEMP 'JivoNssm.ps1'
+$tempFull    = [System.IO.Path]::GetFullPath($tempScript)
+$isInsideOld = $runningFrom -and $runningFrom.StartsWith($oldAppFull, [StringComparison]::OrdinalIgnoreCase)
+$isTempCopy  = $runningFrom -and $runningFrom.Equals($tempFull, [StringComparison]::OrdinalIgnoreCase)
+
+if ($isInsideOld -and -not $isTempCopy) {
+  Write-Host ''
+  Write-Host '==> Relocating this script out of the folder it is about to move'
+  Write-Host ('    running from : ' + $runningFrom)
+  Write-Host ('    inside       : ' + $OldAppPath)
+  Write-Host ('    relocating to: ' + $tempScript)
+
+  Copy-Item -LiteralPath $runningFrom -Destination $tempScript -Force
+
+  # The relocated copy dot-sources JivoNssm.ps1 via $PSScriptRoot, which now
+  # resolves to %TEMP% — so the helper has to travel with it.
+  $helperSource = Join-Path (Split-Path -Parent $runningFrom) 'JivoNssm.ps1'
+  if (Test-Path -LiteralPath $helperSource) {
+    Copy-Item -LiteralPath $helperSource -Destination $tempHelper -Force
+  }
+
+  # Forward every parameter exactly as received. $PSBoundParameters holds only
+  # what the caller actually passed, so unspecified parameters keep their
+  # defaults in the child instead of being frozen here.
+  $childArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $tempScript)
+  foreach ($entry in $PSBoundParameters.GetEnumerator()) {
+    if ($entry.Value -is [switch]) {
+      # powershell.exe -File passes every argument as a literal STRING, so the
+      # '-Name:value' form ('-WhatIfOnly:$true' or even ':1') arrives as text and
+      # fails to bind to a [switch]. Pass the bare flag instead, and omit it
+      # entirely when the switch is off — which is exactly how a switch defaults.
+      if ($entry.Value.IsPresent) { $childArgs += ('-' + $entry.Key) }
+    } else {
+      $childArgs += ('-' + $entry.Key)
+      $childArgs += [string] $entry.Value
+    }
+  }
+
+  try {
+    # Run the child from a neutral directory. If the child inherited this
+    # shell's working directory it would hold the very folder being moved.
+    $child = Start-Process -FilePath 'powershell.exe' `
+                           -ArgumentList $childArgs `
+                           -WorkingDirectory ([System.IO.Path]::GetTempPath()) `
+                           -NoNewWindow -Wait -PassThru
+    $childExit = $child.ExitCode
+  } finally {
+    # Clean up the temporary copies once the child has exited.
+    Remove-Item -LiteralPath $tempScript -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $tempHelper -Force -ErrorAction SilentlyContinue
+  }
+
+  Write-Host ''
+  Write-Host ('==> Relocated run finished with exit code ' + $childExit)
+  exit $childExit
+}
+
 # Shared NSSM discovery (Get-JivoNssmPath / Get-JivoNssmError). Lives next to
 # this script so both deployment scripts use identical lookup rules.
 . (Join-Path $PSScriptRoot 'JivoNssm.ps1')
@@ -119,7 +205,26 @@ if (Test-Path -LiteralPath $LivePath) {
 } elseif (-not (Test-Path -LiteralPath $OldAppPath)) {
   Skip ($OldAppPath + ' not found — assuming already migrated')
 } else {
-  if (-not $WhatIfOnly) { Move-Item -LiteralPath $OldAppPath -Destination $LivePath }
+  if (-not $WhatIfOnly) {
+    try {
+      Move-Item -LiteralPath $OldAppPath -Destination $LivePath
+    } catch {
+      throw (
+        'Unable to move the application directory because it is currently in use by another process.' + [Environment]::NewLine +
+        ('  from: ' + $OldAppPath) + [Environment]::NewLine +
+        ('  to  : ' + $LivePath) + [Environment]::NewLine +
+        ('  underlying error: ' + $_.Exception.Message) + [Environment]::NewLine +
+        [Environment]::NewLine +
+        'Release the folder, then run this script again:' + [Environment]::NewLine +
+        '  - Close any VS Code / VS Code Remote session open on that folder.' + [Environment]::NewLine +
+        '  - Close any Explorer window pointing at it.' + [Environment]::NewLine +
+        '  - Close any terminal whose current directory is inside it.' + [Environment]::NewLine +
+        '  - Stop any other process using the folder (node.exe from a stray "npm run dev",' + [Environment]::NewLine +
+        '    a running jivo-web service, an antivirus or backup scan).' + [Environment]::NewLine +
+        '  - Then retry the migration. This script is idempotent, so re-running is safe.'
+      )
+    }
+  }
   Did ($OldAppPath + ' -> ' + $LivePath)
 }
 
