@@ -65,6 +65,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Shared NSSM discovery (Get-JivoNssmPath / Get-JivoNssmError). Lives next to
+# this script so both deployment scripts use identical lookup rules.
+. (Join-Path $PSScriptRoot 'JivoNssm.ps1')
+
 # ---------------------------------------------------------------------------
 # Environment resolution
 # ---------------------------------------------------------------------------
@@ -217,16 +221,19 @@ function Test-IsAdministrator {
 function Restart-JivoService {
   Write-Section ('Restarting service ' + $ServiceName)
 
-  $nssm = Get-Command nssm.exe -ErrorAction SilentlyContinue
+  $nssm = Get-JivoNssmPath
   if ($nssm) {
-    & $nssm.Source restart $ServiceName
+    & $nssm restart $ServiceName
     if ($LASTEXITCODE -ne 0) {
       throw ('nssm restart failed with exit code ' + $LASTEXITCODE)
     }
     return
   }
 
-  Write-Host 'nssm.exe was not found in PATH. Falling back to net stop/start.'
+  # Not fatal here: the service may still be controllable with net.exe, so the
+  # deploy keeps its existing fallback rather than aborting on discovery alone.
+  Write-Host (Get-JivoNssmError)
+  Write-Host 'Falling back to net stop/start.'
   & net.exe stop $ServiceName
   if ($LASTEXITCODE -ne 0) {
     Write-Host 'Service was not running or could not be stopped. Continuing to start it.'

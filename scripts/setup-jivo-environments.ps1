@@ -43,6 +43,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Shared NSSM discovery (Get-JivoNssmPath / Get-JivoNssmError). Lives next to
+# this script so both deployment scripts use identical lookup rules.
+. (Join-Path $PSScriptRoot 'JivoNssm.ps1')
+
 # Anchor to absolute paths before anything is created, so folders can never be
 # built relative to whatever the current directory happens to be.
 foreach ($pathVar in @('OldAppPath', 'DeployRoot')) {
@@ -135,10 +139,12 @@ if (Test-Path -LiteralPath $TestPath) {
 
 # ---------------------------------------------------------------------------
 Step 'Register NSSM services'
-$nssm = Get-Command nssm.exe -ErrorAction SilentlyContinue
+$nssm = Get-JivoNssmPath
 if (-not $nssm) {
-  Write-Host '    nssm.exe not found in PATH — skipping service registration.'
-  Write-Host '    Install NSSM, then re-run this script or register manually (see DEPLOYMENT.md).'
+  Write-Host (Get-JivoNssmError)
+  Write-Host ''
+  Write-Host '    Skipping service registration. Install/expose NSSM, then re-run this'
+  Write-Host '    script or register the services manually (see DEPLOYMENT.md).'
 } else {
   $npm = (Get-Command npm.cmd -ErrorAction SilentlyContinue)
   if (-not $npm) { throw 'npm.cmd not found in PATH.' }
@@ -153,13 +159,13 @@ if (-not $nssm) {
     if ($existing) { Skip ('service ' + $svc.Name + ' already registered'); continue }
     if ($WhatIfOnly) { Did ('would register ' + $svc.Name + ' on port ' + $svc.Port); continue }
 
-    & $nssm.Source install $svc.Name $npm.Source 'run' 'start'
-    & $nssm.Source set $svc.Name AppDirectory $svc.Path
-    & $nssm.Source set $svc.Name AppEnvironmentExtra ('NODE_ENV=production') ('PORT=' + $svc.Port)
-    & $nssm.Source set $svc.Name AppStdout (Join-Path $svc.Path 'service-stdout.log')
-    & $nssm.Source set $svc.Name AppStderr (Join-Path $svc.Path 'service-stderr.log')
-    & $nssm.Source set $svc.Name AppRotateFiles 1
-    & $nssm.Source set $svc.Name Start SERVICE_AUTO_START
+    & $nssm install $svc.Name $npm.Source 'run' 'start'
+    & $nssm set $svc.Name AppDirectory $svc.Path
+    & $nssm set $svc.Name AppEnvironmentExtra ('NODE_ENV=production') ('PORT=' + $svc.Port)
+    & $nssm set $svc.Name AppStdout (Join-Path $svc.Path 'service-stdout.log')
+    & $nssm set $svc.Name AppStderr (Join-Path $svc.Path 'service-stderr.log')
+    & $nssm set $svc.Name AppRotateFiles 1
+    & $nssm set $svc.Name Start SERVICE_AUTO_START
     Did ('registered ' + $svc.Name + ' -> ' + $svc.Path + ' on port ' + $svc.Port)
   }
 }
@@ -170,7 +176,7 @@ if ($old) {
   if ($WhatIfOnly) {
     Did ('would remove ' + $OldService)
   } elseif ($nssm) {
-    & $nssm.Source remove $OldService confirm
+    & $nssm remove $OldService confirm
     Did ('removed ' + $OldService)
   } else {
     & sc.exe delete $OldService | Out-Null
