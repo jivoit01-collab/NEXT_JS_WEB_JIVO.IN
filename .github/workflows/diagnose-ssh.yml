@@ -1,0 +1,126 @@
+name: Diagnose SSH Transport
+
+# DIAGNOSTIC ONLY -- deploys nothing, changes nothing on the server.
+# Manual trigger only, so it can never fire on a push.
+#
+# Purpose: prove what the remote shell is and whether multi-line `script:`
+# blocks actually execute on this Windows host.
+#
+# Background: appleboy/ssh-action joins every line of `script:` with "\n" and
+# sends the result as ONE command string over the SSH exec channel
+# (drone-ssh plugin.go: strings.Join(Script, "\n") -> session.Start(command)).
+# `cmd.exe /c` executes only the text BEFORE the first newline and silently
+# discards the rest -- while still exiting 0. Test B below detects exactly that.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Which host folder to inspect
+        type: choice
+        default: testing
+        options: [testing, production]
+
+jobs:
+  diagnose:
+    name: Probe SSH transport
+    runs-on: ubuntu-latest
+
+    steps:
+      # ------------------------------------------------------------------
+      # TEST A -- single line. Establishes that SSH auth and exec work at all.
+      # If this prints nothing, the problem is connectivity/auth, not shelling.
+      # ------------------------------------------------------------------
+      - name: 'A: single-line command'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 2m
+          script: echo A_SINGLE_LINE_OK
+
+      # ------------------------------------------------------------------
+      # TEST B -- THE DECISIVE TEST.
+      # Three lines separated by newlines. Under cmd.exe /c only the FIRST
+      # prints, and the step still succeeds.
+      #   all three markers  -> the shell handles multi-line (PowerShell/bash)
+      #   only B_LINE_1      -> cmd.exe is the shell and is eating lines 2..n
+      # ------------------------------------------------------------------
+      - name: 'B: multi-line command (expect all three markers)'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 2m
+          script: |
+            echo B_LINE_1
+            echo B_LINE_2
+            echo B_LINE_3
+
+      # ------------------------------------------------------------------
+      # TEST C -- same three commands joined with '&&' instead of newlines.
+      # cmd.exe DOES honour '&&'. If B shows one line but C shows three, the
+      # newline-joining is conclusively the cause.
+      # ------------------------------------------------------------------
+      - name: 'C: ampersand-chained command (expect all three markers)'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 2m
+          script: echo C_LINE_1 && echo C_LINE_2 && echo C_LINE_3
+
+      # ------------------------------------------------------------------
+      # TEST D -- identify the login shell and prove it is what we think.
+      # ComSpec/PSModulePath reveal cmd.exe; $PSVersionTable reveals PowerShell.
+      # ------------------------------------------------------------------
+      - name: 'D: identify the login shell'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 2m
+          # Single line on purpose, so it runs regardless of which shell is
+          # active. `set` is a cmd.exe builtin; it fails harmlessly elsewhere.
+          script: echo SHELL_PROBE && set ComSpec && set PROCESSOR_ARCHITECTURE
+
+      # ------------------------------------------------------------------
+      # TEST E -- the requested facts, gathered in ONE line so no shell can
+      # truncate them. Read-only: no fetch, no checkout, no build, no restart.
+      # ------------------------------------------------------------------
+      - name: 'E: host facts (hostname, whoami, pwd, dir, git status)'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 5m
+          # Block scalar so the ": " sequences inside the PowerShell strings are
+          # not parsed as YAML mappings. Still ONE physical line for the shell.
+          script: >-
+            powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass
+            -Command "$e='${{ inputs.environment }}';
+            $p=if($e -eq 'production'){'C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_LIVE'}else{'C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST'};
+            Write-Host ('hostname  = ' + [Environment]::MachineName);
+            Write-Host ('whoami    = ' + [Environment]::UserName);
+            Write-Host ('psversion = ' + $PSVersionTable.PSVersion);
+            Write-Host ('isadmin   = ' + (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator));
+            Write-Host ('pwd       = ' + (Get-Location).Path);
+            Write-Host ('target    = ' + $p);
+            Write-Host ('exists    = ' + (Test-Path $p));
+            if(Test-Path $p){ Set-Location $p;
+            Write-Host '--- dir ---';
+            Get-ChildItem | Select-Object -First 15 | ForEach-Object { Write-Host ('  ' + $_.Name) };
+            Write-Host '--- git status ---';
+            (& git status --short --branch 2>&1) | ForEach-Object { Write-Host ('  ' + $_) };
+            Write-Host ('HEAD          = ' + (& git rev-parse --short HEAD 2>&1));
+            Write-Host ('origin/branch = ' + (& git rev-parse --short ('origin/' + $(if($e -eq 'production'){'main'}else{'testing'})) 2>&1)) };
+            Write-Host 'ECHO_SUCCESS'"
