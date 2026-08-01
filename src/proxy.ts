@@ -1,7 +1,7 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { getClientIpFromHeaders } from '@/lib/admin-ip';
-import { isIpBlocked } from '@/lib/admin-security-store';
+import { isIpBlocked, recordBlockedAttempt } from '@/lib/admin-security-store';
 import { localRateLimit } from '@/lib/rate-limit-local';
 
 const ADMIN_ROUTE = '/jivo-dev';
@@ -36,23 +36,28 @@ function notFound(req: NextRequest): NextResponse {
   return addSecurityHeaders(NextResponse.rewrite(url));
 }
 
+/**
+ * Response for a permanently blocked IP.
+ *
+ * Deliberately indistinguishable from a nonexistent route: the admin area
+ * simply does not exist for this visitor. No cookie, no redirect, no error
+ * code that hints a block is in place — an attacker gets nothing that suggests
+ * rotating IPs would help.
+ *
+ * For the credentials POST we return the same JSON shape NextAuth expects, but
+ * pointing at the site root, so the login form fails silently rather than
+ * surfacing a distinctive error.
+ */
 function blockedIpResponse(req: NextRequest, isCredentialAuth: boolean): NextResponse {
-  const url = new URL('/', req.url);
-  let res: NextResponse;
+  if (isCredentialAuth) {
+    if (req.headers.get('x-auth-return-redirect') === '1') {
+      return addSecurityHeaders(NextResponse.json({ url: new URL('/', req.url).toString() }));
+    }
 
-  if (isCredentialAuth && req.headers.get('x-auth-return-redirect') === '1') {
-    res = NextResponse.json({ url: url.toString() });
-  } else {
-    res = NextResponse.redirect(url);
+    return addSecurityHeaders(NextResponse.redirect(new URL('/', req.url)));
   }
 
-  res.cookies.set('admin_blocked', '1', {
-    path: '/',
-    maxAge: 60,
-    sameSite: 'lax',
-  });
-
-  return addSecurityHeaders(res);
+  return notFound(req);
 }
 
 function clientIp(req: NextRequest): string | null {
@@ -90,6 +95,13 @@ export async function proxy(req: NextRequest) {
 
     try {
       if (await isIpBlocked(ip)) {
+        // Keep collecting intel on what a blocked attacker is still trying.
+        // Fire-and-forget: logging must never delay or break the 404.
+        void recordBlockedAttempt(ip, {
+          userAgent: req.headers.get('user-agent'),
+          path: pathname,
+        }).catch(() => undefined);
+
         return blockedIpResponse(req, isCredentialAuth);
       }
     } catch (error) {

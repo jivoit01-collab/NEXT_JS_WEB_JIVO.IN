@@ -23,6 +23,7 @@ import {
   Leaf,
   Factory,
   Award,
+  ShieldAlert,
 } from 'lucide-react';
 import type { CmsModule } from './types';
 
@@ -37,6 +38,9 @@ export const CMS_MODULES: CmsModule[] = [
       { id: 'home', name: 'Home Page', icon: Home, adminHref: '/jivo-dev/home', seo: true },
       { id: 'navbar', name: 'Navbar', icon: Navigation, adminHref: '/jivo-dev/navbar' },
       { id: 'footer', name: 'Footer', icon: PanelBottom, adminHref: '/jivo-dev/footer' },
+      // Not a public page: no SEO tab. Lives here so it appears in the
+      // Dashboard sub-tabs alongside the other global admin screens.
+      { id: 'security', name: 'Login Security', icon: ShieldAlert, adminHref: '/jivo-dev/security', adminOnly: true },
     ],
   },
   {
