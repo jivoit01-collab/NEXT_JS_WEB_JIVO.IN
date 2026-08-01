@@ -82,14 +82,37 @@ function Write-JivoBanner {
   Write-Host $rule -ForegroundColor $Color
   Write-Host $Title -ForegroundColor $Color
 
-  $keys = if ($FieldOrder.Count) { $FieldOrder } else { $Fields.Keys }
+  $keys = @(if ($FieldOrder.Count) { $FieldOrder } else { $Fields.Keys })
+
+  # Pad labels to the widest one actually present (minimum 12) so columns line
+  # up whether the field is "Branch" or "Previous HEAD".
+  $width = 12
+  foreach ($key in $keys) {
+    if ($Fields.ContainsKey($key) -and $key.Length -gt $width) { $width = $key.Length }
+  }
+
   foreach ($key in $keys) {
     if (-not $Fields.ContainsKey($key)) { continue }
-    Write-Host ('{0,-12}: {1}' -f $key, $Fields[$key]) -ForegroundColor $Color
+    Write-Host (('{0,-' + $width + '} : {1}') -f $key, $Fields[$key]) -ForegroundColor $Color
   }
 
   Write-Host $rule -ForegroundColor $Color
   Write-Host ''
+}
+
+function Write-JivoStageComplete {
+  <#
+  .SYNOPSIS
+    The per-stage completion marker: "OK Repository Updated".
+
+  .DESCRIPTION
+    Deliberately distinct from Write-JivoOk (which confirms a single command).
+    This marks a whole deployment STAGE as finished, so the GitHub Actions log
+    can be skimmed for the stage sequence alone.
+  #>
+  param([string] $Stage)
+
+  Write-Host ([char]0x2713 + ' ' + $Stage) -ForegroundColor Green
 }
 
 function Write-JivoStep {

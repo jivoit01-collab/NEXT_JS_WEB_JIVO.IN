@@ -32,6 +32,12 @@ jobs:
           # Abort the remote shell on the first failing command so a non-zero
           # exit can never be masked by a later succeeding one.
           script_stop: true
+          # Request a PTY so the remote side streams output line by line as the
+          # deploy runs, instead of buffering it. Without this a long deploy can
+          # surface almost nothing until the SSH session closes -- which is why
+          # the job appeared to print only "Successfully executed commands to
+          # all host." This changes NOTHING about what the server executes.
+          request_pty: true
           # IMPORTANT: the `envs:` input is deliberately NOT used. The action
           # renders it as Linux "export VAR=value" lines, which cmd.exe cannot
           # parse -> "'export' is not recognized as an internal or external

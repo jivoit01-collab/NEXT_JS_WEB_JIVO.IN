@@ -535,12 +535,18 @@ try {
     throw ('Server working tree has uncommitted changes. Refusing deploy to avoid overwriting: ' + ($dirtyStatus -join '; '))
   }
 
-  $currentBranch = (& git branch --show-current).Trim()
+  # `git branch --show-current` prints NOTHING in detached-HEAD state, which
+  # would make .Trim() fail on $null. Coerce to a string first and report the
+  # detached case explicitly rather than crashing on it.
+  $currentBranchRaw = (& git branch --show-current)
+  $currentBranch = if ($null -eq $currentBranchRaw) { '' } else { ([string]$currentBranchRaw).Trim() }
+
   $previousCommit = (& git rev-parse HEAD).Trim()
   $previousCommitShort = (& git rev-parse --short HEAD).Trim()
 
   Write-JivoOk 'Working tree is clean'
-  Write-JivoInfo ('  Current branch  : ' + $currentBranch)
+  Write-JivoInfo ('  Working dir     : ' + (Get-Location).Path)
+  Write-JivoInfo ('  Current branch  : ' + $(if ($currentBranch) { $currentBranch } else { '(detached HEAD)' }))
   Write-JivoInfo ('  Previous commit : ' + $previousCommitShort + '  (' + $previousCommit + ')')
 
   Invoke-Step ('Fetching Latest Code (origin/' + $Branch + ')') 'git' @('fetch', 'origin', $Branch)
@@ -562,11 +568,94 @@ try {
   }
 
   Invoke-Step 'Pulling Latest Commit' 'git' @('pull', '--ff-only', 'origin', $Branch)
+
+  # Re-resolve the remote ref AFTER the pull. The value captured before the pull
+  # can be stale (a fetch that only updated FETCH_HEAD leaves
+  # refs/remotes/origin/<branch> untouched), so comparing against it would be
+  # comparing against the same wrong number twice.
+  $expectedCommit = (& git rev-parse ('refs/remotes/origin/' + $Branch)).Trim()
+  if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($expectedCommit)) {
+    $script:JivoFailedStep = 'Pulling Latest Commit'
+    $script:JivoFailedCommand = ('git rev-parse refs/remotes/origin/' + $Branch)
+
+    Write-JivoBanner -Color 'Red' -Title 'Git Verification FAILED' -FieldOrder @(
+      'Environment', 'Branch', 'Repository', 'Previous HEAD', 'Target Commit', 'Current HEAD'
+    ) -Fields @{
+      'Environment'   = $Environment
+      'Branch'        = $Branch
+      'Repository'    = $AppPath
+      'Previous HEAD' = $previousCommitShort
+      'Target Commit' = '(unresolvable)'
+      'Current HEAD'  = (& git rev-parse --short HEAD).Trim()
+    }
+    Write-JivoFail 'Reason:'
+    Write-JivoInfo ('  refs/remotes/origin/' + $Branch + ' cannot be resolved.')
+    Write-JivoInfo '  Deployment aborted before npm install.'
+
+    throw (
+      'Cannot resolve refs/remotes/origin/' + $Branch + ' after fetch. The remote ' +
+      'tracking ref is missing, so there is no reliable way to confirm which commit ' +
+      'this deploy would serve. Check `git config remote.origin.fetch` in ' + $AppPath + '.'
+    )
+  }
+
+  $deployedCommit = (& git rev-parse HEAD).Trim()
   $deployedCommitShort = (& git rev-parse --short HEAD).Trim()
-  Write-JivoOk ('Commit: ' + $deployedCommitShort)
+  $expectedCommitShort = (& git rev-parse --short ('refs/remotes/origin/' + $Branch)).Trim()
+
+  # THE GUARANTEE: every command above can exit 0 and still leave HEAD behind
+  # origin/<branch> (diverged history that --ff-only refuses, a stale tracking
+  # ref, a detached HEAD, an interrupted earlier run). Exit codes alone do not
+  # prove the working tree actually moved. Assert the end state instead, so a
+  # deploy can never build and serve an old commit while reporting success.
+  #
+  # This runs BEFORE npm install / npm run build, so a wrong commit is never
+  # installed, built, or served.
+  if ($deployedCommit -ne $expectedCommit) {
+    $script:JivoFailedStep = 'Pulling Latest Commit'
+    $script:JivoFailedCommand = ('git pull --ff-only origin ' + $Branch)
+
+    Write-JivoBanner -Color 'Red' -Title 'Git Verification FAILED' -FieldOrder @(
+      'Environment', 'Branch', 'Repository', 'Previous HEAD', 'Target Commit', 'Current HEAD'
+    ) -Fields @{
+      'Environment'   = $Environment
+      'Branch'        = $Branch
+      'Repository'    = $AppPath
+      'Previous HEAD' = $previousCommitShort
+      'Target Commit' = $expectedCommitShort
+      'Current HEAD'  = $deployedCommitShort
+    }
+    Write-JivoFail 'Reason:'
+    Write-JivoInfo ('  HEAD does not match origin/' + $Branch + '.')
+    Write-JivoInfo '  Deployment aborted before npm install.'
+
+    throw (
+      'Working tree did not advance to origin/' + $Branch + '. ' +
+      'HEAD is ' + $deployedCommit + ' but origin/' + $Branch + ' is ' + $expectedCommit + '. ' +
+      'The pull reported success without moving HEAD -- usually diverged history ' +
+      '(a commit made directly on the server), a detached HEAD, or a stale remote ' +
+      'tracking ref. Refusing to build and serve the wrong commit.'
+    )
+  }
+
+  Write-JivoBanner -Color 'Green' -Title 'Git Verification' -FieldOrder @(
+    'Environment', 'Branch', 'Repository', 'Previous HEAD', 'Target Commit', 'Current HEAD', 'Verification'
+  ) -Fields @{
+    'Environment'   = $Environment
+    'Branch'        = $Branch
+    'Repository'    = $AppPath
+    'Previous HEAD' = $previousCommitShort
+    'Target Commit' = $expectedCommitShort
+    'Current HEAD'  = $deployedCommitShort
+    'Verification'  = ('PASS ' + [char]0x2713)
+  }
+  Write-JivoStageComplete 'Repository Updated'
 
   Invoke-Step 'Installing Dependencies' 'npm.cmd' @('install')
+  Write-JivoStageComplete 'Dependencies Installed'
+
   Invoke-Step 'Building Application' 'npm.cmd' @('run', 'build')
+  Write-JivoStageComplete 'Build Completed'
 
   # Sync the database AFTER the build (schema + Prisma client are ready) and
   # BEFORE the restart, so the new service starts against an up-to-date DB. These
@@ -580,41 +669,60 @@ try {
 
   $serviceWasTouched = $true
   Restart-JivoService
+  Write-JivoStageComplete 'Service Restarted'
+
   Test-Health
+  Write-JivoStageComplete 'Health Check Passed'
 
   Write-JivoStep 'Cleaning Up'
   Save-RollbackMarker -Commit (& git rev-parse HEAD).Trim()
   Write-JivoOk 'Rollback marker saved'
 
+  Write-JivoStageComplete 'Deployment Completed'
+
   Write-JivoBanner -Color 'Green' -Title 'DEPLOYMENT SUCCESSFUL' -FieldOrder @(
-    'Environment', 'Branch', 'Commit', 'Service', 'Duration'
+    'Environment', 'Branch', 'Folder', 'Service',
+    'Previous Commit', 'New Commit', 'Duration'
   ) -Fields @{
-    'Environment' = $Environment
-    'Branch'      = $Branch
-    'Commit'      = $deployedCommitShort
-    'Service'     = $ServiceName
-    'Duration'    = (Format-JivoDuration ((Get-Date) - $deployStartedAt))
+    'Environment'     = $Environment
+    'Branch'          = $Branch
+    'Folder'          = $AppPath
+    'Service'         = $ServiceName
+    'Previous Commit' = $previousCommitShort
+    'New Commit'      = $deployedCommitShort
+    'Duration'        = (Format-JivoDuration ((Get-Date) - $deployStartedAt))
   }
 } catch {
   # Full failure report: which step, which command, the real exception, and the
   # source location. Everything is printed BEFORE the rollback so the log reads
   # in causal order.
+  $failedStage = $(
+    if ($script:JivoFailedStep) { $script:JivoFailedStep }
+    elseif (Get-JivoCurrentStep) { Get-JivoCurrentStep }
+    else { '(before the first step)' }
+  )
+  $failedCommand = $(if ($script:JivoFailedCommand) { $script:JivoFailedCommand } else { '(no external command)' })
+
   Write-JivoBanner -Color 'Red' -Title 'DEPLOYMENT FAILED' -FieldOrder @(
-    'Environment', 'Branch', 'Failed step', 'Command', 'Duration'
+    'Environment', 'Branch', 'Folder', 'Duration'
   ) -Fields @{
     'Environment' = $Environment
     'Branch'      = $Branch
-    'Failed step' = $(
-      if ($script:JivoFailedStep) { $script:JivoFailedStep }
-      elseif (Get-JivoCurrentStep) { Get-JivoCurrentStep }
-      else { '(before the first step)' }
-    )
-    'Command'     = $(if ($script:JivoFailedCommand) { $script:JivoFailedCommand } else { '(no external command)' })
+    'Folder'      = $AppPath
     'Duration'    = (Format-JivoDuration ((Get-Date) - $deployStartedAt))
   }
 
-  Write-JivoFail ('Exception: ' + $_.Exception.Message)
+  Write-JivoFail 'FAILED STAGE'
+  Write-JivoInfo ('  ' + $failedStage)
+  Write-Host ''
+  Write-JivoFail 'Command'
+  Write-JivoInfo ('  ' + $failedCommand)
+  Write-Host ''
+  Write-JivoFail 'Reason'
+  Write-JivoInfo ('  ' + $_.Exception.Message)
 
+  Write-Host ''
+  Write-JivoFail 'Diagnostics'
   if ($_.Exception.GetType().FullName -ne 'System.Management.Automation.RuntimeException') {
     Write-JivoInfo ('  Type     : ' + $_.Exception.GetType().FullName)
   }
