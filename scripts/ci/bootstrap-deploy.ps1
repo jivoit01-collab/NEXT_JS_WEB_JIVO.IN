@@ -1,42 +1,64 @@
 <#
 .SYNOPSIS
-  SOURCE OF TRUTH for the -EncodedCommand payload embedded in
-  .github/workflows/deploy-production.yml and deploy-testing.yml.
+  Server-side bootstrap: refreshes the deploy scripts to the exact commit being
+  deployed, then hands off to deploy-jivo-windows.ps1.
 
 .DESCRIPTION
-  The GitHub workflows cannot pass this as plain text: the remote shell is
-  cmd.exe (the OpenSSH-on-Windows default), and any inline command is subject to
-  cmd.exe quoting rules AND PowerShell quoting rules at the same time. Nested
-  quotes, spaces in folder names, '%' and '^' all become escaping hazards.
+  Invoked by .github/workflows/deploy-production.yml and deploy-testing.yml with
+  -File (never -EncodedCommand), so the remote command line stays a short, fixed
+  length no matter how large this script grows.
 
-  Instead the workflows send ONE base64 (UTF-16LE) -EncodedCommand payload.
-  Base64 contains only [A-Za-z0-9+/=] -- no spaces, quotes, backslashes, carets
-  or percent signs -- so it is structurally immune to both escaping layers.
-
-  This bootstrap runs ON the server and does the minimum needed to reach the
-  real deploy script at the correct commit:
+  Steps:
     1. validate the app folder exists and is a git working copy
     2. fetch the branch
     3. extract scripts/ from origin/<branch> into an isolated per-environment
        folder, byte-for-byte (preserving UTF-8)
     4. invoke deploy-jivo-windows.ps1 and propagate its exit code
 
-.NOTES
-  DO NOT hand-edit the base64 in the workflows. Regenerate it:
+  This script only STAGES the deploy. Every deployment decision -- build,
+  restart, rollback, health check, mutex, logging -- lives in
+  deploy-jivo-windows.ps1 and is untouched by this file.
 
-    ./scripts/ci/build-bootstrap-payload.ps1
-
-  Placeholders __APPPATH__ / __SCRIPTDIR__ / __BRANCH__ / __ENVIRONMENT__ are
-  substituted by the generator, once per environment.
+.EXAMPLE
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File bootstrap-deploy.ps1 `
+    -AppPath 'C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_LIVE' `
+    -ScriptDir 'C:\LiveProjects\JIVO_WEBSITE\Deploy\Production' `
+    -Branch main -Environment Production
 #>
+
+[CmdletBinding()]
+param(
+  # Deployment folder (git working copy) for this environment.
+  [Parameter(Mandatory = $true)]
+  [ValidateNotNullOrEmpty()]
+  [string] $AppPath,
+
+  # Per-environment folder that receives the extracted scripts/ tree. Must be
+  # distinct per environment so Production and Testing never share files.
+  [Parameter(Mandatory = $true)]
+  [ValidateNotNullOrEmpty()]
+  [string] $ScriptDir,
+
+  # Git branch this environment deploys from.
+  [Parameter(Mandatory = $true)]
+  [ValidateNotNullOrEmpty()]
+  [string] $Branch,
+
+  # Passed straight through to deploy-jivo-windows.ps1 -Environment.
+  [Parameter(Mandatory = $true)]
+  [ValidateSet('Production', 'Testing')]
+  [string] $Environment
+)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
-$appPath = '__APPPATH__'
-$scriptDir = '__SCRIPTDIR__'
-$branch = '__BRANCH__'
-$environment = '__ENVIRONMENT__'
+# Local aliases keep the body below byte-for-byte identical to the previous
+# version, which was verified end-to-end.
+$appPath = $AppPath
+$scriptDir = $ScriptDir
+$branch = $Branch
+$environment = $Environment
 
 if (-not (Test-Path -LiteralPath $appPath -PathType Container)) {
   throw ('Deployment folder does not exist: ' + $appPath)
@@ -94,7 +116,8 @@ if (-not (Test-Path -LiteralPath $deployScript -PathType Leaf)) {
 #
 # The repo files are BOM-less UTF-8. PowerShell 5.1 assumes ANSI (cp1252) for
 # BOM-less files, so non-ASCII characters (em-dashes, arrows) in the deploy
-# script decode as mojibake -- e.g. "—" becomes "â€”". Execution still succeeds,
+# script decode as mojibake (an em-dash renders as two junk characters).
+# Execution still succeeds,
 # but every affected log line and error message is corrupted, which is exactly
 # what you cannot afford when diagnosing a failed production deploy.
 #
