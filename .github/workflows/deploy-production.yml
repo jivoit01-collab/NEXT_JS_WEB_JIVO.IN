@@ -76,9 +76,29 @@ jobs:
           # Next.js all stream into this job's log. Nothing is redirected to a
           # file or piped through Out-Null, so no output is hidden and the
           # deploy script's exit code still propagates (verified end to end).
-          script: |
-            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_LIVE"
-            git fetch --prune origin main
-            if not exist "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production" mkdir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production"
-            git show origin/main:scripts/ci/bootstrap-deploy.ps1 > "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production\bootstrap-deploy.ps1"
+          # ONE physical command line, chained with &&.
+          #
+          # `>-` is a YAML FOLDED scalar: every newline below is folded into a
+          # single space, so this serializes to exactly ONE line. That is the
+          # whole point -- the action joins `script:` lines with "\n" and hands
+          # the result to Windows OpenSSH, which runs `cmd.exe /c "<string>"`.
+          # cmd.exe executes only the text BEFORE the first newline and then
+          # exits 0, so a multi-line block ran `cd` and silently discarded
+          # everything else while still reporting success. `&&` is cmd.exe's
+          # own separator, so a single line runs every step in order and stops
+          # on the first failure (verified: a failing step aborts with exit 1).
+          #
+          # The `if not exist` is PARENTHESISED on purpose. Unparenthesised,
+          # `&&` binds to the mkdir INSIDE the if, so on a re-run (folder
+          # already present) the condition is false, no command runs, and the
+          # rest of the chain is skipped with exit 0 -- another silent success.
+          # Wrapping it makes `&&` bind to the whole if-statement.
+          #
+          # Paths, branch and parameters are byte-identical to the previous
+          # version; only the transport shape changed.
+          script: >-
+            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_LIVE" &&
+            git fetch --prune origin main &&
+            (if not exist "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production" mkdir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production") &&
+            git show origin/main:scripts/ci/bootstrap-deploy.ps1 > "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production\bootstrap-deploy.ps1" &&
             powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production\bootstrap-deploy.ps1" -AppPath "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_LIVE" -ScriptDir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production" -Branch main -Environment Production
