@@ -58,6 +58,12 @@ jobs:
           # cannot introduce the BOM-less-UTF-8 mojibake problem that affects
           # the (non-ASCII) deploy script. The bootstrap itself re-writes the
           # extracted scripts with a BOM to protect those.
+          #
+          # LOGGING: each child process inherits this console, so stdout AND
+          # stderr from the bootstrap, the deploy script, npm, Prisma and
+          # Next.js all stream into this job's log. Nothing is redirected to a
+          # file or piped through Out-Null, so no output is hidden and the
+          # deploy script's exit code still propagates (verified end to end).
           script: |
             cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST"
             git fetch --prune origin testing

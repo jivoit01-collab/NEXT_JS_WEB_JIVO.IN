@@ -60,6 +60,27 @@ $scriptDir = $ScriptDir
 $branch = $Branch
 $environment = $Environment
 
+# UTF-8 console so status symbols survive a legacy-code-page SSH session. The
+# shared logging module is not available yet (it arrives with the extraction
+# below), so this mirrors Initialize-JivoConsole inline.
+try {
+  [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+} catch {
+  # Cosmetic only - never fail a deploy over console encoding.
+}
+
+Write-Host ''
+Write-Host ('=' * 52) -ForegroundColor Cyan
+Write-Host 'JIVO DEPLOYMENT BOOTSTRAP' -ForegroundColor Cyan
+Write-Host ('{0,-12}: {1}' -f 'Environment', $environment) -ForegroundColor Cyan
+Write-Host ('{0,-12}: {1}' -f 'Branch', $branch) -ForegroundColor Cyan
+Write-Host ('{0,-12}: {1}' -f 'App path', $appPath) -ForegroundColor Cyan
+Write-Host ('{0,-12}: {1}' -f 'Script dir', $scriptDir) -ForegroundColor Cyan
+Write-Host ('{0,-12}: {1}' -f 'Started', (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -ForegroundColor Cyan
+Write-Host ('=' * 52) -ForegroundColor Cyan
+Write-Host ''
+
+Write-Host ('[bootstrap] ' + (Get-Date -Format 'HH:mm:ss') + '  Validating deployment folder...') -ForegroundColor Cyan
 if (-not (Test-Path -LiteralPath $appPath -PathType Container)) {
   throw ('Deployment folder does not exist: ' + $appPath)
 }
@@ -70,7 +91,11 @@ Set-Location -LiteralPath $appPath
 if ($LASTEXITCODE -ne 0) {
   throw ($appPath + ' is not a git working copy. Refusing to deploy.')
 }
+Write-Host ([char]0x2714 + ' Git working copy OK') -ForegroundColor Green
 
+Write-Host ''
+Write-Host ('[bootstrap] ' + (Get-Date -Format 'HH:mm:ss') + '  Fetching deploy scripts...') -ForegroundColor Cyan
+Write-Host ('  git fetch --prune origin ' + $branch) -ForegroundColor DarkGray
 & git fetch --prune origin $branch
 if ($LASTEXITCODE -ne 0) {
   throw ('git fetch origin ' + $branch + ' failed with exit code ' + $LASTEXITCODE)
@@ -133,5 +158,27 @@ foreach ($ps1 in (Get-ChildItem -LiteralPath (Join-Path $scriptDir 'scripts') -F
   [System.IO.File]::WriteAllText($ps1.FullName, $text, $utf8Bom)
 }
 
+Write-Host ([char]0x2714 + ' Deploy scripts extracted') -ForegroundColor Green
+foreach ($ps1 in (Get-ChildItem -LiteralPath (Join-Path $scriptDir 'scripts') -Filter '*.ps1' -File)) {
+  Write-Host ('    ' + $ps1.Name)
+}
+
+Write-Host ''
+Write-Host ('[bootstrap] ' + (Get-Date -Format 'HH:mm:ss') + '  Handing off to deploy-jivo-windows.ps1') -ForegroundColor Cyan
+Write-Host ('  ' + $deployScript + ' -Environment ' + $environment) -ForegroundColor DarkGray
+
+# Child process inherits this console, so ALL of its stdout and stderr -- the
+# banners, npm/Prisma/Next.js output, warnings and errors -- stream straight
+# into the GitHub Actions log. Nothing is captured, filtered or redirected.
 & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $deployScript -Environment $environment
-exit $LASTEXITCODE
+$deployExit = $LASTEXITCODE
+
+Write-Host ''
+if ($deployExit -eq 0) {
+  Write-Host ([char]0x2714 + ' Bootstrap finished: deploy reported success') -ForegroundColor Green
+} else {
+  Write-Host ([char]0x2718 + ' Bootstrap finished: deploy FAILED with exit code ' + $deployExit) -ForegroundColor Red
+}
+
+# Propagate the deploy script's exit code verbatim so GitHub Actions fails.
+exit $deployExit

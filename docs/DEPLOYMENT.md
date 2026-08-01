@@ -33,11 +33,22 @@ C:\LiveProjects\JIVO_WEBSITE\
 
 ## How a deploy runs
 
-Push to `main` → `deploy-production.yml` → SSH → `cd _LIVE` → extract the script
-from `origin/main` into `Deploy\deploy-production.ps1` → run it with
-`-Environment Production`. Testing is the same with its own branch, folder and
-file. The script is fetched from the branch being deployed, so each environment
-runs its own version of the deployment logic.
+Push to `main` → `deploy-production.yml` → SSH → `cd _LIVE` → `git fetch` →
+extract `scripts/ci/bootstrap-deploy.ps1` from `origin/main` into
+`Deploy\Production\` → run it with `-File` and the environment's parameters.
+The bootstrap then extracts the whole `scripts/` folder at that same commit and
+hands off to `deploy-jivo-windows.ps1 -Environment Production`. Testing is the
+same with its own branch, folder and `Deploy\Testing\` directory. The scripts
+are fetched from the branch being deployed, so each environment runs its own
+version of the deployment logic.
+
+The workflow never passes the deployment logic on the command line (no
+`-EncodedCommand`): the remote command is short and fixed-length, so it cannot
+hit cmd.exe's 8191-character limit no matter how much the scripts grow.
+
+All console output — the bootstrap banner, every numbered step, and the full
+`npm` / Prisma / Next.js stdout **and** stderr — streams into the GitHub Actions
+log, in addition to the on-server transcript.
 
 Steps performed (unchanged from the previous single-environment pipeline):
 

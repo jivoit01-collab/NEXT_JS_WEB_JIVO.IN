@@ -69,6 +69,10 @@ $ErrorActionPreference = 'Stop'
 # this script so both deployment scripts use identical lookup rules.
 . (Join-Path $PSScriptRoot 'JivoNssm.ps1')
 
+# Shared console formatting (Write-JivoStep / Write-JivoOk / ...). Output only;
+# it makes no deployment decisions.
+. (Join-Path $PSScriptRoot 'JivoDeployLog.ps1')
+
 # ---------------------------------------------------------------------------
 # Environment resolution
 # ---------------------------------------------------------------------------
@@ -169,8 +173,7 @@ $LogFile = Join-Path $LogDirectory (
 # ---------------------------------------------------------------------------
 function Write-Section {
   param([string] $Message)
-  Write-Host ''
-  Write-Host ('==> [' + $Environment + '] ' + $Message)
+  Write-JivoStep $Message
 }
 
 function Invoke-Step {
@@ -181,11 +184,23 @@ function Invoke-Step {
   )
 
   Write-Section $Label
+
+  # Echo the exact command, then let the child process write straight to this
+  # console. Native stdout/stderr are NOT captured or filtered, so the full
+  # npm / Prisma / Next.js output (including warnings and errors) appears in
+  # the GitHub Actions log verbatim.
+  Write-JivoCommand (($Command + ' ' + ($Arguments -join ' ')).Trim())
   & $Command @Arguments
 
   if ($LASTEXITCODE -ne 0) {
+    # Record what failed so the catch block can name the step and the command
+    # instead of only reporting an exception message.
+    $script:JivoFailedStep = $Label
+    $script:JivoFailedCommand = ($Command + ' ' + ($Arguments -join ' ')).Trim()
     throw ($Label + ' failed with exit code ' + $LASTEXITCODE)
   }
+
+  Write-JivoOk ($Label + ' completed')
 }
 
 # Like Invoke-Step, but NON-FATAL: on failure it warns and continues instead of
@@ -201,15 +216,19 @@ function Invoke-StepOptional {
   )
 
   Write-Section $Label
+  Write-JivoCommand (($Command + ' ' + ($Arguments -join ' ')).Trim())
   & $Command @Arguments
 
   if ($LASTEXITCODE -ne 0) {
-    Write-Host (
+    Write-JivoWarn (
       'WARNING: ' + $Label + ' failed with exit code ' + $LASTEXITCODE +
-      ' — continuing (run it manually once the database is reachable).'
+      ' - continuing (run it manually once the database is reachable).'
     )
     $global:LASTEXITCODE = 0
+    return
   }
+
+  Write-JivoOk ($Label + ' completed')
 }
 
 function Test-IsAdministrator {
@@ -219,26 +238,32 @@ function Test-IsAdministrator {
 }
 
 function Restart-JivoService {
-  Write-Section ('Restarting service ' + $ServiceName)
+  Write-JivoStep ('Restarting NSSM Service (' + $ServiceName + ')')
 
   $nssm = Get-JivoNssmPath
   if ($nssm) {
+    Write-JivoCommand ('"' + $nssm + '" restart ' + $ServiceName)
     & $nssm restart $ServiceName
     if ($LASTEXITCODE -ne 0) {
+      $script:JivoFailedStep = 'Restarting NSSM Service'
+      $script:JivoFailedCommand = ('"' + $nssm + '" restart ' + $ServiceName)
       throw ('nssm restart failed with exit code ' + $LASTEXITCODE)
     }
+    Write-JivoOk ($ServiceName + ' restarted')
     return
   }
 
   # Not fatal here: the service may still be controllable with net.exe, so the
   # deploy keeps its existing fallback rather than aborting on discovery alone.
-  Write-Host (Get-JivoNssmError)
-  Write-Host 'Falling back to net stop/start.'
+  Write-JivoWarn (Get-JivoNssmError)
+  Write-JivoWarn 'Falling back to net stop/start.'
+  Write-JivoCommand ('net.exe stop ' + $ServiceName)
   & net.exe stop $ServiceName
   if ($LASTEXITCODE -ne 0) {
-    Write-Host 'Service was not running or could not be stopped. Continuing to start it.'
+    Write-JivoWarn 'Service was not running or could not be stopped. Continuing to start it.'
   }
 
+  Write-JivoCommand ('net.exe start ' + $ServiceName)
   & net.exe start $ServiceName
   if ($LASTEXITCODE -ne 0) {
     # `net start` returns non-zero when the service is ALREADY running (e.g. the
@@ -246,39 +271,46 @@ function Restart-JivoService {
     # so verify reality before failing the deploy on an exit code alone.
     $svc = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
     if ($svc -and $svc.Status -eq 'Running') {
-      Write-Host ('net start reported exit code ' + $LASTEXITCODE + ' but the service is running. Continuing.')
+      Write-JivoWarn ('net start reported exit code ' + $LASTEXITCODE + ' but the service is running. Continuing.')
+      Write-JivoOk ($ServiceName + ' restarted')
       return
     }
 
+    $script:JivoFailedStep = 'Restarting NSSM Service'
+    $script:JivoFailedCommand = ('net.exe start ' + $ServiceName)
     throw (
       'net start failed with exit code ' + $LASTEXITCODE +
       ' and service ' + $ServiceName + ' is not running' +
       $(if ($svc) { ' (current status: ' + $svc.Status + ')' } else { ' (service not found)' }) + '.'
     )
   }
+
+  Write-JivoOk ($ServiceName + ' restarted')
 }
 
 function Test-Health {
   if ([string]::IsNullOrWhiteSpace($HealthCheckUrl)) {
-    Write-Host 'No health check URL was provided. Skipping HTTP health check.'
+    Write-JivoStep 'Waiting for Health Check'
+    Write-JivoWarn 'No health check URL was provided. Skipping HTTP health check.'
     return
   }
 
-  Write-Section ('Health check ' + $HealthCheckUrl)
+  Write-JivoStep ('Waiting for Health Check (' + $HealthCheckUrl + ')')
 
   # Accept only 2xx/3xx. The previous rule (< 500) also accepted 4xx, so a 404
   # from a health route that failed to build would be reported as a PASS and a
   # broken deploy would be marked successful.
   $lastFailure = 'no attempt completed'
   for ($attempt = 1; $attempt -le 12; $attempt++) {
+    Write-JivoInfo ('  Attempt ' + $attempt + '/12...')
     try {
       $response = Invoke-WebRequest -Uri $HealthCheckUrl -UseBasicParsing -TimeoutSec 10
       if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 400) {
-        Write-Host ('Health check passed with status ' + $response.StatusCode)
+        Write-JivoOk ('Health Check Passed (HTTP ' + $response.StatusCode + ')')
         return
       }
       $lastFailure = 'HTTP ' + $response.StatusCode
-      Write-Host ('Attempt ' + $attempt + ' returned status ' + $response.StatusCode)
+      Write-JivoWarn ('    returned status ' + $response.StatusCode)
     } catch {
       # A 4xx/5xx makes Invoke-WebRequest throw; surface the real status code
       # rather than only the generic exception text.
@@ -287,12 +319,14 @@ function Test-Health {
         try { $status = [int] $_.Exception.Response.StatusCode } catch { }
       }
       $lastFailure = $(if ($status) { 'HTTP ' + $status } else { $_.Exception.Message })
-      Write-Host ('Attempt ' + $attempt + ' failed: ' + $lastFailure)
+      Write-JivoWarn ('    failed: ' + $lastFailure)
     }
 
     Start-Sleep -Seconds 5
   }
 
+  $script:JivoFailedStep = 'Waiting for Health Check'
+  $script:JivoFailedCommand = ('GET ' + $HealthCheckUrl)
   throw (
     'Health check failed after service restart: ' + $HealthCheckUrl +
     ' did not return a 2xx/3xx within 12 attempts (~60s). Last result: ' + $lastFailure + '.'
@@ -334,23 +368,26 @@ function Restore-PreviousCommit {
   )
 
   if ([string]::IsNullOrWhiteSpace($PreviousCommit)) {
-    Write-Host 'No previous commit was captured. Rollback skipped.'
+    Write-JivoWarn 'No previous commit was captured. Rollback skipped.'
     return
   }
 
-  Write-Section ('Rolling back to ' + $PreviousCommit)
+  Write-JivoInfo ''
+  Write-JivoInfo ('Rolling back to ' + $PreviousCommit)
+  Write-JivoCommand ('git reset --hard ' + $PreviousCommit)
   & git reset --hard $PreviousCommit
   if ($LASTEXITCODE -ne 0) {
-    Write-Host ('Rollback reset failed with exit code ' + $LASTEXITCODE)
+    Write-JivoFail ('Rollback reset failed with exit code ' + $LASTEXITCODE)
     return
   }
+  Write-JivoOk ('Working copy reset to ' + $PreviousCommit)
 
   try {
     Invoke-Step 'Restoring dependencies for previous commit' 'npm.cmd' @('install')
     Invoke-Step 'Rebuilding previous commit' 'npm.cmd' @('run', 'build')
   } catch {
-    Write-Host ('Rollback rebuild failed: ' + $_.Exception.Message)
-    Write-Host 'Existing running service was left untouched if it had not been restarted yet.'
+    Write-JivoFail ('Rollback rebuild failed: ' + $_.Exception.Message)
+    Write-JivoWarn 'Existing running service was left untouched if it had not been restarted yet.'
     if (-not $ServiceWasTouched) {
       return
     }
@@ -360,9 +397,9 @@ function Restore-PreviousCommit {
     try {
       Restart-JivoService
       Test-Health
-      Write-Host 'Rollback service restart completed.'
+      Write-JivoOk 'Rollback service restart completed.'
     } catch {
-      Write-Host ('Rollback service restart failed: ' + $_.Exception.Message)
+      Write-JivoFail ('Rollback service restart failed: ' + $_.Exception.Message)
     }
   }
 }
@@ -404,24 +441,45 @@ if (-not $mutexAcquired) {
 $previousCommit = $null
 $serviceWasTouched = $false
 
+# Failure context for the catch block. Invoke-Step fills these in so a failed
+# deploy can report WHICH step and WHICH command failed, not just an exception.
+$script:JivoFailedStep = $null
+$script:JivoFailedCommand = $null
+
+# Wall-clock duration of the whole deploy.
+$deployStartedAt = Get-Date
+
+# 11 numbered steps on the normal path: Administrator, working tree, fetch,
+# pull, npm install, build, db:push, db:seed, restart, health check, cleanup.
+# A branch switch adds a conditional 12th; Write-JivoStep widens the total
+# rather than printing "[12/11]".
+Initialize-JivoConsole -TotalSteps 11
+
+Write-JivoBanner -Title 'JIVO WEBSITE DEPLOYMENT' -FieldOrder @(
+  'Environment', 'Branch', 'Service', 'App path', 'Health check', 'Log file', 'Started'
+) -Fields @{
+  'Environment'  = $Environment
+  'Branch'       = $Branch
+  'Service'      = $ServiceName
+  'App path'     = $AppPath
+  'Health check' = $(if ([string]::IsNullOrWhiteSpace($HealthCheckUrl)) { '(disabled)' } else { $HealthCheckUrl })
+  'Log file'     = $LogFile
+  'Started'      = $deployStartedAt.ToString('yyyy-MM-dd HH:mm:ss')
+}
+
 try {
   # Inside the try so that a failure to open the log file (disk full, file
   # locked) still runs the finally block and releases the mutex. Starting it
   # outside would leave the lock held and block the next deploy for 20 minutes.
   Start-Transcript -Path $LogFile -Append | Out-Null
 
-  Write-Section 'Deploy started'
-  Write-Host ('Environment : ' + $Environment)
-  Write-Host ('App path    : ' + $AppPath)
-  Write-Host ('Branch      : ' + $Branch)
-  Write-Host ('Service     : ' + $ServiceName)
-  Write-Host ('Health check: ' + $(if ([string]::IsNullOrWhiteSpace($HealthCheckUrl)) { '(disabled)' } else { $HealthCheckUrl }))
-  Write-Host ('Log file    : ' + $LogFile)
-
+  Write-JivoStep 'Validating Administrator'
   if (-not (Test-IsAdministrator)) {
     throw 'This deploy must run as Administrator because service/NSSM commands require elevated permissions. Use an Administrator SSH user or run this script from an elevated scheduled task.'
   }
+  Write-JivoOk 'Running elevated'
 
+  Write-JivoStep 'Checking Git Working Tree'
   if (-not (Test-Path -LiteralPath $AppPath)) {
     throw ('Deployment folder does not exist: ' + $AppPath)
   }
@@ -479,33 +537,36 @@ try {
 
   $currentBranch = (& git branch --show-current).Trim()
   $previousCommit = (& git rev-parse HEAD).Trim()
+  $previousCommitShort = (& git rev-parse --short HEAD).Trim()
 
-  Write-Host ('Current branch: ' + $currentBranch)
-  Write-Host ('Commit before deploy: ' + $previousCommit)
+  Write-JivoOk 'Working tree is clean'
+  Write-JivoInfo ('  Current branch  : ' + $currentBranch)
+  Write-JivoInfo ('  Previous commit : ' + $previousCommitShort + '  (' + $previousCommit + ')')
 
-  Invoke-Step ('Fetch origin/' + $Branch) 'git' @('fetch', 'origin', $Branch)
+  Invoke-Step ('Fetching Latest Code (origin/' + $Branch + ')') 'git' @('fetch', 'origin', $Branch)
 
   # Isolation guard: this working copy must be on the branch this environment
   # owns. Production can therefore never be advanced by a testing deploy and
   # vice versa. Switching is only allowed when the tree is clean (checked above).
   if ($currentBranch -ne $Branch) {
-    Write-Host ('Working copy is on "' + $currentBranch + '" but this environment deploys "' + $Branch + '". Switching branch.')
+    Write-JivoWarn ('Working copy is on "' + $currentBranch + '" but this environment deploys "' + $Branch + '". Switching branch.')
     Invoke-Step ('Checkout ' + $Branch) 'git' @('checkout', '-B', $Branch, ('origin/' + $Branch))
     $previousCommit = (& git rev-parse HEAD).Trim()
   }
 
   $targetCommit = (& git rev-parse ('origin/' + $Branch)).Trim()
-  Write-Host ('Target commit: ' + $targetCommit)
+  Write-JivoInfo ('  Target commit   : ' + (& git rev-parse --short ('origin/' + $Branch)).Trim() + '  (' + $targetCommit + ')')
 
   if ($previousCommit -eq $targetCommit) {
-    Write-Host ('Server is already on origin/' + $Branch + '. Build and restart will still run to refresh the service.')
+    Write-JivoWarn ('Server is already on origin/' + $Branch + '. Build and restart will still run to refresh the service.')
   }
 
-  Invoke-Step 'Pull latest code' 'git' @('pull', '--ff-only', 'origin', $Branch)
-  Write-Host ('Commit after pull: ' + (& git rev-parse --short HEAD).Trim())
+  Invoke-Step 'Pulling Latest Commit' 'git' @('pull', '--ff-only', 'origin', $Branch)
+  $deployedCommitShort = (& git rev-parse --short HEAD).Trim()
+  Write-JivoOk ('Commit: ' + $deployedCommitShort)
 
-  Invoke-Step 'Install dependencies' 'npm.cmd' @('install')
-  Invoke-Step 'Build application before restart' 'npm.cmd' @('run', 'build')
+  Invoke-Step 'Installing Dependencies' 'npm.cmd' @('install')
+  Invoke-Step 'Building Application' 'npm.cmd' @('run', 'build')
 
   # Sync the database AFTER the build (schema + Prisma client are ready) and
   # BEFORE the restart, so the new service starts against an up-to-date DB. These
@@ -514,19 +575,65 @@ try {
   # environment therefore syncs only its own database. They are NON-FATAL: a DB
   # blip never breaks the deploy or rolls back a good build.
   #   db:push → create/update tables    db:seed → insert missing data (insert-only)
-  Invoke-StepOptional 'Sync database schema (db:push)' 'npm.cmd' @('run', 'db:push')
-  Invoke-StepOptional 'Seed database (db:seed)' 'npm.cmd' @('run', 'db:seed')
+  Invoke-StepOptional 'Syncing Database Schema (db:push)' 'npm.cmd' @('run', 'db:push')
+  Invoke-StepOptional 'Seeding Database (db:seed)' 'npm.cmd' @('run', 'db:seed')
 
   $serviceWasTouched = $true
   Restart-JivoService
   Test-Health
 
+  Write-JivoStep 'Cleaning Up'
   Save-RollbackMarker -Commit (& git rev-parse HEAD).Trim()
-  Write-Section 'Deployment completed'
+  Write-JivoOk 'Rollback marker saved'
+
+  Write-JivoBanner -Color 'Green' -Title 'DEPLOYMENT SUCCESSFUL' -FieldOrder @(
+    'Environment', 'Branch', 'Commit', 'Service', 'Duration'
+  ) -Fields @{
+    'Environment' = $Environment
+    'Branch'      = $Branch
+    'Commit'      = $deployedCommitShort
+    'Service'     = $ServiceName
+    'Duration'    = (Format-JivoDuration ((Get-Date) - $deployStartedAt))
+  }
 } catch {
+  # Full failure report: which step, which command, the real exception, and the
+  # source location. Everything is printed BEFORE the rollback so the log reads
+  # in causal order.
+  Write-JivoBanner -Color 'Red' -Title 'DEPLOYMENT FAILED' -FieldOrder @(
+    'Environment', 'Branch', 'Failed step', 'Command', 'Duration'
+  ) -Fields @{
+    'Environment' = $Environment
+    'Branch'      = $Branch
+    'Failed step' = $(
+      if ($script:JivoFailedStep) { $script:JivoFailedStep }
+      elseif (Get-JivoCurrentStep) { Get-JivoCurrentStep }
+      else { '(before the first step)' }
+    )
+    'Command'     = $(if ($script:JivoFailedCommand) { $script:JivoFailedCommand } else { '(no external command)' })
+    'Duration'    = (Format-JivoDuration ((Get-Date) - $deployStartedAt))
+  }
+
+  Write-JivoFail ('Exception: ' + $_.Exception.Message)
+
+  if ($_.Exception.GetType().FullName -ne 'System.Management.Automation.RuntimeException') {
+    Write-JivoInfo ('  Type     : ' + $_.Exception.GetType().FullName)
+  }
+  if ($_.InvocationInfo -and $_.InvocationInfo.ScriptLineNumber) {
+    Write-JivoInfo ('  Location : line ' + $_.InvocationInfo.ScriptLineNumber)
+  }
+  if ($_.ScriptStackTrace) {
+    Write-JivoInfo '  Stack    :'
+    foreach ($frame in ($_.ScriptStackTrace -split "`r?`n")) {
+      if ($frame.Trim()) { Write-JivoInfo ('    ' + $frame.Trim()) }
+    }
+  }
+
   Write-Host ''
-  Write-Host ('DEPLOY FAILED: ' + $_.Exception.Message)
+  Write-JivoWarn 'ROLLBACK STARTED'
   Restore-PreviousCommit -PreviousCommit $previousCommit -ServiceWasTouched $serviceWasTouched
+  Write-JivoWarn 'ROLLBACK COMPLETED'
+
+  # Re-thrown so PowerShell exits non-zero and GitHub Actions fails the job.
   throw
 } finally {
   # Stop-Transcript throws when no transcript is running (e.g. it failed to
