@@ -241,7 +241,20 @@ function Restart-JivoService {
 
   & net.exe start $ServiceName
   if ($LASTEXITCODE -ne 0) {
-    throw ('net start failed with exit code ' + $LASTEXITCODE)
+    # `net start` returns non-zero when the service is ALREADY running (e.g. the
+    # stop above failed because it was mid-start). That is the desired end state,
+    # so verify reality before failing the deploy on an exit code alone.
+    $svc = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+    if ($svc -and $svc.Status -eq 'Running') {
+      Write-Host ('net start reported exit code ' + $LASTEXITCODE + ' but the service is running. Continuing.')
+      return
+    }
+
+    throw (
+      'net start failed with exit code ' + $LASTEXITCODE +
+      ' and service ' + $ServiceName + ' is not running' +
+      $(if ($svc) { ' (current status: ' + $svc.Status + ')' } else { ' (service not found)' }) + '.'
+    )
   }
 }
 
@@ -252,22 +265,38 @@ function Test-Health {
   }
 
   Write-Section ('Health check ' + $HealthCheckUrl)
+
+  # Accept only 2xx/3xx. The previous rule (< 500) also accepted 4xx, so a 404
+  # from a health route that failed to build would be reported as a PASS and a
+  # broken deploy would be marked successful.
+  $lastFailure = 'no attempt completed'
   for ($attempt = 1; $attempt -le 12; $attempt++) {
     try {
       $response = Invoke-WebRequest -Uri $HealthCheckUrl -UseBasicParsing -TimeoutSec 10
-      if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) {
+      if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 400) {
         Write-Host ('Health check passed with status ' + $response.StatusCode)
         return
       }
+      $lastFailure = 'HTTP ' + $response.StatusCode
       Write-Host ('Attempt ' + $attempt + ' returned status ' + $response.StatusCode)
     } catch {
-      Write-Host ('Attempt ' + $attempt + ' failed: ' + $_.Exception.Message)
+      # A 4xx/5xx makes Invoke-WebRequest throw; surface the real status code
+      # rather than only the generic exception text.
+      $status = $null
+      if ($_.Exception.Response) {
+        try { $status = [int] $_.Exception.Response.StatusCode } catch { }
+      }
+      $lastFailure = $(if ($status) { 'HTTP ' + $status } else { $_.Exception.Message })
+      Write-Host ('Attempt ' + $attempt + ' failed: ' + $lastFailure)
     }
 
     Start-Sleep -Seconds 5
   }
 
-  throw 'Health check failed after service restart.'
+  throw (
+    'Health check failed after service restart: ' + $HealthCheckUrl +
+    ' did not return a 2xx/3xx within 12 attempts (~60s). Last result: ' + $lastFailure + '.'
+  )
 }
 
 function Save-RollbackMarker {
@@ -341,12 +370,46 @@ function Restore-PreviousCommit {
 # ---------------------------------------------------------------------------
 # Deploy
 # ---------------------------------------------------------------------------
-Start-Transcript -Path $LogFile -Append | Out-Null
+# Per-environment mutex. GitHub's `concurrency:` group already serialises CI
+# runs for ONE environment, but it cannot see a deploy started by hand over SSH
+# or by a scheduled task. Two overlapping deploys of the same environment would
+# race on the same working copy (git reset/checkout + npm install + build), which
+# can leave a half-built tree in production.
+#
+# The name is environment-scoped, so Production and Testing never block each
+# other -- they hold different mutexes and continue to deploy in parallel.
+# "Global\" makes it machine-wide, so it works across separate SSH sessions.
+$mutexName = 'Global\JivoDeploy-' + $Environment
+$deployMutex = New-Object System.Threading.Mutex($false, $mutexName)
+$mutexAcquired = $false
+try {
+  # Wait briefly rather than failing instantly: a deploy that is seconds from
+  # finishing should let the next one proceed instead of erroring the pipeline.
+  $mutexAcquired = $deployMutex.WaitOne([TimeSpan]::FromMinutes(20))
+} catch [System.Threading.AbandonedMutexException] {
+  # The previous holder died without releasing (crash / killed SSH session).
+  # The mutex is ours now; the working copy is validated below regardless.
+  $mutexAcquired = $true
+  Write-Host 'Previous deploy did not release its lock cleanly. Continuing.'
+}
+
+if (-not $mutexAcquired) {
+  throw (
+    'Another ' + $Environment + ' deploy is already running on this server and did ' +
+    'not finish within 20 minutes. Refusing to start a second one -- concurrent ' +
+    'deploys would corrupt the working copy at ' + $AppPath + '.'
+  )
+}
 
 $previousCommit = $null
 $serviceWasTouched = $false
 
 try {
+  # Inside the try so that a failure to open the log file (disk full, file
+  # locked) still runs the finally block and releases the mutex. Starting it
+  # outside would leave the lock held and block the next deploy for 20 minutes.
+  Start-Transcript -Path $LogFile -Append | Out-Null
+
   Write-Section 'Deploy started'
   Write-Host ('Environment : ' + $Environment)
   Write-Host ('App path    : ' + $AppPath)
@@ -466,7 +529,17 @@ try {
   Restore-PreviousCommit -PreviousCommit $previousCommit -ServiceWasTouched $serviceWasTouched
   throw
 } finally {
-  Stop-Transcript | Out-Null
+  # Stop-Transcript throws when no transcript is running (e.g. it failed to
+  # start). That exception would replace the real deployment error with a
+  # confusing one, so it is swallowed deliberately.
+  try { Stop-Transcript | Out-Null } catch { }
   Remove-OldLogs
   Write-Host ('Deploy log saved to: ' + $LogFile)
+
+  # Always release the environment mutex, including on failure, so a failed
+  # deploy never blocks the next one for 20 minutes.
+  if ($mutexAcquired) {
+    try { $deployMutex.ReleaseMutex() } catch { }
+  }
+  $deployMutex.Dispose()
 }
