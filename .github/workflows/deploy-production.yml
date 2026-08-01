@@ -1,0 +1,73 @@
+name: Deploy Production (jivo.in)
+
+# Production deploys ONLY from main. The testing branch can never trigger
+# this workflow, and it only ever passes Production paths/service downstream.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Never run two production deploys at once; a queued run waits instead of
+# fighting over the working copy. Testing uses its own group and is unaffected.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy main to jivo.in
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy to Windows Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 30m
+          # Abort the remote shell on the first failing command so a non-zero
+          # exit can never be masked by a later succeeding one.
+          script_stop: true
+          # IMPORTANT: the `envs:` input is deliberately NOT used. The action
+          # renders it as Linux "export VAR=value" lines, which cmd.exe cannot
+          # parse -> "'export' is not recognized as an internal or external
+          # command". The values below are static and non-secret, so they are
+          # passed as ordinary PowerShell parameters instead.
+          #
+          # The remote shell is cmd.exe (the OpenSSH-on-Windows default).
+          #
+          # Every line below is SHORT and FIXED-LENGTH. Nothing here grows when
+          # the deployment logic grows: all logic lives in committed files that
+          # the server fetches from git and runs with -File.
+          #
+          # -EncodedCommand is deliberately NOT used. It embeds the entire
+          # script in the command line as base64, which exceeds cmd.exe's
+          # 8191-character limit -> "The command line is too long."
+          #
+          # The bootstrap is written into the per-environment Deploy folder,
+          # NOT into the app working copy. `git checkout <ref> -- <file>` would
+          # STAGE the file in the app repo's index; the deploy script's
+          # dirty-tree guard would then abort the deploy -- and only when the
+          # bootstrap had actually changed, i.e. exactly when it matters.
+          # `git show` writes to stdout and never touches the index.
+          #
+          # bootstrap-deploy.ps1 is pure ASCII, so the cmd.exe redirect below
+          # cannot introduce the BOM-less-UTF-8 mojibake problem that affects
+          # the (non-ASCII) deploy script. The bootstrap itself re-writes the
+          # extracted scripts with a BOM to protect those.
+          #
+          # LOGGING: each child process inherits this console, so stdout AND
+          # stderr from the bootstrap, the deploy script, npm, Prisma and
+          # Next.js all stream into this job's log. Nothing is redirected to a
+          # file or piped through Out-Null, so no output is hidden and the
+          # deploy script's exit code still propagates (verified end to end).
+          script: |
+            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_LIVE"
+            git fetch --prune origin main
+            if not exist "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production" mkdir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production"
+            git show origin/main:scripts/ci/bootstrap-deploy.ps1 > "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production\bootstrap-deploy.ps1"
+            powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production\bootstrap-deploy.ps1" -AppPath "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_LIVE" -ScriptDir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Production" -Branch main -Environment Production

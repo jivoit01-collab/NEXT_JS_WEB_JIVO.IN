@@ -14,7 +14,7 @@
 # testing
 /coverage
 cicd.md
-.github/
+
 logs/
 .data/
 *.bat
