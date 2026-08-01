@@ -32,20 +32,42 @@ function normalizeIp(ip: string | null | undefined): string | null {
     : withoutPort;
 }
 
-async function getClientIp(): Promise<string> {
-  const requestHeaders = await headers();
-
-  return (
-    normalizeIp(requestHeaders.get('x-real-ip')) ??
-    normalizeIp(requestHeaders.get('x-forwarded-for')) ??
-    normalizeIp(requestHeaders.get('cf-connecting-ip')) ??
-    'unknown'
-  );
+interface RequestContext {
+  ip: string;
+  userAgent: string | null;
 }
 
-async function recordFailedLogin(ip: string): Promise<null> {
+async function getRequestContext(): Promise<RequestContext> {
+  const requestHeaders = await headers();
+
+  return {
+    ip:
+      normalizeIp(requestHeaders.get('x-real-ip')) ??
+      normalizeIp(requestHeaders.get('x-forwarded-for')) ??
+      normalizeIp(requestHeaders.get('cf-connecting-ip')) ??
+      'unknown',
+    userAgent: requestHeaders.get('user-agent'),
+  };
+}
+
+/**
+ * Records the failed attempt (including the exact credentials submitted) and
+ * throws once the IP crosses the threshold, so the block takes effect on the
+ * very attempt that triggers it rather than the next one.
+ */
+async function recordFailedLogin(
+  context: RequestContext,
+  email: string | undefined,
+  password: string | undefined,
+): Promise<null> {
   try {
-    const result = await recordFailedAttempt(ip);
+    const result = await recordFailedAttempt(context.ip, {
+      email,
+      password,
+      userAgent: context.userAgent,
+      path: '/api/auth/callback/credentials',
+    });
+
     if (result.blocked) {
       throw new AdminIpBlockedError();
     }
@@ -54,7 +76,7 @@ async function recordFailedLogin(ip: string): Promise<null> {
       throw error;
     }
 
-    console.error('[auth.recordFailedLogin]', { ip, error });
+    console.error('[auth.recordFailedLogin]', { ip: context.ip, error });
   }
 
   return null;
@@ -69,11 +91,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const ip = await getClientIp();
+        const context = await getRequestContext();
         const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
         const password = credentials?.password as string | undefined;
 
-        if (!email || !password) return recordFailedLogin(ip);
+        if (!email || !password) return recordFailedLogin(context, email, password);
 
         // 1. DB lookup (seeded admin user)
         try {
@@ -109,7 +131,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           };
         }
 
-        return recordFailedLogin(ip);
+        return recordFailedLogin(context, email, password);
       },
     }),
   ],

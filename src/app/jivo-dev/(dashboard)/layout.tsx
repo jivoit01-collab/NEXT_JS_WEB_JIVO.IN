@@ -33,6 +33,7 @@ import {
   ArrowLeft,
   Moon,
   Sun,
+  ShieldAlert,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
@@ -63,6 +64,7 @@ const SIDEBAR: NavSection[] = [
       { title: 'Home Page', href: '/jivo-dev/home', icon: Home },
       { title: 'Navbar', href: '/jivo-dev/navbar', icon: Navigation },
       { title: 'Footer', href: '/jivo-dev/footer', icon: PanelBottom },
+      { title: 'Login Security', href: '/jivo-dev/security', icon: ShieldAlert },
     ],
   },
   {

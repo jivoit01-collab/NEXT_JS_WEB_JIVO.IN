@@ -15,9 +15,15 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  function redirectToBlockedHome() {
-    document.cookie = 'admin_blocked=1; Max-Age=60; Path=/; SameSite=Lax';
-    router.replace('/');
+  /**
+   * A blocked IP must not learn that it is blocked. We show the same generic
+   * credential error as any other failed login — the proxy then serves a plain
+   * 404 for the admin route on the next request, so the area simply appears
+   * not to exist. No toast, no cookie, no distinctive status code.
+   */
+  function showGenericFailure() {
+    setError('Invalid email or password');
+    setLoading(false);
   }
 
   function validate(): boolean {
@@ -59,30 +65,17 @@ export default function AdminLoginPage() {
         redirect: false,
       });
 
-      if (
-        result?.status === 429 ||
-        result?.code === 'blocked' ||
-        result?.url?.includes('error=blocked')
-      ) {
-        redirectToBlockedHome();
-      } else if (result?.error) {
-        setError('Invalid email or password');
-        setLoading(false);
+      // Blocked and merely-wrong credentials are deliberately indistinguishable.
+      if (result?.error || result?.code === 'blocked' || result?.status === 429) {
+        showGenericFailure();
       } else {
         setLoading(false);
         router.push('/jivo-dev');
         router.refresh();
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '';
-
-      if (message.includes('JSON') || message.includes('Unexpected token')) {
-        redirectToBlockedHome();
-        return;
-      }
-
-      setError('Invalid email or password');
-      setLoading(false);
+    } catch {
+      // Includes the non-JSON response a blocked IP receives — same generic error.
+      showGenericFailure();
     }
   }
 
