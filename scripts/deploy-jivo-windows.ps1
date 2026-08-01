@@ -80,6 +80,10 @@ $ErrorActionPreference = 'Stop'
 # under it, which is what keeps their folders, logs and backups isolated.
 $DeployRoot = 'C:\LiveProjects\JIVO_WEBSITE'
 
+# SiteUrl is DISPLAY ONLY. It is printed in the summary card so an operator can
+# click through to the environment that was just deployed. Nothing in this
+# script ever requests it -- the health check uses HealthCheckUrl (127.0.0.1),
+# exactly as before, so adding this cannot change health-check behaviour.
 $EnvironmentDefaults = @{
   Production = @{
     AppPath         = Join-Path $DeployRoot 'NEXT_JS_WEB_JIVO.IN_LIVE'
@@ -88,6 +92,7 @@ $EnvironmentDefaults = @{
     LogDirectory    = Join-Path $DeployRoot 'Logs\Production'
     BackupDirectory = Join-Path $DeployRoot 'Backups\Production'
     HealthCheckUrl  = 'http://127.0.0.1:3001/api/health'
+    SiteUrl         = 'https://jivo.in'
   }
   Testing    = @{
     AppPath         = Join-Path $DeployRoot 'NEXT_JS_WEB_JIVO.IN_TEST'
@@ -96,7 +101,14 @@ $EnvironmentDefaults = @{
     LogDirectory    = Join-Path $DeployRoot 'Logs\Testing'
     BackupDirectory = Join-Path $DeployRoot 'Backups\Testing'
     HealthCheckUrl  = 'http://127.0.0.1:3002/api/health'
+    SiteUrl         = 'https://abc.jivo.in'
   }
+}
+
+# Resolved from the table above purely for the summary card.
+$SiteUrl = ''
+if ($EnvironmentDefaults.ContainsKey($Environment)) {
+  $SiteUrl = $EnvironmentDefaults[$Environment]['SiteUrl']
 }
 
 if ($EnvironmentDefaults.ContainsKey($Environment)) {
@@ -231,6 +243,68 @@ function Invoke-StepOptional {
   Write-JivoOk ($Label + ' completed')
 }
 
+function Show-JivoChangedFiles {
+  <#
+  .SYNOPSIS
+    Prints the files changed between two commits.
+
+  .DESCRIPTION
+    INFORMATIONAL ONLY. Every failure path returns quietly: a diff that cannot
+    be produced (unrelated histories, a missing object after a force-push, git
+    itself erroring) must never abort a deployment whose git verification has
+    already passed.
+
+    $LASTEXITCODE is saved and restored because `git diff` sets it, and the next
+    Invoke-Step would otherwise read this function's exit code and report a
+    healthy step as failed.
+  #>
+  param(
+    [string] $FromCommit,
+    [string] $ToCommit
+  )
+
+  $rule = '-' * 52
+  Write-Host ''
+  Write-Host $rule -ForegroundColor DarkGray
+  Write-Host 'Files Changed' -ForegroundColor Cyan
+
+  $previousExitCode = $global:LASTEXITCODE
+  try {
+    if ([string]::IsNullOrWhiteSpace($FromCommit) -or [string]::IsNullOrWhiteSpace($ToCommit)) {
+      Write-Host 'No file changes detected.'
+      return
+    }
+
+    if ($FromCommit -eq $ToCommit) {
+      Write-Host 'No file changes detected.'
+      return
+    }
+
+    $changed = @(& git diff --name-only $FromCommit $ToCommit 2>$null)
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host 'No file changes detected.'
+      return
+    }
+
+    $changed = @($changed | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($changed.Count -eq 0) {
+      Write-Host 'No file changes detected.'
+      return
+    }
+
+    foreach ($file in $changed) {
+      Write-Host ([char]0x2713 + ' ' + $file.Trim()) -ForegroundColor Green
+    }
+    Write-Host ''
+    Write-Host ('{0} file(s) changed' -f $changed.Count) -ForegroundColor DarkGray
+  } catch {
+    Write-Host 'No file changes detected.'
+  } finally {
+    $global:LASTEXITCODE = $previousExitCode
+    Write-Host $rule -ForegroundColor DarkGray
+  }
+}
+
 function Test-IsAdministrator {
   $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
   $principal = New-Object Security.Principal.WindowsPrincipal($identity)
@@ -348,6 +422,163 @@ function Save-RollbackMarker {
   }
 }
 
+# ---------------------------------------------------------------------------
+# Deployment reporting (traceability artifacts)
+# ---------------------------------------------------------------------------
+# These write manifest/history files for auditing. They are STRICTLY
+# side-channel: every one of them swallows its own errors and returns quietly,
+# because a deployment that installed, built, restarted and passed its health
+# check has SUCCEEDED -- a disk-full or permission problem while writing a
+# report must never turn that into a failure, nor trigger a rollback.
+#
+# $LASTEXITCODE is untouched here (no external process is invoked), so these
+# cannot interfere with the next Invoke-Step exit-code check.
+
+function Confirm-JivoReportDirectory {
+  <#
+  .SYNOPSIS
+    Ensures the report folder exists. Returns $true when it is usable.
+  #>
+  param([string] $Directory)
+
+  try {
+    if ([string]::IsNullOrWhiteSpace($Directory)) { return $false }
+    if (Test-Path -LiteralPath $Directory -PathType Container) { return $true }
+    if (Test-Path -LiteralPath $Directory) {
+      Write-JivoWarn ('Report folder path exists but is a file: ' + $Directory)
+      return $false
+    }
+    New-Item -ItemType Directory -Force -Path $Directory | Out-Null
+    return $true
+  } catch {
+    Write-JivoWarn ('Could not create report folder ' + $Directory + ': ' + $_.Exception.Message)
+    return $false
+  }
+}
+
+function ConvertTo-JivoCsvField {
+  <#
+  .SYNOPSIS
+    RFC4180-style CSV escaping so paths/reasons containing commas, quotes or
+    newlines cannot corrupt the history files.
+  #>
+  param([string] $Value)
+
+  if ($null -eq $Value) { $Value = '' }
+  $Value = $Value -replace "`r`n", ' ' -replace "`r", ' ' -replace "`n", ' '
+  return '"' + ($Value -replace '"', '""') + '"'
+}
+
+function Add-JivoCsvRow {
+  <#
+  .SYNOPSIS
+    Appends one row to a CSV, writing the header only when creating the file.
+
+  .DESCRIPTION
+    Append-only by design: existing history is never rewritten or truncated.
+  #>
+  param(
+    [string] $Path,
+    [string[]] $Header,
+    [string[]] $Values
+  )
+
+  try {
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+      Add-Content -LiteralPath $Path -Value ($Header -join ',') -Encoding utf8
+    }
+    $row = @($Values | ForEach-Object { ConvertTo-JivoCsvField $_ }) -join ','
+    Add-Content -LiteralPath $Path -Value $row -Encoding utf8
+    return $true
+  } catch {
+    Write-JivoWarn ('Could not append to ' + $Path + ': ' + $_.Exception.Message)
+    return $false
+  }
+}
+
+function Write-JivoDeploymentManifest {
+  <#
+  .SYNOPSIS
+    Writes last-deployment.json plus the deployment-history.csv row.
+  #>
+  param(
+    [string] $Status,
+    [string] $CurrentCommit,
+    [datetime] $FinishedAt,
+    [bool] $RolledBack = $false,
+    [string] $FailureReason = ''
+  )
+
+  try {
+    if (-not (Confirm-JivoReportDirectory -Directory $BackupDirectory)) { return }
+
+    $duration = Format-JivoDuration ($FinishedAt - $deployStartedAt)
+
+    $manifest = [ordered] @{
+      deploymentId   = $DeploymentId
+      environment    = $Environment
+      branch         = $Branch
+      repository     = $AppPath
+      previousCommit = $previousCommit
+      currentCommit  = $CurrentCommit
+      service        = $ServiceName
+      url            = $SiteUrl
+      startedAt      = $deployStartedAt.ToString('o')
+      finishedAt     = $FinishedAt.ToString('o')
+      duration       = $duration
+      status         = $Status
+      rollback       = $RolledBack
+      server         = [Environment]::MachineName
+    }
+
+    # Only present on the failure path, so a successful manifest stays clean.
+    if (-not [string]::IsNullOrWhiteSpace($FailureReason)) {
+      $manifest['failureReason'] = $FailureReason
+    }
+
+    $manifestPath = Join-Path $BackupDirectory 'last-deployment.json'
+    ($manifest | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $manifestPath -Encoding utf8
+    Write-JivoInfo ('  Manifest : ' + $manifestPath)
+
+    $historyPath = Join-Path $BackupDirectory 'deployment-history.csv'
+    $wrote = Add-JivoCsvRow -Path $historyPath -Header @(
+      'Timestamp', 'Environment', 'Branch', 'PreviousCommit', 'CurrentCommit',
+      'Duration', 'Status', 'DeploymentID'
+    ) -Values @(
+      $FinishedAt.ToString('o'), $Environment, $Branch, $previousCommit,
+      $CurrentCommit, $duration, $Status, $DeploymentId
+    )
+    if ($wrote) { Write-JivoInfo ('  History  : ' + $historyPath) }
+  } catch {
+    Write-JivoWarn ('Could not write deployment manifest: ' + $_.Exception.Message)
+  }
+}
+
+function Write-JivoRollbackRecord {
+  <#
+  .SYNOPSIS
+    Appends one row to rollback-history.csv. Called only when a rollback ran.
+  #>
+  param(
+    [string] $RollbackCommit,
+    [string] $Reason
+  )
+
+  try {
+    if (-not (Confirm-JivoReportDirectory -Directory $BackupDirectory)) { return }
+
+    $rollbackPath = Join-Path $BackupDirectory 'rollback-history.csv'
+    $wrote = Add-JivoCsvRow -Path $rollbackPath -Header @(
+      'RollbackTime', 'RollbackCommit', 'RollbackReason', 'DeploymentID', 'Environment'
+    ) -Values @(
+      (Get-Date).ToString('o'), $RollbackCommit, $Reason, $DeploymentId, $Environment
+    )
+    if ($wrote) { Write-JivoInfo ('  Rollback log : ' + $rollbackPath) }
+  } catch {
+    Write-JivoWarn ('Could not write rollback record: ' + $_.Exception.Message)
+  }
+}
+
 function Remove-OldLogs {
   if ($LogRetentionCount -le 0) { return }
 
@@ -449,6 +680,23 @@ $script:JivoFailedCommand = $null
 # Wall-clock duration of the whole deploy.
 $deployStartedAt = Get-Date
 
+# Diagnostic metadata. Read-only: nothing here influences any deployment
+# decision, and every lookup degrades to a placeholder instead of throwing.
+#
+# A unique-per-run ID that appears in BOTH the GitHub Actions log and the
+# on-server transcript, so a CI run can be matched to its server-side log file.
+$DeploymentId = '{0}-{1}-{2}' -f $Environment.ToLower(),
+  $deployStartedAt.ToString('yyyyMMdd-HHmmss'),
+  ([guid]::NewGuid().ToString('N').Substring(0, 6))
+
+# GitHub context is NOT present on the server: the SSH session does not inherit
+# the runner's environment. Reported as "(not available)" unless the values are
+# explicitly forwarded some day -- never guessed.
+$GitHubRunId = [Environment]::GetEnvironmentVariable('GITHUB_RUN_ID')
+if ([string]::IsNullOrWhiteSpace($GitHubRunId)) { $GitHubRunId = '(not available)' }
+$GitHubActor = [Environment]::GetEnvironmentVariable('GITHUB_ACTOR')
+if ([string]::IsNullOrWhiteSpace($GitHubActor)) { $GitHubActor = '(not available)' }
+
 # 11 numbered steps on the normal path: Administrator, working tree, fetch,
 # pull, npm install, build, db:push, db:seed, restart, health check, cleanup.
 # A branch switch adds a conditional 12th; Write-JivoStep widens the total
@@ -472,6 +720,24 @@ try {
   # locked) still runs the finally block and releases the mutex. Starting it
   # outside would leave the lock held and block the next deploy for 20 minutes.
   Start-Transcript -Path $LogFile -Append | Out-Null
+
+  # Diagnostics, printed after the transcript starts so it captures them too.
+  # Tool versions are probed here (once) rather than mid-deploy, and every
+  # lookup is failure-tolerant -- see Get-JivoToolVersion / Get-JivoPackageVersion.
+  Write-JivoBanner -Color 'DarkGray' -Title 'Deployment Metadata' -FieldOrder @(
+    'Deployment ID', 'GitHub Run ID', 'GitHub Actor', 'Server', 'Machine',
+    'Started', 'Node', 'npm', 'Next.js'
+  ) -Fields @{
+    'Deployment ID' = $DeploymentId
+    'GitHub Run ID' = $GitHubRunId
+    'GitHub Actor'  = $GitHubActor
+    'Server'        = [Environment]::MachineName
+    'Machine'       = ('{0} ({1})' -f [Environment]::OSVersion.VersionString, $env:PROCESSOR_ARCHITECTURE)
+    'Started'       = $deployStartedAt.ToString('yyyy-MM-dd HH:mm:ss')
+    'Node'          = (Get-JivoToolVersion -Command 'node')
+    'npm'           = (Get-JivoToolVersion -Command 'npm.cmd')
+    'Next.js'       = (Get-JivoPackageVersion -PackageJsonPath (Join-Path $AppPath 'package.json') -DependencyName 'next')
+  }
 
   Write-JivoStep 'Validating Administrator'
   if (-not (Test-IsAdministrator)) {
@@ -535,12 +801,18 @@ try {
     throw ('Server working tree has uncommitted changes. Refusing deploy to avoid overwriting: ' + ($dirtyStatus -join '; '))
   }
 
-  $currentBranch = (& git branch --show-current).Trim()
+  # `git branch --show-current` prints NOTHING in detached-HEAD state, which
+  # would make .Trim() fail on $null. Coerce to a string first and report the
+  # detached case explicitly rather than crashing on it.
+  $currentBranchRaw = (& git branch --show-current)
+  $currentBranch = if ($null -eq $currentBranchRaw) { '' } else { ([string]$currentBranchRaw).Trim() }
+
   $previousCommit = (& git rev-parse HEAD).Trim()
   $previousCommitShort = (& git rev-parse --short HEAD).Trim()
 
   Write-JivoOk 'Working tree is clean'
-  Write-JivoInfo ('  Current branch  : ' + $currentBranch)
+  Write-JivoInfo ('  Working dir     : ' + (Get-Location).Path)
+  Write-JivoInfo ('  Current branch  : ' + $(if ($currentBranch) { $currentBranch } else { '(detached HEAD)' }))
   Write-JivoInfo ('  Previous commit : ' + $previousCommitShort + '  (' + $previousCommit + ')')
 
   Invoke-Step ('Fetching Latest Code (origin/' + $Branch + ')') 'git' @('fetch', 'origin', $Branch)
@@ -562,11 +834,98 @@ try {
   }
 
   Invoke-Step 'Pulling Latest Commit' 'git' @('pull', '--ff-only', 'origin', $Branch)
+
+  # Re-resolve the remote ref AFTER the pull. The value captured before the pull
+  # can be stale (a fetch that only updated FETCH_HEAD leaves
+  # refs/remotes/origin/<branch> untouched), so comparing against it would be
+  # comparing against the same wrong number twice.
+  $expectedCommit = (& git rev-parse ('refs/remotes/origin/' + $Branch)).Trim()
+  if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($expectedCommit)) {
+    $script:JivoFailedStep = 'Pulling Latest Commit'
+    $script:JivoFailedCommand = ('git rev-parse refs/remotes/origin/' + $Branch)
+
+    Write-JivoBanner -Color 'Red' -Title 'Git Verification FAILED' -FieldOrder @(
+      'Environment', 'Branch', 'Repository', 'Previous HEAD', 'Target Commit', 'Current HEAD'
+    ) -Fields @{
+      'Environment'   = $Environment
+      'Branch'        = $Branch
+      'Repository'    = $AppPath
+      'Previous HEAD' = $previousCommitShort
+      'Target Commit' = '(unresolvable)'
+      'Current HEAD'  = (& git rev-parse --short HEAD).Trim()
+    }
+    Write-JivoFail 'Reason:'
+    Write-JivoInfo ('  refs/remotes/origin/' + $Branch + ' cannot be resolved.')
+    Write-JivoInfo '  Deployment aborted before npm install.'
+
+    throw (
+      'Cannot resolve refs/remotes/origin/' + $Branch + ' after fetch. The remote ' +
+      'tracking ref is missing, so there is no reliable way to confirm which commit ' +
+      'this deploy would serve. Check `git config remote.origin.fetch` in ' + $AppPath + '.'
+    )
+  }
+
+  $deployedCommit = (& git rev-parse HEAD).Trim()
   $deployedCommitShort = (& git rev-parse --short HEAD).Trim()
-  Write-JivoOk ('Commit: ' + $deployedCommitShort)
+  $expectedCommitShort = (& git rev-parse --short ('refs/remotes/origin/' + $Branch)).Trim()
+
+  # THE GUARANTEE: every command above can exit 0 and still leave HEAD behind
+  # origin/<branch> (diverged history that --ff-only refuses, a stale tracking
+  # ref, a detached HEAD, an interrupted earlier run). Exit codes alone do not
+  # prove the working tree actually moved. Assert the end state instead, so a
+  # deploy can never build and serve an old commit while reporting success.
+  #
+  # This runs BEFORE npm install / npm run build, so a wrong commit is never
+  # installed, built, or served.
+  if ($deployedCommit -ne $expectedCommit) {
+    $script:JivoFailedStep = 'Pulling Latest Commit'
+    $script:JivoFailedCommand = ('git pull --ff-only origin ' + $Branch)
+
+    Write-JivoBanner -Color 'Red' -Title 'Git Verification FAILED' -FieldOrder @(
+      'Environment', 'Branch', 'Repository', 'Previous HEAD', 'Target Commit', 'Current HEAD'
+    ) -Fields @{
+      'Environment'   = $Environment
+      'Branch'        = $Branch
+      'Repository'    = $AppPath
+      'Previous HEAD' = $previousCommitShort
+      'Target Commit' = $expectedCommitShort
+      'Current HEAD'  = $deployedCommitShort
+    }
+    Write-JivoFail 'Reason:'
+    Write-JivoInfo ('  HEAD does not match origin/' + $Branch + '.')
+    Write-JivoInfo '  Deployment aborted before npm install.'
+
+    throw (
+      'Working tree did not advance to origin/' + $Branch + '. ' +
+      'HEAD is ' + $deployedCommit + ' but origin/' + $Branch + ' is ' + $expectedCommit + '. ' +
+      'The pull reported success without moving HEAD -- usually diverged history ' +
+      '(a commit made directly on the server), a detached HEAD, or a stale remote ' +
+      'tracking ref. Refusing to build and serve the wrong commit.'
+    )
+  }
+
+  Write-JivoBanner -Color 'Green' -Title 'Git Verification' -FieldOrder @(
+    'Environment', 'Branch', 'Repository', 'Previous HEAD', 'Target Commit', 'Current HEAD', 'Verification'
+  ) -Fields @{
+    'Environment'   = $Environment
+    'Branch'        = $Branch
+    'Repository'    = $AppPath
+    'Previous HEAD' = $previousCommitShort
+    'Target Commit' = $expectedCommitShort
+    'Current HEAD'  = $deployedCommitShort
+    'Verification'  = ('PASS ' + [char]0x2713)
+  }
+  Write-JivoStageComplete 'Repository Updated'
+
+  # Informational only, between verification and install exactly as specified.
+  # Cannot fail the deploy -- see Show-JivoChangedFiles.
+  Show-JivoChangedFiles -FromCommit $previousCommit -ToCommit $deployedCommit
 
   Invoke-Step 'Installing Dependencies' 'npm.cmd' @('install')
+  Write-JivoStageComplete 'Dependencies Installed'
+
   Invoke-Step 'Building Application' 'npm.cmd' @('run', 'build')
+  Write-JivoStageComplete 'Build Completed'
 
   # Sync the database AFTER the build (schema + Prisma client are ready) and
   # BEFORE the restart, so the new service starts against an up-to-date DB. These
@@ -580,41 +939,72 @@ try {
 
   $serviceWasTouched = $true
   Restart-JivoService
+  Write-JivoStageComplete 'Service Restarted'
+
   Test-Health
+  Write-JivoStageComplete 'Health Check Passed'
 
   Write-JivoStep 'Cleaning Up'
   Save-RollbackMarker -Commit (& git rev-parse HEAD).Trim()
   Write-JivoOk 'Rollback marker saved'
 
+  # Traceability artifacts. Written AFTER the health check has already passed,
+  # so the deploy is a confirmed success by this point and a reporting failure
+  # can only produce a warning.
+  $deployFinishedAt = Get-Date
+  Write-JivoDeploymentManifest -Status 'Success' -CurrentCommit $deployedCommit -FinishedAt $deployFinishedAt
+
+  Write-JivoStageComplete 'Deployment Completed'
+
+  # Reuses the timestamp captured for the manifest above, so the JSON, the CSV
+  # row and this card all report exactly the same finish time and duration.
   Write-JivoBanner -Color 'Green' -Title 'DEPLOYMENT SUCCESSFUL' -FieldOrder @(
-    'Environment', 'Branch', 'Commit', 'Service', 'Duration'
+    'Environment', 'Branch', 'Repository', 'Service', 'URL',
+    'Previous', 'Current', 'Started', 'Finished', 'Duration', 'Deployment ID'
   ) -Fields @{
-    'Environment' = $Environment
-    'Branch'      = $Branch
-    'Commit'      = $deployedCommitShort
-    'Service'     = $ServiceName
-    'Duration'    = (Format-JivoDuration ((Get-Date) - $deployStartedAt))
+    'Environment'   = $Environment
+    'Branch'        = $Branch
+    'Repository'    = $AppPath
+    'Service'       = $ServiceName
+    'URL'           = $(if ([string]::IsNullOrWhiteSpace($SiteUrl)) { '(not configured)' } else { $SiteUrl })
+    'Previous'      = $previousCommitShort
+    'Current'       = $deployedCommitShort
+    'Started'       = $deployStartedAt.ToString('yyyy-MM-dd HH:mm:ss')
+    'Finished'      = $deployFinishedAt.ToString('yyyy-MM-dd HH:mm:ss')
+    'Duration'      = (Format-JivoDuration ($deployFinishedAt - $deployStartedAt))
+    'Deployment ID' = $DeploymentId
   }
 } catch {
   # Full failure report: which step, which command, the real exception, and the
   # source location. Everything is printed BEFORE the rollback so the log reads
   # in causal order.
+  $failedStage = $(
+    if ($script:JivoFailedStep) { $script:JivoFailedStep }
+    elseif (Get-JivoCurrentStep) { Get-JivoCurrentStep }
+    else { '(before the first step)' }
+  )
+  $failedCommand = $(if ($script:JivoFailedCommand) { $script:JivoFailedCommand } else { '(no external command)' })
+
   Write-JivoBanner -Color 'Red' -Title 'DEPLOYMENT FAILED' -FieldOrder @(
-    'Environment', 'Branch', 'Failed step', 'Command', 'Duration'
+    'Environment', 'Branch', 'Folder', 'Duration'
   ) -Fields @{
     'Environment' = $Environment
     'Branch'      = $Branch
-    'Failed step' = $(
-      if ($script:JivoFailedStep) { $script:JivoFailedStep }
-      elseif (Get-JivoCurrentStep) { Get-JivoCurrentStep }
-      else { '(before the first step)' }
-    )
-    'Command'     = $(if ($script:JivoFailedCommand) { $script:JivoFailedCommand } else { '(no external command)' })
+    'Folder'      = $AppPath
     'Duration'    = (Format-JivoDuration ((Get-Date) - $deployStartedAt))
   }
 
-  Write-JivoFail ('Exception: ' + $_.Exception.Message)
+  Write-JivoFail 'FAILED STAGE'
+  Write-JivoInfo ('  ' + $failedStage)
+  Write-Host ''
+  Write-JivoFail 'Command'
+  Write-JivoInfo ('  ' + $failedCommand)
+  Write-Host ''
+  Write-JivoFail 'Reason'
+  Write-JivoInfo ('  ' + $_.Exception.Message)
 
+  Write-Host ''
+  Write-JivoFail 'Diagnostics'
   if ($_.Exception.GetType().FullName -ne 'System.Management.Automation.RuntimeException') {
     Write-JivoInfo ('  Type     : ' + $_.Exception.GetType().FullName)
   }
@@ -632,6 +1022,39 @@ try {
   Write-JivoWarn 'ROLLBACK STARTED'
   Restore-PreviousCommit -PreviousCommit $previousCommit -ServiceWasTouched $serviceWasTouched
   Write-JivoWarn 'ROLLBACK COMPLETED'
+
+  # Traceability for the failed run. Written AFTER the rollback so the recorded
+  # commit is the one actually left on disk. Wrapped defensively: a reporting
+  # error here must not replace the real deployment exception below.
+  try {
+    $rollbackRan = -not [string]::IsNullOrWhiteSpace($previousCommit)
+
+    # Whatever HEAD is now -- the restored commit after a rollback, or the
+    # unchanged commit when there was nothing to roll back to.
+    #
+    # Only resolved from the DEPLOYMENT folder. An early failure (e.g. the
+    # Administrator check) aborts before Set-Location, and running git in
+    # whatever directory the shell happened to start in would record a commit
+    # from an unrelated repository. Better to record nothing than a wrong SHA.
+    $commitNow = $previousCommit
+    try {
+      if ((Get-Location).Path -eq $AppPath) {
+        $resolved = (& git rev-parse HEAD 2>$null)
+        if ($LASTEXITCODE -eq 0 -and $resolved) { $commitNow = ([string]$resolved).Trim() }
+      }
+    } catch { }
+
+    Write-JivoDeploymentManifest -Status 'Failed' -CurrentCommit $commitNow `
+      -FinishedAt (Get-Date) -RolledBack $rollbackRan -FailureReason $_.Exception.Message
+
+    if ($rollbackRan) {
+      Write-JivoRollbackRecord -RollbackCommit $commitNow -Reason (
+        $failedStage + ': ' + $_.Exception.Message
+      )
+    }
+  } catch {
+    Write-JivoWarn ('Could not write failure reports: ' + $_.Exception.Message)
+  }
 
   # Re-thrown so PowerShell exits non-zero and GitHub Actions fails the job.
   throw
