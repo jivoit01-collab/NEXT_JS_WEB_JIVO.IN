@@ -31,12 +31,17 @@ jobs:
           # Abort the remote shell on the first failing command so a non-zero
           # exit can never be masked by a later succeeding one.
           script_stop: true
-          # Request a PTY so the remote side streams output line by line as the
-          # deploy runs, instead of buffering it. Without this a long deploy can
-          # surface almost nothing until the SSH session closes -- which is why
-          # the job appeared to print only "Successfully executed commands to
-          # all host." This changes NOTHING about what the server executes.
-          request_pty: true
+          # DO NOT set `request_pty: true` on this Windows host.
+          #
+          # It makes easyssh call session.RequestPty("xterm", ...), so OpenSSH
+          # runs the command through ConPTY. On Windows that breaks the job:
+          # cmd.exe switches to interactive mode, the piped multi-line script is
+          # no longer executed reliably, and the only bytes that reach the log
+          # are ConPTY's cursor escapes -- ESC[?25l / ESC[?25h, which surface as
+          # the stray "out: 25l" / "out: 25h" lines.
+          #
+          # Without a PTY the deployment output streams normally (verified end
+          # to end through cmd.exe -> bootstrap -> deploy -> npm).
           # IMPORTANT: the `envs:` input is deliberately NOT used. The action
           # renders it as Linux "export VAR=value" lines, which cmd.exe cannot
           # parse -> "'export' is not recognized as an internal or external
