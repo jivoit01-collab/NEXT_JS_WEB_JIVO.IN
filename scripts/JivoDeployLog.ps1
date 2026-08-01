@@ -82,14 +82,37 @@ function Write-JivoBanner {
   Write-Host $rule -ForegroundColor $Color
   Write-Host $Title -ForegroundColor $Color
 
-  $keys = if ($FieldOrder.Count) { $FieldOrder } else { $Fields.Keys }
+  $keys = @(if ($FieldOrder.Count) { $FieldOrder } else { $Fields.Keys })
+
+  # Pad labels to the widest one actually present (minimum 12) so columns line
+  # up whether the field is "Branch" or "Previous HEAD".
+  $width = 12
+  foreach ($key in $keys) {
+    if ($Fields.ContainsKey($key) -and $key.Length -gt $width) { $width = $key.Length }
+  }
+
   foreach ($key in $keys) {
     if (-not $Fields.ContainsKey($key)) { continue }
-    Write-Host ('{0,-12}: {1}' -f $key, $Fields[$key]) -ForegroundColor $Color
+    Write-Host (('{0,-' + $width + '} : {1}') -f $key, $Fields[$key]) -ForegroundColor $Color
   }
 
   Write-Host $rule -ForegroundColor $Color
   Write-Host ''
+}
+
+function Write-JivoStageComplete {
+  <#
+  .SYNOPSIS
+    The per-stage completion marker: "OK Repository Updated".
+
+  .DESCRIPTION
+    Deliberately distinct from Write-JivoOk (which confirms a single command).
+    This marks a whole deployment STAGE as finished, so the GitHub Actions log
+    can be skimmed for the stage sequence alone.
+  #>
+  param([string] $Stage)
+
+  Write-Host ([char]0x2713 + ' ' + $Stage) -ForegroundColor Green
 }
 
 function Write-JivoStep {
@@ -152,6 +175,69 @@ function Write-JivoCommand {
   Write-Host ''
 }
 
+function Get-JivoToolVersion {
+  <#
+  .SYNOPSIS
+    Version string for an external tool (node, npm), or '(not found)'.
+
+  .DESCRIPTION
+    DIAGNOSTIC ONLY -- must never be able to fail a deployment. Two hazards are
+    handled explicitly:
+
+      1. A missing executable throws CommandNotFoundException under
+         $ErrorActionPreference = 'Stop'. Caught and reported as '(not found)'.
+      2. Any external call sets $LASTEXITCODE. A failing probe would leave a
+         non-zero value behind, and the NEXT Invoke-Step would read it and
+         report a healthy step as failed. The previous value is saved and
+         restored so this function is invisible to the deployment.
+  #>
+  param(
+    [string] $Command,
+    [string[]] $Arguments = @('--version')
+  )
+
+  $previousExitCode = $global:LASTEXITCODE
+  try {
+    $raw = & $Command @Arguments 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $raw) { return '(not found)' }
+    return (($raw | Select-Object -First 1) | Out-String).Trim()
+  } catch {
+    return '(not found)'
+  } finally {
+    $global:LASTEXITCODE = $previousExitCode
+  }
+}
+
+function Get-JivoPackageVersion {
+  <#
+  .SYNOPSIS
+    A dependency's version from package.json, or '(unknown)'.
+
+  .DESCRIPTION
+    Reads the file directly instead of shelling out to npm: no external process,
+    no $LASTEXITCODE to protect, and it works even when node_modules is absent.
+    Never throws -- diagnostics must not affect a deployment.
+  #>
+  param(
+    [string] $PackageJsonPath,
+    [string] $DependencyName
+  )
+
+  try {
+    if (-not (Test-Path -LiteralPath $PackageJsonPath -PathType Leaf)) { return '(unknown)' }
+    $json = Get-Content -LiteralPath $PackageJsonPath -Raw | ConvertFrom-Json
+    foreach ($section in @('dependencies', 'devDependencies')) {
+      $bag = $json.$section
+      if ($bag -and $bag.PSObject.Properties.Name -contains $DependencyName) {
+        return [string] $bag.$DependencyName
+      }
+    }
+    return '(unknown)'
+  } catch {
+    return '(unknown)'
+  }
+}
+
 function Format-JivoDuration {
   <#
   .SYNOPSIS
@@ -159,11 +245,12 @@ function Format-JivoDuration {
   #>
   param([TimeSpan] $Duration)
 
+  # Zero-padded so successive deploy summaries line up when compared.
   if ($Duration.TotalHours -ge 1) {
-    return ('{0}h {1}m {2}s' -f [int]$Duration.TotalHours, $Duration.Minutes, $Duration.Seconds)
+    return ('{0:00}h {1:00}m {2:00}s' -f [int]$Duration.TotalHours, $Duration.Minutes, $Duration.Seconds)
   }
   if ($Duration.TotalMinutes -ge 1) {
-    return ('{0}m {1}s' -f [int]$Duration.TotalMinutes, $Duration.Seconds)
+    return ('{0:00}m {1:00}s' -f [int]$Duration.TotalMinutes, $Duration.Seconds)
   }
-  return ('{0}s' -f [int]$Duration.TotalSeconds)
+  return ('{0:00}s' -f [int]$Duration.TotalSeconds)
 }

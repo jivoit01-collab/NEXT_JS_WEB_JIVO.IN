@@ -31,6 +31,17 @@ jobs:
           # Abort the remote shell on the first failing command so a non-zero
           # exit can never be masked by a later succeeding one.
           script_stop: true
+          # DO NOT set `request_pty: true` on this Windows host.
+          #
+          # It makes easyssh call session.RequestPty("xterm", ...), so OpenSSH
+          # runs the command through ConPTY. On Windows that breaks the job:
+          # cmd.exe switches to interactive mode, the piped multi-line script is
+          # no longer executed reliably, and the only bytes that reach the log
+          # are ConPTY's cursor escapes -- ESC[?25l / ESC[?25h, which surface as
+          # the stray "out: 25l" / "out: 25h" lines.
+          #
+          # Without a PTY the deployment output streams normally (verified end
+          # to end through cmd.exe -> bootstrap -> deploy -> npm).
           # IMPORTANT: the `envs:` input is deliberately NOT used. The action
           # renders it as Linux "export VAR=value" lines, which cmd.exe cannot
           # parse -> "'export' is not recognized as an internal or external
@@ -64,9 +75,31 @@ jobs:
           # Next.js all stream into this job's log. Nothing is redirected to a
           # file or piped through Out-Null, so no output is hidden and the
           # deploy script's exit code still propagates (verified end to end).
-          script: |
-            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST"
-            git fetch --prune origin testing
-            if not exist "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing" mkdir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing"
-            git show origin/testing:scripts/ci/bootstrap-deploy.ps1 > "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing\bootstrap-deploy.ps1"
+          # ONE physical command line, chained with &&.
+          #
+          # `>-` is a YAML FOLDED scalar: every newline below is folded into a
+          # single space, so this serializes to exactly ONE line. That is the
+          # whole point -- the action joins `script:` lines with "\n" and hands
+          # the result to Windows OpenSSH, which runs `cmd.exe /c "<string>"`.
+          # cmd.exe executes only the text BEFORE the first newline and then
+          # exits 0, so a multi-line block ran `cd` and silently discarded
+          # everything else while still reporting success. `&&` is cmd.exe's
+          # own separator, so a single line runs every step in order and stops
+          # on the first failure (verified: a failing step aborts with exit 1).
+          #
+          # The `if not exist` is PARENTHESISED on purpose. Unparenthesised,
+          # `&&` binds to the mkdir INSIDE the if, so on a re-run (folder
+          # already present) the condition is false, no command runs, and the
+          # rest of the chain is skipped with exit 0 -- another silent success.
+          # Wrapping it makes `&&` bind to the whole if-statement.
+          #
+          # Blank lines below are intentional: in a folded scalar they preserve
+          # a line break in the *rendered* value, so they are NOT used here --
+          # every line folds into one. Paths, branch and parameters are
+          # byte-identical to the previous version.
+          script: >-
+            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST" &&
+            git fetch --prune origin testing &&
+            (if not exist "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing" mkdir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing") &&
+            git show origin/testing:scripts/ci/bootstrap-deploy.ps1 > "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing\bootstrap-deploy.ps1" &&
             powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing\bootstrap-deploy.ps1" -AppPath "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST" -ScriptDir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing" -Branch testing -Environment Testing
