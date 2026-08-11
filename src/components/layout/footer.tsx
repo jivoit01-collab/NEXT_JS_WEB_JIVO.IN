@@ -70,9 +70,11 @@ export async function Footer() {
 
   return (
     <footer className="bg-[#f5f4ef] text-[#2c352c]">
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 2xl:max-w-screen-2xl 2xl:px-16 2xl:py-10">
+      {/* Container mirrors the navbar's so the footer edges line up with the nav
+          links on wide screens instead of sitting in a narrower column. */}
+      <div className="mx-auto w-full px-4 py-6 sm:px-8 sm:py-8 lg:px-18 2xl:py-10">
         {/* ── Top: brand card + link columns ─────────────────────── */}
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-8 2xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-10 2xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] 2xl:gap-14">
           {/* ── Brand card ── */}
           <div className="relative overflow-hidden rounded-3xl bg-[#edece4] px-6 pt-10 pb-7 sm:px-8 sm:pt-12 sm:pb-8 2xl:px-10">
             {/* Decorative leaves (top-left, bottom-right) — admin images, else icon */}
