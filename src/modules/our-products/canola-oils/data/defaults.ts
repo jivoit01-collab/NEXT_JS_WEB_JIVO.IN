@@ -45,14 +45,15 @@ export const defaultWhatIsContent: CanolaOilsWhatIsContent = {
     'Born from the seed of the bright yellow Canola plant — a member of the Brassica family that includes mustard, cabbage, and broccoli — Canola oil is one of nature’s most balanced edible oils. The name "Canola" stands for Canadian Oil, Low Acid — coined in 1978 by Canadian growers.',
   paragraphRight:
     'Canola Oil is appreciated for its naturally balanced composition, primarily containing monounsaturated and polyunsaturated fatty acids, which are considered components of a balanced diet. It is light in taste, has a high smoke point, and is versatile for various cooking methods. Free from artificial colours, flavours, and preservatives, Canola Oil is a reliable choice for everyday cooking use.',
+  // `image: ''` renders the upload placeholder until artwork is set in admin.
   features: [
-    { icon: 'seedling', label: 'Mechanically extracted under minimal heat', description: '' },
-    { icon: 'hand', label: 'Fortified with Vitamins A and D', description: '' },
-    { icon: 'molecule', label: 'Low in saturated fats, high in Omega-3', description: '' },
-    { icon: 'wheat', label: 'Free from chemicals and solvents', description: '' },
-    { icon: 'leaf', label: "Supports Jivo's mission of wellness and service", description: '' },
+    { image: '', label: 'Mechanically extracted under minimal heat', description: '' },
+    { image: '', label: 'Fortified with Vitamins A and D', description: '' },
+    { image: '', label: 'Low in saturated fats, high in Omega-3', description: '' },
+    { image: '', label: 'Free from chemicals and solvents', description: '' },
+    { image: '', label: "Supports Jivo's mission of wellness and service", description: '' },
     {
-      icon: 'heart',
+      image: '',
       label: 'Integrity & Dedication',
       description:
         'An unwavering commitment to these principles and a perseverance in service to the mission.',

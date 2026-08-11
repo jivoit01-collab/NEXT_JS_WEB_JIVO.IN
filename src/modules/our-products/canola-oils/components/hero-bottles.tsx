@@ -12,11 +12,11 @@ interface Props {
 }
 
 /**
- * Gentle scroll parallax + entrance for the hero bottles.
+ * Gentle scroll parallax for the hero bottle group.
  *
- * Deliberately NOT a Motion `whileInView` variant: the bottles are part of the
- * LCP paint, so they must render at full opacity in the server HTML. This only
- * layers a transform on top after mount — the image itself never waits on JS.
+ * The throw-in entrance is CSS, applied per-bottle in the hero
+ * (`.animate-canola-bottle-throw`) so the small bottle can land before the
+ * large one. This wrapper only layers the scroll offset on top.
  *
  * Honors prefers-reduced-motion by skipping all movement.
  */
@@ -24,14 +24,6 @@ export function HeroBottles({ children, strength = 28, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
   const [offset, setOffset] = useState(0);
-  const [entered, setEntered] = useState(false);
-
-  useEffect(() => {
-    if (prefersReduced) return;
-    // Next frame so the entrance transition has a starting value to animate from.
-    const raf = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(raf);
-  }, [prefersReduced]);
 
   useEffect(() => {
     if (prefersReduced) return;
@@ -73,11 +65,11 @@ export function HeroBottles({ children, strength = 28, className }: Props) {
     <div
       ref={ref}
       className={className}
-      // Transform-only: the bottles are the LCP paint, so they stay fully
-      // opaque at all times — only their position/scale eases in.
+      // Scroll parallax only. The throw-in entrance lives on each bottle
+      // (`.animate-canola-bottle-throw`) so they can arrive in sequence —
+      // moving the group here would drag them in together.
       style={{
-        transform: `translate3d(0, ${offset + (entered ? 0 : 24)}px, 0) scale(${entered ? 1 : 0.985})`,
-        transition: entered ? 'transform 1.1s cubic-bezier(0.22,1,0.36,1)' : 'none',
+        transform: `translate3d(0, ${offset}px, 0)`,
         willChange: 'transform',
       }}
     >

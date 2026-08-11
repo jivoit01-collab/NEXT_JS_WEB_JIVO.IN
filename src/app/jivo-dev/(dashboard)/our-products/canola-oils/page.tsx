@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { ImageUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
 import { upsertCanolaOilsSectionAction } from '@/modules/our-products/canola-oils/actions';
-import { ICON_KEYS } from '@/modules/our-products/canola-oils/components/feature-icon';
 import type {
   CanolaOilsHeroContent,
   CanolaOilsRangeContent,
@@ -357,13 +356,13 @@ export default function CanolaOilsManager() {
               </div>
 
               <RepeatableList
-                label="Feature icons"
+                label="Feature images"
                 count={whatIs.features.length}
                 minItems={1}
                 onAdd={() =>
                   setWhatIs({
                     ...whatIs,
-                    features: [...whatIs.features, { icon: 'leaf', label: '', description: '' }],
+                    features: [...whatIs.features, { image: '', label: '', description: '' }],
                   })
                 }
                 onRemove={(i) =>
@@ -375,25 +374,22 @@ export default function CanolaOilsManager() {
                 renderItem={(i) => (
                   <div className="space-y-3">
                     <div>
-                      <label className="mb-1 block text-xs font-jost-medium">Icon</label>
-                      <select
-                        value={whatIs.features[i].icon}
-                        onChange={(e) =>
+                      <label className="mb-1 block text-xs font-jost-medium">Image</label>
+                      <p className="mb-2 text-xs text-muted-foreground">
+                        Use a PNG/WebP with a transparent background so it sits cleanly on the
+                        section colour. Leave empty to show the placeholder.
+                      </p>
+                      <ImageUpload
+                        value={whatIs.features[i].image}
+                        onChange={(url) =>
                           setWhatIs({
                             ...whatIs,
                             features: whatIs.features.map((f, idx) =>
-                              idx === i ? { ...f, icon: e.target.value } : f,
+                              idx === i ? { ...f, image: url } : f,
                             ),
                           })
                         }
-                        className={inputClass}
-                      >
-                        {ICON_KEYS.map((key) => (
-                          <option key={key} value={key}>
-                            {key}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-jost-medium">Label</label>

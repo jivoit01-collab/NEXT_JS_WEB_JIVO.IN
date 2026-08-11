@@ -6,7 +6,21 @@ import { SafeImage } from '@/components/shared/public';
 import { container, fadeUp, reducedMotion, defaultViewport } from '@/lib/animation-variants';
 import type { CanolaOilsRangeContent, CanolaProductVariant } from '../types';
 import { defaultRangeContent } from '../data/defaults';
-import { CANOLA_TAUPE, CANOLA_CARD_GREEN } from '../constants';
+import { CANOLA_TAUPE, CANOLA_CARD_GREEN, CANOLA_SAGE } from '../constants';
+
+/**
+ * Cards are "thrown in" from the left as the section scrolls into view.
+ * Staggered by `container`, so each card lands slightly after the one before.
+ */
+const throwFromLeft = {
+  hidden: { opacity: 0, x: -120, rotate: -6 },
+  show: {
+    opacity: 1,
+    x: 0,
+    rotate: 0,
+    transition: { type: 'spring' as const, stiffness: 90, damping: 16, mass: 0.9 },
+  },
+};
 
 interface Props {
   data?: CanolaOilsRangeContent;
@@ -17,11 +31,12 @@ export function RangeSection({ data }: Props) {
   const { heading, variants } = data ?? defaultRangeContent;
   const prefersReduced = useReducedMotion();
   const item = prefersReduced ? reducedMotion : fadeUp;
+  const cardItem = prefersReduced ? reducedMotion : throwFromLeft;
 
   return (
     <section
       aria-labelledby="canola-range-heading"
-      className="px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+      className="overflow-x-clip px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
       style={{ backgroundColor: CANOLA_TAUPE }}
     >
       <motion.div
@@ -34,17 +49,34 @@ export function RangeSection({ data }: Props) {
         <motion.h2
           id="canola-range-heading"
           variants={item}
-          className="font-jost-extrabold text-balance text-center text-xl tracking-[0.1em] text-white uppercase sm:text-2xl lg:text-3xl"
+          className="group/heading mx-auto block w-fit cursor-default text-balance text-center font-jost-extrabold text-[clamp(1.5rem,1.05rem+1.9vw,2.75rem)] leading-[1.12] tracking-[0.1em] text-white uppercase transition-transform duration-300 ease-out hover:-translate-y-0.5"
         >
-          {heading}
+          <span className="relative inline-block">
+            {heading}
+            {/* Growing underline on hover, mirroring the nav/footer treatment. */}
+            <span
+              aria-hidden
+              className="absolute -bottom-1.5 left-0 h-[2px] w-0 transition-all duration-500 ease-out group-hover/heading:w-full motion-reduce:transition-none"
+              style={{ backgroundColor: CANOLA_SAGE }}
+            />
+          </span>
         </motion.h2>
 
-        <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:mt-12 lg:grid-cols-3 lg:gap-8">
-          {variants.map((variant, i) => (
-            <motion.div key={`${variant.label}-${i}`} variants={item}>
-              <VariantCard variant={variant} />
-            </motion.div>
-          ))}
+        <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-6 lg:mt-12 lg:grid-cols-3 lg:gap-8">
+          {variants.map((variant, i) => {
+            // Two-up below lg. A trailing odd card would leave a gap, so it
+            // spans the full row instead. At lg the grid is 3-up and even.
+            const spansRow = variants.length % 2 === 1 && i === variants.length - 1;
+            return (
+              <motion.div
+                key={`${variant.label}-${i}`}
+                variants={cardItem}
+                className={spansRow ? 'col-span-2 lg:col-span-1' : undefined}
+              >
+                <VariantCard variant={variant} fullWidth={spansRow} />
+              </motion.div>
+            );
+          })}
         </div>
       </motion.div>
     </section>
@@ -52,12 +84,26 @@ export function RangeSection({ data }: Props) {
 }
 
 /** One bottle card. Renders as a link when `href` is set, else a plain figure. */
-function VariantCard({ variant }: { variant: CanolaProductVariant }) {
+function VariantCard({
+  variant,
+  fullWidth = false,
+}: {
+  variant: CanolaProductVariant;
+  fullWidth?: boolean;
+}) {
   const { image, label, href } = variant;
 
   const inner = (
     <>
-      <div className="flex h-56 items-center justify-center sm:h-64 lg:h-72">
+      {/* A row-spanning card is twice as wide, so its bottle is capped by vw
+          rather than the column — otherwise it renders oversized. */}
+      <div
+        className={
+          fullWidth
+            ? 'flex h-[clamp(11rem,26vw,18rem)] items-center justify-center lg:h-[clamp(11rem,34vw,18rem)]'
+            : 'flex h-[clamp(11rem,34vw,18rem)] items-center justify-center'
+        }
+      >
         {/* SafeImage resolves empty/unknown values to the upload placeholder,
             so a card never renders an empty hole before art is uploaded. */}
         <SafeImage
@@ -66,18 +112,21 @@ function VariantCard({ variant }: { variant: CanolaProductVariant }) {
           width={260}
           height={420}
           quality={85}
-          sizes="(max-width: 640px) 60vw, (max-width: 1024px) 40vw, 260px"
+          sizes="(max-width: 640px) 40vw, (max-width: 1024px) 30vw, 260px"
           className="h-full w-auto object-contain transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
         />
       </div>
-      <span className="mt-5 block text-center font-jost-medium text-sm text-white/95 sm:text-base">
+      <span
+        className="mt-3 block text-center font-jost-medium text-xs sm:mt-5 sm:text-sm lg:text-base"
+        style={{ color: CANOLA_SAGE }}
+      >
         {label}
       </span>
     </>
   );
 
   const cardClass =
-    'group block rounded-2xl p-6 transition-all duration-500 ease-out sm:p-8 hover:-translate-y-1.5 hover:shadow-[0_18px_45px_rgba(0,0,0,0.28)]';
+    'group block rounded-2xl p-3.5 transition-all duration-500 ease-out sm:p-6 lg:p-8 hover:-translate-y-1.5 hover:shadow-[0_18px_45px_rgba(0,0,0,0.28)]';
 
   if (href) {
     return (
@@ -109,16 +158,16 @@ export function RangeSectionSkeleton() {
       style={{ backgroundColor: CANOLA_TAUPE }}
     >
       <div className="mx-auto w-full max-w-6xl">
-        <div className="mx-auto h-7 w-72 rounded-md bg-white/20 sm:h-8 lg:h-9 lg:w-96" />
-        <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:mt-12 lg:grid-cols-3 lg:gap-8">
+        <div className="mx-auto h-8 w-72 rounded-md bg-white/20 sm:h-10 lg:h-12 lg:w-[30rem]" />
+        <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-6 lg:mt-12 lg:grid-cols-3 lg:gap-8">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="rounded-2xl p-6 sm:p-8"
+              className={`rounded-2xl p-3.5 sm:p-6 lg:p-8 ${i === 2 ? 'col-span-2 lg:col-span-1' : ''}`}
               style={{ backgroundColor: CANOLA_CARD_GREEN }}
             >
-              <div className="mx-auto h-56 w-24 rounded-lg bg-white/10 sm:h-64 lg:h-72" />
-              <div className="mx-auto mt-5 h-4 w-20 rounded bg-white/15" />
+              <div className="mx-auto h-[clamp(11rem,34vw,18rem)] w-24 rounded-lg bg-white/10" />
+              <div className="mx-auto mt-3 h-4 w-20 rounded bg-white/15 sm:mt-5" />
             </div>
           ))}
         </div>

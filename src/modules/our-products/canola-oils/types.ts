@@ -31,8 +31,17 @@ export interface CanolaOilsRangeContent {
 
 // ── Section 3: What is canola ────────────────────────────────
 export interface CanolaFeature {
-  /** lucide-react icon key — see ICON_MAP in feature-icon.tsx */
-  icon: string;
+  /**
+   * Feature artwork (admin upload). Replaces the old lucide icon.
+   * SafeImage resolves empty/unknown values to the upload placeholder.
+   */
+  image: string;
+  /**
+   * Legacy lucide-react icon key. Retained so previously-saved section JSON
+   * still parses; no longer rendered.
+   * @deprecated use `image`
+   */
+  icon?: string;
   label: string;
   /** Optional longer copy (screenshot shows it on the last item). */
   description: string;

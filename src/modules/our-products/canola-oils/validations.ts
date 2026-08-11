@@ -29,7 +29,10 @@ export const canolaOilsRangeSchema = z.object({
 });
 
 export const canolaFeatureSchema = z.object({
-  icon: z.string().min(1, 'Icon is required'),
+  image: z.string().default(''),
+  // Legacy lucide key from before features used uploaded artwork. Optional so
+  // previously-saved section JSON still validates.
+  icon: z.string().optional(),
   label: z.string().min(1, 'Label is required'),
   description: z.string().default(''),
 });

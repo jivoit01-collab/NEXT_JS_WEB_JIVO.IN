@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { SafeImage, isPlaceholderValue } from '@/components/shared/public';
 import type { CanolaOilsHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
@@ -9,29 +10,6 @@ interface Props {
   data?: CanolaOilsHeroContent;
 }
 
-/**
- * Hero — built to the approved UI/UX reference.
- *
- * Composition:
- *   • flat #007363 field; the fixed navbar overlays it
- *   • JIVO wordmark centred in the upper area, modestly sized
- *   • two bottles (1L in front, 5L behind) filling the right half and
- *     cropped by the right edge of the viewport
- *   • "CANOLA OILS" + subtitles + BUY ALL at the lower-left, overlapping
- *     the bottle group slightly
- *
- * Height: fills the viewport (100dvh). Critically, the internal rhythm is
- * distributed with flex ratios rather than svh padding — padding scales with
- * the viewport and pulls the composition apart on tall screens, which is what
- * made an earlier version look stretched. Ratios keep the reference density
- * at every height.
- *
- * Copy and bottles share one grid cell so they overlap while staying in
- * normal flow (responsive.md §6) — no absolute positioning for primary
- * content, and all sizing is %/clamp based, never fixed pixel offsets.
- *
- * Server-rendered for LCP; the headline is never animated.
- */
 export function CanolaOilsHero({ data }: Props) {
   const {
     logoImage,
@@ -49,42 +27,264 @@ export function CanolaOilsHero({ data }: Props) {
   return (
     <section
       aria-labelledby="canola-hero-heading"
-      className="relative isolate flex h-dvh max-h-[64rem] min-h-[34rem] flex-col overflow-hidden"
+      className="group relative isolate min-h-[62svh] overflow-hidden sm:min-h-[72svh] lg:min-h-dvh"
       style={{ backgroundColor: CANOLA_GREEN }}
     >
-      {/* ── Wordmark band: fixed share of the height, below the navbar ── */}
-      <div className="flex shrink-0 basis-[30%] items-center justify-center px-4 pt-14 sm:px-6 lg:pt-16">
-        <div className="h-full w-full min-w-0 max-w-[430px] py-2">
-          {isPlaceholderValue(logoImage) ? (
-            // A placeholder box would read as a broken logo, so set the
-            // wordmark in type until a real logo is uploaded.
-            <span className="font-futura-heavy flex h-full items-center justify-center text-[clamp(2.5rem,1.5rem+5vw,5rem)] leading-none tracking-[0.04em] text-white">
-              JIVO
-            </span>
-          ) : (
-            <SafeImage
-              src={logoImage}
-              alt="Jivo"
-              width={860}
-              height={330}
-              priority
-              fetchPriority="high"
-              quality={90}
-              sizes="(max-width: 640px) 56vw, (max-width: 1024px) 40vw, 430px"
-              className="mx-auto h-full w-auto max-w-full object-contain"
-            />
-          )}
+      {/* ============================================================
+          CENTER JIVO LOGO
+
+          Keep this independent from the bottle composition.
+          ============================================================ */}
+      <div
+        className="
+          absolute
+          top-[16%]
+          left-1/2
+          z-20
+          w-[52vw]
+          max-w-[420px]
+          min-w-[170px]
+          -translate-x-1/2
+
+          sm:w-[50vw]
+          lg:w-[46vw]
+
+          transition-transform
+          duration-700
+          ease-out
+
+          group-hover:-translate-y-1
+        "
+      >
+        {/* Inner wrapper carries the entrance animation — putting it on the
+            parent would overwrite its -translate-x-1/2 centering. */}
+        <div className="animate-canola-hero-rise">
+        {isPlaceholderValue(logoImage) ? (
+          <span
+            className="
+              font-futura-heavy
+              block
+              text-center
+              text-[clamp(3.5rem,6vw,5rem)]
+              leading-none
+              tracking-tight
+              text-white
+            "
+          >
+            JIVO
+          </span>
+        ) : (
+          <SafeImage
+            src={logoImage}
+            alt="Jivo"
+            width={860}
+            height={330}
+            priority
+            fetchPriority="high"
+            quality={90}
+            sizes="(max-width: 640px) 52vw, (max-width: 1024px) 46vw, 420px"
+            className="
+              mx-auto
+              h-auto
+              w-full
+              object-contain
+
+              transition-transform
+              duration-700
+              ease-out
+
+              group-hover:scale-[1.02]
+            "
+          />
+        )}
         </div>
       </div>
 
-      {/* ── Stage: copy + bottles overlap in one cell ─────────────── */}
-      <div className="relative grid flex-1 [grid-template-areas:'stack'] *:[grid-area:stack]">
-        {/* Bottles — anchored bottom-right, cropped by the viewport edge. */}
-        <HeroBottles className="pointer-events-none z-10 flex items-end justify-end">
-          {/* pointer-events re-enabled here so the bottles respond to hover
-              while the wrapper stays click-through over the copy column. */}
-          <div className="group pointer-events-auto relative -mr-[10%] flex h-full w-[64%] items-end sm:-mr-[7%] sm:w-[58%] lg:-mr-[5%] lg:w-[52%] xl:w-[48%]">
-            {/* Large bottle (back) — sets the group height. */}
+      {/* ============================================================
+          BOTTLE COMPOSITION
+
+          IMPORTANT:
+          This is intentionally oversized.
+
+          The whole group is pushed outside the RIGHT side of the
+          viewport so the bottles look like they are entering from
+          the side.
+
+          Reference behavior:
+
+                     ┌─────────────────────┐
+                     │      BIG BOTTLE     │
+                     │                     │────── CROPPED
+               ╱─────│                     │
+             ╱ SMALL │                     │
+            ╱        │                     │
+           ╱         └─────────────────────┘
+
+          ============================================================ */}
+      <HeroBottles
+        className="
+          pointer-events-none
+          absolute
+          right-[-9vw]
+          bottom-[4%]
+          z-10
+
+          h-[50%]
+          w-[68vw]
+
+          min-w-[240px]
+          max-w-[800px]
+
+          sm:h-[58%]
+          sm:w-[70vw]
+
+          md:h-[68%]
+          md:w-[64vw]
+
+          lg:h-[74%]
+          lg:w-[58vw]
+
+          xl:h-[76%]
+          xl:w-[54vw]
+        "
+      >
+        <div className="relative h-full w-full">
+
+          {/* ========================================================
+              SMALL BOTTLE
+
+              BEHIND BIG BOTTLE
+
+              Larger than previous implementation.
+
+              It comes from behind the big bottle and leans toward
+              the LEFT, exactly giving the "side se nikal rahi hai"
+              feeling.
+              ======================================================== */}
+          {/* Outer wrapper owns the throw-in; the inner one owns the resting
+              tilt and hover-straighten. Keeping them on separate elements
+              stops the keyframe's transform from clobbering the tilt. */}
+          {hasSecondBottle ? (
+            <div
+              style={{ animationDelay: '250ms' }}
+              className="
+                animate-canola-bottle-throw
+                pointer-events-none
+                absolute
+                left-[-6%]
+                bottom-[24%]
+
+                z-[1]
+
+                h-[58%]
+
+                sm:h-[59%]
+                lg:h-[62%]
+              "
+            >
+            <div
+              className="
+                group/small
+                pointer-events-auto
+                h-full
+                w-auto
+
+                origin-[60%_90%]
+
+                rotate-[-10deg]
+
+                transition-all
+                duration-700
+                ease-[cubic-bezier(0.22,1,0.36,1)]
+
+                hover:translate-x-4
+                hover:rotate-0
+                hover:scale-[1.03]
+
+                motion-reduce:transition-none
+              "
+            >
+              <SafeImage
+                src={productImageSecondary}
+                alt=""
+                width={680}
+                height={860}
+                priority
+                quality={90}
+                sizes="
+                  (max-width: 640px) 40vw,
+                  (max-width: 1024px) 34vw,
+                  28vw
+                "
+                className="
+                  h-full
+                  w-auto
+                  max-w-none
+                  object-contain
+                  object-bottom
+
+                  drop-shadow-[0_22px_42px_rgba(0,0,0,0.25)]
+                "
+              />
+            </div>
+            </div>
+          ) : null}
+
+          {/* ========================================================
+              BIG BOTTLE
+
+              THIS IS THE MAIN VISUAL.
+
+              It is intentionally:
+              - much bigger
+              - pushed outside right
+              - cropped by viewport
+              - in front of small bottle
+
+              This produces the exact "bottle coming from side"
+              appearance.
+              ======================================================== */}
+          {/* Outer wrapper owns the throw-in, inner one the hover transforms. */}
+          <div
+            style={{ animationDelay: '500ms' }}
+            className="
+              animate-canola-bottle-throw
+              pointer-events-none
+              absolute
+              right-[-13%]
+              bottom-[-2%]
+
+              z-[2]
+
+              h-[86%]
+
+              sm:h-[95%]
+              md:h-[104%]
+              lg:h-[112%]
+            "
+          >
+          <div
+            className="
+              pointer-events-auto
+              h-full
+              w-auto
+
+              max-w-none
+
+              origin-[50%_94%]
+
+              transition-all
+              duration-700
+              ease-[cubic-bezier(0.22,1,0.36,1)]
+
+              hover:-translate-y-2
+              hover:rotate-[-7deg]
+              hover:scale-[1.02]
+
+              motion-reduce:transform-none
+              motion-reduce:transition-none
+            "
+          >
             <SafeImage
               src={productImage}
               alt=""
@@ -93,82 +293,332 @@ export function CanolaOilsHero({ data }: Props) {
               priority
               fetchPriority="high"
               quality={90}
-              sizes="(max-width: 640px) 46vw, (max-width: 1024px) 42vw, 34vw"
-              className="ml-auto block h-full w-auto max-w-full origin-bottom object-contain object-bottom transition-transform duration-700 ease-out will-change-transform group-hover:scale-[1.02] motion-reduce:transform-none motion-reduce:transition-none"
+              sizes="
+                (max-width: 640px) 58vw,
+                (max-width: 1024px) 60vw,
+                52vw
+              "
+              className="
+                h-full
+                w-auto
+                max-w-none
+                object-contain
+                object-bottom
+
+                drop-shadow-[0_30px_65px_rgba(0,0,0,0.24)]
+              "
             />
-
-            {/* Small bottle (front) — overlaps the large one's lower left. */}
-            {hasSecondBottle ? (
-              <SafeImage
-                src={productImageSecondary}
-                alt=""
-                width={680}
-                height={860}
-                priority
-                quality={90}
-                sizes="(max-width: 640px) 16vw, (max-width: 1024px) 14vw, 11vw"
-                className="absolute bottom-0 left-[8%] h-[72%] w-auto origin-bottom object-contain object-bottom drop-shadow-[0_18px_42px_rgba(0,0,0,0.3)] transition-transform duration-700 ease-out will-change-transform group-hover:-translate-y-2 group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
-              />
-            ) : null}
           </div>
-        </HeroBottles>
-
-        {/* Copy — lower-left. Sits in the lower portion of the stage so it
-            relates to the bottles instead of drifting to the very bottom. */}
-        <div className="z-20 flex items-center px-4 pt-[6%] pb-[8%] sm:px-6 lg:px-10 2xl:px-14">
-          <div className="w-[52%] min-w-0 sm:w-full sm:max-w-[26rem] lg:max-w-[30rem]">
-            <h1
-              id="canola-hero-heading"
-              className="font-futura-heavy text-balance text-[clamp(1.75rem,0.95rem+2.9vw,3.25rem)] leading-[1.02] tracking-[0.01em] text-white uppercase"
-            >
-              {heading}
-            </h1>
-
-            <p className="font-futura-light mt-3 max-w-[34ch] text-pretty text-[clamp(0.8rem,0.72rem+0.28vw,1.0625rem)] leading-relaxed text-white/85 transition-colors duration-300 hover:text-white lg:mt-4">
-              {subtitleLineOne}
-            </p>
-            {subtitleLineTwo ? (
-              <p className="font-futura-light max-w-[34ch] text-pretty text-[clamp(0.8rem,0.72rem+0.28vw,1.0625rem)] leading-relaxed text-white/85 transition-colors duration-300 hover:text-white">
-                {subtitleLineTwo}
-              </p>
-            ) : null}
-
-            {/* CSS-only hover/focus — keeps the LCP path free of JS. */}
-            <Link
-              href={ctaHref || '/our-products'}
-              className="font-futura-heavy mt-5 inline-flex min-h-11 items-center justify-center rounded-full border-2 border-white px-8 py-2.5 text-[clamp(0.72rem,0.66rem+0.2vw,0.875rem)] tracking-[0.2em] text-white uppercase transition-[background-color,color,transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:bg-white hover:text-[color:var(--canola-green)] hover:shadow-[0_14px_34px_rgba(0,0,0,0.28)] focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--canola-green)] focus-visible:outline-none motion-reduce:transform-none lg:mt-7"
-              style={{ ['--canola-green' as string]: CANOLA_GREEN }}
-            >
-              {ctaLabel}
-            </Link>
           </div>
         </div>
+      </HeroBottles>
+
+      {/* ============================================================
+          CENTER-BOTTOM CONTENT
+
+          Keep the text independent from the bottles.
+
+          The reference has the text centered around the lower
+          middle of the screen.
+          ============================================================ */}
+      <div
+        className="
+          absolute
+          bottom-[10%]
+          left-1/2
+          z-30
+
+          flex
+          w-full
+          -translate-x-1/2
+          flex-col
+          items-center
+
+          px-5
+          text-center
+        "
+      >
+        {/* Heading */}
+        <h1
+          id="canola-hero-heading"
+          style={{ animationDelay: '120ms' }}
+          className="
+            font-futura-heavy
+            text-balance
+
+            text-[clamp(1.85rem,1.1rem+3.4vw,4.75rem)]
+
+            leading-[0.98]
+            tracking-[-0.018em]
+
+            text-white
+            uppercase
+
+            animate-canola-hero-rise
+
+            transition-all
+            duration-500
+            ease-out
+
+            hover:-translate-y-1
+          "
+        >
+          {heading}
+        </h1>
+
+        {/* Description */}
+        <div
+          style={{ animationDelay: '240ms' }}
+          className="
+            mt-4
+            max-w-[560px]
+
+            animate-canola-hero-rise
+
+            transition-transform
+            duration-500
+            ease-out
+
+            hover:-translate-y-0.5
+
+            sm:mt-3.5
+          "
+        >
+          <p
+            className="
+              font-futura-light
+              text-[clamp(0.95rem,0.82rem+0.55vw,1.35rem)]
+              leading-[1.5]
+              text-white/90
+
+              transition-colors
+              duration-300
+
+              hover:text-white
+            "
+          >
+            {subtitleLineOne}
+          </p>
+
+          {subtitleLineTwo ? (
+            <p
+              className="
+                font-futura-light
+                text-[clamp(0.72rem,0.78vw,0.94rem)]
+                leading-[1.4]
+                text-white/90
+
+                transition-colors
+                duration-300
+
+                hover:text-white
+              "
+            >
+              {subtitleLineTwo}
+            </p>
+          ) : null}
+        </div>
+
+        {/* CTA */}
+        <a
+          href={ctaHref || '/our-products'}
+          target="_blank"
+          className="
+            font-futura-heavy
+
+            group/cta
+
+            mt-6
+
+            animate-canola-hero-rise
+
+            inline-flex
+            min-h-12
+
+            items-center
+            justify-center
+            gap-2
+
+            rounded-full
+            border-2
+            border-white
+
+            px-9
+            py-3
+
+            text-[clamp(0.78rem,0.9vw,0.95rem)]
+            tracking-[0.18em]
+
+            text-white
+            uppercase
+
+            transition-all
+            duration-300
+            ease-out
+
+            hover:-translate-y-1
+            hover:scale-[1.04]
+            hover:bg-white
+            hover:text-[color:var(--canola-green)]
+            hover:shadow-[0_16px_38px_rgba(0,0,0,0.26)]
+
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-white
+            focus-visible:ring-offset-2
+            focus-visible:ring-offset-[color:var(--canola-green)]
+
+            active:translate-y-0
+
+            motion-reduce:transform-none
+          "
+          style={{
+            ['--canola-green' as string]: CANOLA_GREEN,
+            animationDelay: '360ms',
+          }}
+        >
+          {ctaLabel}
+          <ArrowRight
+            aria-hidden
+            className="
+              h-4
+              w-4
+
+              transition-transform
+              duration-300
+              ease-out
+
+              group-hover/cta:translate-x-1
+
+              motion-reduce:transform-none
+              motion-reduce:transition-none
+            "
+          />
+        </a>
       </div>
     </section>
   );
 }
 
+/* ================================================================
+   SKELETON
+   ================================================================ */
+
 export function CanolaOilsHeroSkeleton() {
   return (
     <section
-      className="relative flex h-dvh max-h-[64rem] min-h-[34rem] animate-pulse flex-col overflow-hidden"
+      className="relative min-h-dvh animate-pulse overflow-hidden"
       style={{ backgroundColor: CANOLA_GREEN }}
     >
-      <div className="flex shrink-0 basis-[30%] items-center justify-center px-4 pt-14 sm:px-6 lg:pt-16">
-        <div className="h-[60%] w-full max-w-[430px] rounded-md bg-white/10" />
+      {/* Center logo */}
+      <div
+        className="
+          absolute
+          top-[16%]
+          left-1/2
+          w-[52vw]
+          max-w-[420px]
+          min-w-[170px]
+          -translate-x-1/2
+
+          sm:w-[50vw]
+          lg:w-[46vw]
+        "
+      >
+        <div className="h-20 w-full rounded-md bg-white/10 sm:h-24 lg:h-28" />
       </div>
-      <div className="grid flex-1 [grid-template-areas:'stack'] *:[grid-area:stack]">
-        <div className="flex items-end justify-end">
-          <div className="-mr-[10%] h-[86%] w-[64%] rounded-2xl bg-white/5 sm:w-[58%] lg:w-[52%]" />
-        </div>
-        <div className="flex items-center px-4 pt-[6%] pb-[8%] sm:px-6 lg:px-10 2xl:px-14">
-          <div className="w-[52%] sm:w-full sm:max-w-[26rem] lg:max-w-[30rem]">
-            <div className="h-9 w-56 rounded-md bg-white/15 sm:h-11 sm:w-72 lg:h-12" />
-            <div className="mt-4 h-4 w-full max-w-xs rounded bg-white/10" />
-            <div className="mt-2 h-4 w-4/5 max-w-[16rem] rounded bg-white/10" />
-            <div className="mt-6 h-11 w-40 rounded-full bg-white/10" />
-          </div>
-        </div>
+
+      {/* Bottle composition */}
+      <div
+        className="
+          absolute
+          right-[-9vw]
+          bottom-[4%]
+
+          h-[50%]
+          w-[68vw]
+
+          min-w-[240px]
+          max-w-[800px]
+
+          sm:h-[58%]
+          sm:w-[70vw]
+
+          md:h-[68%]
+          md:w-[64vw]
+
+          lg:h-[74%]
+          lg:w-[58vw]
+
+          xl:h-[76%]
+          xl:w-[54vw]
+        "
+      >
+        {/* Small bottle */}
+        <div
+          className="
+            absolute
+            left-[-6%]
+            bottom-[24%]
+            z-[1]
+
+            h-[58%]
+            w-[28%]
+
+            sm:h-[59%]
+            lg:h-[62%]
+
+            rotate-[-10deg]
+
+            rounded-[22px]
+            bg-white/5
+          "
+        />
+
+        {/* Big bottle */}
+        <div
+          className="
+            absolute
+            right-[-13%]
+            bottom-[-2%]
+            z-[2]
+
+            h-[86%]
+            w-[58%]
+
+            sm:h-[95%]
+            md:h-[104%]
+            lg:h-[112%]
+
+            rounded-[42px]
+            bg-white/5
+          "
+        />
+      </div>
+
+      {/* Bottom content */}
+      <div
+        className="
+          absolute
+          bottom-[7%]
+          left-1/2
+
+          flex
+          w-full
+          -translate-x-1/2
+          flex-col
+          items-center
+
+          px-5
+        "
+      >
+        <div className="h-12 w-72 rounded-md bg-white/10" />
+
+        <div className="mt-4 h-5 w-96 max-w-full rounded bg-white/10" />
+
+        <div className="mt-2 h-5 w-80 max-w-full rounded bg-white/10" />
+
+        <div className="mt-6 h-10 w-32 rounded-full bg-white/10" />
       </div>
     </section>
   );
