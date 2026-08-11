@@ -122,7 +122,10 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
             : 'bg-transparent',
         )}
       >
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4 lg:h-16 lg:px-6 xl:px-8 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-12">
+      {/* Single centred content container. The nav links stay inside the same
+          max-width as the page content instead of spreading to the viewport
+          edges on wide screens. */}
+      <div className="mx-auto flex h-14 max-w-8xl items-center justify-between px-6 sm:px-8 lg:h-16 lg:px-18 2xl:h-20">
         {/* Logo */}
         <Link href="/" className="flex min-h-11 min-w-0 items-center" aria-label={altText}>
           <JivoLogo title={altText} className="h-7 w-auto text-white lg:h-9 2xl:h-12" />
@@ -130,10 +133,13 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
 
         {/* Desktop Nav */}
         <nav aria-label="Main navigation" className="hidden min-w-0 items-center gap-7 xl:flex 2xl:gap-10">
-          {links.map((link) => {
+          {links.map((link, index) => {
             const key = link.title;
             const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
             const isActive = activeDropdown === key;
+            // Items near the right edge open their panel leftwards, otherwise the
+            // last menus (e.g. Community) overflow past the viewport edge.
+            const alignRight = index >= links.length - 2;
 
             return (
               <div
@@ -180,13 +186,14 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                 {hasSubLinks && (
                   <div
                     className={cn(
-                      'absolute top-full -left-6 z-50 pt-4 transition-all duration-200 ease-out motion-reduce:transition-none 2xl:pt-5',
+                      'absolute top-full z-50 pt-4 transition-all duration-200 ease-out motion-reduce:transition-none 2xl:pt-5',
+                      alignRight ? '-right-6' : '-left-6',
                       isActive
                         ? 'pointer-events-auto translate-y-0 opacity-100'
                         : 'pointer-events-none translate-y-2 opacity-0',
                     )}
                   >
-                    <div className="min-w-[220px] max-w-[min(82vw,320px)] rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:min-w-65 2xl:p-3">
+                    <div className="max-h-[min(70vh,32rem)] min-w-[220px] max-w-[min(82vw,340px)] overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:min-w-65 2xl:p-3">
                       {link.subLinks?.map((sub) => (
                         <Link
                           key={sub.href + sub.title}
