@@ -122,7 +122,10 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
             : 'bg-transparent',
         )}
       >
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4 lg:h-16 lg:px-6 xl:px-8 2xl:h-20 2xl:max-w-screen-2xl 2xl:px-12">
+      {/* Single centred content container. The nav links stay inside the same
+          max-width as the page content instead of spreading to the viewport
+          edges on wide screens. */}
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:h-16 lg:px-8 2xl:h-20">
         {/* Logo */}
         <Link href="/" className="flex min-h-11 min-w-0 items-center" aria-label={altText}>
           <JivoLogo title={altText} className="h-7 w-auto text-white lg:h-9 2xl:h-12" />

@@ -34,6 +34,7 @@ import {
   Moon,
   Sun,
   ShieldAlert,
+  Droplet,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
@@ -115,7 +116,9 @@ const SIDEBAR: NavSection[] = [
     title: 'Our Products',
     href: '/jivo-dev/our-products',
     icon: Package,
-    children: [],
+    children: [
+      { title: 'Canola Oils', href: '/jivo-dev/our-products/canola-oils', icon: Droplet },
+    ],
   },
   {
     title: 'Jivo Media',
@@ -177,6 +180,12 @@ const SIDEBAR: NavSection[] = [
         title: 'Certifications & Quality Standards',
         href: '/jivo-dev/our-essence-certifications-quality-standards',
         icon: Award,
+        tab: 'seo',
+      },
+      {
+        title: 'Canola Oils',
+        href: '/jivo-dev/our-products/canola-oils',
+        icon: Droplet,
         tab: 'seo',
       },
     ],

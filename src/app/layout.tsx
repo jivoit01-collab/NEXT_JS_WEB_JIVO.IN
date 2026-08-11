@@ -18,6 +18,19 @@ const jost = localFont({
   display: 'swap',
 });
 
+// Futura PT — display face used by the product-page designs (headlines/CTAs).
+// Not preloaded: it is only used below the site-wide Jost default, so letting
+// it load lazily keeps it from competing with the LCP image.
+const futura = localFont({
+  src: [
+    { path: '../../public/fonts/FuturaPTLight.otf', weight: '300', style: 'normal' },
+    { path: '../../public/fonts/FuturaPTHeavy.otf', weight: '800', style: 'normal' },
+  ],
+  variable: '--font-futura',
+  display: 'swap',
+  preload: false,
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -47,7 +60,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${jost.variable} font-sans antialiased`}>
+      <body
+        suppressHydrationWarning
+        className={`${jost.variable} ${futura.variable} font-sans antialiased`}
+      >
         {children}
       </body>
     </html>

@@ -209,6 +209,17 @@ button,
   font-weight: 800;
 }
 
+/* Futura PT — display face for product pages (headlines, CTAs).
+   Falls back to Jost so text never reflows to a system font. */
+@utility font-futura-light {
+  font-family: var(--font-futura), var(--font-jost), system-ui;
+  font-weight: 300;
+}
+@utility font-futura-heavy {
+  font-family: var(--font-futura), var(--font-jost), system-ui;
+  font-weight: 800;
+}
+
 /* ================================================
    BASE LAYER
 ================================================ */

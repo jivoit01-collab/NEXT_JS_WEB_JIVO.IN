@@ -12,6 +12,7 @@ const ADMIN_TO_PUBLIC_ROUTE: Record<string, string> = {
   '/footer': '/',
   '/seo': '/',
   '/our-products': '/our-products',
+  '/our-products/canola-oils': '/products/canola-oils',
   '/media': '/media',
   '/community': '/community',
   '/our-essence': '/our-essence',

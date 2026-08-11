@@ -1,1 +1,2 @@
-// Our Products — placeholder barrel. Sub-modules will be added here.
+// Our Products — module barrel.
+export * as CanolaOils from './canola-oils';
