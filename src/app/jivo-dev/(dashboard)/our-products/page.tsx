@@ -20,6 +20,13 @@ const SECTION_PAGES: PageEntry[] = [
     description: 'Hero, range, science and cold-pressed sections',
     color: 'from-emerald-500/10 to-amber-500/10',
   },
+  {
+    label: 'Groundnut Oils',
+    href: '/jivo-dev/our-products/groundnut-oils',
+    icon: Droplet,
+    description: 'Hero, range, goodness and authenticity sections',
+    color: 'from-amber-500/10 to-orange-500/10',
+  },
 ];
 
 const ACCENT = '#b8860b';

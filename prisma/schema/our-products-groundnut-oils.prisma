@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — GROUNDNUT OILS page
+// Route: /products/groundnut-oils
+// Admin: /jivo-dev/our-products/groundnut-oils
+// Sections: hero, range, goodness, authenticity
+// ==========================================
+
+model OurProductsGroundnutOils {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "goodness", "authenticity"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

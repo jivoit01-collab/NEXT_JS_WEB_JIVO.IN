@@ -29,9 +29,18 @@ export function resolveSafeImageSrc(raw: string): string {
   return queryPart ? `${encoded}?${queryPart}` : encoded;
 }
 
-/** Returns true if the value is empty or the seed placeholder. */
+/**
+ * Returns true if the value is empty or the seed placeholder.
+ *
+ * Module defaults store the placeholder as a full path
+ * (`/api/uploads/placeholder.png`), while older seeds use the bare filename —
+ * both must count as "no image set", otherwise optional art (e.g. the hero's
+ * second bottle) renders a grey placeholder instead of being hidden.
+ */
 export function isPlaceholderValue(raw: string | undefined | null): boolean {
-  return !raw || raw === 'placeholder.png';
+  if (!raw) return true;
+  const filename = raw.split('/').pop()?.split('?')[0];
+  return filename === 'placeholder.png';
 }
 
 interface SafeImageProps extends Omit<ImageProps, 'src' | 'onError'> {

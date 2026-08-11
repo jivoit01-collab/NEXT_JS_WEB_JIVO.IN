@@ -1,16 +1,16 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { SafeImage, isPlaceholderValue } from '@/components/shared/public';
-import type { CanolaOilsHeroContent } from '../types';
+import type { GroundnutOilsHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
-import { CANOLA_GREEN } from '../constants';
+import { GROUNDNUT_BROWN } from '../constants';
 import { HeroBottles } from './hero-bottles';
 
 interface Props {
-  data?: CanolaOilsHeroContent;
+  data?: GroundnutOilsHeroContent;
 }
 
-export function CanolaOilsHero({ data }: Props) {
+export function GroundnutOilsHero({ data }: Props) {
   const {
     logoImage,
     heading,
@@ -26,9 +26,9 @@ export function CanolaOilsHero({ data }: Props) {
 
   return (
     <section
-      aria-labelledby="canola-hero-heading"
+      aria-labelledby="groundnut-hero-heading"
       className="group relative isolate min-h-[62svh] overflow-hidden sm:min-h-[72svh] lg:min-h-dvh"
-      style={{ backgroundColor: CANOLA_GREEN }}
+      style={{ backgroundColor: GROUNDNUT_BROWN }}
     >
       {/* ============================================================
           CENTER JIVO LOGO
@@ -58,7 +58,7 @@ export function CanolaOilsHero({ data }: Props) {
       >
         {/* Inner wrapper carries the entrance animation — putting it on the
             parent would overwrite its -translate-x-1/2 centering. */}
-        <div className="animate-canola-hero-rise">
+        <div className="animate-groundnut-hero-rise">
         {isPlaceholderValue(logoImage) ? (
           <span
             className="
@@ -168,7 +168,7 @@ export function CanolaOilsHero({ data }: Props) {
             <div
               style={{ animationDelay: '250ms' }}
               className="
-                animate-canola-bottle-throw
+                animate-groundnut-bottle-throw
                 pointer-events-none
                 absolute
                 left-[-6%]
@@ -248,7 +248,7 @@ export function CanolaOilsHero({ data }: Props) {
           <div
             style={{ animationDelay: '500ms' }}
             className="
-              animate-canola-bottle-throw
+              animate-groundnut-bottle-throw
               pointer-events-none
               absolute
               right-[-13%]
@@ -340,7 +340,7 @@ export function CanolaOilsHero({ data }: Props) {
       >
         {/* Heading */}
         <h1
-          id="canola-hero-heading"
+          id="groundnut-hero-heading"
           style={{ animationDelay: '120ms' }}
           className="
             font-futura-heavy
@@ -354,7 +354,7 @@ export function CanolaOilsHero({ data }: Props) {
             text-white
             uppercase
 
-            animate-canola-hero-rise
+            animate-groundnut-hero-rise
 
             transition-all
             duration-500
@@ -373,7 +373,7 @@ export function CanolaOilsHero({ data }: Props) {
             mt-4
             max-w-[680px]
 
-            animate-canola-hero-rise
+            animate-groundnut-hero-rise
 
             transition-transform
             duration-500
@@ -431,7 +431,7 @@ export function CanolaOilsHero({ data }: Props) {
 
             mt-6
 
-            animate-canola-hero-rise
+            animate-groundnut-hero-rise
 
             inline-flex
             min-h-12
@@ -460,21 +460,21 @@ export function CanolaOilsHero({ data }: Props) {
             hover:-translate-y-1
             hover:scale-[1.04]
             hover:bg-white
-            hover:text-[color:var(--canola-green)]
+            hover:text-[color:var(--groundnut-brown)]
             hover:shadow-[0_16px_38px_rgba(0,0,0,0.26)]
 
             focus-visible:outline-none
             focus-visible:ring-2
             focus-visible:ring-white
             focus-visible:ring-offset-2
-            focus-visible:ring-offset-[color:var(--canola-green)]
+            focus-visible:ring-offset-[color:var(--groundnut-brown)]
 
             active:translate-y-0
 
             motion-reduce:transform-none
           "
           style={{
-            ['--canola-green' as string]: CANOLA_GREEN,
+            ['--groundnut-brown' as string]: GROUNDNUT_BROWN,
             animationDelay: '360ms',
           }}
         >
@@ -505,11 +505,11 @@ export function CanolaOilsHero({ data }: Props) {
    SKELETON
    ================================================================ */
 
-export function CanolaOilsHeroSkeleton() {
+export function GroundnutOilsHeroSkeleton() {
   return (
     <section
       className="relative min-h-dvh animate-pulse overflow-hidden"
-      style={{ backgroundColor: CANOLA_GREEN }}
+      style={{ backgroundColor: GROUNDNUT_BROWN }}
     >
       {/* Center logo */}
       <div
