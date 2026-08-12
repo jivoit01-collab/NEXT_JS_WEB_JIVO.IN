@@ -119,6 +119,7 @@ const SIDEBAR: NavSection[] = [
     children: [
       { title: 'Canola Oils', href: '/jivo-dev/our-products/canola-oils', icon: Droplet },
       { title: 'Groundnut Oils', href: '/jivo-dev/our-products/groundnut-oils', icon: Droplet },
+      { title: 'Mustard Oils', href: '/jivo-dev/our-products/mustard-oils', icon: Droplet },
     ],
   },
   {
@@ -192,6 +193,12 @@ const SIDEBAR: NavSection[] = [
       {
         title: 'Groundnut Oils',
         href: '/jivo-dev/our-products/groundnut-oils',
+        icon: Droplet,
+        tab: 'seo',
+      },
+      {
+        title: 'Mustard Oils',
+        href: '/jivo-dev/our-products/mustard-oils',
         icon: Droplet,
         tab: 'seo',
       },
