@@ -21,30 +21,37 @@ export function FooterCertificates({ certificates, caption }: FooterCertificates
 
   return (
     <>
+      {/*
+        Badges stay on ONE horizontal row (admin uploads 1–5). `flex-nowrap`
+        keeps them in line. On mobile the row owns the full cell width (the
+        caption drops below it), so badges keep their natural size.
+      */}
       {certificates.length > 0 && (
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-nowrap items-center gap-2 lg:shrink">
           {certificates.map((cert) => (
             <button
               key={cert.id}
               type="button"
               onClick={() => setPreview(cert)}
               aria-label={`Preview ${cert.alt}`}
-              className="rounded-md ring-1 ring-black/5 transition duration-300 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:ring-[#0a7d3f]/40 focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:outline-none"
+              className="min-w-0 shrink-0 rounded-md ring-1 ring-black/5 transition duration-300 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:ring-[#0a7d3f]/40 focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:outline-none"
             >
               <SafeImage
                 src={cert.src}
                 alt={cert.alt}
                 width={140}
                 height={64}
-                className="h-11 w-auto rounded-md bg-white object-contain p-1 2xl:h-12"
+                className="h-10 w-auto max-w-full rounded-md bg-white object-contain p-1 sm:h-11 lg:h-12 2xl:h-14"
               />
             </button>
           ))}
         </div>
       )}
 
+      {/* Below the badge row on mobile (full width); to its RIGHT from lg, where
+          the measure keeps it to ~2 lines. */}
       {caption && (
-        <p className="max-w-[15ch] text-xs leading-snug text-[#586055] sm:text-[13px] 2xl:text-sm">
+        <p className="min-w-0 text-[clamp(0.8rem,0.72rem+0.3vw,1rem)] leading-snug text-pretty text-[#586055] lg:max-w-[18ch]">
           {caption}
         </p>
       )}
