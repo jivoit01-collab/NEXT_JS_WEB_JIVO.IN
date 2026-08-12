@@ -1,9 +1,9 @@
-import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { SafeImage, isPlaceholderValue } from '@/components/shared/public';
 import type { CanolaOilsHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
 import { CANOLA_GREEN } from '../constants';
+import { resolveCtaLink } from '@/lib/cta-link';
 import { HeroBottles } from './hero-bottles';
 
 interface Props {
@@ -23,6 +23,9 @@ export function CanolaOilsHero({ data }: Props) {
   } = data ?? defaultHeroContent;
 
   const hasSecondBottle = !isPlaceholderValue(productImageSecondary);
+  // Admin-entered links may be bare domains ("shop.jivo.in"); without a scheme
+  // the browser resolves them against this page and 404s.
+  const cta = resolveCtaLink(ctaHref, '/our-products');
 
   return (
     <section
@@ -421,9 +424,8 @@ export function CanolaOilsHero({ data }: Props) {
 
         {/* CTA */}
         <a
-          href={ctaHref || '/our-products'}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={cta.href}
+          {...(cta.isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           className="
             font-futura-heavy
 
