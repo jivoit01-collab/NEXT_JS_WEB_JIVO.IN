@@ -15,6 +15,7 @@ const ADMIN_TO_PUBLIC_ROUTE: Record<string, string> = {
   '/our-products/canola-oils': '/products/canola-oils',
   '/our-products/groundnut-oils': '/products/groundnut-oils',
   '/our-products/mustard-oils': '/products/mustard-oils',
+  '/our-products/olive-oils': '/products/olive-oils',
   '/media': '/media',
   '/community': '/community',
   '/our-essence': '/our-essence',
