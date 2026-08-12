@@ -24,6 +24,7 @@ import {
   Factory,
   Award,
   ShieldAlert,
+  Droplet,
 } from 'lucide-react';
 import type { CmsModule } from './types';
 
@@ -67,7 +68,12 @@ export const CMS_MODULES: CmsModule[] = [
     icon: Package,
     adminHref: '/jivo-dev/our-products',
     order: 30,
-    pages: [],
+    pages: [
+      { id: 'canola-oils', name: 'Canola Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/canola-oils', seo: true },
+      { id: 'groundnut-oils', name: 'Groundnut Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/groundnut-oils', seo: true },
+      { id: 'mustard-oils', name: 'Mustard Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/mustard-oils', seo: true },
+      { id: 'olive-oils', name: 'Olive Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/olive-oils', seo: true },
+    ],
   },
   {
     id: 'media',
