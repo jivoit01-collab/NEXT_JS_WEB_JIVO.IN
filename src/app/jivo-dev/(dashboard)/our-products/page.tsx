@@ -27,6 +27,20 @@ const SECTION_PAGES: PageEntry[] = [
     description: 'Hero, range, goodness and authenticity sections',
     color: 'from-amber-500/10 to-orange-500/10',
   },
+  {
+    label: 'Mustard Oils',
+    href: '/jivo-dev/our-products/mustard-oils',
+    icon: Droplet,
+    description: 'Hero, range, extraction and warmth sections',
+    color: 'from-rose-500/10 to-yellow-500/10',
+  },
+  {
+    label: 'Olive Oils',
+    href: '/jivo-dev/our-products/olive-oils',
+    icon: Droplet,
+    description: 'Hero, extra virgin, extra light, pomace and difference',
+    color: 'from-lime-500/10 to-green-500/10',
+  },
 ];
 
 const ACCENT = '#b8860b';

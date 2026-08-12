@@ -356,13 +356,17 @@ html {
    transforms on the same element still work — `forwards` would pin the
    keyframe's transform and dead-lock them. */
 .animate-canola-hero-rise,
-.animate-groundnut-hero-rise {
+.animate-groundnut-hero-rise,
+.animate-mustard-hero-rise,
+.animate-olive-hero-rise {
   animation: canolaHeroRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-canola-hero-rise,
-  .animate-groundnut-hero-rise {
+  .animate-groundnut-hero-rise,
+  .animate-mustard-hero-rise,
+  .animate-olive-hero-rise {
     animation: none;
   }
 }
@@ -384,13 +388,36 @@ html {
   }
 }
 .animate-canola-bottle-throw,
-.animate-groundnut-bottle-throw {
+.animate-groundnut-bottle-throw,
+.animate-mustard-bottle-throw {
   animation: canolaBottleThrow 1.1s cubic-bezier(0.16, 1.06, 0.3, 1.01) backwards;
+}
+
+/* Olive packs throw in from the right WITHOUT rotation — that page's design
+   calls for three straight, upright packs, so the shared keyframe's 8° tilt
+   would be wrong here. Translation only. */
+@keyframes oliveBottleThrow {
+  from {
+    opacity: 0;
+    transform: translateX(80%);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-olive-bottle-throw {
+  animation: oliveBottleThrow 1s cubic-bezier(0.16, 1.06, 0.3, 1.01) backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-canola-bottle-throw,
-  .animate-groundnut-bottle-throw {
+  .animate-groundnut-bottle-throw,
+  .animate-mustard-bottle-throw,
+  .animate-olive-bottle-throw {
     animation: none;
   }
 }

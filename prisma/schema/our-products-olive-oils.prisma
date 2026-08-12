@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — OLIVE OILS page
+// Route: /products/olive-oils
+// Admin: /jivo-dev/our-products/olive-oils
+// Sections: hero, extraVirgin, extraLight, pomace, difference
+// ==========================================
+
+model OurProductsOliveOils {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "extraVirgin", "extraLight", "pomace", "difference"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

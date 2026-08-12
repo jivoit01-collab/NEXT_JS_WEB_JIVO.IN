@@ -1,16 +1,16 @@
 import { ArrowRight } from 'lucide-react';
 import { SafeImage, isPlaceholderValue } from '@/components/shared/public';
-import type { GroundnutOilsHeroContent } from '../types';
+import type { MustardOilsHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
-import { GROUNDNUT_BROWN } from '../constants';
+import { MUSTARD_MAROON } from '../constants';
 import { resolveCtaLink } from '@/lib/cta-link';
 import { HeroBottles } from './hero-bottles';
 
 interface Props {
-  data?: GroundnutOilsHeroContent;
+  data?: MustardOilsHeroContent;
 }
 
-export function GroundnutOilsHero({ data }: Props) {
+export function MustardOilsHero({ data }: Props) {
   const {
     logoImage,
     heading,
@@ -29,9 +29,9 @@ export function GroundnutOilsHero({ data }: Props) {
 
   return (
     <section
-      aria-labelledby="groundnut-hero-heading"
+      aria-labelledby="mustard-hero-heading"
       className="group relative isolate min-h-[62svh] overflow-hidden sm:min-h-[72svh] lg:min-h-dvh"
-      style={{ backgroundColor: GROUNDNUT_BROWN }}
+      style={{ backgroundColor: MUSTARD_MAROON }}
     >
       {/* ============================================================
           CENTER JIVO LOGO
@@ -61,7 +61,7 @@ export function GroundnutOilsHero({ data }: Props) {
       >
         {/* Inner wrapper carries the entrance animation — putting it on the
             parent would overwrite its -translate-x-1/2 centering. */}
-        <div className="animate-groundnut-hero-rise">
+        <div className="animate-mustard-hero-rise">
         {isPlaceholderValue(logoImage) ? (
           <span
             className="
@@ -171,7 +171,7 @@ export function GroundnutOilsHero({ data }: Props) {
             <div
               style={{ animationDelay: '250ms' }}
               className="
-                animate-groundnut-bottle-throw
+                animate-mustard-bottle-throw
                 pointer-events-none
                 absolute
                 left-[-6%]
@@ -251,7 +251,7 @@ export function GroundnutOilsHero({ data }: Props) {
           <div
             style={{ animationDelay: '500ms' }}
             className="
-              animate-groundnut-bottle-throw
+              animate-mustard-bottle-throw
               pointer-events-none
               absolute
               right-[-13%]
@@ -343,7 +343,7 @@ export function GroundnutOilsHero({ data }: Props) {
       >
         {/* Heading */}
         <h1
-          id="groundnut-hero-heading"
+          id="mustard-hero-heading"
           style={{ animationDelay: '120ms' }}
           className="
             font-futura-heavy
@@ -357,7 +357,7 @@ export function GroundnutOilsHero({ data }: Props) {
             text-white
             uppercase
 
-            animate-groundnut-hero-rise
+            animate-mustard-hero-rise
 
             transition-all
             duration-500
@@ -376,7 +376,7 @@ export function GroundnutOilsHero({ data }: Props) {
             mt-4
             max-w-[680px]
 
-            animate-groundnut-hero-rise
+            animate-mustard-hero-rise
 
             transition-transform
             duration-500
@@ -433,7 +433,7 @@ export function GroundnutOilsHero({ data }: Props) {
 
             mt-6
 
-            animate-groundnut-hero-rise
+            animate-mustard-hero-rise
 
             inline-flex
             min-h-12
@@ -462,21 +462,21 @@ export function GroundnutOilsHero({ data }: Props) {
             hover:-translate-y-1
             hover:scale-[1.04]
             hover:bg-white
-            hover:text-[color:var(--groundnut-brown)]
+            hover:text-[color:var(--mustard-maroon)]
             hover:shadow-[0_16px_38px_rgba(0,0,0,0.26)]
 
             focus-visible:outline-none
             focus-visible:ring-2
             focus-visible:ring-white
             focus-visible:ring-offset-2
-            focus-visible:ring-offset-[color:var(--groundnut-brown)]
+            focus-visible:ring-offset-[color:var(--mustard-maroon)]
 
             active:translate-y-0
 
             motion-reduce:transform-none
           "
           style={{
-            ['--groundnut-brown' as string]: GROUNDNUT_BROWN,
+            ['--mustard-maroon' as string]: MUSTARD_MAROON,
             animationDelay: '360ms',
           }}
         >
@@ -507,11 +507,11 @@ export function GroundnutOilsHero({ data }: Props) {
    SKELETON
    ================================================================ */
 
-export function GroundnutOilsHeroSkeleton() {
+export function MustardOilsHeroSkeleton() {
   return (
     <section
       className="relative min-h-dvh animate-pulse overflow-hidden"
-      style={{ backgroundColor: GROUNDNUT_BROWN }}
+      style={{ backgroundColor: MUSTARD_MAROON }}
     >
       {/* Center logo */}
       <div
