@@ -173,9 +173,20 @@ export async function Footer() {
 
         {/* ── Bottom bar: rounded bordered card ───────────────────── */}
         <div className="mt-6 rounded-2xl border border-[#d8d7cb] bg-white/50 px-5 py-2 sm:mt-8 sm:px-8 sm:py-5">
-          <div className="grid grid-cols-1 divide-y divide-[#e0dfd4] sm:grid-cols-2 sm:gap-x-8 sm:gap-y-6 sm:divide-y-0 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-[#dcdbd0]">
-            {/* Certifications — badge images (click to preview) + caption beside */}
-            <div className="flex items-center gap-3 py-4 first:pt-0 sm:py-0 lg:px-6 lg:first:pl-0">
+          {/*
+            The grid fills the card's full width (no `w-fit`, which left big
+            empty margins). The certification column is `auto` so it grows or
+            shrinks with however many badges an admin uploads, while the three
+            text columns share the remaining space via `1fr`.
+
+            `lg:items-stretch` makes every cell the full row height, so the
+            `divide-x` rules are all the SAME length — with `items-center` each
+            cell shrank to its own content and the dividers came out ragged.
+            Each cell then centres its own content internally.
+          */}
+          <div className="grid w-full grid-cols-1 divide-y divide-[#e0dfd4] sm:grid-cols-2 sm:gap-x-8 sm:gap-y-6 sm:divide-y-0 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-0 lg:divide-x lg:divide-[#dcdbd0]">
+            {/* Certifications — one horizontal badge row, caption to its right */}
+            <div className="flex min-w-0 flex-col items-start gap-2 py-4 first:pt-0 sm:py-0 lg:flex-row lg:items-center lg:justify-center lg:gap-3 lg:px-8 2xl:px-10">
               <FooterCertificates
                 certificates={certificates.map((cert) => ({
                   id: cert.id,
@@ -187,21 +198,25 @@ export async function Footer() {
             </div>
 
             {/* Copyright */}
-            <div className="flex items-start gap-2.5 py-4 sm:py-0 lg:px-6">
-              <Copyright className="mt-0.5 h-5 w-5 shrink-0 text-[#0a7d3f]" aria-hidden />
-              <p className="text-xs leading-relaxed whitespace-pre-line text-[#586055] sm:text-sm 2xl:text-base">
+            <div className="flex min-w-0 items-center justify-start gap-2.5 py-4 sm:py-0 lg:justify-center lg:px-8 2xl:px-10">
+              <Copyright className="h-5 w-5 shrink-0 text-[#0a7d3f] 2xl:h-6 2xl:w-6" aria-hidden />
+              {/* Capped measure so the line breaks to two rows and matches the
+                  height of the certification and address cells. */}
+              <p className="min-w-0 text-[clamp(0.8rem,0.72rem+0.3vw,1rem)] leading-relaxed whitespace-pre-line text-[#586055]">
                 {copyright}
               </p>
             </div>
 
-            {/* Contact — mail + phone with hover underline */}
-            <div className="flex flex-col gap-2.5 py-4 sm:py-0 lg:px-6">
+            {/* Contact — mail + phone with hover underline. `items-start` keeps
+                the two rows left-aligned to each other, while the wrapper is
+                centred in the cell by `w-fit mx-auto`. */}
+            <div className="flex w-full min-w-0 flex-col items-start justify-center gap-2.5 py-4 sm:py-0 lg:mx-auto lg:w-fit lg:px-8 2xl:px-10">
               {setting.email && (
                 <Link
                   href={`mailto:${setting.email}`}
-                  className="group flex items-center gap-2.5 text-xs text-[#586055] sm:text-sm 2xl:text-base"
+                  className="group flex items-center gap-2.5 text-[clamp(0.8rem,0.72rem+0.3vw,1rem)] text-[#586055]"
                 >
-                  <Mail className="h-5 w-5 shrink-0 text-[#0a7d3f]" aria-hidden />
+                  <Mail className="h-5 w-5 shrink-0 text-[#0a7d3f] 2xl:h-6 2xl:w-6" aria-hidden />
                   <HoverUnderlineText>
                     <span className="break-all sm:break-normal">{setting.email}</span>
                   </HoverUnderlineText>
@@ -210,9 +225,9 @@ export async function Footer() {
               {setting.phone && (
                 <Link
                   href={`tel:${setting.phone.replace(/\s+/g, '')}`}
-                  className="group flex items-center gap-2.5 text-xs text-[#586055] sm:text-sm 2xl:text-base"
+                  className="group flex items-center gap-2.5 text-[clamp(0.8rem,0.72rem+0.3vw,1rem)] text-[#586055]"
                 >
-                  <Phone className="h-5 w-5 shrink-0 text-[#0a7d3f]" aria-hidden />
+                  <Phone className="h-5 w-5 shrink-0 text-[#0a7d3f] 2xl:h-6 2xl:w-6" aria-hidden />
                   <HoverUnderlineText>
                     <span className="whitespace-nowrap">
                       {setting.phone}
@@ -224,7 +239,7 @@ export async function Footer() {
             </div>
 
             {/* Address — opens the map on click, with hover underline */}
-            <div className="py-4 last:pb-0 sm:py-0 lg:px-6 lg:last:pr-0">
+            <div className="flex min-w-0 items-center justify-start py-4 last:pb-0 sm:py-0 lg:justify-center lg:px-8 2xl:px-10">
               {setting.address &&
                 (mapHref ? (
                   <a
@@ -232,17 +247,17 @@ export async function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Open address in maps"
-                    className="group flex items-start gap-2.5 text-xs text-[#586055] sm:text-sm 2xl:text-base"
+                    className="group flex min-w-0 items-center gap-2.5 text-[clamp(0.8rem,0.72rem+0.3vw,1rem)] text-[#586055]"
                   >
-                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#0a7d3f]" aria-hidden />
+                    <MapPin className="h-5 w-5 shrink-0 text-[#0a7d3f] 2xl:h-6 2xl:w-6" aria-hidden />
                     <HoverUnderlineText>
-                      <span className="leading-relaxed">{setting.address}</span>
+                      <span className="block leading-relaxed">{setting.address}</span>
                     </HoverUnderlineText>
                   </a>
                 ) : (
-                  <div className="flex items-start gap-2.5 text-xs text-[#586055] sm:text-sm 2xl:text-base">
-                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#0a7d3f]" aria-hidden />
-                    <span className="leading-relaxed">{setting.address}</span>
+                  <div className="flex min-w-0 items-center gap-2.5 text-[clamp(0.8rem,0.72rem+0.3vw,1rem)] text-[#586055]">
+                    <MapPin className="h-5 w-5 shrink-0 text-[#0a7d3f] 2xl:h-6 2xl:w-6" aria-hidden />
+                    <span className="block leading-relaxed">{setting.address}</span>
                   </div>
                 ))}
             </div>
