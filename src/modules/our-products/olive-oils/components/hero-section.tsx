@@ -84,7 +84,7 @@ export function OliveOilsHero({ data }: Props) {
             parent would overwrite its -translate-x-1/2 centering. */}
         <div className="animate-olive-hero-rise">
           {isPlaceholderValue(logoImage) ? (
-            <span className="font-futura-heavy block text-center text-[clamp(3.5rem,6vw,5rem)] leading-none tracking-tight text-white">
+            <span className="font-jost-extrabold block text-center text-[clamp(3.5rem,6vw,5rem)] leading-none tracking-tight text-white">
               JIVO
             </span>
           ) : (
@@ -184,7 +184,7 @@ export function OliveOilsHero({ data }: Props) {
           id="olive-hero-heading"
           style={{ animationDelay: '120ms' }}
           className="
-            font-futura-heavy animate-olive-hero-rise text-balance
+            font-jost-extrabold animate-olive-hero-rise text-balance
             text-[clamp(1.6rem,1rem+2.6vw,3.4rem)]
             leading-[1.02] tracking-[-0.012em] text-white uppercase
             transition-transform duration-500 ease-out hover:-translate-y-1
@@ -198,11 +198,11 @@ export function OliveOilsHero({ data }: Props) {
           style={{ animationDelay: '240ms' }}
           className="animate-olive-hero-rise mt-3 max-w-[52ch]"
         >
-          <p className="font-futura-light text-[clamp(0.85rem,0.75rem+0.45vw,1.15rem)] leading-[1.5] text-white/90 transition-colors duration-300 hover:text-white">
+          <p className="font-jost-light text-[clamp(0.85rem,0.75rem+0.45vw,1.15rem)] leading-[1.5] text-white/90 transition-colors duration-300 hover:text-white">
             {subtitleLineOne}
           </p>
           {subtitleLineTwo ? (
-            <p className="font-futura-light text-[clamp(0.85rem,0.75rem+0.45vw,1.15rem)] leading-[1.5] text-white/90 transition-colors duration-300 hover:text-white">
+            <p className="font-jost-light text-[clamp(0.85rem,0.75rem+0.45vw,1.15rem)] leading-[1.5] text-white/90 transition-colors duration-300 hover:text-white">
               {subtitleLineTwo}
             </p>
           ) : null}
@@ -216,9 +216,9 @@ export function OliveOilsHero({ data }: Props) {
             animationDelay: '360ms',
           }}
           className="
-            font-futura-heavy group/cta animate-olive-hero-rise
+            font-jost-extrabold group/cta animate-olive-hero-rise
             mt-6 inline-flex min-h-12 items-center justify-center gap-2
-            rounded-full border-2 border-white px-9 py-3
+            rounded-full border-4 border-white px-9 py-3
             text-[clamp(0.75rem,0.85vw,0.9rem)] tracking-[0.18em] text-white uppercase
             transition-all duration-300 ease-out
             hover:-translate-y-1 hover:scale-[1.04] hover:bg-white

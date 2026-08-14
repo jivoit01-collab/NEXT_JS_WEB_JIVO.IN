@@ -19,10 +19,10 @@ export const CANOLA_TAUPE = '#AC937B';
 export const CANOLA_CARD_GREEN = '#1F5437';
 
 /** Sage used for the variant label under each bottle card. */
-export const CANOLA_SAGE = '#B2B887';
+export const CANOLA_SAGE = '#CBC995';
 
 /** "Why cold-pressed" section background — deeper, browner taupe. */
 export const CANOLA_MOCHA = '#8E7865';
 
 /** Soft gold/cream used for headings and accent copy. */
-export const CANOLA_CREAM = '#e8e4b8';
+export const CANOLA_CREAM = '#CBC995';

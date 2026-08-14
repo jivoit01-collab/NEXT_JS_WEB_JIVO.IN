@@ -209,6 +209,15 @@ button,
   font-weight: 800;
 }
 
+/* Jost Bold Italic — per the designer, used ONLY in the canola
+   "What is canola?" banner. Everything else on the product pages is
+   ExtraBold (bold text) or Light (paragraphs/subheadings). */
+@utility font-jost-bold-italic {
+  font-family: var(--font-jost), system-ui;
+  font-weight: 700;
+  font-style: italic;
+}
+
 /* Futura PT — display face for product pages (headlines, CTAs).
    Falls back to Jost so text never reflows to a system font. */
 @utility font-futura-light {

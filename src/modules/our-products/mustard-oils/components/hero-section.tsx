@@ -65,7 +65,7 @@ export function MustardOilsHero({ data }: Props) {
         {isPlaceholderValue(logoImage) ? (
           <span
             className="
-              font-futura-heavy
+              font-jost-extrabold
               block
               text-center
               text-[clamp(3.5rem,6vw,5rem)]
@@ -346,7 +346,7 @@ export function MustardOilsHero({ data }: Props) {
           id="mustard-hero-heading"
           style={{ animationDelay: '120ms' }}
           className="
-            font-futura-heavy
+            font-jost-extrabold
             text-balance
 
             text-[clamp(1.85rem,1.1rem+3.4vw,4.75rem)]
@@ -389,7 +389,7 @@ export function MustardOilsHero({ data }: Props) {
         >
           <p
             className="
-              font-futura-light
+              font-jost-light
               text-[clamp(1.05rem,0.9rem+0.75vw,1.6rem)]
               leading-[1.55]
               text-white/90
@@ -406,7 +406,7 @@ export function MustardOilsHero({ data }: Props) {
           {subtitleLineTwo ? (
             <p
               className="
-                font-futura-light
+                font-jost-light
                 text-[clamp(1.05rem,0.9rem+0.75vw,1.6rem)]
                 leading-[1.55]
                 text-white/90
@@ -427,7 +427,7 @@ export function MustardOilsHero({ data }: Props) {
           href={cta.href}
           {...(cta.isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           className="
-            font-futura-heavy
+            font-jost-extrabold
 
             group/cta
 
@@ -443,7 +443,7 @@ export function MustardOilsHero({ data }: Props) {
             gap-2
 
             rounded-full
-            border-2
+            border-4
             border-white
 
             px-9

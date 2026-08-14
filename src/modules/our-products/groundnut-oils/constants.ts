@@ -4,7 +4,7 @@
  */
 
 /** Hero background — deep roasted brown. */
-export const GROUNDNUT_BROWN = '#603B1F';
+export const GROUNDNUT_BROWN = '#603A1F';
 
 /** Range section background — lighter warm brown. */
 export const GROUNDNUT_RANGE_BROWN = '#72533E';

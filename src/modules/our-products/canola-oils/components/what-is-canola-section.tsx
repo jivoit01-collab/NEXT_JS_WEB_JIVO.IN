@@ -104,11 +104,13 @@ export function WhatIsCanolaSection({ data }: Props) {
                 sizes="(max-width: 640px) 26vw, (max-width: 1024px) 16vw, 110px"
                 className="mx-auto h-[clamp(3.5rem,8vw,5.5rem)] w-auto object-contain transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
               />
-              <h3 className="mt-5 font-jost-medium text-[clamp(0.82rem,0.74rem+0.32vw,1rem)] italic leading-snug text-(--canola-ink)">
+              {/* Designer exception: the "What is canola?" banner is the one
+                  place on the product pages that uses Jost Bold Italic. */}
+              <h3 className="mt-5 font-jost-bold-italic italic text-[clamp(0.82rem,0.74rem+0.32vw,1rem)] leading-snug text-(--canola-ink)">
                 {feature.label}
               </h3>
               {feature.description ? (
-                <p className="mt-2.5 text-pretty text-[clamp(0.72rem,0.66rem+0.24vw,0.875rem)] leading-relaxed text-(--canola-ink)/75">
+                <p className="mt-2.5 text-pretty text-[clamp(0.82rem,0.74rem+0.32vw,1rem)] leading-relaxed text-(--canola-ink)/75">
                   {feature.description}
                 </p>
               ) : null}
