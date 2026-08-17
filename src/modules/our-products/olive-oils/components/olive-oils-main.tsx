@@ -48,17 +48,21 @@ export function OliveOilsMain({ sections }: OliveOilsMainProps) {
         background={OLIVE_VIRGIN}
         imageSide="right"
       />
+      {/* Extra Light and Pomace sit on darker fields, so their pack labels are
+          white for legibility — Extra Virgin keeps the pale sage default. */}
       <VariantSection
         id="olive-extra-light-heading"
         data={extraLight}
         background={OLIVE_LIGHT}
         imageSide="left"
+        labelColor="#FFFFFF"
       />
       <VariantSection
         id="olive-pomace-heading"
         data={pomace}
         background={OLIVE_POMACE}
         imageSide="right"
+        labelColor="#FFFFFF"
       />
 
       <DifferenceSection

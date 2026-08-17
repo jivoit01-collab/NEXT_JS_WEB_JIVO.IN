@@ -50,7 +50,7 @@ export function ColdPressedSection({ data }: Props) {
 
         <motion.p
           variants={item}
-          className="mt-7 max-w-[62ch] text-pretty font-jost-medium text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] lg:mt-9"
+          className="mt-7 font-jost-bold max-w-[62ch] text-pretty  text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] lg:mt-9"
           style={{ color: CANOLA_CREAM }}
         >
           {leadLineOne}
@@ -58,7 +58,7 @@ export function ColdPressedSection({ data }: Props) {
         {leadLineTwo ? (
           <motion.p
             variants={item}
-            className="max-w-[62ch] text-pretty font-jost-medium text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7]"
+            className="mt-4 font-jost-bold max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7]"
             style={{ color: CANOLA_CREAM }}
           >
             {leadLineTwo}
@@ -68,7 +68,7 @@ export function ColdPressedSection({ data }: Props) {
         {paragraph ? (
           <motion.p
             variants={item}
-            className="mt-6 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/85"
+            className="mt-6 font-jost-light max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/85"
           >
             {paragraph}
           </motion.p>
@@ -105,7 +105,7 @@ function ComparisonColumn({
         {points.map((point, i) => (
           <li
             key={i}
-            className="min-w-0 text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] text-white/85 transition-colors duration-300 hover:text-white"
+            className="min-w-0 font-jost-light text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] text-white/85 transition-colors duration-300 hover:text-white"
           >
             {point}
           </li>

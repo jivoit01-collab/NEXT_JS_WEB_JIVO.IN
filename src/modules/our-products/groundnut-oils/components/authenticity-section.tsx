@@ -36,7 +36,9 @@ export function AuthenticitySection({ data }: Props) {
   return (
     <section
       aria-labelledby="groundnut-authenticity-heading"
-      className="relative grid min-h-dvh w-full overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack]"
+      // Half the viewport on phones — a full-height field photo dominates a
+      // small screen. Unchanged (full height) from sm up.
+      className="relative grid min-h-[50dvh] w-full overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack] sm:min-h-dvh"
     >
       {/* Background layer — full-bleed, no scrim so the photo reads at full
           contrast. The heading/paragraph carry their own drop-shadows for
@@ -77,7 +79,7 @@ export function AuthenticitySection({ data }: Props) {
             relies on for the three short lines. */}
         <motion.p
           variants={item}
-          className="mt-5 max-w-[70ch] text-pretty whitespace-pre-line text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] text-white/90 drop-shadow-[0_1px_12px_rgba(0,0,0,0.9)] lg:mt-7"
+          className="mt-5 max-w-[70ch] text-pretty font-jost-light whitespace-pre-line text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] text-white/90 drop-shadow-[0_1px_12px_rgba(0,0,0,0.9)] lg:mt-7"
         >
           {paragraph}
         </motion.p>
@@ -89,7 +91,7 @@ export function AuthenticitySection({ data }: Props) {
 export function AuthenticitySectionSkeleton() {
   return (
     <section
-      className="relative flex min-h-dvh animate-pulse flex-col justify-start overflow-hidden"
+      className="relative flex min-h-[50dvh] animate-pulse flex-col justify-start overflow-hidden sm:min-h-dvh"
       style={{ backgroundColor: GROUNDNUT_AMBER }}
     >
       <div className="w-full px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-20">

@@ -25,7 +25,7 @@ export function ScienceSection({ data }: Props) {
   return (
     <section
       aria-labelledby="canola-science-heading"
-      className="relative grid min-h-[80svh] overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack]"
+      className="relative grid min-h-[95svh] overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack]"
     >
       {/* Background layer */}
       <div className="relative">
@@ -51,7 +51,7 @@ export function ScienceSection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="relative z-10 flex w-full flex-col justify-center px-4 py-16 sm:px-8 sm:py-20 lg:px-18 lg:py-28"
+        className="relative z-10 flex w-full h-[80%] flex-col justify-center px-4 py-16 sm:px-8 sm:py-20 lg:px-18 lg:py-28"
       >
         <motion.h2
           id="canola-science-heading"
@@ -64,7 +64,7 @@ export function ScienceSection({ data }: Props) {
 
         <motion.p
           variants={item}
-          className="mt-7 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] lg:mt-9"
+          className="mt-7 font-jost-light max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] lg:mt-9"
         >
           {intro}
         </motion.p>
@@ -79,11 +79,11 @@ export function ScienceSection({ data }: Props) {
           </motion.h3>
         ) : null}
 
-        <motion.ul variants={item} className="mt-6 max-w-[62ch] space-y-3.5">
+        <motion.ul variants={item} className="mt-6 max-w-[95ch] space-y-3.5">
           {points.map((point, i) => (
             <li
               key={i}
-              className="text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
+              className="text-pretty font-jost-light text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
             >
               {point}
             </li>
@@ -93,7 +93,7 @@ export function ScienceSection({ data }: Props) {
         {closingLine ? (
           <motion.p
             variants={item}
-            className="mt-10 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 italic drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
+            className="mt-2 font-jost-light max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
           >
             {closingLine}
           </motion.p>
@@ -105,7 +105,7 @@ export function ScienceSection({ data }: Props) {
 
 export function ScienceSectionSkeleton() {
   return (
-    <section className="relative flex min-h-[80svh] animate-pulse flex-col justify-center overflow-hidden bg-[#2f6f63]">
+    <section className="relative flex min-h-[95svh] animate-pulse flex-col justify-center overflow-hidden bg-[#2f6f63]">
       <div className="w-full px-4 py-16 sm:px-8 sm:py-20 lg:px-18 lg:py-28">
         <div className="h-9 w-72 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-[32rem]" />
         <div className="mt-7 max-w-[62ch] space-y-2.5 lg:mt-9">
