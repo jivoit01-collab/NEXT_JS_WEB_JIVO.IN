@@ -30,7 +30,10 @@ export function CanolaOilsHero({ data }: Props) {
   return (
     <section
       aria-labelledby="canola-hero-heading"
-      className="group relative isolate min-h-[62svh] overflow-hidden sm:min-h-[72svh] lg:min-h-dvh"
+      // MOBILE (< sm): normal stacked flow — logo, then bottles, then the
+      // heading/copy/CTA block. The absolute overlay layout below is gated
+      // behind sm:, so every desktop breakpoint keeps its current positions.
+      className="group relative isolate flex w-full max-w-full flex-col items-center overflow-hidden pt-24 pb-10 sm:block sm:min-h-[72svh] sm:pt-0 sm:pb-0 lg:min-h-dvh"
       style={{ backgroundColor: CANOLA_GREEN }}
     >
       {/* ============================================================
@@ -38,19 +41,25 @@ export function CanolaOilsHero({ data }: Props) {
 
           Keep this independent from the bottle composition.
           ============================================================ */}
+      {/* Width is an INLINE STYLE, not `w-[58vw]`. Tailwind's scanner does not
+          reliably emit arbitrary values written inside multi-line template
+          literals — that class produced NO CSS, so the logo had no width,
+          collapsed, and drifted off-centre. An inline width always applies;
+          because inline styles beat classes, the responsive sizing has to live
+          here too, hence one clamp() covering mobile → desktop. */}
       <div
+        style={{ width: 'clamp(170px, 52vw, 420px)' }}
         className="
-          absolute
-          top-[16%]
-          left-1/2
+          relative
           z-20
-          w-[52vw]
-          max-w-[420px]
+          mx-auto
           min-w-[170px]
-          -translate-x-1/2
 
-          sm:w-[50vw]
-          lg:w-[46vw]
+          sm:absolute
+          sm:top-[16%]
+          sm:left-1/2
+          sm:mx-0
+          sm:-translate-x-1/2
 
           transition-transform
           duration-700
@@ -124,31 +133,48 @@ export function CanolaOilsHero({ data }: Props) {
            ╱         └─────────────────────┘
 
           ============================================================ */}
+      {/* ── Bottle group ──────────────────────────────────────────
+          ONE rule at every screen size: the box is pinned to the RIGHT edge
+          with a 5% bleed (right-[-5%]), and the two bottles hold fixed
+          percentage positions inside it. Because both the box and the bottles
+          are sized in %, the pair scales with the viewport while their
+          overlap and tilt stay identical — mobile through 2xl.
+
+          On mobile it sits in normal flow (between the logo and the copy);
+          from sm up it is absolutely positioned, as the design requires. */}
       <HeroBottles
+        // Sizing is inline and expressed as CSS `min()` so ONE declaration
+        // covers every breakpoint — inline styles beat classes, so responsive
+        // `sm:w-*` classes could not override them anyway. Using min() keeps
+        // the group at 82% of the viewport on a phone while capping it at the
+        // desktop proportion on larger screens.
+        //
+        // Inline rather than Tailwind classes because the scanner does not
+        // reliably emit arbitrary values from these multi-line template
+        // literals — `w-[78%]` emitted no CSS, which is why the big bottle
+        // vanished entirely.
+        style={{
+          width: 'clamp(15rem, 62vw, 50rem)',
+          marginRight: '-5%',
+        }}
         className="
           pointer-events-none
-          absolute
-          right-[-9vw]
-          bottom-[4%]
+          relative
           z-10
+          self-end
+          mt-8
 
-          h-[50%]
-          w-[68vw]
+          h-[30svh]
 
-          min-w-[240px]
-          max-w-[800px]
-
+          sm:absolute
+          sm:right-[-5%]
+          sm:bottom-[4%]
+          sm:mt-0
           sm:h-[58%]
-          sm:w-[70vw]
 
           md:h-[68%]
-          md:w-[64vw]
-
           lg:h-[74%]
-          lg:w-[58vw]
-
           xl:h-[76%]
-          xl:w-[54vw]
         "
       >
         <div className="relative h-full w-full">
@@ -174,15 +200,12 @@ export function CanolaOilsHero({ data }: Props) {
                 animate-canola-bottle-throw
                 pointer-events-none
                 absolute
-                left-[-6%]
-                bottom-[24%]
+                left-[0%]
+                bottom-[25%]
 
                 z-[1]
 
-                h-[58%]
-
-                sm:h-[59%]
-                lg:h-[62%]
+                h-[62%]
               "
             >
             <div
@@ -194,7 +217,7 @@ export function CanolaOilsHero({ data }: Props) {
 
                 origin-[60%_90%]
 
-                rotate-[-10deg]
+                rotate-[-18deg]
 
                 transition-all
                 duration-700
@@ -254,16 +277,12 @@ export function CanolaOilsHero({ data }: Props) {
               animate-canola-bottle-throw
               pointer-events-none
               absolute
-              right-[-13%]
-              bottom-[-2%]
+              right-[5%]
+              bottom-[0%]
 
               z-[2]
 
-              h-[86%]
-
-              sm:h-[95%]
-              md:h-[104%]
-              lg:h-[112%]
+              h-[100%]
             "
           >
           <div
@@ -326,16 +345,23 @@ export function CanolaOilsHero({ data }: Props) {
           ============================================================ */}
       <div
         className="
-          absolute
-          bottom-[10%]
-          left-1/2
+          relative
           z-30
+          mt-8
 
           flex
           w-full
-          -translate-x-1/2
+          max-w-full
+          min-w-0
+          self-stretch
           flex-col
           items-center
+
+          sm:absolute
+          sm:bottom-[10%]
+          sm:left-1/2
+          sm:mt-0
+          sm:-translate-x-1/2
 
           px-5
           text-center
@@ -582,7 +608,7 @@ export function CanolaOilsHeroSkeleton() {
         <div
           className="
             absolute
-            right-[-13%]
+            right-[10%]
             bottom-[-2%]
             z-[2]
 

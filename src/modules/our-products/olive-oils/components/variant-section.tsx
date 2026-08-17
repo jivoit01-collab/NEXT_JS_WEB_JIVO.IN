@@ -45,10 +45,19 @@ const artFromLeft = {
    ══════════════════════════════════════════════════════════════ */
 
 /** Height of the artwork relative to the section. Bigger % = taller branch. */
-const ART_HEIGHT = 'h-[92%]';
+const ART_HEIGHT = 'h-full';
 
-/** Width at each breakpoint. Raise the vw/max-w values to grow the branch. */
-const ART_WIDTH = 'w-[45vw] max-w-[30rem] lg:w-[38vw] lg:max-w-[38rem] 2xl:max-w-[45rem]';
+/**
+ * Width at each breakpoint. Raise these values to grow the branch.
+ *
+ * From lg up these are FIXED rem sizes, not vw. The art is anchored to the
+ * fixed-width card container, so a vw width would keep growing past the
+ * container on xl/2xl and push the branch back out to the screen edge —
+ * the drift this layout exists to prevent. Below lg it stays vw-based so it
+ * still scales down on phones and tablets.
+ */
+const ART_WIDTH =
+  'w-[45vw] max-w-[30rem] lg:w-[26rem] lg:max-w-[26rem] xl:w-[30rem] xl:max-w-[30rem] 2xl:w-[34rem] 2xl:max-w-[34rem]';
 
 /**
  * Tilt applied to the branch. The design leans it clockwise, so the
@@ -58,14 +67,30 @@ const ART_WIDTH = 'w-[45vw] max-w-[30rem] lg:w-[38vw] lg:max-w-[38rem] 2xl:max-w
  * The left-hand copy is also FLIPPED horizontally (`-scale-x-100`), so the
  * branch grows inward from the left edge instead of appearing back-to-front.
  */
-const ART_TILT_RIGHT = 'rotate-[25deg]';
-const ART_TILT_LEFT = 'rotate-[-28deg]';
+const ART_TILT_RIGHT = 'rotate-[30deg]';
+const ART_TILT_LEFT = 'rotate-[-30deg]';
 
 /**
  * Vertical position of the branch. Negative values move it UP.
  * `-40px` lifts it ~40px above centre; use `-50px` for a little more.
  */
 const ART_OFFSET_Y = '-translate-y-[50px]';
+
+/**
+ * Horizontal nudge, applied per side so each branch moves OUTWARD toward its
+ * own screen edge.
+ *
+ * The design keeps a deliberate overlap: the right-hand olive fruit sits
+ * partly BEHIND the last card, and the left-hand branch tucks behind the
+ * first — so this is a small nudge, not a full clear-out. Raise it to pull
+ * the art further off the cards; lower it to increase the overlap.
+ *
+ * Set as an INLINE STYLE, not a Tailwind class: these values live in a
+ * template literal, and Tailwind's scanner does not reliably generate
+ * arbitrary classes from those — `translate-x-[5rem]` produced no CSS at all
+ * and the art silently stayed put. An inline transform always applies.
+ */
+const ART_OFFSET_X = '-3rem';
 
 interface Props {
   /** Stable id for the section heading (used by aria-labelledby). */
@@ -75,6 +100,12 @@ interface Props {
   background: string;
   /** Which side the decorative olive artwork sits on. */
   imageSide: 'left' | 'right';
+  /**
+   * Pack-label colour under each card. Defaults to the pale sage used on the
+   * Extra Virgin section; Extra Light and Pomace pass white, which reads
+   * better against their darker section backgrounds.
+   */
+  labelColor?: string;
 }
 
 /**
@@ -88,7 +119,13 @@ interface Props {
  * The artwork is decorative, so it sits outside the copy flow (responsive.md
  * §6 permits absolute positioning for decoration) and is hidden from AT.
  */
-export function VariantSection({ id, data, background, imageSide }: Props) {
+export function VariantSection({
+  id,
+  data,
+  background,
+  imageSide,
+  labelColor = OLIVE_LABEL,
+}: Props) {
   const { heading, paragraph, paragraphTwo, bestFor, sideImage, variants } = data;
   const prefersReduced = useReducedMotion();
   const item = prefersReduced ? reducedMotion : fadeUp;
@@ -101,7 +138,25 @@ export function VariantSection({ id, data, background, imageSide }: Props) {
       className="relative overflow-x-clip px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
       style={{ backgroundColor: background }}
     >
-      {/* ── Decorative olive artwork, bleeding off one edge ── */}
+      {/* ── Decorative olive artwork ──────────────────────────────
+          ANCHOR: pinned to the SECTION edges (inset-x-0), so the right-hand
+          branch touches the right edge of the screen and the left-hand one
+          touches the left — never tucked behind the cards.
+
+          What stops it drifting on xl/2xl is the FIXED rem width below
+          (ART_WIDTH), not the anchor: the branch is a constant size flush to
+          the screen edge, while the cards stay centred in their own
+          container. Previously the width was vw-based, so the art grew with
+          the viewport and its inner edge crept across the cards.
+
+          `inset-y-0` gives the absolutely-positioned art a full-height box;
+          `z-0` keeps it behind the cards (z-10). */}
+      {/* Negative insets cancel the section's px-4/sm:px-6/lg:px-8 padding so
+          the art reaches the true screen edge. Written as `left-[-1rem]` etc.
+          rather than `-left-4`: Tailwind v4 does not generate the responsive
+          `sm:-left-6` / `lg:-left-8` forms, so those silently produced no CSS
+          and the art stayed inset. */}
+      <div className="pointer-events-none absolute inset-y-0 left-[-1rem] right-[-1rem] z-0 sm:left-[-1.5rem] sm:right-[-1.5rem] lg:left-[-2rem] lg:right-[-2rem]">
       <motion.div
         variants={art}
         initial="hidden"
@@ -114,6 +169,15 @@ export function VariantSection({ id, data, background, imageSide }: Props) {
           imageSide === 'left' ? 'left-0' : 'right-0'
         } ${ART_HEIGHT} ${ART_WIDTH}`}
       >
+        {/* Separate element for the horizontal nudge: the wrapper below already
+            owns translate-Y + rotate, and Tailwind merges all transforms on one
+            element, so a third translate there would fight the others. */}
+        <div
+          className="h-full w-full"
+          style={{
+            transform: `translateX(${imageSide === 'left' ? '-' : ''}${ART_OFFSET_X})`,
+          }}
+        >
         <div
           className={`h-full w-full ${ART_OFFSET_Y} ${
             imageSide === 'left' ? ART_TILT_LEFT : ART_TILT_RIGHT
@@ -132,7 +196,9 @@ export function VariantSection({ id, data, background, imageSide }: Props) {
             }`}
           />
         </div>
+        </div>
       </motion.div>
+      </div>
 
       <motion.div
         variants={prefersReduced ? reducedMotion : container}
@@ -152,7 +218,7 @@ export function VariantSection({ id, data, background, imageSide }: Props) {
 
         <motion.p
           variants={item}
-          className="mx-auto mt-6 max-w-[68ch] text-pretty text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90 lg:mt-8"
+          className="mx-auto mt-6 max-w-[68ch] text-pretty font-jost-light text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90 lg:mt-8"
         >
           {paragraph}
         </motion.p>
@@ -160,7 +226,7 @@ export function VariantSection({ id, data, background, imageSide }: Props) {
         {paragraphTwo ? (
           <motion.p
             variants={item}
-            className="mx-auto mt-5 max-w-[68ch] text-pretty text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90"
+            className="mx-auto mt-5 max-w-[68ch] text-pretty font-jost-light text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90"
           >
             {paragraphTwo}
           </motion.p>
@@ -169,7 +235,7 @@ export function VariantSection({ id, data, background, imageSide }: Props) {
         {bestFor ? (
           <motion.p
             variants={item}
-            className="mx-auto mt-5 max-w-[68ch] text-pretty text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90"
+            className="mx-auto mt-5 max-w-[68ch] text-pretty font-jost-light text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90"
           >
             {bestFor}
           </motion.p>
@@ -187,7 +253,12 @@ export function VariantSection({ id, data, background, imageSide }: Props) {
                 variants={cardItem}
                 className={spansRow ? 'col-span-2 lg:col-span-1' : undefined}
               >
-                <VariantCard variant={variant} fullWidth={spansRow} background={background} />
+                <VariantCard
+                  variant={variant}
+                  fullWidth={spansRow}
+                  background={background}
+                  labelColor={labelColor}
+                />
               </motion.div>
             );
           })}
@@ -202,26 +273,35 @@ function VariantCard({
   variant,
   fullWidth = false,
   background,
+  labelColor = OLIVE_LABEL,
 }: {
   variant: OliveProductVariant;
   fullWidth?: boolean;
   background: string;
+  labelColor?: string;
 }) {
   const { image, label, href } = variant;
 
   const inner = (
     <>
       {/* A row-spanning card is twice as wide, so its pack is capped by vw
-          rather than the column — otherwise it renders oversized. */}
+          rather than the column — otherwise it renders oversized.
+          The 18rem ceiling stops the pack growing indefinitely on xl/2xl,
+          so the 3-up row simply scales down as the window narrows. */}
       <div
         className={
           fullWidth
-            ? 'flex h-[clamp(11rem,26vw,18rem)] items-center justify-center lg:h-[clamp(11rem,34vw,18rem)]'
-            : 'flex h-[clamp(11rem,34vw,18rem)] items-center justify-center'
+            ? 'flex h-[clamp(9rem,22vw,15rem)] items-center justify-center lg:h-[clamp(9rem,20vw,16rem)]'
+            : 'flex h-[clamp(9rem,26vw,15rem)] items-center justify-center lg:h-[clamp(9rem,20vw,16rem)]'
         }
       >
         {/* SafeImage resolves empty/unknown values to the upload placeholder,
             so a card never renders an empty hole before art is uploaded. */}
+        {/* `max-h-full max-w-full` (not `h-full w-auto`): height-driven sizing
+            lets a tall pack grow wider than its grid column and spill over the
+            card as the window narrows. Capping BOTH axes keeps the pack inside
+            its column at every width, and object-contain preserves the aspect
+            ratio so it simply scales down. */}
         <SafeImage
           src={image}
           alt={`Jivo olive oil — ${label}`}
@@ -229,12 +309,12 @@ function VariantCard({
           height={420}
           quality={85}
           sizes="(max-width: 640px) 40vw, (max-width: 1024px) 30vw, 260px"
-          className="h-full w-auto object-contain transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
+          className="h-auto max-h-full w-auto max-w-full object-contain transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
         />
       </div>
       <span
-        className="mt-3 block text-center font-jost-light text-xs sm:mt-5 sm:text-sm lg:text-base"
-        style={{ color: OLIVE_LABEL }}
+        className="mt-3 block text-center font-jost-bold text-xs sm:mt-5 sm:text-sm lg:text-base"
+        style={{ color: labelColor }}
       >
         {label}
       </span>

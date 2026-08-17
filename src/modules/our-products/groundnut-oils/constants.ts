@@ -23,4 +23,4 @@ export const GROUNDNUT_WHEAT = '#F8EBA2';
  * page's pale sage would be unreadable here — this is the deep maroon from
  * the bottle labels in the design.
  */
-export const GROUNDNUT_LABEL = '#7A1F2B';
+export const GROUNDNUT_LABEL = '#8C552F';

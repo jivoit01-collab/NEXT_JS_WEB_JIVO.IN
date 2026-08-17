@@ -68,7 +68,7 @@ export function WhatIsCanolaSection({ data }: Props) {
             </motion.h2>
             <motion.p
               variants={item}
-              className="mt-7 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-(--canola-ink)/85 lg:mt-9"
+              className="mt-7 font-jost-light max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-(--canola-ink)/85 lg:mt-9"
             >
               {paragraphLeft}
             </motion.p>
@@ -77,7 +77,7 @@ export function WhatIsCanolaSection({ data }: Props) {
           {paragraphRight ? (
             <motion.p
               variants={item}
-              className="min-w-0 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-(--canola-ink)/85 lg:pt-3"
+              className="min-w-0 font-jost-light max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-(--canola-ink)/85 lg:pt-3"
             >
               {paragraphRight}
             </motion.p>
@@ -110,7 +110,7 @@ export function WhatIsCanolaSection({ data }: Props) {
                 {feature.label}
               </h3>
               {feature.description ? (
-                <p className="mt-2.5 text-pretty text-[clamp(0.82rem,0.74rem+0.32vw,1rem)] leading-relaxed text-(--canola-ink)/75">
+                <p className="mt-2.5 font-jost-light text-pretty text-[clamp(0.82rem,0.74rem+0.32vw,1rem)] leading-relaxed text-(--canola-ink)/75">
                   {feature.description}
                 </p>
               ) : null}

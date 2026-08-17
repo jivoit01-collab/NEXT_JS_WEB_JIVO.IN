@@ -9,6 +9,12 @@ interface Props {
   strength?: number;
   /** Extra classes for the positioning wrapper. */
   className?: string;
+  /**
+   * Extra inline styles for the positioning wrapper, merged with the parallax
+   * transform this component owns. Needed because Tailwind's scanner does not
+   * reliably emit arbitrary values written in multi-line template literals.
+   */
+  style?: React.CSSProperties;
 }
 
 /**
@@ -20,7 +26,7 @@ interface Props {
  *
  * Honors prefers-reduced-motion by skipping all movement.
  */
-export function HeroBottles({ children, strength = 28, className }: Props) {
+export function HeroBottles({ children, strength = 28, className, style }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
   const [offset, setOffset] = useState(0);
@@ -55,7 +61,7 @@ export function HeroBottles({ children, strength = 28, className }: Props) {
 
   if (prefersReduced) {
     return (
-      <div ref={ref} className={className}>
+      <div ref={ref} className={className} style={style}>
         {children}
       </div>
     );
@@ -65,10 +71,14 @@ export function HeroBottles({ children, strength = 28, className }: Props) {
     <div
       ref={ref}
       className={className}
+      // Caller styles first, then the parallax transform — so a caller can set
+      // width/height/margins without clobbering the scroll offset.
+      //
       // Scroll parallax only. The throw-in entrance lives on each bottle
       // (`.animate-mustard-bottle-throw`) so they can arrive in sequence —
       // moving the group here would drag them in together.
       style={{
+        ...style,
         transform: `translate3d(0, ${offset}px, 0)`,
         willChange: 'transform',
       }}

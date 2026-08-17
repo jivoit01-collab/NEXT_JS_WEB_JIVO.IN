@@ -64,7 +64,7 @@ export function ScienceSection({ data }: Props) {
 
         <motion.p
           variants={item}
-          className="mt-7 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] lg:mt-9"
+          className="mt-7 font-jost-light max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] lg:mt-9"
         >
           {intro}
         </motion.p>
@@ -83,7 +83,7 @@ export function ScienceSection({ data }: Props) {
           {points.map((point, i) => (
             <li
               key={i}
-              className="text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
+              className="text-pretty font-jost-light text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
             >
               {point}
             </li>
@@ -93,7 +93,7 @@ export function ScienceSection({ data }: Props) {
         {closingLine ? (
           <motion.p
             variants={item}
-            className="mt-2 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 italic drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
+            className="mt-2 font-jost-light max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
           >
             {closingLine}
           </motion.p>

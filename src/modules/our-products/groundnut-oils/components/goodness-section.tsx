@@ -51,7 +51,7 @@ export function GoodnessSection({ data }: Props) {
   return (
     <section
       aria-labelledby="groundnut-goodness-heading"
-      className="relative flex w-full min-h-dvh items-center overflow-hidden px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-24"
+      className="relative flex w-full min-h-[80%] items-start overflow-hidden px-4 pb-10 pt-50 sm:px-8 sm:py-12 lg:px-18 lg:py-20"
       style={{
         backgroundColor: GROUNDNUT_AMBER,
         ['--groundnut-wheat' as string]: GROUNDNUT_WHEAT,
@@ -102,7 +102,7 @@ export function GoodnessSection({ data }: Props) {
 
             <motion.p
               variants={item}
-              className="mt-7 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
+              className="mt-7 max-w-[62ch] font-jost-light text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
             >
               {paragraph}
             </motion.p>
@@ -122,7 +122,7 @@ export function GoodnessSection({ data }: Props) {
               {benefits.map((benefit, i) => (
                 <li
                   key={i}
-                  className="flex min-w-0 items-start gap-2.5 text-[clamp(0.9rem,0.8rem+0.38vw,1.15rem)] leading-[1.7] text-white/90"
+                  className="flex min-w-0 font-jost-light items-start gap-2.5 text-[clamp(0.9rem,0.8rem+0.38vw,1.15rem)] leading-[1.7] text-white/90"
                 >
                   <span aria-hidden className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-white/70" />
                   <span className="min-w-0 lg:whitespace-nowrap">{benefit}</span>

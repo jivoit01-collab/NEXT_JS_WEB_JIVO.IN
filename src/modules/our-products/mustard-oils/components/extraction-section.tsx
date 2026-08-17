@@ -54,7 +54,7 @@ export function ExtractionSection({ data }: Props) {
       aria-labelledby="mustard-extraction-heading"
       // Extra bottom padding below lg: the artwork is centred along the bottom
       // there, so the copy needs room to clear it instead of overlapping.
-      className="relative flex w-full min-h-dvh items-start overflow-hidden px-4 pt-14 pb-[54%] sm:px-8 sm:pt-16 sm:pb-[58%] lg:items-center lg:px-18 lg:py-24"
+      className="relative flex w-full min-h-dvh items-start overflow-hidden px-4 pt-14 pb-[54%] sm:px-8 sm:pt-16 sm:pb-[58%] lg:items-start lg:px-18 lg:py-24"
       style={{
         backgroundColor: MUSTARD_WINE,
         ['--mustard-heading' as string]: MUSTARD_HEADING,
@@ -93,7 +93,7 @@ export function ExtractionSection({ data }: Props) {
         viewport={defaultViewport}
         className="relative z-10 w-full"
       >
-        <div className="grid grid-cols-1 items-start gap-10">
+        <div className="grid grid-cols-1 items-start gap-1">
           <div className="min-w-0">
             <motion.h2
               id="mustard-extraction-heading"
@@ -106,7 +106,7 @@ export function ExtractionSection({ data }: Props) {
             {/* Measure capped so the copy clears the artwork on wide screens. */}
             <motion.p
               variants={item}
-              className="mt-7 max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
+              className="mt-7 max-w-[62ch] font-jost-light text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
             >
               {paragraph}
             </motion.p>
@@ -127,7 +127,7 @@ export function ExtractionSection({ data }: Props) {
               {benefits.map((benefit, i) => (
                 <li
                   key={i}
-                  className="flex min-w-0 items-start gap-2.5 text-[clamp(0.9rem,0.8rem+0.38vw,1.15rem)] leading-[1.7] text-white/90"
+                  className="flex min-w-0 font-jost-light items-start gap-2.5 text-[clamp(0.9rem,0.8rem+0.38vw,1.15rem)] leading-[1.7] text-white/90"
                 >
                   <span
                     aria-hidden

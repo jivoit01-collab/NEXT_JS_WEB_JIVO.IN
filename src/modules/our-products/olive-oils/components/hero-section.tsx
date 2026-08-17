@@ -67,17 +67,22 @@ export function OliveOilsHero({ data }: Props) {
   return (
     <section
       aria-labelledby="olive-hero-heading"
-      className="group relative isolate min-h-[62svh] overflow-hidden sm:min-h-[72svh] lg:min-h-dvh"
+      // MOBILE (< sm): normal stacked flow — logo, then packs, then copy+CTA.
+      // The absolute overlay layout below only kicks in from sm up, where
+      // there is room for the copy to sit beside the pack lineup.
+      className="group relative isolate flex flex-col overflow-hidden pt-24 pb-10 sm:block sm:min-h-[72svh] sm:pt-0 sm:pb-0 lg:min-h-dvh"
       style={{ backgroundColor: OLIVE_HERO }}
     >
       {/* ── Centred JIVO wordmark ─────────────────────────────── */}
       <div
+        // Static + centred on mobile so it stacks above the packs; absolute
+        // from sm up, which restores the original overlay position.
         className="
-          absolute top-[15%] left-1/2 z-20
-          w-[52vw] max-w-[420px] min-w-[170px] -translate-x-1/2
+          relative z-20 mx-auto w-[58vw] max-w-[420px] min-w-[170px]
           transition-transform duration-700 ease-out
           group-hover:-translate-y-1
-          sm:w-[46vw] lg:w-[38vw]
+          sm:absolute sm:top-[15%] sm:left-1/2 sm:mx-0 sm:w-[46vw] sm:-translate-x-1/2
+          lg:w-[38vw]
         "
       >
         {/* Inner wrapper carries the entrance animation — putting it on the
@@ -112,12 +117,16 @@ export function OliveOilsHero({ data }: Props) {
           is clipped by the viewport; hovering the section slides the whole
           lineup back into view. */}
       <HeroBottles
+        // Mobile: in-flow, centred, fixed height so it sits between the logo
+        // and the copy. From sm up it returns to the absolute right-side
+        // lineup — that layout is unchanged.
         className="
-          pointer-events-none absolute bottom-[6%] z-10
-          right-[-3vw] lg:right-[-2vw]
-          flex h-[40%] w-[52vw] items-end justify-end
-          min-w-[210px] max-w-[560px]
+          pointer-events-none relative z-10 mx-auto mt-8
+          flex h-[34svh] w-[86vw] items-end justify-center
+          sm:absolute sm:bottom-[6%] sm:mx-0 sm:mt-0 sm:justify-end
+          sm:right-[-3vw] lg:right-[-2vw]
           sm:h-[50%] sm:w-[48vw]
+          min-w-[210px] max-w-[560px]
           md:h-[58%] md:w-[44vw]
           lg:h-[66%] lg:w-[40vw]
           xl:h-[70%] xl:w-[37vw]
@@ -171,11 +180,12 @@ export function OliveOilsHero({ data }: Props) {
       <div
         // Width is capped short of the pack lineup so the copy never sits
         // underneath it — the packs occupy roughly the right 40%.
+        // Mobile: in-flow below the packs, full width. From sm up it returns
+        // to the absolute lower-left block, capped short of the pack lineup.
         className="
-          absolute bottom-[12%] left-0 z-30
-          flex w-full max-w-[52vw] flex-col items-start
+          relative z-30 mt-8 flex w-full max-w-full flex-col items-start
           px-5 text-left
-          sm:max-w-[50vw] sm:px-8
+          sm:absolute sm:bottom-[12%] sm:left-0 sm:mt-0 sm:max-w-[50vw] sm:px-8
           lg:max-w-[46vw] lg:px-14
           2xl:px-20
         "

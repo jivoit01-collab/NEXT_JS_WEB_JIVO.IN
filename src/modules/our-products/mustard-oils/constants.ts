@@ -13,7 +13,7 @@ export const MUSTARD_ROSE = '#C65D5D';
 export const MUSTARD_CARD_CREAM = '#EDE48E';
 
 /** Variant label under each range card — muted clay, readable on the cream card. */
-export const MUSTARD_LABEL = '#000000';
+export const MUSTARD_LABEL = '#8C1F34';
 
 /** "Kachi ghani extraction" section background — darker wine. */
 export const MUSTARD_WINE = '#662032';
