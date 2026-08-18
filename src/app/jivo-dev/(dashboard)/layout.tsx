@@ -1,5 +1,10 @@
-import { getAnalyticsSidebarModules, ANALYTICS_ROOT } from '@/modules/admin/analytics/services';
+// Imported from the services barrel (not the module's top-level barrel) as its
+// header instructs — the registry is the client-safe entry point, and this is
+// the only place its icon components are read.
+import { ANALYTICS_ROOT, getAnalyticsSidebarModules } from '@/modules/admin/analytics/services';
 import { DashboardShell, type AnalyticsNavLink } from './dashboard-shell';
+
+// ── Layout ───────────────────────────────────────────────────
 
 /**
  * SERVER layout. It reads the analytics module registry HERE (server-side, where
@@ -12,6 +17,11 @@ import { DashboardShell, type AnalyticsNavLink } from './dashboard-shell';
  * served the client a server-compiled React — "more than one copy of React" — which
  * crashed every lucide icon. Feeding the client server-computed data removes that
  * dual-graph entirely.
+ *
+ * This file must therefore stay a Server Component: do NOT add `'use client'`.
+ *
+ * The sidebar nav itself lives in `dashboard-shell.tsx` and is derived from the
+ * CMS registry (`@/modules/admin/cms`) — add a page there, not here.
  */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const analyticsNav: AnalyticsNavLink[] = getAnalyticsSidebarModules().map((m) => {

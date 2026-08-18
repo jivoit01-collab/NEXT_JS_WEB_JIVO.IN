@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — CANOLA OILS page
+// Route: /products/canola-oils
+// Admin: /jivo-dev/our-products/canola-oils
+// Sections: hero, range, whatIsCanola, science, coldPressed
+// ==========================================
+
+model OurProductsCanolaOils {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "whatIsCanola", "science", "coldPressed"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

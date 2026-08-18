@@ -719,6 +719,134 @@ async function main() {
         url: `${BASE}/our-essence/certifications-quality-standards`,
       },
     },
+    {
+      page: 'our-products-canola-oils',
+      metaTitle: 'Canola Oils | Our Products | Jivo Wellness',
+      metaDescription:
+        "India's largest seller of cold-pressed canola oil. Mechanically extracted under minimal heat, fortified with Vitamins A & D, low in saturated fat and high in Omega-3.",
+      keywords: [
+        'jivo canola oil',
+        'cold pressed canola oil',
+        'canola oil india',
+        'cold press canola oil',
+        'canola oil 1 litre',
+        'canola oil 5 litre',
+        'omega 3 cooking oil',
+        'low saturated fat oil',
+        'vitamin a d fortified oil',
+        'unrefined cooking oil',
+      ],
+      ogTitle: 'Jivo Canola Oils — Cold-Pressed, Naturally Balanced',
+      ogDescription:
+        "India's largest seller of cold-pressed canola oil — no chemical solvents, no high heat.",
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/canola-oils`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Cold Pressed Canola Oil',
+        url: `${BASE}/products/canola-oils`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Edible Oil',
+      },
+    },
+    {
+      page: 'our-products-groundnut-oils',
+      metaTitle: 'Groundnut Oil | Our Products | Jivo Wellness',
+      metaDescription:
+        'Jivo Cold Pressed Groundnut Oil — pressed gently from premium groundnuts, rich in MUFA and omega-6 PUFA, free from additives, preservatives and chemical solvents.',
+      keywords: [
+        'jivo groundnut oil',
+        'cold pressed groundnut oil',
+        'groundnut oil india',
+        'peanut oil',
+        'groundnut oil 1 litre',
+        'groundnut oil 5 litre',
+        'mufa cooking oil',
+        'chemical free cooking oil',
+        'unrefined groundnut oil',
+        'traditional cold pressed oil',
+      ],
+      ogTitle: 'Jivo Groundnut Oil — Cold-Pressed, Naturally Pure',
+      ogDescription:
+        'From the soil to your kitchen — cold-pressed groundnut oil with no refining, no chemicals, no bleaching.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/groundnut-oils`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Cold Pressed Groundnut Oil',
+        url: `${BASE}/products/groundnut-oils`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Edible Oil',
+      },
+    },
+    {
+      page: 'our-products-mustard-oils',
+      metaTitle: 'Mustard Oil | Our Products | Jivo Wellness',
+      metaDescription:
+        'Jivo Kachi Ghani Mustard Oil — cold-pressed from handpicked mustard seeds with minimal heat and zero chemicals, rich in MUFA and omega-3 fatty acids.',
+      keywords: [
+        'jivo mustard oil',
+        'kachi ghani mustard oil',
+        'cold pressed mustard oil',
+        'mustard oil india',
+        'mustard oil 500 ml',
+        'mustard oil 1 litre',
+        'mustard oil 5 litre',
+        'omega 3 cooking oil',
+        'chemical free mustard oil',
+        'unrefined mustard oil',
+      ],
+      ogTitle: 'Jivo Mustard Oil — Kachi Ghani, Cold-Pressed',
+      ogDescription:
+        'Earthy aroma, deep flavour and age-old wellness benefits — cold-pressed with minimal heat and zero chemicals.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/mustard-oils`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Kachi Ghani Mustard Oil',
+        url: `${BASE}/products/mustard-oils`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Edible Oil',
+      },
+    },
+    {
+      page: 'our-products-olive-oils',
+      metaTitle: 'Olive Oil | Our Products | Jivo Wellness',
+      metaDescription:
+        'Jivo Olive Oil — extra virgin, extra light and pomace, sourced from Spain’s most trusted groves and cold-pressed for purity, freshness and flavour.',
+      keywords: [
+        'jivo olive oil',
+        'extra virgin olive oil',
+        'extra light olive oil',
+        'pomace olive oil',
+        'olive oil india',
+        'spanish olive oil',
+        'olive oil 500 ml',
+        'olive oil 1 litre',
+        'olive oil 5 litre',
+        'cold pressed olive oil',
+      ],
+      ogTitle: 'Jivo Olive Oil — The Olive Family',
+      ogDescription:
+        'Three distinct expressions from the same golden heart — extra virgin, extra light and pomace olive oil from Spain.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/olive-oils`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Olive Oil',
+        url: `${BASE}/products/olive-oils`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Edible Oil',
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {
@@ -1369,6 +1497,149 @@ async function main() {
           },
         });
         console.log(`  Certifications "${s.section}": created`);
+      }
+    }
+  }
+
+  // ── Our Products — Canola Oils ─────────────────────────────
+  const canolaOilsSections = [
+    {
+      section: 'hero',
+      title: 'Hero',
+      sortOrder: 0,
+      content: {
+        logoImage: PLACEHOLDER,
+        heading: 'CANOLA OILS',
+        subtitleLineOne: "India's largest seller of cold press canola oil",
+        subtitleLineTwo: "India's first patented wheatgrass products",
+        ctaLabel: 'BUY ALL',
+        ctaHref: '/our-products',
+        productImage: PLACEHOLDER,
+        productImageSecondary: '',
+      },
+    },
+    {
+      section: 'range',
+      title: 'Range Of Products',
+      sortOrder: 1,
+      content: {
+        heading: 'CANOLA OIL RANGE OF PRODUCTS',
+        variants: [
+          { image: PLACEHOLDER, label: '1 Litre', href: '' },
+          { image: PLACEHOLDER, label: '2 Litre', href: '' },
+          { image: PLACEHOLDER, label: '5 Litre', href: '' },
+        ],
+      },
+    },
+    {
+      section: 'whatIsCanola',
+      title: 'What Is Canola',
+      sortOrder: 2,
+      content: {
+        heading: 'WHAT IS CANOLA ?',
+        paragraphLeft:
+          'Born from the seed of the bright yellow Canola plant — a member of the Brassica family that includes mustard, cabbage, and broccoli — Canola oil is one of nature’s most balanced edible oils. The name "Canola" stands for Canadian Oil, Low Acid — coined in 1978 by Canadian growers.',
+        paragraphRight:
+          'Canola Oil is appreciated for its naturally balanced composition, primarily containing monounsaturated and polyunsaturated fatty acids, which are considered components of a balanced diet. It is light in taste, has a high smoke point, and is versatile for various cooking methods. Free from artificial colours, flavours, and preservatives, Canola Oil is a reliable choice for everyday cooking use.',
+        features: [
+          { icon: 'seedling', label: 'Mechanically extracted under minimal heat', description: '' },
+          { icon: 'hand', label: 'Fortified with Vitamins A and D', description: '' },
+          { icon: 'molecule', label: 'Low in saturated fats, high in Omega-3', description: '' },
+          { icon: 'wheat', label: 'Free from chemicals and solvents', description: '' },
+          {
+            icon: 'leaf',
+            label: "Supports Jivo's mission of wellness and service",
+            description: '',
+          },
+          {
+            icon: 'heart',
+            label: 'Integrity & Dedication',
+            description:
+              'An unwavering commitment to these principles and a perseverance in service to the mission.',
+          },
+        ],
+      },
+    },
+    {
+      section: 'science',
+      title: 'The Science Behind The Gold',
+      sortOrder: 3,
+      content: {
+        heading: 'THE SCIENCE BEHIND THE GOLD',
+        intro:
+          'Behind every golden drop lies intention and restraint. Our oil is cold-pressed from carefully selected Canola seeds — no chemical solvents, no high heat — preserving natural antioxidants, nutrients, and the oil’s delicate flavour.',
+        subheading: 'Nutritional Excellence',
+        points: [
+          'Contains the lowest saturated fat content among commonly used vegetable oils',
+          'Contains a high proportion of monounsaturated fats (MUFA), which contribute to nutritional balance',
+          'Includes ALA Omega-3, a plant-based essential omega-3 fatty acid found naturally in Canola oil',
+          'Fortified with Vitamins A & D for balanced nutrition',
+        ],
+        closingLine: 'This isn’t refinement — it’s respect for what’s real.',
+        backgroundImage: '',
+      },
+    },
+    {
+      section: 'coldPressed',
+      title: 'Why Cold-Pressed',
+      sortOrder: 4,
+      content: {
+        heading: 'WHY COLD-PRESSED',
+        leadLineOne: 'Cold-pressing isn’t just a method — it’s a mindset.',
+        leadLineTwo: 'A promise to keep food as close to its natural goodness as possible.',
+        paragraph:
+          'Cold pressing means pressing seeds mechanically — not chemically — at low temperatures. It’s a gentler, more honest way to extract oil, keeping it close to its natural state.',
+        coldPressedTitle: 'Cold-Pressed Oils',
+        coldPressedPoints: [
+          'Extracted naturally — no chemicals, no solvents',
+          'No refining required — oil is naturally edible and flavourful',
+          'Retains nutrients and natural aroma due to minimal heat exposure',
+          'Produced at low temperatures to maintain quality',
+          'Remain unrefined and free from additives',
+        ],
+        refinedTitle: 'Refined Oils',
+        refinedPoints: [
+          'Extracted using chemical solvents and high heat',
+          'Require further treatment to make them edible',
+          'Lose much of their nutritional value during processing',
+          'May contain harmful residues such as 3-MCPD and glycidyl esters',
+        ],
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourProductsCanolaOils.deleteMany();
+    for (const s of canolaOilsSections) {
+      await prisma.ourProductsCanolaOils.create({
+        data: {
+          section: s.section,
+          title: s.title,
+          content: s.content,
+          sortOrder: s.sortOrder,
+          isActive: true,
+        },
+      });
+    }
+    console.log(`✓ Canola Oils: RESET (${canolaOilsSections.length} sections)`);
+  } else {
+    for (const s of canolaOilsSections) {
+      const exists = await prisma.ourProductsCanolaOils.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  Canola Oils "${s.section}": skipped`);
+      } else {
+        await prisma.ourProductsCanolaOils.create({
+          data: {
+            section: s.section,
+            title: s.title,
+            content: s.content,
+            sortOrder: s.sortOrder,
+            isActive: true,
+          },
+        });
+        console.log(`  Canola Oils "${s.section}": created`);
       }
     }
   }

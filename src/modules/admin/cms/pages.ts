@@ -23,6 +23,8 @@ import {
   Leaf,
   Factory,
   Award,
+  ShieldAlert,
+  Droplet,
 } from 'lucide-react';
 import type { CmsModule } from './types';
 
@@ -37,6 +39,9 @@ export const CMS_MODULES: CmsModule[] = [
       { id: 'home', name: 'Home Page', icon: Home, adminHref: '/jivo-dev/home', seo: true },
       { id: 'navbar', name: 'Navbar', icon: Navigation, adminHref: '/jivo-dev/navbar' },
       { id: 'footer', name: 'Footer', icon: PanelBottom, adminHref: '/jivo-dev/footer' },
+      // Not a public page: no SEO tab. Lives here so it appears in the
+      // Dashboard sub-tabs alongside the other global admin screens.
+      { id: 'security', name: 'Login Security', icon: ShieldAlert, adminHref: '/jivo-dev/security', adminOnly: true },
     ],
   },
   {
@@ -63,7 +68,12 @@ export const CMS_MODULES: CmsModule[] = [
     icon: Package,
     adminHref: '/jivo-dev/our-products',
     order: 30,
-    pages: [],
+    pages: [
+      { id: 'canola-oils', name: 'Canola Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/canola-oils', seo: true },
+      { id: 'groundnut-oils', name: 'Groundnut Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/groundnut-oils', seo: true },
+      { id: 'mustard-oils', name: 'Mustard Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/mustard-oils', seo: true },
+      { id: 'olive-oils', name: 'Olive Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/olive-oils', seo: true },
+    ],
   },
   {
     id: 'media',

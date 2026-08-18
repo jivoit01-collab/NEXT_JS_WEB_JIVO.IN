@@ -10,6 +10,11 @@ export interface CmsPage {
   adminHref: string;
   /** Whether the page has an SEO tab (?tab=seo). */
   seo?: boolean;
+  /**
+   * Admin-only screen with no public URL (e.g. Login Security).
+   * Kept out of the Analytics dashboard, which tracks visitor-facing pages.
+   */
+  adminOnly?: boolean;
 }
 
 /** A CMS module — a group of pages, e.g. "Our Essence". */

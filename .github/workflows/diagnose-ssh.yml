@@ -1,0 +1,127 @@
+name: Transport Diagnostic
+
+# PROVES where execution stops. Deploys nothing, builds nothing, restarts
+# nothing. Manual trigger only -- it can never fire on a push.
+#
+# Run ONE stage at a time, in order. Do not advance until the current stage
+# prints everything it should. The `stage` input selects exactly one job;
+# every other job is skipped, so no two stages can ever run together.
+#
+#   1-transport  : do STEP1..STEP5 reach the server at all?
+#   2-bootstrap  : does bootstrap-deploy.ps1 get invoked and run?
+#   3-deploy     : does bootstrap actually reach deploy-jivo-windows.ps1?
+#
+# Stage 2 and 3 are READ-ONLY probes: they use -WhatIf-style inspection and
+# never call the deploy script's mutating path. Nothing in this file changes
+# the working copy, the service, or any deployment artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Which diagnostic stage to run
+        type: choice
+        default: '1-transport'
+        options:
+          - '1-transport'
+          - '2-bootstrap'
+          - '3-deploy'
+
+jobs:
+  # ===================================================================
+  # STAGE 1 -- transport only. No bootstrap. No deployment.
+  # Every STEP must print. The first missing STEP is where execution stops.
+  # ===================================================================
+  stage1:
+    name: 'Stage 1: transport (STEP1..STEP5)'
+    if: inputs.stage == '1-transport'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe transport
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 5m
+          script_stop: true
+          # Folded scalar -> ONE physical line, zero newlines. cmd.exe truncates
+          # at the first newline, so a multi-line block would only ever run the
+          # first command. `&&` is cmd.exe's own separator.
+          script: >-
+            echo STEP1 &&
+            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST" &&
+            echo STEP2 &&
+            git --version &&
+            echo STEP3 &&
+            powershell -Command "Write-Host 'STEP4'" &&
+            echo STEP5
+
+  # ===================================================================
+  # STAGE 2 -- does the bootstrap file exist and execute?
+  # Only run after Stage 1 prints STEP1..STEP5.
+  # Extracts the bootstrap exactly as the real workflow does, then runs it
+  # with -WhatIfProbe so it reports its parameters and exits WITHOUT
+  # deploying. (If the bootstrap has no such switch the run is still safe:
+  # it stops at the first validation, and Stage 3 covers the real path.)
+  # ===================================================================
+  stage2:
+    name: 'Stage 2: bootstrap reached?'
+    if: inputs.stage == '2-bootstrap'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe bootstrap presence and invocation
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 5m
+          script_stop: true
+          # Extract the bootstrap, prove the FILE EXISTS and has content, and
+          # show its first lines. Does NOT invoke it -- proving the file lands
+          # correctly is the question this stage answers.
+          script: >-
+            echo STEP1_START &&
+            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST" &&
+            echo STEP2_CD_OK &&
+            git fetch --prune origin testing &&
+            echo STEP3_FETCH_OK &&
+            (if not exist "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing" mkdir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing") &&
+            echo STEP4_MKDIR_OK &&
+            git show origin/testing:scripts/ci/bootstrap-deploy.ps1 > "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing\bootstrap-deploy.ps1" &&
+            echo STEP5_EXTRACT_OK &&
+            powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$f='C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing\bootstrap-deploy.ps1'; Write-Host ('exists = ' + (Test-Path $f)); Write-Host ('bytes  = ' + (Get-Item $f).Length); Write-Host '--- first 5 lines ---'; Get-Content $f -TotalCount 5 | ForEach-Object { Write-Host ('  ' + $_) }" &&
+            echo STEP6_BOOTSTRAP_FILE_OK
+
+  # ===================================================================
+  # STAGE 3 -- does the bootstrap reach deploy-jivo-windows.ps1?
+  # Only run after Stage 2 confirms the bootstrap file is present and valid.
+  # This runs the REAL bootstrap. It is the first stage that performs an
+  # actual deployment, so run it only when stages 1 and 2 are clean.
+  # ===================================================================
+  stage3:
+    name: 'Stage 3: bootstrap -> deploy handoff (REAL DEPLOY)'
+    if: inputs.stage == '3-deploy'
+    runs-on: ubuntu-latest
+    environment: testing
+    steps:
+      - name: Run the real bootstrap
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 30m
+          script_stop: true
+          script: >-
+            echo STAGE3_START &&
+            cd /d "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST" &&
+            git fetch --prune origin testing &&
+            (if not exist "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing" mkdir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing") &&
+            git show origin/testing:scripts/ci/bootstrap-deploy.ps1 > "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing\bootstrap-deploy.ps1" &&
+            echo STAGE3_CALLING_BOOTSTRAP &&
+            powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing\bootstrap-deploy.ps1" -AppPath "C:\LiveProjects\JIVO_WEBSITE\NEXT_JS_WEB_JIVO.IN_TEST" -ScriptDir "C:\LiveProjects\JIVO_WEBSITE\Deploy\Testing" -Branch testing -Environment Testing &&
+            echo STAGE3_BOOTSTRAP_RETURNED

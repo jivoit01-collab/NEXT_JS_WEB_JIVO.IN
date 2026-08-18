@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — MUSTARD OILS page
+// Route: /products/mustard-oils
+// Admin: /jivo-dev/our-products/mustard-oils
+// Sections: hero, range, extraction, warmth
+// ==========================================
+
+model OurProductsMustardOils {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "extraction", "warmth"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
