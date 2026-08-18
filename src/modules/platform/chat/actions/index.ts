@@ -10,7 +10,6 @@
 import { headers } from 'next/headers';
 import { platformEvents } from '@/modules/core/events';
 import {
-  startConversation as startConversationManager,
   restoreConversation,
   findLatestConversationByVisitor,
 } from '@/modules/platform/conversation/manager';
@@ -35,14 +34,13 @@ export async function startChatAction(input: { visitorId?: string; userId?: stri
       if (existing) return restoreChatAction(existing.id);
     }
 
-    const conversation = await startConversationManager({
-      visitorId: input.visitorId,
-      userId: input.userId,
-      sessionId: input.sessionId,
-      title: 'Chat',
-    });
+    // No conversation yet — and we do NOT create one here. Opening the widget is
+    // not a chat: a visitor who never types would leave an empty row behind. The
+    // conversation is created by the Gateway on the first real message (it
+    // already does this when `conversationId` is absent), so an unused widget
+    // costs nothing.
     const session: ChatSession = {
-      conversationId: conversation.id,
+      conversationId: null,
       messages: [],
       suggestedQuestions: [...CHAT_CONFIG.defaultQuestions],
     };
@@ -58,9 +56,12 @@ export async function restoreChatAction(conversationId: string) {
     const snap = await restoreConversation(conversationId);
     if (!snap) return fail(new Error('Conversation not found'));
 
-    const messages: ChatMessage[] = snap.recentMessages.messages.map((m) =>
-      toChatMessage({ id: m.id, role: m.role, content: m.content, createdAt: m.createdAt }),
-    );
+    // `getMessages` returns the NEWEST page first (cursor pagination orders by
+    // createdAt DESC). The widget renders oldest → newest, so flip the page back
+    // into chronological order before handing it to the client.
+    const messages: ChatMessage[] = snap.recentMessages.messages
+      .map((m) => toChatMessage({ id: m.id, role: m.role, content: m.content, createdAt: m.createdAt }))
+      .reverse();
     platformEvents.emit(CHAT_EVENTS.CONVERSATION_RESTORED, { conversationId, count: messages.length });
 
     const session: ChatSession = {
@@ -78,13 +79,24 @@ export async function restoreChatAction(conversationId: string) {
 // Delegates to the AI Gateway (Phase 7.7) — the SINGLE place the pipeline runs.
 // This action only adapts the gateway's structured result to the widget's shape;
 // it duplicates NO pipeline logic.
-export async function sendMessageAction(input: { conversationId: string; content: string }) {
+export async function sendMessageAction(input: {
+  /** Null on the visitor's FIRST message — the Gateway creates the conversation. */
+  conversationId: string | null;
+  content: string;
+  visitorId?: string;
+}) {
   const { conversationId, content } = input;
   try {
     platformEvents.emit(CHAT_EVENTS.MESSAGE_SENT, { conversationId });
 
     const h = await headers();
-    const result = await execute({ question: content, conversationId, channel: 'web', headers: h });
+    const result = await execute({
+      question: content,
+      conversationId: conversationId ?? undefined,
+      visitorId: input.visitorId,
+      channel: 'web',
+      headers: h,
+    });
 
     if (!result.ok) {
       // Gateway messages are always friendly + leak-proof. Surface known,
@@ -99,7 +111,10 @@ export async function sendMessageAction(input: { conversationId: string; content
           createdAt: null,
           plan: null,
         };
-        return { success: true as const, data: { message, plan: null } as ChatTurnResult };
+        return {
+          success: true as const,
+          data: { message, plan: null, conversationId: conversationId ?? '' } as ChatTurnResult,
+        };
       }
       return fail(new Error(result.message));
     }
@@ -113,7 +128,13 @@ export async function sendMessageAction(input: { conversationId: string; content
       createdAt: result.message.createdAt,
       plan: result.experience,
     };
-    const turn: ChatTurnResult = { message, plan: result.experience };
+    // Echo the conversation id: on the first message the Gateway created it, so
+    // this is how the client learns which conversation to persist and restore.
+    const turn: ChatTurnResult = {
+      message,
+      plan: result.experience,
+      conversationId: result.conversationId,
+    };
     return { success: true as const, data: turn };
   } catch (e) {
     return fail(e);

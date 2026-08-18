@@ -68,6 +68,51 @@ Returns ranked documents + a concatenated `context` string. Publishes
 - **Semantic / Hybrid / Vector** — interfaces + engines exist and **fall back to keyword** until `KNOWLEDGE_FEATURES.vectorSearch` is enabled and embeddings are generated. Flipping the flag upgrades every caller with no API change.
 - Filters: collection, source, entity type, language, status. Ranking is 0..1.
 
+## Live sources (implemented)
+
+| Source key | Backing CMS tables | Collection | Docs |
+|---|---|---|---|
+| `cms-pages` | `OurEssence*` (7 tables), `PageContent`, `HomePage` | `our-essence` / `home` | 21 |
+| `products` | `OurProductsCanolaOils` / `OliveOils` / `MustardOils` / `GroundnutOils` | `products` | 11 |
+| `company` | `FooterSetting` (address, email, phone) | `company` | 1 |
+
+`blogs · faqs · recipes · media · community · policies` remain **prepared
+plug-ins** returning `[]` — they have no backing CMS table yet. They light up by
+implementing `fetchItems`, with no platform change.
+
+The `company` source is what lets the assistant answer contact questions from
+**real CMS data** (`1800 137 4433`, `info@jivo.in`, the Rajouri Garden address)
+instead of inventing them. Contact details are edited in the footer CMS, never in
+a prompt.
+
+## Running an index
+
+```bash
+npm run knowledge:sync            # incremental — upsert changed content
+npm run knowledge:sync -- --full  # full re-index + prune removed items
+```
+
+`scripts/knowledge-sync.ts` is only an entry point: it calls the existing
+`syncAllSources` indexer so the initial index and deploy backfills can run
+without an admin login. It is idempotent (re-running updates in place). The
+auth-guarded `syncSourceAction` remains available for admin-triggered syncs.
+
+The script runs under `tsx --conditions=react-server` so that the `server-only`
+marker imported by the platform resolves to its no-op server entry instead of
+throwing outside the Next bundler.
+
+**Run it after seeding, and after material CMS content changes** — CMS saves mark
+affected documents' embeddings `STALE` but do not currently re-fetch their text.
+
+## Retrieval note (keyword search)
+
+Keyword search drops question stopwords ("what", "your", "tell", "me", …) before
+querying and matches on **any** remaining term, ranking the candidate pool by
+term coverage with a title boost. Requiring *every* term (an `AND` across terms)
+matched zero documents for real questions like *"What is your phone number?"*,
+which is why grounded answers previously failed. See
+`data/index.ts → searchTerms` and `search/index.ts → runKeyword`.
+
 ## Synchronization (automatic, no manual work)
 
 1. A CMS module emits `content:changed { entityType, entityId }` when content is saved (one-liner; the platform never imports the CMS).

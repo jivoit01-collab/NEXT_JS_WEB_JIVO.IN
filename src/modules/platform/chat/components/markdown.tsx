@@ -8,6 +8,23 @@ import { Fragment, type ReactNode } from 'react';
 
 const INLINE = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\((?:https?:\/\/|\/)[^)]+\))/g;
 
+/**
+ * Is this href on a DIFFERENT origin than the page we're on?
+ *
+ * Relative paths are same-origin by definition. Absolute URLs are compared by
+ * origin, so our own absolute links (which preview cards and CMS metadata use)
+ * are correctly treated as internal.
+ */
+function isExternalHref(href: string): boolean {
+  if (href.startsWith('/')) return false;
+  if (typeof window === 'undefined') return /^https?:\/\//i.test(href);
+  try {
+    return new URL(href, window.location.href).origin !== window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
 function renderInline(text: string): ReactNode[] {
   const out: ReactNode[] = [];
   let last = 0;
@@ -21,9 +38,12 @@ function renderInline(text: string): ReactNode[] {
     else if (token.startsWith('[')) {
       const label = token.slice(1, token.indexOf(']'));
       const href = token.slice(token.indexOf('(') + 1, -1);
-      const external = href.startsWith('http');
+      // Same-origin links stay in this tab; only genuinely other origins open a
+      // new one. Comparing ORIGINS (not "starts with http") matters because our
+      // own links are absolute — "https://jivo.in/…" is this site, not external.
+      const external = isExternalHref(href);
       out.push(
-        <a key={key++} href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} className="text-emerald-700 underline dark:text-emerald-400">
+        <a key={key++} href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} className="rounded-sm font-medium text-emerald-700 underline decoration-emerald-700/40 underline-offset-2 transition-colors hover:text-emerald-800 hover:decoration-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none motion-reduce:transition-none dark:text-emerald-400 dark:decoration-emerald-400/40 dark:hover:text-emerald-300">
           {label}
         </a>,
       );

@@ -26,6 +26,28 @@ export function stripInlineMarkdown(text: string): string {
     .trim();
 }
 
+/**
+ * Remove inline `[n]` citation markers from DISPLAY text.
+ *
+ * The model is still asked to emit them: they are how `extractCitations` resolves
+ * each claim to a real Knowledge document (title + URL). Extraction therefore runs
+ * BEFORE this, and only the user-facing text/blocks are cleaned — provenance
+ * survives on `StructuredResponse.citations` for grounding, links and debugging.
+ *
+ * Handles grouped markers ("[1, 3]", "[2][4]") and tidies the punctuation and
+ * spacing the removal leaves behind, so sentences don't end with " ." or double
+ * spaces.
+ */
+export function stripCitationMarkers(text: string): string {
+  return text
+    .replace(/\s*\[\s*\d{1,3}(?:\s*[,;]\s*\d{1,3})*\s*\]/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+([.,!?;:])/g, '$1')
+    .replace(/\(\s*\)/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim();
+}
+
 /** Case-insensitive keyword hit count over a lowercased haystack. */
 export function countHits(haystackLower: string, keywords: readonly string[]): number {
   let n = 0;

@@ -11,6 +11,7 @@ import {
   messagesByRole,
   memoriesByType,
   recentConversations,
+  mostAskedQuestions,
 } from '@/modules/platform/conversation/data';
 import { CONVERSATION_FEATURES } from '@/modules/platform/conversation/config';
 import { humanizeEnum } from '@/modules/platform/conversation/utils';
@@ -60,6 +61,17 @@ export const conversationDataSource: AnalyticsDataSource = {
     if (widgetId === 'ai-memory-by-type') {
       const rows = await memoriesByType();
       return breakdown(rows.map((r) => ({ label: humanizeEnum(r.label), value: r.value })));
+    }
+
+    if (widgetId === 'ai-most-asked-questions') {
+      // Aggregated + limited in the DATABASE — the dashboard never loads
+      // messages to count them.
+      const rows = await mostAskedQuestions(10);
+      const facts = rows.map((q) => ({
+        label: q.question.length > 70 ? `${q.question.slice(0, 70)}…` : q.question,
+        value: `${q.count}× · ${new Date(q.lastAskedAt).toLocaleDateString()}`,
+      }));
+      return { status: facts.length ? 'ready' : 'empty', facts };
     }
 
     if (widgetId === 'ai-recent-conversations') {

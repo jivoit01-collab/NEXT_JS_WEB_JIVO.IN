@@ -36,6 +36,12 @@ export const RESPONSE_CONFIG = {
   leadThreshold: 0.5,
   /** Max suggested actions returned. */
   maxActions: 4,
+  /**
+   * When the model omits [n] markers, how many retrieved documents to treat as
+   * citations instead. Small on purpose: enough for one or two real page links,
+   * not a dump of every document that was retrieved.
+   */
+  maxFallbackCitations: 3,
   /** Your site origin — links to it are treated as internal. */
   internalHosts: ['jivo.in', 'www.jivo.in', 'localhost'],
 } as const;
@@ -43,7 +49,16 @@ export const RESPONSE_CONFIG = {
 /** Intent keyword sets that drive lead + contact detection (order-independent). */
 export const INTENT_KEYWORDS = {
   buying: ['buy', 'price', 'cost', 'order', 'purchase', 'quote', 'pricing', 'discount', 'available', 'in stock'],
-  contact: ['contact', 'call me', 'reach me', 'get in touch', 'email me', 'connect', 'representative', 'sales team'],
+  // Includes the ways people ASK FOR contact details ("what is your phone
+  // number", "your email", "where are you located") — not just requests to be
+  // contacted. Without these the Contact card never renders for the most direct
+  // contact questions of all.
+  contact: [
+    'contact', 'call me', 'reach me', 'reach you', 'get in touch', 'email me', 'connect',
+    'representative', 'sales team', 'phone number', 'phone', 'telephone', 'mobile number',
+    'email', 'email address', 'address', 'located', 'location', 'office', 'helpline',
+    'customer care', 'support team', 'talk to',
+  ],
   consultation: ['consult', 'consultation', 'appointment', 'book', 'schedule', 'demo', 'meeting'],
   subscribe: ['subscribe', 'newsletter', 'updates', 'notify me'],
 } as const;

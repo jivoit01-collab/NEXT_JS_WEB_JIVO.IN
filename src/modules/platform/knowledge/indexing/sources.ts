@@ -120,6 +120,96 @@ export const cmsPagesAdapter: SourceAdapter = {
   },
 };
 
+// ── Products adapter (REAL) ──────────────────────────────────
+// Each product family lives in its own CMS table keyed by `section`
+// ("hero", "range", "whatIsCanola", …). One knowledge item per family, with
+// every section's text aggregated — chunking downstream keeps rows small.
+const PRODUCT_FAMILIES: {
+  key: string;
+  name: string;
+  url: string;
+  rows: () => Promise<{ section: string; title: string | null; content: unknown }[]>;
+}[] = [
+  { key: 'canola', name: 'Jivo Canola Oil', url: '/products/canola-oils', rows: () => prisma.ourProductsCanolaOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
+  { key: 'olive', name: 'Jivo Olive Oil', url: '/products/olive-oils', rows: () => prisma.ourProductsOliveOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
+  { key: 'mustard', name: 'Jivo Mustard Oil', url: '/products/mustard-oils', rows: () => prisma.ourProductsMustardOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
+  { key: 'groundnut', name: 'Jivo Groundnut Oil', url: '/products/groundnut-oils', rows: () => prisma.ourProductsGroundnutOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
+];
+
+export const productsAdapter: SourceAdapter = {
+  key: 'products',
+  name: 'Products',
+  type: 'PRODUCT',
+  defaultCollectionKey: 'products',
+  async fetchItems(): Promise<RawKnowledgeItem[]> {
+    const items: RawKnowledgeItem[] = [];
+    for (const fam of PRODUCT_FAMILIES) {
+      const rows = await fam.rows();
+      // Prefix each section with its heading so keyword search can match on
+      // section titles ("Why Cold-Pressed") as well as body copy.
+      const text = toPlainText(
+        rows.flatMap((r) => [r.title ?? '', ...flatten(r.content)]).join('\n'),
+      );
+      if (!text) continue;
+      items.push({
+        externalKey: `product:${fam.key}`,
+        entityType: 'PRODUCT',
+        entityId: fam.key,
+        collectionKey: 'products',
+        title: fam.name,
+        content: `${fam.name}\n${text}`,
+        url: fam.url,
+      });
+    }
+    return items;
+  },
+};
+
+// ── Company / Contact adapter (REAL) ─────────────────────────
+// The single authoritative record for Jivo's address, email and phone lives in
+// FooterSetting (rendered in the site footer). Indexing it means the assistant
+// answers contact questions from real CMS data instead of inventing details.
+export const companyAdapter: SourceAdapter = {
+  key: 'company',
+  name: 'Company & Contact',
+  type: 'CUSTOM',
+  defaultCollectionKey: 'company',
+  async fetchItems(): Promise<RawKnowledgeItem[]> {
+    const f = await prisma.footerSetting.findFirst();
+    if (!f) return [];
+
+    const lines = [
+      f.tagline,
+      f.brandPromise,
+      f.brandPromiseSub,
+      f.address ? `Address: ${f.address}` : null,
+      f.email ? `Email: ${f.email}` : null,
+      f.phone ? `Phone: ${f.phone}${f.phoneLabel ? ` ${f.phoneLabel}` : ''}` : null,
+      f.certificationText,
+      f.madeInText,
+      f.copyrightText,
+    ].filter((v): v is string => Boolean(v && v.trim()));
+
+    const text = toPlainText(lines.join('\n'));
+    if (!text) return [];
+
+    return [
+      {
+        externalKey: 'company:contact',
+        entityType: 'PAGE',
+        entityId: 'contact',
+        collectionKey: 'company',
+        title: 'Jivo Contact Information',
+        content: `Jivo Wellness contact details.\n${text}`,
+        // No /contact route exists — the details live in the site footer. A URL
+        // here would render as a link to a 404, so this document is deliberately
+        // link-less: the Contact card shows the verified phone/email/address.
+        url: undefined,
+      },
+    ];
+  },
+};
+
 /** A prepared plug-in that returns nothing until its business module ships. */
 function preparedAdapter(
   key: string,
@@ -133,7 +223,8 @@ function preparedAdapter(
 // Every source the platform is designed to serve — CMS Pages live, the rest
 // prepared so adding real content later needs zero platform changes.
 registerSourceAdapter(cmsPagesAdapter);
-registerSourceAdapter(preparedAdapter('products', 'Products', 'PRODUCT', 'products'));
+registerSourceAdapter(productsAdapter);
+registerSourceAdapter(companyAdapter);
 registerSourceAdapter(preparedAdapter('blogs', 'Blogs', 'BLOG', 'blogs'));
 registerSourceAdapter(preparedAdapter('faqs', 'FAQs', 'FAQ', 'faq'));
 registerSourceAdapter(preparedAdapter('recipes', 'Recipes', 'RECIPE', 'recipes'));

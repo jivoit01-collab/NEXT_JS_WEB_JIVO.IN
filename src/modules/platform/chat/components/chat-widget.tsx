@@ -8,7 +8,9 @@
 // ==========================================================================
 
 import { useCallback, useContext } from 'react';
+import { useRouter } from 'next/navigation';
 import { CookieConsentContext } from '@/modules/core/cookie-consent/context';
+import { SHOP_URL, PUBLIC_SITE_URL } from '@/lib/constants';
 import { isAiEnabled } from '@/modules/platform/gateway/feature';
 import { useFeedback } from '@/modules/platform/feedback';
 import type { ExperienceCard } from '@/modules/platform/experience';
@@ -20,8 +22,8 @@ import { ChatPanel } from './chat-panel';
 /** Channels on which the on-site widget renders. */
 const SUPPORTED_CHANNELS = ['web'] as const;
 
-/** External storefront — View Products always opens this in a new tab. */
-const SHOP_URL = 'https://shop.jivo.in';
+// The storefront URL comes from the shared, environment-aware config in
+// lib/constants — never hardcoded here.
 
 export interface ChatWidgetProps {
   visitorId?: string;
@@ -38,6 +40,7 @@ export function ChatWidget({
   channel = 'web',
   ignoreConsent = false,
 }: ChatWidgetProps) {
+  const router = useRouter();
   const chat = useChat({ visitorId, userId, sessionId });
   const feedback = useFeedback(); // reuses the Feedback Platform (no new form)
 
@@ -59,15 +62,57 @@ export function ChatWidget({
     console.warn('[ChatWidget] launcher hidden —', reasons.join('; '));
   }
 
+  /**
+   * Open a destination the right way.
+   *
+   * SAME ORIGIN as the page the visitor is on → navigate IN PLACE, so they keep
+   * their tab (and their conversation). ANY other origin → new tab.
+   *
+   * The comparison is on the resolved ORIGIN, not the URL's shape: preview cards
+   * carry absolute URLs built from the environment's public origin
+   * ("http://localhost:3000/products/canola-oils" in dev, "https://jivo.in/…" in
+   * production), so a naive "starts with http → external" test wrongly sent
+   * same-site pages to a new tab.
+   */
+  const openTarget = useCallback(
+    (target: string) => {
+      let url: URL;
+      try {
+        // A relative path resolves against the current page, so it is same-origin
+        // by construction.
+        url = new URL(target, window.location.href);
+      } catch {
+        return;
+      }
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+      // Cards advertise the PUBLIC origin (never "localhost"), so a link to our
+      // own site can carry a different origin than the one being browsed. Treat
+      // the public site as "this site" and navigate to its PATH in place.
+      const isOwnSite =
+        url.origin === window.location.origin ||
+        url.origin === PUBLIC_SITE_URL.replace(/\/$/, '');
+
+      if (isOwnSite) {
+        router.push(url.pathname + url.search + url.hash);
+        chat.close();
+      } else {
+        window.open(url.href, '_blank', 'noopener,noreferrer');
+      }
+    },
+    [router, chat],
+  );
+
   const onCardAction = useCallback(
     (_card: ExperienceCard, action: string, target?: string) => {
-      // View Products → the storefront, always a NEW TAB (never in-app nav).
+      // The storefront is a separate property, so it follows the same rule and
+      // ends up in a new tab — unless the site is ever served from that origin.
       if (action === 'view_product' || action === 'buy_product') {
-        window.open(SHOP_URL, '_blank', 'noopener,noreferrer');
+        openTarget(target ?? SHOP_URL);
         return;
       }
       if (action === 'open_link' && target) {
-        if (target.startsWith('http')) window.open(target, '_blank', 'noopener,noreferrer');
+        openTarget(target);
         return;
       }
       // Feedback CTA (👍/👎 on a Feedback card) → Feedback Platform (AI_CHAT).
@@ -81,7 +126,7 @@ export function ChatWidget({
         });
       }
     },
-    [feedback],
+    [feedback, openTarget],
   );
 
   if (!canShowLauncher) return null;
@@ -102,7 +147,6 @@ export function ChatWidget({
           questions={chat.questions}
           busy={chat.busy}
           onSend={chat.send}
-          onMinimize={chat.minimize}
           onClose={chat.close}
           onCardAction={onCardAction}
         />

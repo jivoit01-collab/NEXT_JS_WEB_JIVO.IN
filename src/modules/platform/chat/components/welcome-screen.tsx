@@ -1,17 +1,14 @@
 'use client';
 
 // Welcome screen — shown for an empty conversation (no empty chat). Welcome
-// message + description + 6 suggested questions + a search box + popular topics.
-import { useState } from 'react';
-import { Search, Sparkles } from 'lucide-react';
+// message + description + 6 suggested questions + popular topics.
+import { Sparkles } from 'lucide-react';
 import { platformEvents } from '@/modules/core/events';
 import { CHAT_CONFIG } from '../config';
 import { CHAT_EVENTS } from '../types';
 import { AiAvatar } from './ai-avatar';
 
 export function WelcomeScreen({ disabled, onAsk }: { disabled?: boolean; onAsk: (q: string) => void }) {
-  const [term, setTerm] = useState('');
-
   const ask = (q: string) => {
     platformEvents.emit(CHAT_EVENTS.SUGGESTED_CLICKED, { question: q });
     onAsk(q);
@@ -25,24 +22,8 @@ export function WelcomeScreen({ disabled, onAsk }: { disabled?: boolean; onAsk: 
         <p className="mt-1 max-w-xs text-sm opacity-70">{CHAT_CONFIG.brand.welcomeSubtitle}</p>
       </div>
 
-      {/* Search box → sends as a question. */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (term.trim()) ask(term.trim());
-        }}
-        className="mb-4 flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 dark:border-white/15 dark:bg-white/5"
-      >
-        <Search className="h-4 w-4 opacity-50" />
-        <input
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          disabled={disabled}
-          placeholder="Search or ask anything…"
-          aria-label="Search or ask anything"
-          className="flex-1 bg-transparent text-sm outline-none"
-        />
-      </form>
+      {/* No search box here — the composer at the bottom of the panel is the
+          single input, so a second field would just duplicate it. */}
 
       {/* 6 suggested questions. */}
       <p className="mb-2 flex items-center gap-1 text-xs font-medium uppercase tracking-wide opacity-60">

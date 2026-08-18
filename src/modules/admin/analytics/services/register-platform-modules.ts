@@ -7,7 +7,6 @@ import { AUTH_ANALYTICS_MODULE, AUTH_ANALYTICS_WIDGET_IDS } from '@/modules/plat
 import { FEEDBACK_ANALYTICS_MODULE } from '@/modules/platform/feedback/analytics';
 import { KNOWLEDGE_ANALYTICS_MODULE } from '@/modules/platform/knowledge/analytics';
 import { AI_ANALYTICS_MODULE } from '@/modules/platform/conversation/analytics';
-import { PROVIDER_ANALYTICS_MODULE } from '@/modules/platform/ai-provider/analytics';
 import { OBSERVABILITY_ANALYTICS_MODULE } from '@/modules/platform/observability/analytics';
 import { registerAnalyticsModule } from './registry';
 
@@ -32,9 +31,12 @@ registerAnalyticsModule(KNOWLEDGE_ANALYTICS_MODULE);
 // Memory, Performance, Settings) — conversation lifecycle/state/memory analytics.
 registerAnalyticsModule(AI_ANALYTICS_MODULE);
 
-// AI Providers (Provider Platform) is a module WITH pages (Providers, Health,
-// Usage, Settings) — external AI provider registry, health, resilience & usage.
-registerAnalyticsModule(PROVIDER_ANALYTICS_MODULE);
+// AI Providers — NOT registered. Gemini is the only provider today, so the
+// provider-comparison dashboard has nothing to compare and is hidden from the
+// admin navigation. The underlying ai-provider PLATFORM (registry, Gemini
+// adapter, fallback chain, health checks) is untouched and still runs the
+// pipeline; re-adding this one line restores the UI when a second provider
+// lands. The descriptor itself is intentionally kept in the codebase.
 
 // AI Observability (Phase 7.9) — execution metadata for debugging & tuning
 // (Executions, Cost & Usage). Reads the Observability module's aggregates.

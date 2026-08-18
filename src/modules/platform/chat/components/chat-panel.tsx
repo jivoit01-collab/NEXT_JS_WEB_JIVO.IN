@@ -1,11 +1,11 @@
 'use client';
 
 // Chat panel — responsive, theme-aware, accessible container (simplified,
-// Phase 8.2). Header (avatar, title, online, minimize, close) + body (welcome
+// Phase 8.2). Header (avatar, title, online, close) + body (welcome
 // screen or messages) + suggested questions + composer. No history / new-chat /
 // reactions. Focus-trapped; ESC closes.
 import { useEffect, useRef } from 'react';
-import { Minus, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { ExperienceCard } from '@/modules/platform/experience';
 import { CHAT_CONFIG, CHAT_FEATURES } from '../config';
 import type { ChatMessage } from '../types';
@@ -20,7 +20,6 @@ export function ChatPanel({
   questions,
   busy,
   onSend,
-  onMinimize,
   onClose,
   onCardAction,
 }: {
@@ -28,7 +27,6 @@ export function ChatPanel({
   questions: string[];
   busy: boolean;
   onSend: (text: string) => void;
-  onMinimize: () => void;
   onClose: () => void;
   onCardAction: (card: ExperienceCard, action: string, target?: string) => void;
 }) {
@@ -76,27 +74,22 @@ export function ChatPanel({
       className="
         fixed flex flex-col overflow-hidden bg-white text-black shadow-2xl dark:bg-neutral-900 dark:text-white
         inset-0 rounded-none
-        sm:inset-auto sm:bottom-24 sm:right-6 sm:h-[600px] sm:max-h-[85vh] sm:w-[400px] sm:rounded-2xl sm:border sm:border-black/10 sm:dark:border-white/10
+        sm:inset-auto sm:right-10 sm:bottom-10 sm:w-[400px] sm:rounded-2xl sm:border sm:border-black/10 sm:dark:border-white/10
+        sm:h-[min(600px,calc(100dvh-5rem))]
         motion-safe:animate-[panelIn_0.18s_ease]
       "
     >
       {/* Header */}
       <div className="flex items-center justify-between bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2.5 text-white">
         <div className="flex items-center gap-2">
-          <AiAvatar size={34} online />
-          <div className="leading-tight">
-            <div className="text-sm font-semibold">{CHAT_CONFIG.brand.title}</div>
-            <div className="flex items-center gap-1 text-[11px] opacity-90">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-300" /> Online
-            </div>
-          </div>
+          {/* No "Online" status line or presence dot — the assistant's
+              availability isn't something we track, so claiming it was noise. */}
+          <AiAvatar size={34} />
+          <div className="text-sm font-semibold leading-tight">{CHAT_CONFIG.brand.title}</div>
         </div>
         <div className="flex items-center gap-0.5">
-          {CHAT_FEATURES.minimize ? (
-            <button type="button" aria-label="Minimize" onClick={onMinimize} className="rounded p-1.5 hover:bg-white/15">
-              <Minus className="h-4 w-4" />
-            </button>
-          ) : null}
+          {/* Close only — the minimize control was removed; closing already keeps
+              the conversation (it is restored from the DB on reopen). */}
           <button type="button" aria-label="Close chat" onClick={onClose} className="rounded p-1.5 hover:bg-white/15">
             <X className="h-4 w-4" />
           </button>

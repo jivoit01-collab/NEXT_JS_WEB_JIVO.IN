@@ -35,7 +35,12 @@ export interface ChatConversationSummary {
 
 /** Result of starting / restoring a chat session. */
 export interface ChatSession {
-  conversationId: string;
+  /**
+   * Null until the visitor actually sends something. Opening the widget no
+   * longer creates a conversation row — the Gateway creates one on the first
+   * message — so an unopened/idle chat leaves no empty record behind.
+   */
+  conversationId: string | null;
   messages: ChatMessage[];
   /** Suggested opening questions (from the last plan or defaults). */
   suggestedQuestions: string[];
@@ -45,6 +50,8 @@ export interface ChatSession {
 export interface ChatTurnResult {
   message: ChatMessage;
   plan: ExperiencePlan | null;
+  /** The conversation this turn belongs to — new on the visitor's first message. */
+  conversationId: string;
 }
 
 /** Panel display state (persisted to localStorage on the client). */

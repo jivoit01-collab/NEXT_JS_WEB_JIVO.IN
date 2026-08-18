@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MapPin, Mail, Phone, Copyright, ArrowRight, Leaf, MessageSquarePlus } from 'lucide-react';
 import { SafeImage } from '@/components/shared/public';
+import { HoverUnderlineText } from '@/components/shared/hover-underline-text';
 import { FeedbackDialog } from '@/modules/platform/feedback';
 import { getVisibleFooter } from '@/modules/footer';
 import type { VisibleFooterSetting } from '@/modules/footer/types';
@@ -42,16 +43,6 @@ function resolveMapHref(setting: VisibleFooterSetting): string | null {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(setting.address.trim())}`;
   }
   return null;
-}
-
-/** Text with the shared green growing-underline hover effect. */
-function HoverUnderlineText({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="relative transition-colors duration-300 [@media(hover:hover)]:group-hover:text-[#111]">
-      {children}
-      <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
-    </span>
-  );
 }
 
 export async function Footer() {

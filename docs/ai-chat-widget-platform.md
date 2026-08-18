@@ -168,10 +168,42 @@ the single entry point and single place the pipeline runs.
 
 ## Restore
 
-On mount the widget reads a saved `conversationId` from `localStorage` and calls
-`restoreChatAction`, which uses the **Conversation Platform** (`restoreConversation`,
-state-first — never replays full history) to reload recent messages. Emits
+**Only the `conversationId` is stored in the browser** — never the messages. The
+database stays the single source of truth.
+
+```
+first visit          → conversationId → localStorage
+refresh / reopen     → localStorage id → restoreChatAction(id)
+                     → Conversation Platform (state + latest page)
+                     → messages rendered
+```
+
+`restoreChatAction` uses the **Conversation Platform** (`restoreConversation`,
+state-first — never replays full history; one cursor-paginated page of the most
+recent messages). `getMessages` returns newest-first, so the action **reverses**
+the page into chronological order before returning it. Emits
 `ai:chat_conversation_restored`.
+
+The history is fetched **once per session**, guarded by a ref rather than
+`messages.length`, so a genuinely empty restored conversation isn't re-fetched
+on every open.
+
+### Failure handling
+
+If restore fails — deleted conversation, invalid id, expired visitor identity —
+the widget **discards the dead id from `localStorage` and starts a new
+conversation**, so it can never be stuck pointing at a conversation that no
+longer exists. A new conversation is created *only* when necessary.
+
+### One visitor = one conversation
+
+`startChatAction` resumes the visitor's existing conversation via
+`findLatestConversationByVisitor` instead of creating another. The **AI Gateway
+pipeline applies the same rule**: when a request arrives with no
+`conversationId` but an identifiable visitor, it resumes that visitor's
+conversation rather than forking a duplicate. Refreshing, reopening the widget,
+navigating between pages, and asking another question all continue the same
+conversation.
 
 ## Error handling (friendly, leak-proof)
 

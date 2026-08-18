@@ -17,18 +17,28 @@ import type { AIProvider, AIRequest, AIResponse, AIStreamChunk, ProviderInfo } f
 import { makeUsage } from '../utils';
 import { promptToText, readKey } from './base';
 
-// The legacy gemini-1.5-* models were retired on the Generative Language API
-// (they 404 on v1beta generateContent). Use the stable "latest" flash alias so
-// the default keeps working as Google rolls models forward. Override per-request
-// via AIRequest.model (or GEMINI_MODEL env) when a specific model is needed.
-const DEFAULT_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-flash-latest';
+// The legacy gemini-1.5-* / 2.x models were retired on the Generative Language
+// API (they 404 or reject new users on v1beta generateContent). Use a stable
+// "latest" alias so the default keeps working as Google rolls models forward.
+//
+// FLASH-LITE is the default on purpose: the full flash alias now resolves to a
+// THINKING model (gemini-3.7-flash), which spends 50-75 hidden "thoughts" tokens
+// on even a one-word reply — ~96% of the token burn — and ignores
+// `thinkingConfig.thinkingBudget: 0`. On the free tier that exhausts the daily
+// quota in a handful of chats. flash-lite emits no thinking tokens (3 total
+// tokens for the same call vs 78) while still answering grounded RAG questions
+// with correct citations, which is all this chatbot asks of it.
+//
+// Override per-request via AIRequest.model, or globally with GEMINI_MODEL.
+const DEFAULT_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-flash-lite-latest';
 const BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 const info: ProviderInfo = {
   name: 'gemini',
   label: 'Gemini',
   defaultModel: DEFAULT_MODEL,
-  models: ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-pro-latest', 'gemini-2.5-pro'],
+  // Only models that are still served. The 2.x ids were retired by Google.
+  models: ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-pro-latest'],
   streaming: true,
   implemented: true,
 };

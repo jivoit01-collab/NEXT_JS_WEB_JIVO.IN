@@ -4,8 +4,14 @@ import { siteDefaultSeo } from './data/defaults';
 import { getSeoByPage } from './data/queries';
 import type { SeoDefaults, RobotsDirective } from './types';
 
-/** Convert a stored filename (or legacy path) to an API-served URL */
-function resolveImageUrl(value: string | undefined | null): string | undefined {
+/**
+ * Convert a stored filename (or legacy path) to an API-served URL.
+ *
+ * Exported so the chat's link-preview resolver reuses the SAME rule — SEO images
+ * are stored as bare filenames ("og-default.png"), which render as broken images
+ * anywhere that treats them as a path.
+ */
+export function resolveImageUrl(value: string | undefined | null): string | undefined {
   if (!value) return undefined;
   // Already an absolute URL or a path — pass through
   if (value.startsWith('http') || value.startsWith('/')) return value;

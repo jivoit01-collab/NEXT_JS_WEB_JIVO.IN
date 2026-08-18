@@ -17,8 +17,10 @@ export function suggestActions(
   if (lead.reasons.includes('consultation_intent')) {
     actions.push({ type: 'book_consultation', label: 'Book a consultation', confidence: lead.score });
   }
-  if (lead.wantsContact || lead.reasons.includes('contact_intent')) {
-    actions.push({ type: 'contact_support', label: 'Talk to our team', confidence: Math.max(0.5, lead.score) });
+  // Contact CTA only on an explicit contact request (see detectLead) — never as a
+  // default trailer on product/company answers.
+  if (lead.reasons.includes('contact_intent')) {
+    actions.push({ type: 'contact_support', label: 'Contact our team', confidence: Math.max(0.5, lead.score) });
   }
   if (lead.reasons.includes('buying_intent')) {
     const product = citations.find((c) => c.entityType.toLowerCase().includes('product') && c.entityId);

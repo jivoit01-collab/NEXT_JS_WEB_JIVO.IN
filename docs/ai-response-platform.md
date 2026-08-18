@@ -134,3 +134,29 @@ const structured = processResponse({
 - **No Prisma model / migration** — pure transformation.
 - **Additive & backward-compatible** — new module, no existing file changed.
 - Clock-free pure core (`createdAt` stamped only in the server action) → stable, testable, replay-safe.
+
+## Citation markers never reach the user (Phase 8.3)
+
+The model is still instructed to emit `[n]` markers — they are the ONLY mechanism
+that maps a claim back to a real Knowledge document (title + CMS url). But raw
+`[1]` in a chat bubble is noise, so `processResponse` runs in this order:
+
+```
+normalize → validate → extract(citations ← [n] markers, entities, links, lead)
+          → stripCitationMarkers()  → parseMarkdown() → StructuredResponse
+```
+
+`extractCitations` resolves the markers FIRST; `stripCitationMarkers` (in
+`utils/`) then removes them from `text` and `blocks` — everything the user sees.
+Provenance survives untouched on `StructuredResponse.citations`, where the
+Experience Platform turns it into CMS cards and internal links.
+
+The stripper handles `[1]`, grouped `[3, 5]`, adjacent `[2][4]` and spaced
+`[ 2 ]`, and repairs the spacing/punctuation removal leaves behind.
+
+## Contact intent keywords
+
+`INTENT_KEYWORDS.contact` matches how people ASK FOR details ("what is your phone
+number", "your email", "where are you located"), not only requests to be
+contacted. Without those the Contact card never rendered for the most direct
+contact questions.

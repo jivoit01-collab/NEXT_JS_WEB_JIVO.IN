@@ -324,3 +324,85 @@ export async function recentConversations(limit = 8): Promise<ConversationDTO[]>
   const rows = await prisma.conversation.findMany({ orderBy: { lastMessageAt: 'desc' }, take: limit });
   return rows.map(toConversationDTO);
 }
+
+/**
+ * Replace placeholder titles with the conversation's FIRST user question.
+ *
+ * Older conversations were created with a literal "Chat" title, which blocked
+ * the auto-titling in `appendMessage` (it only fills an empty title) and left
+ * the admin list unreadable. This repairs them in ONE statement — the update is
+ * driven by a correlated sub-select, so no rows are pulled into memory.
+ *
+ * Idempotent: only rows still holding a placeholder are touched.
+ */
+export async function backfillConversationTitles(): Promise<number> {
+  const updated = await prisma.$executeRaw`
+    UPDATE "Conversation" c
+    SET title = sub.title
+    FROM (
+      SELECT DISTINCT ON (m."conversationId")
+        m."conversationId" AS id,
+        left(regexp_replace(btrim(m.content), '\\s+', ' ', 'g'), 60) AS title
+      FROM "ConversationMessage" m
+      WHERE m.role = 'USER' AND length(btrim(m.content)) > 0
+      ORDER BY m."conversationId", m."createdAt" ASC
+    ) sub
+    WHERE c.id = sub.id
+      AND (c.title IS NULL OR c.title = '' OR c.title = 'Chat')
+  `;
+  return Number(updated);
+}
+
+export interface AskedQuestion {
+  question: string;
+  count: number;
+  lastAskedAt: string;
+}
+
+/**
+ * The most frequently asked USER questions.
+ *
+ * Grouped and counted BY THE DATABASE — the dashboard never loads messages into
+ * memory to tally them. Normalisation happens inside the query:
+ *
+ *   lower(btrim(content))            → case/whitespace differences collapse
+ *   regexp_replace(…, '\s+', ' ')    → internal runs of spaces collapse
+ *   regexp_replace(…, '[?!.]+$', '') → trailing punctuation collapses
+ *
+ * That is deliberately conservative: it merges obvious duplicates ("Tell me
+ * about Canola Oil" / "tell me about canola oil?") while leaving genuinely
+ * different wording — and therefore different intent — as separate rows.
+ *
+ * `MIN(content)` returns a representative original spelling so the dashboard
+ * shows a readable question rather than the normalised key.
+ *
+ * Only USER messages are counted, and only those whose conversation still
+ * exists (the join excludes orphans; retention cleanup removes the rest).
+ */
+export async function mostAskedQuestions(limit = 10, offset = 0): Promise<AskedQuestion[]> {
+  const take = Math.min(50, Math.max(1, limit));
+  const skip = Math.max(0, offset);
+
+  const rows = await prisma.$queryRaw<{ question: string; count: bigint; last_asked: Date }[]>`
+    SELECT
+      MIN(m.content)                         AS question,
+      COUNT(*)                               AS count,
+      MAX(m."createdAt")                     AS last_asked
+    FROM "ConversationMessage" m
+    JOIN "Conversation" c ON c.id = m."conversationId"
+    WHERE m.role = 'USER'
+      AND length(btrim(m.content)) BETWEEN 3 AND 300
+    GROUP BY regexp_replace(
+               regexp_replace(lower(btrim(m.content)), '\\s+', ' ', 'g'),
+               '[?!.]+$', '', 'g'
+             )
+    ORDER BY count DESC, last_asked DESC
+    LIMIT ${take} OFFSET ${skip}
+  `;
+
+  return rows.map((r) => ({
+    question: r.question,
+    count: Number(r.count),
+    lastAskedAt: r.last_asked.toISOString(),
+  }));
+}

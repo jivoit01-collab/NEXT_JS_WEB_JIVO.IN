@@ -108,3 +108,19 @@ card count and outcome produced the answer — without touching conversation dat
 - **No Core changes**; reuses `core/events` + `@/lib/db`.
 - **Additive** — new module + new `AIExecution` model + one nullable
   `KnowledgeDocument.version` column; all public APIs unchanged.
+
+## Admin navigation: AI Providers hidden (single-provider simplification)
+
+Gemini is the only configured provider, so the **AI Providers** analytics module
+is no longer registered in the admin dashboard — a provider-comparison UI with
+one provider to compare is noise.
+
+- Hidden by removing a single `registerAnalyticsModule(PROVIDER_ANALYTICS_MODULE)`
+  call in `admin/analytics/services/register-platform-modules.ts`.
+- The `PROVIDER_ANALYTICS_MODULE` descriptor, its widgets and its data source are
+  **all retained** in the codebase; re-adding that one line restores the UI.
+- The underlying `platform/ai-provider` package — registry, Gemini adapter,
+  fallback chain, health checks — is **untouched and still runs every request**.
+
+AI observability itself is unchanged and remains the place to read request
+counts, response time, token usage, estimated cost and failures.

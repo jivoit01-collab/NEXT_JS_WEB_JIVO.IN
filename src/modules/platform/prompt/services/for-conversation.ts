@@ -28,6 +28,12 @@ export interface PromptForConversationRequest {
   maxTokens?: number;
   /** Skip knowledge retrieval (e.g. small-talk turns). */
   skipKnowledge?: boolean;
+  /**
+   * Restrict retrieval to these knowledge collections. Intent-scoped search: a
+   * COMPANY question searches company/essence pages only, so product copy with
+   * incidental keyword overlap cannot answer it.
+   */
+  collectionKeys?: string[];
 }
 
 /**
@@ -50,7 +56,10 @@ export async function buildPromptForConversationDetailed(
     recallMemory(req.conversationId),
     req.skipKnowledge
       ? Promise.resolve<KnowledgeContext | undefined>(undefined)
-      : retrieveAndBuildContext({ question: req.question }).catch(() => undefined),
+      : retrieveAndBuildContext({
+          question: req.question,
+          filters: req.collectionKeys ? { collectionKeys: req.collectionKeys } : undefined,
+        }).catch(() => undefined),
   ]);
 
   const prompt = buildPrompt({

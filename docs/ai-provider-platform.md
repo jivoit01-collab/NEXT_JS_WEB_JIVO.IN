@@ -151,3 +151,38 @@ fallback path). The Provider dashboard shows average response time, token usage,
 rate, timeout and fallback counts, and circuit-breaker status — reusing the
 existing health store (in-memory) and the Observability per-provider rollups. No
 new provider logic; metrics are additive.
+
+## Free-tier model choice (why flash-lite is the default)
+
+`GEMINI_MODEL` defaults to **`gemini-flash-lite-latest`** (resolves to
+`gemini-3.5-flash-lite`) rather than the full flash alias.
+
+`gemini-flash-latest` now resolves to a **thinking model** (`gemini-3.7-flash`),
+which spends hidden "thoughts" tokens before answering. Measured on this
+chatbot's own grounded contact question:
+
+| Model | Total tokens | Thinking | Answer |
+|---|---|---|---|
+| `gemini-flash-latest` | 461 | **256** | 84 |
+| `gemini-flash-lite-latest` | **204** | 0 | 83 |
+
+Same answer quality and citations, less than half the tokens — the thinking
+budget alone cost more than the entire reply. On a trivial "Say OK" call the
+split is starker still: 78 tokens (75 thinking) vs 3.
+
+`generationConfig.thinkingConfig.thinkingBudget: 0` does **not** help — the 3.7
+flash model ignores it, and the older ids that honoured it (`gemini-2.0-flash`,
+`gemini-2.5-flash`) have been retired by Google.
+
+This matters because the project runs on the Gemini **free tier**, where the
+daily request/token quota is small. Thinking tokens exhausted it within a handful
+of conversations, after which every reply degraded to the friendly
+"assistant is being set up right now" fallback (HTTP 429), and bursts returned
+HTTP 503.
+
+The resilience envelope already treats 429/5xx as retryable with exponential
+backoff (`PROVIDER_CONFIG.maxRetries = 2`), so transient spikes self-heal; the
+model choice is what keeps the daily quota from running out in the first place.
+
+Set `GEMINI_MODEL` in the environment to override (e.g. `gemini-flash-latest`
+for deeper reasoning if the account is later moved to paid billing).

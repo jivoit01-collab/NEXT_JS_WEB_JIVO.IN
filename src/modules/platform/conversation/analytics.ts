@@ -31,6 +31,7 @@ export const AI_ANALYTICS_WIDGETS = [
   { id: 'ai-conversations-by-status', title: 'Conversations by Status', description: 'Active / idle / ended.', icon: MessagesSquare, size: 'medium', category: 'summary', kind: 'doughnut' },
   { id: 'ai-messages-by-role', title: 'Messages by Role', description: 'User vs assistant vs system.', icon: Hash, size: 'medium', category: 'tables', kind: 'breakdown' },
   { id: 'ai-memory-by-type', title: 'Memory by Type', description: 'Preference / profile / shopping / …', icon: Brain, size: 'medium', category: 'summary', kind: 'doughnut' },
+  { id: 'ai-most-asked-questions', title: 'Most Asked Questions', description: 'Top user questions by volume.', icon: Hash, size: 'full', category: 'custom', kind: 'facts' },
   { id: 'ai-recent-conversations', title: 'Recent Conversations', description: 'Latest activity.', icon: MessagesSquare, size: 'full', category: 'custom', kind: 'facts' },
   { id: 'ai-settings', title: 'AI Settings', description: 'Conversation platform flags.', icon: Settings, size: 'full', category: 'custom', kind: 'facts' },
 
@@ -49,7 +50,7 @@ export const AI_ANALYTICS_MODULE = {
   category: 'business' as const,
   description: 'AI conversation platform — lifecycle, state, messages and memory.',
   order: 96,
-  widgets: ['overview', 'ai-conversations-by-status', 'ai-messages-by-role', 'ai-recent-conversations'],
+  widgets: ['overview', 'ai-conversations-by-status', 'ai-messages-by-role', 'ai-most-asked-questions', 'ai-recent-conversations'],
   pages: AI_ANALYTICS_PAGES.map((p) => ({
     id: p.id,
     name: p.name,
@@ -57,7 +58,7 @@ export const AI_ANALYTICS_MODULE = {
     route: `${ROOT}/${p.id}`,
     widgets:
       p.id === 'conversations'
-        ? ['overview', 'ai-conversations-by-status', 'ai-recent-conversations']
+        ? ['overview', 'ai-conversations-by-status', 'ai-most-asked-questions', 'ai-recent-conversations']
         : p.id === 'messages'
           ? ['overview', 'ai-messages-by-role']
           : p.id === 'memory'

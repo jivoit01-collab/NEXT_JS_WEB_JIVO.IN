@@ -42,6 +42,10 @@ export function useChat(options: UseChatOptions = {}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const seq = useRef(0);
+  // Guards against re-fetching the message history on every open/send. Using a
+  // ref (not messages.length) means a genuinely EMPTY restored conversation
+  // isn't re-fetched forever.
+  const restored = useRef(false);
 
   const persist = useCallback((id: string | null, p: PanelState) => {
     try {
@@ -52,27 +56,46 @@ export function useChat(options: UseChatOptions = {}) {
     }
   }, []);
 
-  const ensureConversation = useCallback(async (): Promise<string | null> => {
-    if (conversationId) {
-      // Restore its messages if we haven't loaded them yet.
-      if (messages.length === 0) {
-        const res = await restoreChatAction(conversationId);
-        if (res.success && 'data' in res) {
-          setMessages(res.data.messages);
-          setQuestions(res.data.suggestedQuestions);
-        }
-      }
-      return conversationId;
-    }
+  /** Start a brand-new conversation and persist ONLY its id. */
+  const startFresh = useCallback(async (): Promise<string | null> => {
     const res = await startChatAction(options);
     if (res.success && 'data' in res) {
       setConversationId(res.data.conversationId);
+      setMessages(res.data.messages);
       setQuestions(res.data.suggestedQuestions);
       persist(res.data.conversationId, 'open');
       return res.data.conversationId;
     }
     return null;
-  }, [conversationId, messages.length, options, persist]);
+  }, [options, persist]);
+
+  const ensureConversation = useCallback(async (): Promise<string | null> => {
+    if (conversationId) {
+      if (restored.current) return conversationId;
+      restored.current = true;
+
+      // Rehydrate from the DB — the source of truth. Only the id lives in
+      // localStorage, never the messages themselves.
+      const res = await restoreChatAction(conversationId);
+      if (res.success && 'data' in res) {
+        setMessages(res.data.messages);
+        setQuestions(res.data.suggestedQuestions);
+        return conversationId;
+      }
+
+      // Restore failed — the conversation was deleted, the id is invalid, or the
+      // visitor identity expired. Drop the dead id and start over so the widget
+      // is never stuck pointing at a conversation that no longer exists.
+      try {
+        localStorage.removeItem(CHAT_CONFIG.storage.conversationId);
+      } catch {
+        /* ignore */
+      }
+      setConversationId(null);
+      return startFresh();
+    }
+    return startFresh();
+  }, [conversationId, startFresh]);
 
   const open = useCallback(async () => {
     setPanel('open');
@@ -100,12 +123,9 @@ export function useChat(options: UseChatOptions = {}) {
       setError(null);
       setBusy(true);
 
+      // A null id is EXPECTED on the visitor's first message: the Gateway
+      // creates the conversation and returns its id with the reply below.
       const id = await ensureConversation();
-      if (!id) {
-        setBusy(false);
-        setError('Could not start a conversation.');
-        return;
-      }
 
       // Optimistic user message + a streaming placeholder.
       const userMsg: ChatMessage = {
@@ -125,9 +145,16 @@ export function useChat(options: UseChatOptions = {}) {
       setMessages((m) => [...m, userMsg, pending]);
       platformEvents.emit(CHAT_EVENTS.MESSAGE_SENT, {});
 
-      const res = await sendMessageAction({ conversationId: id, content: text });
+      const res = await sendMessageAction({ conversationId: id, content: text, visitorId: options.visitorId });
       if (res.success && 'data' in res) {
         const { message, plan } = res.data;
+        // Adopt (and persist) the conversation the Gateway created for this
+        // first message, so refresh/reopen restores the same thread.
+        if (res.data.conversationId && res.data.conversationId !== id) {
+          setConversationId(res.data.conversationId);
+          restored.current = true; // already in sync — no restore needed
+          persist(res.data.conversationId, 'open');
+        }
         setMessages((m) => m.map((x) => (x.id === pending.id ? { ...message, plan } : x)));
         setQuestions(questionsFromPlan(plan, [...CHAT_CONFIG.defaultQuestions]));
         platformEvents.emit(CHAT_EVENTS.MESSAGE_RECEIVED, {});
@@ -141,7 +168,7 @@ export function useChat(options: UseChatOptions = {}) {
       }
       setBusy(false);
     },
-    [busy, ensureConversation],
+    [busy, ensureConversation, options.visitorId, persist],
   );
 
   return {

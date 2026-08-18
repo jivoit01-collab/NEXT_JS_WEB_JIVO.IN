@@ -28,17 +28,31 @@ export interface AnswerCardData {
   text: string;
   citations: StructuredResponse['citations'];
 }
+/** CMS SEO metadata used to preview a link's destination (never duplicated into any table). */
+export interface CardPreview {
+  /** Absolute destination URL. */
+  url: string;
+  title: string;
+  description: string | null;
+  /** ABSOLUTE image URL — a relative value renders as a broken image. */
+  image: string | null;
+  siteName?: string;
+  domain?: string;
+}
+
 export interface ProductCardData {
   title: string;
   entityId: string | null;
   url: string | null;
   relevanceScore: number;
+  preview?: CardPreview | null;
 }
 export interface CmsCardData {
   title: string;
   entityType: string;
   entityId: string | null;
   url: string | null;
+  preview?: CardPreview | null;
 }
 export interface ReadMoreCardData {
   title: string;
@@ -55,10 +69,20 @@ export interface SuggestedQuestionsData {
 }
 export interface SocialCardData {
   message: string;
+  /** Visible footer social links (platform + url). Never invented. */
+  links?: { platform: string; url: string }[];
+}
+
+/** A marketplace option for a purchase turn — configuration-driven, may be empty. */
+export interface MarketplaceLink {
+  key: string;
+  label: string;
+  url: string;
 }
 export interface ContactCardData {
   reasons: string[];
-  prefill: { email?: string; phone?: string };
+  /** Verified business contact details (CMS-sourced) shown on the card. */
+  prefill: { email?: string; phone?: string; address?: string };
 }
 export interface FeedbackCtaData {
   entityType: string;
@@ -70,6 +94,10 @@ export interface BuyProductCardData {
   entityId: string | null;
   /** Prepared — pricing/checkout arrive with the e-commerce phase. */
   available: boolean;
+  /** Configured marketplaces shown beside the official shop link. */
+  marketplaces?: MarketplaceLink[];
+  /** Storefront URL (shop.jivo.in), supplied by the caller from shared config. */
+  url?: string | null;
 }
 
 export type CardData =
@@ -109,6 +137,46 @@ export interface PlanContext {
   correlationId?: string;
   /** Feedback entity to attach a Feedback CTA to. */
   feedbackEntity?: { entityType: string; entityId: string | null };
+  /**
+   * VERIFIED business contact details, supplied by the caller from CMS/Knowledge.
+   *
+   * The Contact card renders these rather than details scraped out of the model's
+   * own prose — the assistant is instructed not to write contact details (the card
+   * shows them), and anything it did write could be hallucinated. Optional: when
+   * absent the card falls back to whatever the lead signal captured.
+   */
+  siteContact?: { phone?: string; email?: string; address?: string };
+  /**
+   * The turn's classified intent, decided by the Gateway BEFORE retrieval.
+   *
+   * It distinguishes PRODUCT_PAGE ("tell me about Canola Oil" → the product page)
+   * from PURCHASE ("where can I buy it?" → the shop), which citations alone
+   * cannot: both retrieve the same product documents.
+   */
+  turnIntent?:
+    | 'security'
+    | 'purchase'
+    | 'contact'
+    | 'product_page'
+    | 'all_products'
+    | 'company'
+    | 'conversation'
+    | 'social'
+    | 'general';
+  /** Absolute storefront URL, supplied by the caller from shared config. */
+  shopUrl?: string;
+  /**
+   * Path → CMS SEO metadata, supplied by the caller. Lets a link card render the
+   * destination page's real title/description/OG image without a second lookup
+   * and without copying SEO data into any conversation table.
+   */
+  pagePreviews?: Record<string, CardPreview>;
+  /** Preview for the storefront (no CMS SeoMeta row exists for shop.jivo.in). */
+  shopPreview?: CardPreview;
+  /** Visible footer social links, supplied by the caller. */
+  socialLinks?: { platform: string; url: string }[];
+  /** Configured marketplaces (Amazon, Flipkart…). Empty when none are set. */
+  marketplaces?: MarketplaceLink[];
 }
 
 export interface ExperiencePlan {

@@ -19,7 +19,11 @@ export function detectLead(question: string | undefined, responseText: string, e
   const reasons: string[] = [];
 
   const buying = countHits(q, INTENT_KEYWORDS.buying) * 2 + countHits(a, INTENT_KEYWORDS.buying);
-  const contact = countHits(q, INTENT_KEYWORDS.contact) * 2 + countHits(a, INTENT_KEYWORDS.contact);
+  // Contact intent is read from the QUESTION ONLY. The assistant routinely says
+  // things like "our team is happy to help" or "contact support", and counting
+  // those made every answer look like a contact request — which is why contact
+  // details leaked onto product and company answers.
+  const contact = countHits(q, INTENT_KEYWORDS.contact) * 2;
   const consult = countHits(q, INTENT_KEYWORDS.consultation) * 2 + countHits(a, INTENT_KEYWORDS.consultation);
 
   if (buying) reasons.push('buying_intent');
@@ -35,7 +39,11 @@ export function detectLead(question: string | undefined, responseText: string, e
   const raw = buying * 0.18 + contact * 0.25 + consult * 0.2 + (hasContactDetail ? 0.4 : 0);
   const score = clamp01(raw);
 
-  const wantsContact = contact > 0 || consult > 0 || hasContactDetail;
+  // Only an explicit contact/consultation request in the USER'S question counts.
+  // `hasContactDetail` is deliberately excluded: those entities are usually the
+  // business's own phone/email echoed in the answer, not the user volunteering
+  // theirs, and treating that as intent showed a contact card on every answer.
+  const wantsContact = contact > 0 || countHits(q, INTENT_KEYWORDS.consultation) > 0;
 
   return {
     isLead: score >= RESPONSE_CONFIG.leadThreshold,

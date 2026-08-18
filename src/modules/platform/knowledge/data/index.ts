@@ -213,25 +213,61 @@ export async function listDocuments(input: {
 }
 
 // ── Keyword search (works today; the platform's baseline retrieval signal) ──
+
+/**
+ * Question words that carry no retrieval signal. A natural-language question
+ * ("What is your phone number?") is mostly these; matching on them would either
+ * exclude every document (when ANDed) or match every document (when ORed), so
+ * they are dropped before the query is built. Ranking still happens in the
+ * search layer over the FULL term list, so precision is preserved.
+ */
+const STOPWORDS = new Set([
+  'a', 'about', 'am', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'can', 'could',
+  'do', 'does', 'for', 'from', 'get', 'give', 'has', 'have', 'how', 'i', 'in',
+  'is', 'it', 'know', 'like', 'me', 'more', 'my', 'of', 'on', 'or', 'please',
+  'show', 'some', 'tell', 'that', 'the', 'their', 'them', 'there', 'these',
+  'this', 'to', 'us', 'want', 'was', 'we', 'were', 'what', 'when', 'where',
+  'which', 'who', 'why', 'will', 'with', 'would', 'you', 'your',
+]);
+
+/** Split a question into meaningful search terms (stopwords + punctuation removed). */
+export function searchTerms(query: string): string[] {
+  const all = query
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const meaningful = all.filter((t) => t.length > 1 && !STOPWORDS.has(t));
+  // If the question was ALL stopwords ("how are you"), fall back to the raw
+  // terms so the query still returns something rather than the entire table.
+  return (meaningful.length ? meaningful : all).slice(0, 8);
+}
+
 export async function keywordSearchDocuments(
   query: string,
   filters: SearchFilters | undefined,
   limit: number,
   offset: number,
 ): Promise<{ rows: KnowledgeDocumentDTO[]; total: number }> {
-  const terms = query.split(/\s+/).filter(Boolean).slice(0, 8);
+  const terms = searchTerms(query);
   const where: Prisma.KnowledgeDocumentWhereInput = {
     status: filters?.status ?? 'ACTIVE',
     language: filters?.language ?? undefined,
     entityType: filters?.entityTypes?.length ? { in: filters.entityTypes } : undefined,
     source: filters?.sourceKeys?.length ? { key: { in: filters.sourceKeys } } : undefined,
     collection: filters?.collectionKeys?.length ? { key: { in: filters.collectionKeys } } : undefined,
-    AND: terms.map((t) => ({
-      OR: [
-        { title: { contains: t, mode: 'insensitive' as const } },
-        { content: { contains: t, mode: 'insensitive' as const } },
-      ],
-    })),
+    // ANY meaningful term makes a document a CANDIDATE; the search layer's
+    // scorer then ranks by how many terms actually matched (title-boosted) and
+    // the retriever drops anything under its relevance threshold. Requiring
+    // every term (AND) matched nothing for real questions.
+    ...(terms.length
+      ? {
+          OR: terms.flatMap((t) => [
+            { title: { contains: t, mode: 'insensitive' as const } },
+            { content: { contains: t, mode: 'insensitive' as const } },
+          ]),
+        }
+      : {}),
   };
   const [rows, total] = await Promise.all([
     prisma.knowledgeDocument.findMany({ where, orderBy: { updatedAt: 'desc' }, take: limit, skip: offset }),

@@ -145,3 +145,32 @@ const plan = planExperience({
 - **No Prisma model / migration** — pure planning.
 - **Additive & backward-compatible** — new module, no existing file changed.
 - Clock-/RNG-free pure core → stable, testable, replay-safe.
+
+## Verified contact details (`PlanContext.siteContact`)
+
+The assistant is instructed NOT to write phone numbers, emails or addresses — the
+Contact card shows them, and anything the model writes could be invented. So the
+card cannot source them from the response text.
+
+`PlanContext.siteContact` carries **CMS-verified** values, supplied by the Gateway
+pipeline from the same `FooterSetting` row the site footer renders (see
+`gateway/pipeline/site-contact.ts`, cached for an hour — a chat turn adds no
+per-request database work). The contact card prefers these and falls back to the
+lead signal when absent.
+
+This keeps the dependency arrow one-way: the Gateway (composition root) reads CMS
+and passes plain data in; the Experience Platform imports no business module.
+
+## Card de-duplication
+
+Knowledge documents are chunked, so one CMS page is often cited several times
+(chunk 0, chunk 2, …). `dedupeCitations` collapses citations by destination URL —
+keeping the highest-scoring one — so a product yields ONE card instead of three
+identical rows. Applied to both product and CMS cards.
+
+## Suggested questions are topic-first
+
+`SUGGESTION_TOPICS` maps question keywords (canola, olive, certifications, …) to a
+`SUGGESTED_QUESTIONS` key, checked BEFORE intent. Follow-ups therefore advance the
+conversation ("What are the benefits of Canola oil?") instead of repeating it, and
+the question just asked is filtered out of its own suggestions.
