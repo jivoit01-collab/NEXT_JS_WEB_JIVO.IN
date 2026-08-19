@@ -29,7 +29,7 @@ export function ColdPressedSection({ data }: Props) {
   return (
     <section
       aria-labelledby="canola-cold-pressed-heading"
-      className="flex w-full min-h-dvh items-center px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-24"
+      className="flex w-full min-h-dvh items-center px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-8 lg:py-24 2xl:py-28"
       style={{ backgroundColor: CANOLA_MOCHA }}
     >
       <motion.div
@@ -37,7 +37,9 @@ export function ColdPressedSection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="w-full"
+        // Capped + centred like the home page, so copy doesn't stretch
+        // edge-to-edge on a wide monitor (the designer's Mac).
+        className="mx-auto w-full max-w-6xl 2xl:max-w-7xl"
       >
         <motion.h2
           id="canola-cold-pressed-heading"
@@ -50,7 +52,7 @@ export function ColdPressedSection({ data }: Props) {
 
         <motion.p
           variants={item}
-          className="mt-7 font-jost-bold max-w-[62ch] text-pretty  text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] lg:mt-9"
+          className="mt-7 font-jost-bold max-w-[62ch] text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] lg:mt-9"
           style={{ color: CANOLA_CREAM }}
         >
           {leadLineOne}
@@ -96,7 +98,7 @@ function ComparisonColumn({
   return (
     <motion.div variants={variants} className="min-w-0">
       <h3
-        className="font-jost-bold text-[clamp(1.15rem,0.95rem+0.9vw,1.9rem)]"
+        className="font-jost-extrabold text-[clamp(1.15rem,0.95rem+0.9vw,1.9rem)]"
         style={{ color: CANOLA_CREAM }}
       >
         {title}
@@ -118,10 +120,10 @@ function ComparisonColumn({
 export function ColdPressedSectionSkeleton() {
   return (
     <section
-      className="flex w-full min-h-dvh animate-pulse items-center px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-24"
+      className="flex w-full min-h-dvh animate-pulse items-center px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-8 lg:py-24 2xl:py-28"
       style={{ backgroundColor: CANOLA_MOCHA }}
     >
-      <div className="w-full">
+      <div className="mx-auto w-full max-w-6xl 2xl:max-w-7xl">
         <div className="h-9 w-64 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-96" />
         <div className="mt-7 space-y-2.5 lg:mt-9">
           <div className="h-4 w-full max-w-md rounded bg-white/15" />

@@ -42,7 +42,9 @@ export function WhatIsCanolaSection({ data }: Props) {
   return (
     <section
       aria-labelledby="canola-what-is-heading"
-      className="flex w-full min-h-dvh items-center px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-24"
+      // The design keeps ~10% breathing room each side, so padding scales with
+      // the viewport instead of stopping at a fixed value.
+      className="flex w-full min-h-dvh items-center px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-[7%] lg:py-24 2xl:px-[9%] 2xl:py-28"
       style={{
         backgroundColor: CANOLA_FOREST,
         // Soft sage copy on the deep green field.
@@ -54,10 +56,16 @@ export function WhatIsCanolaSection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="mx-auto w-full"
+        // Wide enough to match the design's proportions on a large monitor
+        // (the reference canvas is ~1440-1600px, where the content block is
+        // ~1150-1290px), while still capped so it never stretches indefinitely.
+        className="mx-auto w-full max-w-400"
       >
-        {/* Heading + intro columns */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16 2xl:gap-24">
+        {/* Heading + intro columns. The design is NOT a 50/50 split: the left
+            block (heading + lead paragraph) is about 1.5× the right one, with a
+            wide gutter between them. `lg:grid-cols-[1.5fr_1fr]` reproduces that
+            ratio at any width; below lg the columns stack. */}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10 lg:grid-cols-[1.5fr_1fr] lg:gap-24 2xl:gap-28">
           <div className="min-w-0">
             <motion.h2
               id="canola-what-is-heading"
@@ -84,13 +92,15 @@ export function WhatIsCanolaSection({ data }: Props) {
           ) : null}
         </div>
 
-        {/* Feature row — dividers between columns, as in the design. */}
-        <div className="mt-14 grid grid-cols-2 gap-x-2 gap-y-12 sm:grid-cols-3 sm:gap-x-4 lg:mt-24 lg:grid-cols-6 lg:gap-y-0">
+        {/* Feature row. `items-stretch` + `h-full` make every divider span the
+            FULL row height, as in the design — with `border-l` on the article
+            alone each rule stopped at its own text, leaving them ragged. */}
+        <div className="mt-16 grid grid-cols-2 items-stretch gap-x-2 gap-y-12 sm:grid-cols-3 sm:gap-x-4 md:mt-20 md:gap-x-6 lg:mt-28 lg:grid-cols-6 lg:gap-x-0 lg:gap-y-0 2xl:mt-32">
           {features.map((feature, i) => (
             <motion.article
               key={`${feature.label}-${i}`}
               variants={featureItem}
-              className="group min-w-0 px-3 text-center transition-transform duration-500 ease-out hover:-translate-y-1.5 sm:px-5 lg:border-l lg:border-(--canola-ink)/20 lg:first:border-l-0"
+              className="group h-full min-w-0 px-3 pt-1 text-center transition-transform duration-500 ease-out hover:-translate-y-1.5 sm:px-5 lg:px-6 lg:border-l lg:border-(--canola-ink)/25 lg:first:border-l-0"
             >
               {/* SafeImage resolves empty/unknown values to the upload
                   placeholder, so a feature never renders an empty hole
@@ -125,11 +135,11 @@ export function WhatIsCanolaSection({ data }: Props) {
 export function WhatIsCanolaSectionSkeleton() {
   return (
     <section
-      className="flex w-full min-h-dvh animate-pulse items-center px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-24"
+      className="flex w-full min-h-dvh animate-pulse items-center px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-[7%] lg:py-24 2xl:px-[9%] 2xl:py-28"
       style={{ backgroundColor: CANOLA_FOREST }}
     >
-      <div className="mx-auto w-full">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16 2xl:gap-24">
+      <div className="mx-auto w-full max-w-400">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10 lg:grid-cols-[1.5fr_1fr] lg:gap-24 2xl:gap-28">
           <div>
             <div className="h-9 w-64 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-96" />
             <div className="mt-7 space-y-2.5 lg:mt-9">
@@ -144,7 +154,7 @@ export function WhatIsCanolaSectionSkeleton() {
             <div className="h-4 w-3/4 rounded bg-white/10" />
           </div>
         </div>
-        <div className="mt-14 grid grid-cols-2 gap-x-2 gap-y-12 sm:grid-cols-3 sm:gap-x-4 lg:mt-24 lg:grid-cols-6">
+        <div className="mt-16 grid grid-cols-2 gap-x-2 gap-y-12 sm:grid-cols-3 sm:gap-x-4 md:mt-20 md:gap-x-6 lg:mt-28 lg:grid-cols-6 2xl:mt-32">
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="px-3 text-center sm:px-5">
               <div className="mx-auto h-[clamp(3.5rem,8vw,5.5rem)] w-[clamp(3.5rem,8vw,5.5rem)] rounded-lg bg-white/10" />

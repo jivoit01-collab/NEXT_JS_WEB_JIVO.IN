@@ -79,7 +79,7 @@ export function WarmthSection({ data }: Props) {
             relies on for the closing line. */}
         <motion.p
           variants={item}
-          className="mt-5 max-w-[70ch] text-pretty whitespace-pre-line text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] text-white/90 drop-shadow-[0_1px_12px_rgba(0,0,0,0.9)] lg:mt-7"
+          className="mt-5 font-jost-light max-w-[70ch] text-pretty whitespace-pre-line text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] text-white/90 drop-shadow-[0_1px_12px_rgba(0,0,0,0.9)] lg:mt-7"
         >
           {paragraph}
         </motion.p>

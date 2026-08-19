@@ -76,7 +76,7 @@ export function DifferenceSection({ data }: Props) {
             relies on for the closing lines. */}
         <motion.p
           variants={item}
-          className="mt-5 max-w-[72ch] text-pretty whitespace-pre-line text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-[#74734E] drop-shadow-[0_1px_10px_rgba(0,0,0,0.75)] lg:mt-7"
+          className="mt-5 font-jost-light max-w-[72ch] text-pretty whitespace-pre-line text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-[#74734E] drop-shadow-[0_1px_10px_rgba(0,0,0,0.75)] lg:mt-7"
         >
           {paragraph}
         </motion.p>

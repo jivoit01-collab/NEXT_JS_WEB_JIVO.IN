@@ -469,7 +469,7 @@ export function CanolaOilsHero({ data }: Props) {
             gap-2
 
             rounded-full
-            border-4
+            border-5
             border-white
 
             px-9
@@ -507,22 +507,7 @@ export function CanolaOilsHero({ data }: Props) {
           }}
         >
           {ctaLabel}
-          <ArrowRight
-            aria-hidden
-            className="
-              h-4
-              w-4
-
-              transition-transform
-              duration-300
-              ease-out
-
-              group-hover/cta:translate-x-1
-
-              motion-reduce:transform-none
-              motion-reduce:transition-none
-            "
-          />
+          
         </a>
       </div>
     </section>

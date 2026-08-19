@@ -313,7 +313,7 @@ function VariantCard({
         />
       </div>
       <span
-        className="mt-3 block text-center font-jost-bold text-xs sm:mt-5 sm:text-sm lg:text-base"
+        className="mt-3 block text-center font-jost-extrabold text-xs sm:mt-5 sm:text-sm lg:text-base"
         style={{ color: labelColor }}
       >
         {label}

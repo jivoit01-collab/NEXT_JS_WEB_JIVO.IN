@@ -36,7 +36,7 @@ export function RangeSection({ data }: Props) {
   return (
     <section
       aria-labelledby="canola-range-heading"
-      className="overflow-x-clip px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+      className="overflow-x-clip px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-8 lg:py-24 2xl:py-28"
       style={{ backgroundColor: CANOLA_TAUPE }}
     >
       <motion.div
@@ -44,7 +44,7 @@ export function RangeSection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="mx-auto w-full max-w-6xl"
+        className="mx-auto w-full max-w-6xl 2xl:max-w-7xl"
       >
         <motion.h2
           id="canola-range-heading"
@@ -62,7 +62,7 @@ export function RangeSection({ data }: Props) {
           </span>
         </motion.h2>
 
-        <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-6 lg:mt-12 lg:grid-cols-3 lg:gap-8">
+        <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-6 md:mt-10 md:grid-cols-3 md:gap-7 lg:mt-12 lg:gap-8 2xl:gap-10">
           {variants.map((variant, i) => {
             // Two-up below lg. A trailing odd card would leave a gap, so it
             // spans the full row instead. At lg the grid is 3-up and even.
@@ -71,7 +71,7 @@ export function RangeSection({ data }: Props) {
               <motion.div
                 key={`${variant.label}-${i}`}
                 variants={cardItem}
-                className={spansRow ? 'col-span-2 lg:col-span-1' : undefined}
+                className={spansRow ? 'col-span-2 md:col-span-1' : undefined}
               >
                 <VariantCard variant={variant} fullWidth={spansRow} />
               </motion.div>
@@ -100,7 +100,7 @@ function VariantCard({
       <div
         className={
           fullWidth
-            ? 'flex h-[clamp(11rem,26vw,18rem)] items-center justify-center lg:h-[clamp(11rem,34vw,18rem)]'
+            ? 'flex h-[clamp(11rem,26vw,18rem)] items-center justify-center md:h-[clamp(11rem,34vw,18rem)]'
             : 'flex h-[clamp(11rem,34vw,18rem)] items-center justify-center'
         }
       >
@@ -112,7 +112,7 @@ function VariantCard({
           width={260}
           height={420}
           quality={85}
-          sizes="(max-width: 640px) 40vw, (max-width: 1024px) 30vw, 260px"
+          sizes="(max-width: 767px) 45vw, (max-width: 1024px) 30vw, (max-width: 1536px) 22vw, 260px"
           className="h-full w-auto object-contain transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
         />
       </div>
@@ -154,16 +154,16 @@ function VariantCard({
 export function RangeSectionSkeleton() {
   return (
     <section
-      className="animate-pulse px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+      className="animate-pulse px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-8 lg:py-24 2xl:py-28"
       style={{ backgroundColor: CANOLA_TAUPE }}
     >
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="mx-auto w-full max-w-6xl 2xl:max-w-7xl">
         <div className="mx-auto h-8 w-72 rounded-md bg-white/20 sm:h-10 lg:h-12 lg:w-[30rem]" />
-        <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-6 lg:mt-12 lg:grid-cols-3 lg:gap-8">
+        <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-6 md:mt-10 md:grid-cols-3 md:gap-7 lg:mt-12 lg:gap-8 2xl:gap-10">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className={`rounded-2xl p-3.5 sm:p-6 lg:p-8 ${i === 2 ? 'col-span-2 lg:col-span-1' : ''}`}
+              className={`rounded-2xl p-3.5 sm:p-6 lg:p-8 ${i === 2 ? 'col-span-2 md:col-span-1' : ''}`}
               style={{ backgroundColor: CANOLA_CARD_GREEN }}
             >
               <div className="mx-auto h-[clamp(11rem,34vw,18rem)] w-24 rounded-lg bg-white/10" />

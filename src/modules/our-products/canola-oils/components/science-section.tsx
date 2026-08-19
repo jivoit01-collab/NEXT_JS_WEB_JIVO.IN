@@ -51,7 +51,7 @@ export function ScienceSection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="relative z-10 flex w-full h-[80%] flex-col justify-center px-4 py-16 sm:px-8 sm:py-20 lg:px-18 lg:py-28"
+        className="relative z-10 mx-auto flex h-[80%] w-full max-w-6xl flex-col justify-center px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28 2xl:max-w-7xl"
       >
         <motion.h2
           id="canola-science-heading"
@@ -72,7 +72,7 @@ export function ScienceSection({ data }: Props) {
         {subheading ? (
           <motion.h3
             variants={item}
-            className="mt-12 font-jost-bold text-[clamp(1.15rem,0.95rem+0.9vw,1.9rem)] drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]"
+            className="mt-12 font-jost-extrabold text-[clamp(1.15rem,0.95rem+0.9vw,1.9rem)] drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]"
             style={{ color: CANOLA_CREAM }}
           >
             {subheading}
@@ -106,7 +106,7 @@ export function ScienceSection({ data }: Props) {
 export function ScienceSectionSkeleton() {
   return (
     <section className="relative flex min-h-[95svh] animate-pulse flex-col justify-center overflow-hidden bg-[#2f6f63]">
-      <div className="w-full px-4 py-16 sm:px-8 sm:py-20 lg:px-18 lg:py-28">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8 lg:py-28 2xl:max-w-7xl">
         <div className="h-9 w-72 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-[32rem]" />
         <div className="mt-7 max-w-[62ch] space-y-2.5 lg:mt-9">
           <div className="h-4 w-full rounded bg-white/10" />
