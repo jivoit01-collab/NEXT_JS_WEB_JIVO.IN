@@ -1,4 +1,3 @@
-import { ArrowRight } from 'lucide-react';
 import { SafeImage, isPlaceholderValue } from '@/components/shared/public';
 import type { OliveOilsHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
@@ -227,8 +226,7 @@ export function OliveOilsHero({ data }: Props) {
           }}
           className="
             font-jost-extrabold group/cta animate-olive-hero-rise
-            mt-6 inline-flex min-h-12 items-center justify-center gap-2
-            rounded-full border-4 border-white px-9 py-3
+            mt-6 inline-flex min-h-12 items-center justify-center rounded-full border-4 border-white px-9 py-3
             text-[clamp(0.75rem,0.85vw,0.9rem)] tracking-[0.18em] text-white uppercase
             transition-all duration-300 ease-out
             hover:-translate-y-1 hover:scale-[1.04] hover:bg-white
@@ -240,11 +238,7 @@ export function OliveOilsHero({ data }: Props) {
             motion-reduce:transform-none
           "
         >
-          {ctaLabel}
-          <ArrowRight
-            aria-hidden
-            className="h-4 w-4 transition-transform duration-300 ease-out group-hover/cta:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none"
-          />
+          {ctaLabel}
         </a>
       </div>
     </section>

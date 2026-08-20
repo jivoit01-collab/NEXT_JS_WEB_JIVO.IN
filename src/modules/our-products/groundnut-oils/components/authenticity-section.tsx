@@ -64,7 +64,7 @@ export function AuthenticitySection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="relative z-10 flex w-full flex-col justify-start px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-20"
+        className="relative z-10 flex w-full flex-col justify-start px-4 py-10 sm:px-6 sm:py-12 md:py-14 lg:px-[5%] lg:py-16 2xl:py-20"
       >
         <motion.h2
           id="groundnut-authenticity-heading"
@@ -79,7 +79,7 @@ export function AuthenticitySection({ data }: Props) {
             relies on for the three short lines. */}
         <motion.p
           variants={item}
-          className="mt-5 max-w-[70ch] text-pretty font-jost-light whitespace-pre-line text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.7] text-white/90 drop-shadow-[0_1px_12px_rgba(0,0,0,0.9)] lg:mt-7"
+          className="mt-4 max-w-[64ch] text-pretty font-jost-light whitespace-pre-line text-[clamp(0.9rem,0.8rem+0.4vw,1.2rem)] leading-[1.6] text-white/95 drop-shadow-[0_1px_12px_rgba(0,0,0,0.9)] lg:mt-5"
         >
           {paragraph}
         </motion.p>
@@ -94,7 +94,7 @@ export function AuthenticitySectionSkeleton() {
       className="relative flex min-h-[50dvh] animate-pulse flex-col justify-start overflow-hidden sm:min-h-dvh"
       style={{ backgroundColor: GROUNDNUT_AMBER }}
     >
-      <div className="w-full px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-20">
+      <div className="w-full px-4 py-10 sm:px-6 sm:py-12 md:py-14 lg:px-[5%] lg:py-16 2xl:py-20">
         <div className="h-9 w-72 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-[32rem]" />
         <div className="mt-5 max-w-[70ch] space-y-2.5 lg:mt-7">
           <div className="h-4 w-full rounded bg-white/10" />

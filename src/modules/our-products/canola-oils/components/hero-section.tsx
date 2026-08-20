@@ -1,4 +1,3 @@
-import { ArrowRight } from 'lucide-react';
 import { SafeImage, isPlaceholderValue } from '@/components/shared/public';
 import type { CanolaOilsHeroContent } from '../types';
 import { defaultHeroContent } from '../data/defaults';
@@ -135,7 +134,7 @@ export function CanolaOilsHero({ data }: Props) {
           ============================================================ */}
       {/* ── Bottle group ──────────────────────────────────────────
           ONE rule at every screen size: the box is pinned to the RIGHT edge
-          with a 5% bleed (right-[-5%]), and the two bottles hold fixed
+          with a 5% bleed (translateX(5%) of the box), and the two bottles hold fixed
           percentage positions inside it. Because both the box and the bottles
           are sized in %, the pair scales with the viewport while their
           overlap and tilt stay identical — mobile through 2xl.
@@ -154,8 +153,11 @@ export function CanolaOilsHero({ data }: Props) {
         // literals — `w-[78%]` emitted no CSS, which is why the big bottle
         // vanished entirely.
         style={{
-          width: 'clamp(15rem, 62vw, 50rem)',
-          marginRight: '-5%',
+          width: 'clamp(13rem, 37vw, 68rem)',
+          // FIXED ASPECT RATIO: the box keeps its shape at every screen
+          // size, so the two bottles (positioned in % of this box) stay
+          // locked together instead of drifting apart on zoom/resize.
+          aspectRatio: '1 / 1.05',
         }}
         className="
           pointer-events-none
@@ -164,17 +166,10 @@ export function CanolaOilsHero({ data }: Props) {
           self-end
           mt-8
 
-          h-[30svh]
-
           sm:absolute
-          sm:right-[-5%]
+          sm:right-0
           sm:bottom-[4%]
           sm:mt-0
-          sm:h-[58%]
-
-          md:h-[68%]
-          lg:h-[74%]
-          xl:h-[76%]
         "
       >
         <div className="relative h-full w-full">
@@ -200,7 +195,7 @@ export function CanolaOilsHero({ data }: Props) {
                 animate-canola-bottle-throw
                 pointer-events-none
                 absolute
-                left-[0%]
+                left-[5%]
                 bottom-[25%]
 
                 z-[1]
@@ -277,7 +272,7 @@ export function CanolaOilsHero({ data }: Props) {
               animate-canola-bottle-throw
               pointer-events-none
               absolute
-              right-[5%]
+              right-[-20%]
               bottom-[0%]
 
               z-[2]
@@ -466,7 +461,6 @@ export function CanolaOilsHero({ data }: Props) {
 
             items-center
             justify-center
-            gap-2
 
             rounded-full
             border-5
@@ -507,7 +501,6 @@ export function CanolaOilsHero({ data }: Props) {
           }}
         >
           {ctaLabel}
-          
         </a>
       </div>
     </section>
@@ -544,43 +537,23 @@ export function CanolaOilsHeroSkeleton() {
 
       {/* Bottle composition */}
       <div
+        style={{ width: 'clamp(13rem, 37vw, 68rem)', aspectRatio: '1 / 1.05' }}
         className="
           absolute
-          right-[-9vw]
+          right-0
           bottom-[4%]
-
-          h-[50%]
-          w-[68vw]
-
-          min-w-[240px]
-          max-w-[800px]
-
-          sm:h-[58%]
-          sm:w-[70vw]
-
-          md:h-[68%]
-          md:w-[64vw]
-
-          lg:h-[74%]
-          lg:w-[58vw]
-
-          xl:h-[76%]
-          xl:w-[54vw]
         "
       >
         {/* Small bottle */}
         <div
           className="
             absolute
-            left-[-6%]
-            bottom-[24%]
+            left-[5%]
+            bottom-[25%]
             z-[1]
 
-            h-[58%]
+            h-[62%]
             w-[28%]
-
-            sm:h-[59%]
-            lg:h-[62%]
 
             rotate-[-10deg]
 
@@ -593,7 +566,7 @@ export function CanolaOilsHeroSkeleton() {
         <div
           className="
             absolute
-            right-[10%]
+            right-[-20%]
             bottom-[-2%]
             z-[2]
 
