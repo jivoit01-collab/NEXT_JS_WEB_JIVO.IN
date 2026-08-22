@@ -67,7 +67,7 @@ export function DifferenceSection({ data }: Props) {
         <motion.h2
           id="olive-difference-heading"
           variants={item}
-          className="font-jost-extrabold  text-balance text-[clamp(1.5rem,1.05rem+1.9vw,2.75rem)] leading-[1.12] tracking-[0.06em] text-[#475631] uppercase drop-shadow-[0_1px_10px_rgba(255,255,255,0.55)]"
+          className="font-jost-extrabold  text-balance text-[clamp(1.75rem,1.2rem+2.4vw,3.5rem)] leading-[1.12] tracking-[0.06em] text-[#475631] uppercase drop-shadow-[0_1px_10px_rgba(255,255,255,0.55)]"
         >
           {heading}
         </motion.h2>
@@ -76,7 +76,7 @@ export function DifferenceSection({ data }: Props) {
             relies on for the closing lines. */}
         <motion.p
           variants={item}
-          className="mt-5 font-jost-light max-w-[72ch] text-pretty whitespace-pre-line text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-[#74734E] drop-shadow-[0_1px_10px_rgba(0,0,0,0.75)] lg:mt-7"
+          className="mt-5 font-jost-light max-w-[78ch] text-pretty whitespace-pre-line text-[clamp(1rem,0.9rem+0.5vw,1.375rem)] leading-[1.75] text-[#475631] drop-shadow-[0_1px_10px_rgba(255,255,255,0.55)] lg:mt-7"
         >
           {paragraph}
         </motion.p>
@@ -93,7 +93,7 @@ export function DifferenceSectionSkeleton() {
     >
       <div className="w-full px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-20">
         <div className="mx-auto h-8 w-64 rounded-md bg-white/15 sm:h-10 lg:h-12 lg:w-[24rem]" />
-        <div className="mx-auto mt-5 max-w-[72ch] space-y-2.5 lg:mt-7">
+        <div className="mx-auto mt-5 max-w-[78ch] space-y-2.5 lg:mt-7">
           <div className="h-4 w-full rounded bg-white/10" />
           <div className="h-4 w-11/12 rounded bg-white/10" />
           <div className="h-4 w-3/4 rounded bg-white/10" />

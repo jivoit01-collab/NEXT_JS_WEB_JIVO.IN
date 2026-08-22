@@ -129,9 +129,9 @@ export function OliveOilsHero({ data }: Props) {
           aspectRatio: '1 / 1',
         }}
         className="
-          pointer-events-none relative z-10 mx-auto mt-8
-          flex items-end justify-center
-          sm:absolute sm:bottom-[6%] sm:mx-0 sm:mt-0 sm:justify-end
+          pointer-events-none relative z-10 ml-auto mr-[-2%] mt-8
+          flex items-end justify-end
+          sm:absolute sm:bottom-[6%] sm:mx-0 sm:mr-0 sm:mt-0
           sm:right-[-2%]
         "
       >
@@ -268,7 +268,7 @@ export function OliveOilsHeroSkeleton() {
       {/* Three packs */}
       <div
         style={{ width: 'clamp(min(78vw, 20rem), 36vw, 62rem)', aspectRatio: '1 / 1' }}
-        className="absolute right-[-3.3%] bottom-[6%] flex items-end justify-end gap-[2%]"
+        className="absolute right-[-2%] bottom-[6%] flex items-end justify-end gap-[2%]"
       >
         <div className="h-[74%] w-[28%] rounded-[18px] bg-white/5" />
         <div className="h-[87%] w-[30%] rounded-[18px] bg-white/5" />

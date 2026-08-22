@@ -48,16 +48,18 @@ const artFromLeft = {
 const ART_HEIGHT = 'h-[90%]';
 
 /**
- * Width at each breakpoint. Raise these values to grow the branch.
+ * Width of the branch, as a share of the CARD CONTAINER (not the screen).
  *
- * From lg up these are FIXED rem sizes, not vw. The art is anchored to the
- * fixed-width card container, so a vw width would keep growing past the
- * container on xl/2xl and push the branch back out to the screen edge —
- * the drift this layout exists to prevent. Below lg it stays vw-based so it
- * still scales down on phones and tablets.
+ * The art box is anchored to the same centred max-w-6xl container as the
+ * cards, so a percentage here keeps the branch the same size relative to the
+ * cards at every width — the overlap with the first/last card is identical on
+ * any screen or zoom level. Raise the % to grow the branch.
+ *
+ * Fixed rem widths were used previously to stop the art drifting while it was
+ * anchored to the SCREEN edge; anchoring to the container removes that need
+ * and lets the art scale again.
  */
-const ART_WIDTH =
-  'w-[45vw] max-w-[30rem] lg:w-[26rem] lg:max-w-[26rem] xl:w-[30rem] xl:max-w-[30rem] 2xl:w-[34rem] 2xl:max-w-[34rem]';
+const ART_WIDTH = 'w-[45vw] max-w-[30rem] lg:w-[34%] lg:max-w-none';
 
 /**
  * Tilt applied to the branch. The design leans it clockwise, so the
@@ -74,23 +76,30 @@ const ART_TILT_LEFT = 'rotate-[-25deg]';
  * Vertical position of the branch. Negative values move it UP.
  * `-40px` lifts it ~40px above centre; use `-50px` for a little more.
  */
-const ART_OFFSET_Y = '-translate-y-[50px]';
+const ART_OFFSET_Y = '-translate-y-[30px]';
 
 /**
  * Horizontal nudge, applied per side so each branch moves OUTWARD toward its
  * own screen edge.
  *
- * The design keeps a deliberate overlap: the right-hand olive fruit sits
- * partly BEHIND the last card, and the left-hand branch tucks behind the
- * first — so this is a small nudge, not a full clear-out. Raise it to pull
- * the art further off the cards; lower it to increase the overlap.
+ * The design keeps a deliberate overlap: the right-hand branch sits partly
+ * BEHIND the last card and the left-hand one behind the first, with roughly
+ * 15% of the art's width covered.
+ *
+ * Measured as a % of the ART'S OWN WIDTH, so the overlap is identical at any
+ * screen size or zoom: +80% leaves 20% hidden, +85% -> 15%, +90% -> 10%.
+ * RAISE it to hide less of the art; LOWER it to hide more.
+ *
+ * Expressed as a PERCENTAGE of the art box (which now tracks the card
+ * container), so it scales with everything else. A fixed rem value would stay
+ * a constant pixel nudge while the art and cards scaled, shifting the overlap.
  *
  * Set as an INLINE STYLE, not a Tailwind class: these values live in a
  * template literal, and Tailwind's scanner does not reliably generate
  * arbitrary classes from those — `translate-x-[5rem]` produced no CSS at all
  * and the art silently stayed put. An inline transform always applies.
  */
-const ART_OFFSET_X = '-3rem';
+const ART_OFFSET_X = '75%';
 
 interface Props {
   /** Stable id for the section heading (used by aria-labelledby). */
@@ -151,12 +160,11 @@ export function VariantSection({
 
           `inset-y-0` gives the absolutely-positioned art a full-height box;
           `z-0` keeps it behind the cards (z-10). */}
-      {/* Negative insets cancel the section's px-4/sm:px-6/lg:px-8 padding so
-          the art reaches the true screen edge. Written as `left-[-1rem]` etc.
-          rather than `-left-4`: Tailwind v4 does not generate the responsive
-          `sm:-left-6` / `lg:-left-8` forms, so those silently produced no CSS
-          and the art stayed inset. */}
-      <div className="pointer-events-none absolute inset-y-0 left-[-1rem] right-[-1rem] z-0 sm:left-[-1.5rem] sm:right-[-1.5rem] lg:left-[-2rem] lg:right-[-2rem]">
+      {/* The box matches the card container (max-w-6xl, centred), so the art is
+          positioned relative to the CARDS rather than the screen. That keeps
+          the branch/card overlap constant at every width — anchoring to the
+          screen edge let the overlap change as the side gutters grew. */}
+      <div className="pointer-events-none absolute inset-y-0 left-1/2 z-0 w-full max-w-6xl -translate-x-1/2">
       <motion.div
         variants={art}
         initial="hidden"
@@ -190,7 +198,7 @@ export function VariantSection({
             width={900}
             height={900}
             quality={85}
-            sizes="(max-width: 1024px) 42vw, 36vw"
+            sizes="(max-width: 1024px) 45vw, 34vw"
             className={`h-full w-full object-contain ${
               imageSide === 'left' ? 'object-left' : 'object-right'
             }`}
@@ -218,7 +226,7 @@ export function VariantSection({
 
         <motion.p
           variants={item}
-          className="mx-auto mt-6 max-w-[68ch] text-pretty font-jost-light text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90 lg:mt-8"
+          className="mx-auto mt-6 max-w-full text-pretty font-jost-light text-center text-[clamp(0.95rem,0.86rem+0.42vw,1.25rem)] leading-[1.75] text-white/90 lg:mt-8"
         >
           {paragraph}
         </motion.p>
@@ -226,7 +234,7 @@ export function VariantSection({
         {paragraphTwo ? (
           <motion.p
             variants={item}
-            className="mx-auto mt-5 max-w-[68ch] text-pretty font-jost-light text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90"
+            className="mx-auto mt-5 max-w-full text-pretty font-jost-light text-center text-[clamp(0.95rem,0.86rem+0.42vw,1.25rem)] leading-[1.75] text-white/90"
           >
             {paragraphTwo}
           </motion.p>
@@ -235,7 +243,7 @@ export function VariantSection({
         {bestFor ? (
           <motion.p
             variants={item}
-            className="mx-auto mt-5 max-w-[68ch] text-pretty font-jost-light text-center text-[clamp(0.9rem,0.82rem+0.34vw,1.125rem)] leading-[1.75] text-white/90"
+            className="mx-auto mt-5 max-w-full text-pretty font-jost-light text-center text-[clamp(0.95rem,0.86rem+0.42vw,1.25rem)] leading-[1.75] text-white/90"
           >
             {bestFor}
           </motion.p>
@@ -355,7 +363,7 @@ export function VariantSectionSkeleton({ background }: { background: string }) {
     >
       <div className="mx-auto w-full max-w-6xl">
         <div className="mx-auto h-8 w-72 rounded-md bg-white/20 sm:h-10 lg:h-12 lg:w-[26rem]" />
-        <div className="mx-auto mt-6 max-w-[68ch] space-y-2.5 lg:mt-8">
+        <div className="mx-auto mt-6 max-w-full space-y-2.5 lg:mt-8">
           <div className="mx-auto h-4 w-full rounded bg-white/10" />
           <div className="mx-auto h-4 w-11/12 rounded bg-white/10" />
         </div>
