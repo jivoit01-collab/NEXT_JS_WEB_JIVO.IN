@@ -116,19 +116,23 @@ export function OliveOilsHero({ data }: Props) {
           is clipped by the viewport; hovering the section slides the whole
           lineup back into view. */}
       <HeroBottles
-        // Mobile: in-flow, centred, fixed height so it sits between the logo
-        // and the copy. From sm up it returns to the absolute right-side
-        // lineup — that layout is unchanged.
+        // ONE box holding ALL THREE packs. Their heights/offsets are percentages
+        // of this box, so the lineup scales as a single unit and the packs can
+        // never drift apart when the screen or zoom changes.
+        //
+        // The width uses one clamp() and the height comes from a FIXED aspect
+        // ratio. Previously width and height scaled on separate curves
+        // (sm:h-[50%] sm:w-[48vw], md:h-[58%] md:w-[44vw]...), so the box changed
+        // SHAPE per screen and the overlap between packs shifted.
+        style={{
+          width: 'clamp(min(78vw, 20rem), 36vw, 62rem)',
+          aspectRatio: '1 / 1',
+        }}
         className="
           pointer-events-none relative z-10 mx-auto mt-8
-          flex h-[34svh] w-[86vw] items-end justify-center
+          flex items-end justify-center
           sm:absolute sm:bottom-[6%] sm:mx-0 sm:mt-0 sm:justify-end
-          sm:right-[-3vw] lg:right-[-2vw]
-          sm:h-[50%] sm:w-[48vw]
-          min-w-[210px] max-w-[560px]
-          md:h-[58%] md:w-[44vw]
-          lg:h-[66%] lg:w-[40vw]
-          xl:h-[70%] xl:w-[37vw]
+          sm:right-[-2%]
         "
       >
         {packs.map((pack, i) => (
@@ -238,7 +242,8 @@ export function OliveOilsHero({ data }: Props) {
             motion-reduce:transform-none
           "
         >
-          {ctaLabel}
+          {ctaLabel}
+
         </a>
       </div>
     </section>
@@ -261,7 +266,10 @@ export function OliveOilsHeroSkeleton() {
       </div>
 
       {/* Three packs */}
-      <div className="absolute right-[-4vw] bottom-[6%] flex h-[42%] w-[66vw] max-w-[760px] min-w-[240px] items-end justify-end gap-[2%] sm:h-[50%] sm:w-[62vw] md:h-[58%] md:w-[58vw] lg:right-[-2vw] lg:h-[64%] lg:w-[52vw] xl:h-[68%] xl:w-[48vw]">
+      <div
+        style={{ width: 'clamp(min(78vw, 20rem), 36vw, 62rem)', aspectRatio: '1 / 1' }}
+        className="absolute right-[-3.3%] bottom-[6%] flex items-end justify-end gap-[2%]"
+      >
         <div className="h-[74%] w-[28%] rounded-[18px] bg-white/5" />
         <div className="h-[87%] w-[30%] rounded-[18px] bg-white/5" />
         <div className="h-full w-[32%] rounded-[18px] bg-white/5" />

@@ -51,7 +51,7 @@ export function GoodnessSection({ data }: Props) {
   return (
     <section
       aria-labelledby="groundnut-goodness-heading"
-      className="relative flex w-full min-h-[80%] items-start overflow-hidden px-4 pb-10 pt-50 sm:px-8 sm:py-12 lg:px-18 lg:py-20"
+      className="relative w-full overflow-hidden px-4 pt-6 pb-12 sm:px-6 sm:pt-8 sm:pb-14 md:pb-16 lg:flex lg:items-start lg:px-[6%] lg:py-20 2xl:py-24"
       style={{
         backgroundColor: GROUNDNUT_AMBER,
         ['--groundnut-wheat' as string]: GROUNDNUT_WHEAT,
@@ -66,7 +66,7 @@ export function GoodnessSection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="pointer-events-none absolute top-0 right-0 z-0 w-[62vw] max-w-[30rem] sm:w-[52vw] lg:w-[42vw] lg:max-w-[38rem] 2xl:max-w-[46rem]"
+        className="pointer-events-none relative z-0 ml-auto mb-2 w-[62vw] max-w-80 sm:mb-4 sm:w-[56vw] sm:max-w-96 md:w-[50vw] md:max-w-[28rem] lg:absolute lg:top-0 lg:right-0 lg:mb-0 lg:w-[40vw] lg:max-w-none"
       >
         {/* SafeImage resolves empty/unknown values to the upload placeholder. */}
         <SafeImage
@@ -75,8 +75,8 @@ export function GoodnessSection({ data }: Props) {
           width={900}
           height={900}
           quality={85}
-          sizes="(max-width: 640px) 62vw, (max-width: 1024px) 52vw, 42vw"
-          className="h-auto w-full object-contain object-right-top"
+          sizes="(max-width: 640px) 62vw, (max-width: 1024px) 50vw, 40vw"
+          className="h-auto w-full object-contain lg:object-right-top"
         />
       </motion.div>
 
@@ -87,7 +87,7 @@ export function GoodnessSection({ data }: Props) {
         viewport={defaultViewport}
         className="relative z-10 w-full"
       >
-        <div className="grid grid-cols-1 items-start gap-10">
+        <div className="grid grid-cols-1 items-start gap-10 lg:w-[52%]">
           {/* ── Copy column. The heading and paragraph clear the artwork; the
               benefits list is allowed to run wider (the artwork sits in the
               upper-right, so the lower rows have the full width). ── */}
@@ -102,7 +102,7 @@ export function GoodnessSection({ data }: Props) {
 
             <motion.p
               variants={item}
-              className="mt-7 max-w-[62ch] font-jost-light text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
+              className="mt-7 w-full font-jost-light text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
             >
               {paragraph}
             </motion.p>
@@ -139,27 +139,27 @@ export function GoodnessSection({ data }: Props) {
 export function GoodnessSectionSkeleton() {
   return (
     <section
-      className="flex w-full min-h-dvh animate-pulse items-center px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-24"
+      className="relative w-full animate-pulse overflow-hidden px-4 pt-6 pb-12 sm:px-6 sm:pt-8 sm:pb-14 md:pb-16 lg:flex lg:items-start lg:px-[6%] lg:py-20 2xl:py-24"
       style={{ backgroundColor: GROUNDNUT_AMBER }}
     >
-      <div className="w-full">
-        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-16 2xl:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] 2xl:gap-24">
-          <div>
-            <div className="h-9 w-72 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-[30rem]" />
-            <div className="mt-7 max-w-[62ch] space-y-2.5 lg:mt-9">
-              <div className="h-4 w-full rounded bg-white/10" />
-              <div className="h-4 w-11/12 rounded bg-white/10" />
-              <div className="h-4 w-3/4 rounded bg-white/10" />
-            </div>
-            <div className="mt-12 h-8 w-44 rounded-md bg-white/15 sm:h-10 lg:mt-16" />
-            <div className="mt-6 max-w-[70ch] space-y-3.5">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-4 w-full rounded bg-white/10" />
-              ))}
-            </div>
+      {/* Artwork placeholder — pinned like the real one. */}
+      <div className="pointer-events-none relative z-0 ml-auto mb-2 w-[62vw] max-w-80 sm:mb-4 sm:w-[56vw] sm:max-w-96 md:w-[50vw] md:max-w-[28rem] lg:absolute lg:top-0 lg:right-0 lg:mb-0 lg:w-[40vw] lg:max-w-none">
+        <div className="aspect-square w-full bg-white/10" />
+      </div>
+
+      <div className="relative z-10 w-full">
+        <div className="lg:w-[52%]">
+          <div className="h-9 w-72 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-[30rem]" />
+          <div className="mt-7 w-full space-y-2.5 lg:mt-9">
+            <div className="h-4 w-full rounded bg-white/10" />
+            <div className="h-4 w-11/12 rounded bg-white/10" />
+            <div className="h-4 w-3/4 rounded bg-white/10" />
           </div>
-          <div className="lg:pt-2">
-            <div className="mx-auto aspect-square w-full max-w-[34rem] rounded-2xl bg-white/10 lg:max-w-none" />
+          <div className="mt-10 h-8 w-44 rounded-md bg-white/15 sm:h-10 lg:mt-14" />
+          <div className="mt-5 space-y-2">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-4 w-full rounded bg-white/10" />
+            ))}
           </div>
         </div>
       </div>

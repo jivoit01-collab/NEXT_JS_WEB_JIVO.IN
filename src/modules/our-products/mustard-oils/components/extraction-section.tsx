@@ -52,94 +52,96 @@ export function ExtractionSection({ data }: Props) {
   return (
     <section
       aria-labelledby="mustard-extraction-heading"
-      // Extra bottom padding below lg: the artwork is centred along the bottom
-      // there, so the copy needs room to clear it instead of overlapping.
-      className="relative flex w-full min-h-dvh items-start overflow-hidden px-4 pt-14 pb-[54%] sm:px-8 sm:pt-16 sm:pb-[58%] lg:items-start lg:px-18 lg:py-24"
+      className="relative flex min-h-dvh w-full flex-col justify-center overflow-hidden px-4 py-12 sm:px-6 sm:py-14 md:py-16 lg:px-[6%] lg:py-20 2xl:py-24"
       style={{
         backgroundColor: MUSTARD_WINE,
         ['--mustard-heading' as string]: MUSTARD_HEADING,
       }}
     >
-      {/* ── Artwork — mustard flowers rising from the lower edge.
-          Height-capped (not width-driven) so the top of the flowers starts
-          BELOW the first heading rather than level with it. On small screens
-          it is centred horizontally instead of pinned right. ── */}
-      <motion.div
-        variants={art}
-        initial="hidden"
-        whileInView="show"
-        viewport={defaultViewport}
-        // Pulled further in from the right edge so the flowers sit under the
-        // tail of the heading, and made taller so they rise closer to it —
-        // closing the gap between the heading and the artwork.
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 flex h-[52%] justify-center sm:h-[58%] lg:inset-x-auto lg:right-16 lg:h-[82%] lg:justify-end xl:right-24"
-      >
-        {/* SafeImage resolves empty/unknown values to the upload placeholder. */}
-        <SafeImage
-          src={image}
-          alt=""
-          width={900}
-          height={900}
-          quality={85}
-          sizes="(max-width: 640px) 66vw, (max-width: 1024px) 52vw, 34vw"
-          className="h-full w-auto max-w-none object-contain object-bottom"
-        />
-      </motion.div>
+      {/* ONE shared box: copy + artwork. The artwork is absolute WITHIN this
+          box (not the section), so their relationship is fixed and the pair
+          centres together at any zoom or screen size. */}
+      <div className="relative mx-auto flex w-full max-w-[160rem] flex-1 flex-col justify-center">
+        <motion.div
+          variants={art}
+          initial="hidden"
+          whileInView="show"
+          viewport={defaultViewport}
+          // Artwork — mustard flowers. Stacked under the copy and centred below
+          // lg; absolute inside the shared box from lg up. Width is
+          // clamp(rem, vw, rem): the vw term scales across monitors, the rem
+          // bounds make browser zoom actually change the size (plain vw does
+          // not, since zoom redefines the CSS pixel).
+          style={{ width: 'clamp(11rem, 30%, 76rem)' }}
+        className="pointer-events-none order-2 z-0 mx-auto -mb-12 mt-6 flex h-auto justify-center sm:-mb-14 md:-mb-16 lg:absolute lg:right-[2%] lg:bottom-[-5rem] lg:order-none lg:mx-0 lg:mt-0 lg:mb-0 lg:items-end lg:justify-end 2xl:bottom-[-6rem]"
+        >
+          {/* SafeImage resolves empty/unknown values to the upload placeholder. */}
+          <SafeImage
+            src={image}
+            alt=""
+            width={900}
+            height={900}
+            quality={85}
+            sizes="(max-width: 640px) 60vw, (max-width: 1024px) 46vw, 30vw"
+            className="h-auto w-full object-contain object-bottom"
+          />
+        </motion.div>
 
-      <motion.div
-        variants={prefersReduced ? reducedMotion : container}
-        initial="hidden"
-        whileInView="show"
-        viewport={defaultViewport}
-        className="relative z-10 w-full"
-      >
-        <div className="grid grid-cols-1 items-start gap-1">
-          <div className="min-w-0">
-            <motion.h2
-              id="mustard-extraction-heading"
-              variants={item}
-              className="font-jost-extrabold text-balance text-[clamp(1.75rem,1.1rem+2.6vw,3.5rem)] leading-[1.08] tracking-[0.06em] text-(--mustard-heading) uppercase"
-            >
-              {heading}
-            </motion.h2>
-
-            {/* Measure capped so the copy clears the artwork on wide screens. */}
-            <motion.p
-              variants={item}
-              className="mt-7 max-w-[62ch] font-jost-light text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
-            >
-              {paragraph}
-            </motion.p>
-
-            {benefitsHeading ? (
-              <motion.h3
+        <motion.div
+          variants={prefersReduced ? reducedMotion : container}
+          initial="hidden"
+          whileInView="show"
+          viewport={defaultViewport}
+          className="relative z-10 order-1 w-full lg:order-none"
+        >
+          <div className="grid grid-cols-1 items-start gap-1 lg:w-[65%]">
+            <div className="min-w-0">
+              <motion.h2
+                id="mustard-extraction-heading"
                 variants={item}
-                className="mt-12 font-jost-extrabold text-[clamp(1.35rem,1rem+1.6vw,2.5rem)] leading-[1.1] tracking-[0.06em] text-(--mustard-heading) uppercase lg:mt-16"
+                className="font-jost-extrabold text-[clamp(1.5rem,1.1rem+2.6vw,3.5rem)] leading-[1.08] tracking-[0.06em] text-(--mustard-heading) uppercase lg:whitespace-nowrap"
               >
-                {benefitsHeading}
-              </motion.h3>
-            ) : null}
+                {heading}
+              </motion.h2>
 
-            {/* No measure cap: the artwork sits low on the right, so the list
-                has the full width and each point fits on ONE line at lg+.
-                Below lg it wraps normally rather than overflowing. */}
-            <motion.ul variants={item} className="mt-6 space-y-3.5">
-              {benefits.map((benefit, i) => (
-                <li
-                  key={i}
-                  className="flex min-w-0 font-jost-light items-start gap-2.5 text-[clamp(0.9rem,0.8rem+0.38vw,1.15rem)] leading-[1.7] text-white/90"
+              {/* Measure capped so the copy clears the artwork on wide screens. */}
+              <motion.p
+                variants={item}
+                className="mt-7 w-full font-jost-light text-pretty text-[clamp(0.95rem,0.85rem+0.42vw,1.3rem)] leading-[1.75] text-white/90 lg:mt-9"
+              >
+                {paragraph}
+              </motion.p>
+
+              {benefitsHeading ? (
+                <motion.h3
+                  variants={item}
+                  className="mt-12 font-jost-extrabold text-[clamp(1.35rem,1rem+1.6vw,2.5rem)] leading-[1.1] tracking-[0.06em] text-(--mustard-heading) uppercase lg:mt-16 lg:whitespace-nowrap"
                 >
-                  <span
-                    aria-hidden
-                    className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-white/70"
-                  />
-                  <span className="min-w-0 lg:whitespace-nowrap">{benefit}</span>
-                </li>
-              ))}
-            </motion.ul>
+                  {benefitsHeading}
+                </motion.h3>
+              ) : null}
+
+              {/* No measure cap: the artwork sits low on the right, so the list
+                  has the full width and each point fits on ONE line at lg+.
+                  Below lg it wraps normally rather than overflowing. */}
+              <motion.ul variants={item} className="mt-6 space-y-3.5">
+                {benefits.map((benefit, i) => (
+                  <li
+                    key={i}
+                    className="flex min-w-0 font-jost-light items-start gap-2.5 text-[clamp(0.9rem,0.8rem+0.38vw,1.15rem)] leading-[1.7] text-white/90"
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-white/70"
+                    />
+                    <span className="min-w-0 lg:whitespace-nowrap">{benefit}</span>
+                  </li>
+                ))}
+              </motion.ul>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </section>
   );
 }
@@ -147,18 +149,18 @@ export function ExtractionSection({ data }: Props) {
 export function ExtractionSectionSkeleton() {
   return (
     <section
-      className="flex w-full min-h-dvh animate-pulse items-center px-4 py-14 sm:px-8 sm:py-16 lg:px-18 lg:py-24"
+      className="relative flex min-h-dvh w-full flex-col justify-center animate-pulse overflow-hidden px-4 py-12 sm:px-6 sm:py-14 md:py-16 lg:px-[6%] lg:py-20 2xl:py-24"
       style={{ backgroundColor: MUSTARD_WINE }}
     >
-      <div className="w-full">
+      <div className="w-full lg:w-[65%]">
         <div className="h-9 w-72 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-[34rem]" />
-        <div className="mt-7 max-w-[62ch] space-y-2.5 lg:mt-9">
+        <div className="mt-7 w-full space-y-2.5 lg:mt-9">
           <div className="h-4 w-full rounded bg-white/10" />
           <div className="h-4 w-11/12 rounded bg-white/10" />
           <div className="h-4 w-3/4 rounded bg-white/10" />
         </div>
         <div className="mt-12 h-8 w-56 rounded-md bg-white/15 sm:h-10 lg:mt-16" />
-        <div className="mt-6 max-w-[62ch] space-y-3.5">
+        <div className="mt-6 w-full space-y-3.5">
           {[0, 1, 2, 3, 4].map((i) => (
             <div key={i} className="h-4 w-full rounded bg-white/10" />
           ))}

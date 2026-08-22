@@ -45,7 +45,7 @@ const artFromLeft = {
    ══════════════════════════════════════════════════════════════ */
 
 /** Height of the artwork relative to the section. Bigger % = taller branch. */
-const ART_HEIGHT = 'h-full';
+const ART_HEIGHT = 'h-[90%]';
 
 /**
  * Width at each breakpoint. Raise these values to grow the branch.
@@ -67,8 +67,8 @@ const ART_WIDTH =
  * The left-hand copy is also FLIPPED horizontally (`-scale-x-100`), so the
  * branch grows inward from the left edge instead of appearing back-to-front.
  */
-const ART_TILT_RIGHT = 'rotate-[30deg]';
-const ART_TILT_LEFT = 'rotate-[-30deg]';
+const ART_TILT_RIGHT = 'rotate-[25deg]';
+const ART_TILT_LEFT = 'rotate-[-25deg]';
 
 /**
  * Vertical position of the branch. Negative values move it UP.
