@@ -200,7 +200,7 @@ export function VariantSection({
             quality={85}
             sizes="(max-width: 1024px) 45vw, 34vw"
             className={`h-full w-full object-contain ${
-              imageSide === 'left' ? 'object-left' : 'object-right'
+              imageSide === 'left' ? 'object-left -scale-x-100' : 'object-right'
             }`}
           />
         </div>
