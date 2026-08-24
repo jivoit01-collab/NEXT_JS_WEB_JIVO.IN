@@ -116,7 +116,7 @@ function VariantCard({ variant }: { variant: DesiGheeVariant }) {
         aria-label={`View ${label} Jivo A2 cow ghee`}
         className={`${cardClass} focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--ghee-leaf)] focus-visible:outline-none`}
         style={{
-          backgroundColor: GHEE_FOREST,
+          backgroundColor: GHEE_FOREST_BG,
           ['--ghee-leaf' as string]: GHEE_LEAF,
         }}
       >
