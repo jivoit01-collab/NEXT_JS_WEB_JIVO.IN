@@ -41,6 +41,13 @@ const SECTION_PAGES: PageEntry[] = [
     description: 'Hero, extra virgin, extra light, pomace and difference',
     color: 'from-lime-500/10 to-green-500/10',
   },
+  {
+    label: 'Desi Ghee',
+    href: '/jivo-dev/our-products/desi-ghee',
+    icon: Droplet,
+    description: 'Hero, range, key highlights and Bilona churning sections',
+    color: 'from-green-500/10 to-emerald-500/10',
+  },
 ];
 
 const ACCENT = '#b8860b';

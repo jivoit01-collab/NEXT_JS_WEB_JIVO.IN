@@ -73,6 +73,7 @@ export const CMS_MODULES: CmsModule[] = [
       { id: 'groundnut-oils', name: 'Groundnut Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/groundnut-oils', seo: true },
       { id: 'mustard-oils', name: 'Mustard Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/mustard-oils', seo: true },
       { id: 'olive-oils', name: 'Olive Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/olive-oils', seo: true },
+      { id: 'desi-ghee', name: 'Desi Ghee', icon: Droplet, adminHref: '/jivo-dev/our-products/desi-ghee', seo: true },
     ],
   },
   {

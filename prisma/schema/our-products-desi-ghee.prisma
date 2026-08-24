@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — DESI GHEE page
+// Route: /products/desi-ghee
+// Admin: /jivo-dev/our-products/desi-ghee
+// Sections: hero, range, keyHighlights, bilona
+// ==========================================
+
+model OurProductsDesiGhee {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "keyHighlights", "bilona"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

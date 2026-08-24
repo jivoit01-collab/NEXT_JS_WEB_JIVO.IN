@@ -847,6 +847,38 @@ async function main() {
         category: 'Edible Oil',
       },
     },
+    {
+      page: 'our-products-desi-ghee',
+      metaTitle: 'A2 Cow Ghee | Our Products | Jivo Wellness',
+      metaDescription:
+        'Jivo A2 Cow Ghee — made the traditional Bilona way from cultured whole curd of free-grazing indigenous cows. Rich in vitamins A, D and E.',
+      keywords: [
+        'jivo a2 cow ghee',
+        'a2 desi ghee',
+        'bilona ghee',
+        'vedic bilona ghee',
+        'desi cow ghee',
+        'a2 ghee 1 litre',
+        'a2 ghee 500ml',
+        'cultured curd ghee',
+        'indigenous cow ghee',
+        'pure desi ghee india',
+      ],
+      ogTitle: 'Jivo A2 Cow Ghee — Traditional Bilona Churned',
+      ogDescription:
+        'Slow-churned from cultured whole curd of free-grazing indigenous cows — richer in aroma and flavour.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/desi-ghee`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo A2 Cow Ghee',
+        url: `${BASE}/products/desi-ghee`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Ghee',
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {
