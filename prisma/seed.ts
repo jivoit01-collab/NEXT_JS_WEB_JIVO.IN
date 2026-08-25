@@ -719,6 +719,25 @@ async function main() {
         url: `${BASE}/our-essence/certifications-quality-standards`,
       },
     },
+    {
+      page: 'privacy-policy',
+      metaTitle: 'Privacy Policy | Jivo Wellness',
+      metaDescription:
+        'How Jivo Wellness Pvt. Ltd. collects, uses, retains and protects your personal information, and the rights you have over your data.',
+      keywords: ['jivo privacy policy', 'jivo wellness privacy', 'data protection', 'cookies policy'],
+      ogTitle: 'Privacy Policy | Jivo Wellness',
+      ogDescription:
+        'Jivo Wellness respects and protects your privacy. Read how we handle your personal data.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/privacy-policy`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'WebPage',
+        name: 'Privacy Policy',
+        url: `${BASE}/privacy-policy`,
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {
