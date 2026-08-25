@@ -48,6 +48,13 @@ const SECTION_PAGES: PageEntry[] = [
     description: 'Hero, range, key highlights and Bilona churning sections',
     color: 'from-green-500/10 to-emerald-500/10',
   },
+  {
+    label: 'Sunflower Oils',
+    href: '/jivo-dev/our-products/sunflower-oils',
+    icon: Droplet,
+    description: 'Hero, range, benefits and why-it-matters sections',
+    color: 'from-yellow-500/10 to-orange-500/10',
+  },
 ];
 
 const ACCENT = '#b8860b';

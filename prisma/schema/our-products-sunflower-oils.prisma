@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — SUNFLOWER OILS page
+// Route: /products/sunflower-oils
+// Admin: /jivo-dev/our-products/sunflower-oils
+// Sections: hero, range, benefits, whyItMatters
+// ==========================================
+
+model OurProductsSunflowerOils {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "benefits", "whyItMatters"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

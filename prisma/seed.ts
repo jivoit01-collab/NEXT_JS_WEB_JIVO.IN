@@ -879,6 +879,38 @@ async function main() {
         category: 'Ghee',
       },
     },
+    {
+      page: 'our-products-sunflower-oils',
+      metaTitle: 'Sunflower Oil | Our Products | Jivo Wellness',
+      metaDescription:
+        'Jivo Cold Pressed Sunflower Oil — light, mild and versatile, rich in MUFA and PUFA with a high smoke point, ideal for everyday Indian cooking.',
+      keywords: [
+        'jivo sunflower oil',
+        'cold pressed sunflower oil',
+        'sunflower oil india',
+        'sunflower cooking oil',
+        'sunflower oil 1 litre',
+        'sunflower oil 5 litre',
+        'high smoke point oil',
+        'light cooking oil',
+        'mufa pufa oil',
+        'refined sunflower oil alternative',
+      ],
+      ogTitle: 'Jivo Sunflower Oil — Light, Mild & Versatile',
+      ogDescription:
+        'Cold-pressed sunflower oil with a high smoke point — ideal for sautéing, frying and everyday cooking.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/sunflower-oils`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Cold Pressed Sunflower Oil',
+        url: `${BASE}/products/sunflower-oils`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Edible Oil',
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {

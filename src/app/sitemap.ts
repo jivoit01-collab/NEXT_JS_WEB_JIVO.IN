@@ -51,6 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/products/mustard-oils', priority: 0.9 as const, changefreq: 'weekly' as const },
     { path: '/products/olive-oils', priority: 0.9 as const, changefreq: 'weekly' as const },
     { path: '/products/desi-ghee', priority: 0.9 as const, changefreq: 'weekly' as const },
+    { path: '/products/sunflower-oils', priority: 0.9 as const, changefreq: 'weekly' as const },
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPages.map(
