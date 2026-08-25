@@ -30,6 +30,18 @@ export function resolveSafeImageSrc(raw: string): string {
 }
 
 /**
+ * True when the value is an external image URL (http/https/data) rather than a
+ * local upload. next/image only optimizes whitelisted hosts, so external URLs
+ * must be rendered with a plain <img> instead — the caller uses this to decide.
+ */
+export function isExternalImageSrc(raw: string | undefined | null): boolean {
+  if (!raw) return false;
+  return (
+    raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')
+  );
+}
+
+/**
  * Returns true if the value is empty or the seed placeholder.
  *
  * Module defaults store the placeholder as a full path
@@ -58,9 +70,39 @@ interface SafeImageProps extends Omit<ImageProps, 'src' | 'onError'> {
  * URL, use `SafeImageFallbackClient` from `./safe-image-fallback-client`.
  */
 export function SafeImageServer({ src, alt, ...rest }: SafeImageProps) {
+  const resolved = resolveSafeImageSrc(src);
+
+  // External URLs (pasted by an admin) aren't from a whitelisted host, so
+  // next/image would throw "hostname not configured". Render them with a plain
+  // <img> instead — it has no host restriction. Local uploads keep next/image
+  // optimization. We forward the layout-relevant props (className/sizes/style)
+  // and translate `fill` into absolute-cover styles so callers behave the same.
+  if (isExternalImageSrc(resolved)) {
+    // Only forward props a plain <img> understands; next/image-only props
+    // (sizes/priority/quality/loader/placeholder/…) are dropped intentionally.
+    const r = rest as ImageProps & { fill?: boolean };
+    const fill = r.fill === true;
+    const fillStyle = fill
+      ? ({ position: 'absolute', inset: 0, width: '100%', height: '100%' } as const)
+      : undefined;
+    return (
+      <span className="relative inline-block" style={{ display: 'contents' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={resolved}
+          alt={alt}
+          width={fill ? undefined : (r.width as number | undefined)}
+          height={fill ? undefined : (r.height as number | undefined)}
+          className={r.className}
+          style={{ ...(r.style as React.CSSProperties), ...fillStyle }}
+        />
+      </span>
+    );
+  }
+
   return (
     <span className="relative inline-block" style={{ display: 'contents' }}>
-      <Image {...rest} src={resolveSafeImageSrc(src)} alt={alt} />
+      <Image {...rest} src={resolved} alt={alt} />
     </span>
   );
 }

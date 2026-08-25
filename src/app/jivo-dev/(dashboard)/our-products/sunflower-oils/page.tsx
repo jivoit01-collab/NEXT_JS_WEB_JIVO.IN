@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Save, Loader, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageUpload } from '@/components/shared/admin';
+import { ImageUpload, isPlaceholderOrEmpty } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
 import { upsertSunflowerOilsSectionAction } from '@/modules/our-products/sunflower-oils/actions';
 import type {
@@ -391,6 +391,7 @@ export default function SunflowerOilsManager() {
                 <ImageUpload
                   value={whyItMatters.backgroundImage}
                   onChange={(url) => setWhyItMatters({ ...whyItMatters, backgroundImage: url })}
+                  required={isPlaceholderOrEmpty(whyItMatters.backgroundImage)}
                 />
               </div>
             </div>

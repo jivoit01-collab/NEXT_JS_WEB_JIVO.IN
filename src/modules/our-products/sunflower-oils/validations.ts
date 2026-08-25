@@ -6,6 +6,16 @@ import { z } from 'zod';
  */
 const imageField = z.string().default('');
 
+/**
+ * A required image: the value must be a non-empty, non-placeholder string.
+ * Used where an empty image would leave the section broken (e.g. an image-only
+ * section's background).
+ */
+const requiredImageField = z
+  .string()
+  .min(1, 'Image is required')
+  .refine((v) => v !== 'placeholder.png', 'Image is required');
+
 export const sunflowerOilsHeroSchema = z.object({
   logoImage: imageField,
   heading: z.string().min(1, 'Heading is required'),
@@ -37,7 +47,7 @@ export const sunflowerOilsBenefitsSchema = z.object({
 export const sunflowerOilsWhyItMattersSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),
   paragraph: z.string().min(1, 'Paragraph is required'),
-  backgroundImage: imageField,
+  backgroundImage: requiredImageField,
 });
 
 /** Map from section key → Zod schema for server-side validation. */
