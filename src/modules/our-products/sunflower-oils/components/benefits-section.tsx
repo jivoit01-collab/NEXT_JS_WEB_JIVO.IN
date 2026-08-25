@@ -51,7 +51,7 @@ export function BenefitsSection({ data }: Props) {
   return (
     <section
       aria-labelledby="sunflower-benefits-heading"
-      className="relative flex w-full flex-col overflow-hidden px-4 pt-8 sm:pt-0 pb-0 sm:px-6 lg:block lg:min-h-dvh lg:px-[6%] lg:pb-0 "
+      className="relative flex w-full flex-col overflow-hidden px-4 pt-8 sm:pt-0 sm:pt-0 pb-0 sm:px-6 lg:block lg:min-h-dvh lg:px-[6%] lg:pb-0 "
       style={{
         backgroundColor: SUNFLOWER_RED,
         ['--sunflower-wheat' as string]: SUNFLOWER_YELLOW,
@@ -106,9 +106,9 @@ export function BenefitsSection({ data }: Props) {
               {benefits.map((benefit, i) => (
                 <li
                   key={i}
-                  className="flex min-w-0 font-jost-light items-start gap-2.5 text-[clamp(1.05rem,0.9rem+0.5vw,1.5rem)] leading-[1.7] text-white/90"
+                  className="flex min-w-0 font-jost-light items-start gap-2.5 text-[clamp(1.05rem,0.9rem+0.5vw,1.5rem)] leading-[1.7] text-white"
                 >
-                  <span aria-hidden className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-white/70" />
+                  <span aria-hidden className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-white" />
                   <span className="min-w-0 lg:whitespace-nowrap">{benefit}</span>
                 </li>
               ))}
