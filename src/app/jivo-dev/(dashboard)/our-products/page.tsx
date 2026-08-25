@@ -55,6 +55,13 @@ const SECTION_PAGES: PageEntry[] = [
     description: 'Hero, range, benefits and why-it-matters sections',
     color: 'from-yellow-500/10 to-orange-500/10',
   },
+  {
+    label: 'Gold Refined Oil',
+    href: '/jivo-dev/our-products/refined-gold-oils',
+    icon: Droplet,
+    description: 'Hero, range, key highlights and what-is-gold sections',
+    color: 'from-amber-500/10 to-red-500/10',
+  },
 ];
 
 const ACCENT = '#b8860b';

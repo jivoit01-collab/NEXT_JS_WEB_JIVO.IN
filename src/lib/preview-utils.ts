@@ -18,6 +18,7 @@ const ADMIN_TO_PUBLIC_ROUTE: Record<string, string> = {
   '/our-products/olive-oils': '/products/olive-oils',
   '/our-products/desi-ghee': '/products/desi-ghee',
   '/our-products/sunflower-oils': '/products/sunflower-oils',
+  '/our-products/refined-gold-oils': '/products/refined-gold-oils',
   '/media': '/media',
   '/community': '/community',
   '/our-essence': '/our-essence',

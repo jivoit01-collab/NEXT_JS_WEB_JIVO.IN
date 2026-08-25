@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — REFINED GOLD OILS page
+// Route: /products/refined-gold-oils
+// Admin: /jivo-dev/our-products/refined-gold-oils
+// Sections: hero, range, keyHighlights, whatIsGold
+// ==========================================
+
+model OurProductsRefinedGoldOils {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "keyHighlights", "whatIsGold"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
