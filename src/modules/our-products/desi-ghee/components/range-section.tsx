@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { SmartLink } from '@/components/shared/smart-link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
 import { container, fadeUp, reducedMotion, defaultViewport } from '@/lib/animation-variants';
@@ -111,7 +111,7 @@ function VariantCard({ variant }: { variant: DesiGheeVariant }) {
 
   if (href) {
     return (
-      <Link
+      <SmartLink
         href={href}
         aria-label={`View ${label} Jivo A2 cow ghee`}
         className={`${cardClass} focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--ghee-leaf)] focus-visible:outline-none`}
@@ -121,7 +121,7 @@ function VariantCard({ variant }: { variant: DesiGheeVariant }) {
         }}
       >
         {inner}
-      </Link>
+      </SmartLink>
     );
   }
 

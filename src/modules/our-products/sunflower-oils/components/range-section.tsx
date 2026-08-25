@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { SmartLink } from '@/components/shared/smart-link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { SafeImage } from '@/components/shared/public';
 import { container, fadeUp, reducedMotion, defaultViewport } from '@/lib/animation-variants';
@@ -130,7 +130,7 @@ function VariantCard({
 
   if (href) {
     return (
-      <Link
+      <SmartLink
         href={href}
         aria-label={`View ${label} Jivo cold pressed sunflower oil`}
         className={`${cardClass} focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--sunflower-range-brown)] focus-visible:outline-none`}
@@ -140,7 +140,7 @@ function VariantCard({
         }}
       >
         {inner}
-      </Link>
+      </SmartLink>
     );
   }
 

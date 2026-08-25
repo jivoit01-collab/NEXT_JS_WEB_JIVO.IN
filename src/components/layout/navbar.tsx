@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { SmartLink } from '@/components/shared/smart-link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { JivoLogo } from '@/components/shared/public';
@@ -195,7 +196,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                   >
                     <div className="max-h-[min(70vh,32rem)] min-w-[220px] max-w-[min(82vw,340px)] overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:min-w-65 2xl:p-3">
                       {link.subLinks?.map((sub) => (
-                        <Link
+                        <SmartLink
                           key={sub.href + sub.title}
                           href={sub.href}
                           onClick={() => setActiveDropdown(null)}
@@ -205,7 +206,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                             {sub.title}
                             <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
                           </span>
-                        </Link>
+                        </SmartLink>
                       ))}
                     </div>
                   </div>
@@ -309,7 +310,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                       />
                     </button>
                   ) : link.href ? (
-                    <Link
+                    <SmartLink
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
                       className="group block min-h-11 min-w-0 rounded-lg px-4 py-3 text-base font-jost-bold text-white transition duration-300 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
@@ -318,7 +319,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                         {link.title}
                         <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
                       </span>
-                    </Link>
+                    </SmartLink>
                   ) : (
                     <span className="block min-h-11 rounded-lg px-4 py-3 text-base font-jost-bold text-white/80">
                       {link.title}
@@ -337,7 +338,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                       <div className="overflow-hidden">
                         <div className="ml-4 border-l border-white/15 py-1 pl-3">
                           {link.subLinks?.map((sub) => (
-                            <Link
+                            <SmartLink
                               key={sub.href + sub.title}
                               href={sub.href}
                               onClick={() => setMobileOpen(false)}
@@ -347,7 +348,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                                 {sub.title}
                                 <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
                               </span>
-                            </Link>
+                            </SmartLink>
                           ))}
                         </div>
                       </div>

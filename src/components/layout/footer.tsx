@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MapPin, Mail, Phone, Copyright, ArrowRight, Leaf, MessageSquarePlus } from 'lucide-react';
 import { SafeImage } from '@/components/shared/public';
+import { SmartLink } from '@/components/shared/smart-link';
 import { HoverUnderlineText } from '@/components/shared/hover-underline-text';
 import { FeedbackDialog } from '@/modules/platform/feedback';
 import { getVisibleFooter } from '@/modules/footer';
@@ -13,27 +14,6 @@ import { FooterCertificates } from './footer-certificates';
 function assetUrl(raw: string | null | undefined, fallback = '/api/uploads/placeholder.png') {
   if (!raw) return fallback;
   return raw.startsWith('/') || raw.startsWith('http') ? raw : `/api/uploads/${raw}`;
-}
-
-/**
- * Normalise a CTA link. Full URLs, protocol-relative links, and bare domains
- * (e.g. "shop.jivo.in") are treated as EXTERNAL and open in a new tab; internal
- * paths ("/products") stay in-app.
- */
-function resolveCtaLink(raw: string): { href: string; external: boolean } {
-  const href = raw.trim();
-  if (/^https?:\/\//i.test(href)) return { href, external: true };
-  if (href.startsWith('//')) return { href: `https:${href}`, external: true };
-  const isSpecial =
-    href.startsWith('/') ||
-    href.startsWith('#') ||
-    href.startsWith('mailto:') ||
-    href.startsWith('tel:');
-  // Bare domain like "shop.jivo.in" or "www.foo.com/x" — first path segment has a dot.
-  if (!isSpecial && (href.split('/')[0]?.includes('.') ?? false)) {
-    return { href: `https://${href}`, external: true };
-  }
-  return { href, external: false };
 }
 
 /** Prefer the admin-set map link; otherwise build a Google Maps search from the address. */
@@ -55,7 +35,7 @@ export async function Footer() {
   const brandPromise = setting.brandPromise || 'Pure. Natural. Trusted.';
   const brandPromiseSub = setting.brandPromiseSub || 'Since 2016';
   const ctaLabel = setting.ctaLabel || 'Products';
-  const { href: ctaHref, external: ctaExternal } = resolveCtaLink(setting.ctaHref || '/products');
+  const ctaRawHref = setting.ctaHref || '/products';
   const mapHref = resolveMapHref(setting);
   const leafTop = setting.leafImageTop;
   const leafBottom = setting.leafImageBottom;
@@ -144,14 +124,14 @@ export async function Footer() {
                   small no-wrap text so both fit one row in the narrow lg card. */}
               <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-stretch sm:gap-2">
                 {ctaLabel && (
-                  <Link
-                    href={ctaHref}
-                    {...(ctaExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  <SmartLink
+                    href={ctaRawHref}
+                    fallback="/products"
                     className="group inline-flex min-h-10 w-full min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0a7d3f] px-4 py-2 text-sm whitespace-nowrap font-jost-medium text-white shadow-[0_10px_24px_rgba(10,125,63,0.28)] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-[#0a7d3f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#edece4] focus-visible:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:bg-[#0c6f39] 2xl:text-sm"
                   >
                     {ctaLabel}
                     <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-300 [@media(hover:hover)]:group-hover:translate-x-1" />
-                  </Link>
+                  </SmartLink>
                 )}
 
                 {/* Opens the reusable Feedback dialog (Phase 6.2) — secondary/outline. */}

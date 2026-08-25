@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
+import { SmartLink } from '@/components/shared/smart-link';
 import type { VisibleFooterColumnWithLinks } from '@/modules/footer/types';
 
 /**
@@ -46,7 +46,7 @@ export function FooterColumns({ columns }: { columns: VisibleFooterColumnWithLin
             >
               {column.links.map((link) => (
                 <li key={link.id}>
-                  <Link
+                  <SmartLink
                     href={link.href}
                     className="group flex items-start gap-2 text-sm leading-snug text-[#586055] transition-colors duration-300 sm:text-[15px] 2xl:text-lg [@media(hover:hover)]:hover:text-[#111]"
                   >
@@ -59,7 +59,7 @@ export function FooterColumns({ columns }: { columns: VisibleFooterColumnWithLin
                       {link.title}
                       <span className="absolute bottom-0 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
                     </span>
-                  </Link>
+                  </SmartLink>
                 </li>
               ))}
             </ul>
