@@ -1,0 +1,19 @@
+// ==========================================
+// PRIVACY POLICY page
+// Route: /privacy-policy
+// Admin: /jivo-dev/privacy-policy
+// Sections: hero, body
+// ==========================================
+
+model PrivacyPolicy {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "body"
+  title     String?
+  content   Json // flexible JSON for any section structure
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
