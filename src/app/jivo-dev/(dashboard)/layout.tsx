@@ -7,6 +7,7 @@ import { signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LivePreviewButton } from '@/components/shared/admin';
+import { AdminSearch, type AdminSearchItem } from './admin-search';
 import { useTheme } from '@/providers/theme-provider';
 import {
   Menu,
@@ -64,6 +65,7 @@ const SIDEBAR: NavSection[] = [
       { title: 'Home Page', href: '/jivo-dev/home', icon: Home },
       { title: 'Navbar', href: '/jivo-dev/navbar', icon: Navigation },
       { title: 'Footer', href: '/jivo-dev/footer', icon: PanelBottom },
+      { title: 'Privacy Policy', href: '/jivo-dev/privacy-policy', icon: ShieldAlert },
       { title: 'Login Security', href: '/jivo-dev/security', icon: ShieldAlert },
     ],
   },
@@ -179,9 +181,20 @@ const SIDEBAR: NavSection[] = [
         icon: Award,
         tab: 'seo',
       },
+      { title: 'Privacy Policy', href: '/jivo-dev/privacy-policy', icon: ShieldAlert, tab: 'seo' },
     ],
   },
 ];
+
+// Flat, de-duplicated list of every admin page for the top-bar search. SEO
+// entries carry a `?tab=seo` so the search can jump straight to a page's SEO.
+const SEARCH_ITEMS: AdminSearchItem[] = SIDEBAR.flatMap((section) =>
+  section.children.map((child) => ({
+    label: child.title,
+    group: section.title,
+    href: child.tab ? `${child.href}?tab=${child.tab}` : child.href,
+  })),
+);
 
 // ── Layout ───────────────────────────────────────────────────
 
@@ -424,7 +437,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         <header className="bg-background/95 sticky top-0 z-20 hidden h-16 items-center justify-between gap-3 border-b px-6 backdrop-blur md:flex 2xl:h-20 2xl:gap-4 2xl:px-8">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-1 items-center gap-3">
             {sidebarCollapsed && (
               <Button
                 variant="ghost"
@@ -436,6 +449,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Menu className="h-4 w-4" />
               </Button>
             )}
+            <AdminSearch items={SEARCH_ITEMS} />
           </div>
           <div className="flex items-center gap-3 2xl:gap-4">
             <Button
