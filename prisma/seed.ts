@@ -720,6 +720,25 @@ async function main() {
       },
     },
     {
+      page: 'privacy-policy',
+      metaTitle: 'Privacy Policy | Jivo Wellness',
+      metaDescription:
+        'How Jivo Wellness Pvt. Ltd. collects, uses, retains and protects your personal information, and the rights you have over your data.',
+      keywords: ['jivo privacy policy', 'jivo wellness privacy', 'data protection', 'cookies policy'],
+      ogTitle: 'Privacy Policy | Jivo Wellness',
+      ogDescription:
+        'Jivo Wellness respects and protects your privacy. Read how we handle your personal data.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/privacy-policy`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'WebPage',
+        name: 'Privacy Policy',
+        url: `${BASE}/privacy-policy`,
+      },
+    },
+    {
       page: 'our-products-canola-oils',
       metaTitle: 'Canola Oils | Our Products | Jivo Wellness',
       metaDescription:
@@ -907,6 +926,38 @@ async function main() {
         '@type': 'Product',
         name: 'Jivo Cold Pressed Sunflower Oil',
         url: `${BASE}/products/sunflower-oils`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Edible Oil',
+      },
+    },
+    {
+      page: 'our-products-refined-gold-oils',
+      metaTitle: 'Gold Refined Oil | Our Products | Jivo Wellness',
+      metaDescription:
+        'Jivo Gold — a multi-source blend of Refined Rice Bran Oil and Refined Sunflower Oil. High smoke point, natural Oryzanol, light neutral taste for all-purpose cooking.',
+      keywords: [
+        'jivo gold oil',
+        'gold refined oil',
+        'rice bran sunflower blend oil',
+        'multi source edible oil',
+        'oryzanol cooking oil',
+        'high smoke point oil',
+        'refined rice bran oil',
+        'blended cooking oil india',
+        'gold oil 1 litre',
+        'gold oil 5 litre',
+      ],
+      ogTitle: 'Jivo Gold Refined Oil — Multi-Source Edible Oil',
+      ogDescription:
+        'A blend of Refined Rice Bran and Sunflower oils — high smoke point, natural Oryzanol, light neutral taste.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/refined-gold-oils`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Gold Refined Oil',
+        url: `${BASE}/products/refined-gold-oils`,
         brand: { '@type': 'Brand', name: 'Jivo' },
         category: 'Edible Oil',
       },
