@@ -51,7 +51,7 @@ export function WhatIsGoldSection({ data }: Props) {
       />
 
       {/* ── Copy, on top of the art. ── */}
-      <div className="relative z-10 w-full mb-28  px-4 sm:pl-25 lg:bg-none lg:pl-30">
+      <div className="relative z-10 w-full lg:mb-28 mb-0 px-4 lg:bg-none lg:pl-30">
         <motion.div
           variants={prefersReduced ? reducedMotion : container}
           initial="hidden"
@@ -70,7 +70,7 @@ export function WhatIsGoldSection({ data }: Props) {
               {heading}
             </motion.h2>
 
-            <motion.div variants={item} className="mt-5 w-[80%] space-y-3 lg:mt-7">
+            <motion.div variants={item} className="mt-2 sm:mt-5 w-[70%]  lg:w-[85%] space-y-3 lg:mt-7">
               {paragraphs.map((text, i) => (
                 <p
                   key={i}

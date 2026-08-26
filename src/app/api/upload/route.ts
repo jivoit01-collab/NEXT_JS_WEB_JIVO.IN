@@ -1,5 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/require-admin';
+import { countFileReferences } from '@/lib/uploads-usage';
 import {
   ALLOWED_IMAGE_TYPES,
   ALLOWED_VIDEO_TYPES,
@@ -161,8 +162,22 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'File not found' }, { status: 404 });
     }
 
+    // SAFETY: never delete a file that is still referenced elsewhere. When the
+    // same image is reused in another field (via the copy/paste "image name"
+    // feature), removing it here would break those places. So we only unlink
+    // when nothing in the database points at this filename any more.
+    const refs = await countFileReferences(filename);
+    if (refs > 0) {
+      return NextResponse.json({
+        success: true,
+        deleted: false,
+        reason: 'still-referenced',
+        references: refs,
+      });
+    }
+
     await unlink(filePath);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deleted: true });
   } catch (error) {
     console.error('[upload] DELETE error:', error);
     return NextResponse.json({ success: false, error: 'Delete failed' }, { status: 500 });

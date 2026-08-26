@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — NATURAL MINERAL WATER page
+// Route: /products/water
+// Admin: /jivo-dev/our-products/water
+// Sections: hero, range, betterBottle, mission
+// ==========================================
+
+model OurProductsWater {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "betterBottle", "mission"
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

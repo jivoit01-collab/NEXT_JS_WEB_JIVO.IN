@@ -125,6 +125,7 @@ const SIDEBAR: NavSection[] = [
       { title: 'Desi Ghee', href: '/jivo-dev/our-products/desi-ghee', icon: Package },
       { title: 'Sunflower Oils', href: '/jivo-dev/our-products/sunflower-oils', icon: Package },
       { title: 'Gold Refined Oil', href: '/jivo-dev/our-products/refined-gold-oils', icon: Package },
+      { title: 'Natural Mineral Water', href: '/jivo-dev/our-products/water', icon: Package },
     ],
   },
   {

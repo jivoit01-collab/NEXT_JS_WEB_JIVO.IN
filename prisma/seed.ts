@@ -962,6 +962,38 @@ async function main() {
         category: 'Edible Oil',
       },
     },
+    {
+      page: 'our-products-water',
+      metaTitle: 'Natural Mineral Water | Our Products | Jivo Wellness',
+      metaDescription:
+        'Jivo Natural Mineral Water — bottled in one clean, sealed step so the water you drink is as pure as its source. Available in 250ml, 500ml and 1 litre.',
+      keywords: [
+        'jivo natural mineral water',
+        'jivo water',
+        'mineral water india',
+        'packaged drinking water',
+        'natural minerals water',
+        'water 250ml',
+        'water 500ml',
+        'water 1 litre',
+        'combi plant bottled water',
+        'pure mineral water',
+      ],
+      ogTitle: 'Jivo Natural Mineral Water — Pure as its Source',
+      ogDescription:
+        'Bottled in one clean, sealed step — the water you drink is as pure as its source.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/water`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Natural Mineral Water',
+        url: `${BASE}/products/water`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Mineral Water',
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {

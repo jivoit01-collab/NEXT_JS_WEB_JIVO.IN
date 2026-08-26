@@ -53,6 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/products/desi-ghee', priority: 0.9 as const, changefreq: 'weekly' as const },
     { path: '/products/sunflower-oils', priority: 0.9 as const, changefreq: 'weekly' as const },
     { path: '/products/refined-gold-oils', priority: 0.9 as const, changefreq: 'weekly' as const },
+    { path: '/products/water', priority: 0.9 as const, changefreq: 'weekly' as const },
     { path: '/privacy-policy', priority: 0.3 as const, changefreq: 'yearly' as const },
   ];
 

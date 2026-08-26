@@ -76,6 +76,7 @@ export const CMS_MODULES: CmsModule[] = [
       { id: 'desi-ghee', name: 'Desi Ghee', icon: Droplet, adminHref: '/jivo-dev/our-products/desi-ghee', seo: true },
       { id: 'sunflower-oils', name: 'Sunflower Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/sunflower-oils', seo: true },
       { id: 'refined-gold-oils', name: 'Gold Refined Oil', icon: Droplet, adminHref: '/jivo-dev/our-products/refined-gold-oils', seo: true },
+      { id: 'water', name: 'Natural Mineral Water', icon: Droplet, adminHref: '/jivo-dev/our-products/water', seo: true },
     ],
   },
   {
