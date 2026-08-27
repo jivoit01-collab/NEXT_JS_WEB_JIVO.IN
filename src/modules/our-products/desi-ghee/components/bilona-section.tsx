@@ -63,11 +63,11 @@ export function BilonaSection({ data }: Props) {
               {heading}
             </motion.h2>
 
-            <motion.div variants={item} className="mt-5 w-[80%] space-y-3 lg:mt-7">
+            <motion.div variants={item} className="mt-5 w-[70%] lg:w-[90%] space-y-3 lg:mt-7">
               {paragraphs.map((text, i) => (
                 <p
                   key={i}
-                  className="text-pretty font-jost-light text-[clamp(1.05rem,0.95rem+0.42vw,1.5rem)] leading-[1.6]"
+                  className="text-pretty font-jost-light text-[clamp(1.08rem,0.95rem+0.42vw,2rem)] leading-[1.3]"
                   style={{ color: GHEE_FOREST }}
                 >
                   {text}
