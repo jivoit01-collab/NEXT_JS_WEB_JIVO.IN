@@ -375,9 +375,11 @@ export function ImageUpload({ value, onChange, onRemove, className, required }: 
           />
         )}
         <div className={cn('bg-card w-full max-w-64 space-y-2.5 rounded-xl border p-3 shadow-sm', className)}>
-          <div className="bg-muted/30 relative flex min-h-24 w-full items-center justify-center overflow-hidden rounded-lg">
+          <div className="bg-muted/30 relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg">
+            {/* Fixed square box; object-contain scales the pending image to fit
+                inside instead of stretching the box to the image's height. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={pendingUrl} alt="Preview" className="block h-auto w-full rounded-lg" />
+            <img src={pendingUrl} alt="Preview" className="block h-full w-full rounded-lg object-contain" />
             <span className="absolute top-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[0.65rem] font-medium text-white">
               Not uploaded
             </span>
