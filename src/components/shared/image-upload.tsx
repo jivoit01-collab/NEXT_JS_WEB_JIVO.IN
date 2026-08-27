@@ -109,13 +109,20 @@ function Thumb({ value, alt }: { value: string; alt: string }) {
   if (isExternalImageSrc(resolved)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={resolved} alt={alt} className="block h-auto w-full rounded-lg" />
+      <img src={resolved} alt={alt} className="block h-full w-full rounded-lg object-contain" />
     );
   }
-  // Intrinsic width/height let the box take the image's natural aspect ratio;
-  // `h-auto` keeps it correct while CSS scales the width to fit the card.
+  // The box is a FIXED size (set on the wrapper); `object-contain` scales any
+  // image — tall or wide — to fit INSIDE without stretching the box. So a large
+  // portrait upload no longer makes the card grow taller than its neighbours.
   return (
-    <Image src={resolved} alt={alt} width={800} height={800} className="block h-auto w-full rounded-lg" />
+    <Image
+      src={resolved}
+      alt={alt}
+      fill
+      sizes="256px"
+      className="rounded-lg object-contain"
+    />
   );
 }
 
@@ -431,7 +438,7 @@ export function ImageUpload({ value, onChange, onRemove, className, required }: 
             URL row + Copy/Paste. A max-width keeps cards uniform so several
             fields line up ~3 per row on a page. */}
         <div className={cn('bg-card w-full max-w-64 space-y-2.5 rounded-xl border p-3 shadow-sm', className)}>
-          <div className="group bg-muted/30 relative flex min-h-24 w-full items-center justify-center overflow-hidden rounded-lg">
+          <div className="group bg-muted/30 relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg">
             <Thumb value={value} alt="Uploaded" />
 
             {/* Remove — always reachable, top-right. */}

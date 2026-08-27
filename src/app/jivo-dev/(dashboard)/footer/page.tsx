@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Reorder, useDragControls } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,9 +39,37 @@ import {
   Layers,
   Share2,
   Award,
+  GripVertical,
 } from 'lucide-react';
 import { SOCIAL_ICONS } from '@/components/layout/footer-social-icons';
 import { SOCIAL_PLATFORMS, type SocialPlatform } from '@/modules/footer';
+
+// ── Helpers ───────────────────────────────────────────────────
+
+/** Title → URL slug: lowercase, spaces→hyphens, strip the rest. */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/** Base path for a footer column — slug of its title ("Company" → "/company"). */
+function columnBasePath(title: string | undefined): string {
+  if (!title) return '';
+  return `/${slugify(title)}`;
+}
+
+/** Auto URL = column base + "/" + slug(title). */
+function autoFooterHref(columnTitle: string | undefined, title: string): string {
+  const base = columnBasePath(columnTitle);
+  const slug = slugify(title);
+  if (!slug) return base;
+  return `${base}/${slug}`;
+}
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -123,6 +152,9 @@ export default function AdminFooterPage() {
     sortOrder: 0,
     isVisible: true,
   });
+  // Stop auto-filling the URL once the admin edits it by hand.
+  const [hrefTouched, setHrefTouched] = useState(false);
+  const [reordering, setReordering] = useState(false);
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<
@@ -295,6 +327,7 @@ export default function AdminFooterPage() {
       sortOrder: activeColumn.links.length,
       isVisible: true,
     });
+    setHrefTouched(false); // fresh → auto-fill URL from title
     setLinkDialogOpen(true);
   };
   const openEditLink = (link: FooterLink) => {
@@ -306,7 +339,59 @@ export default function AdminFooterPage() {
       sortOrder: link.sortOrder,
       isVisible: link.isVisible,
     });
+    setHrefTouched(true); // existing URL is intentional — don't rewrite it
     setLinkDialogOpen(true);
+  };
+
+  // Title change regenerates the URL (unless hand-edited): columnBase + slug.
+  const onLinkTitleChange = (title: string) => {
+    setLinkForm((f) => {
+      const col = columns.find((c) => c.id === f.columnId);
+      return { ...f, title, href: hrefTouched ? f.href : autoFooterHref(col?.title, title) };
+    });
+  };
+
+  // Changing the parent column re-bases the auto URL.
+  const onLinkColumnChange = (columnId: string) => {
+    setLinkForm((f) => {
+      const col = columns.find((c) => c.id === columnId);
+      return { ...f, columnId, href: hrefTouched ? f.href : autoFooterHref(col?.title, f.title) };
+    });
+  };
+
+  // Drag-reorder a column's links; persist to server, then refresh.
+  const handleReorderLinks = async (reordered: FooterLink[]) => {
+    if (!activeColumn) return;
+    setColumns((prev) =>
+      prev.map((c) =>
+        c.id === activeColumn.id
+          ? { ...c, links: reordered.map((l, i) => ({ ...l, sortOrder: i })) }
+          : c,
+      ),
+    );
+    setReordering(true);
+    try {
+      const res = await fetch('/api/footer/links', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          columnId: activeColumn.id,
+          orderedIds: reordered.map((l) => l.id),
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.error ?? 'Failed to save new order');
+        await fetchAll();
+      } else {
+        router.refresh();
+      }
+    } catch {
+      toast.error('Network error while reordering');
+      await fetchAll();
+    } finally {
+      setReordering(false);
+    }
   };
   const saveLink = async () => {
     setSaving(true);
@@ -1151,106 +1236,49 @@ export default function AdminFooterPage() {
               </div>
             </div>
 
-            {/* Links table */}
+            {/* Links — drag to reorder (framer-motion Reorder). */}
             <div className="overflow-hidden rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead className="w-16">Order</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>URL</TableHead>
-                    <TableHead className="w-28">Status</TableHead>
-                    <TableHead className="w-32 text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activeColumn.links.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="text-muted-foreground py-12 text-center text-sm"
-                      >
-                        No links yet. Click <b>Add Link</b> to create one.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    activeColumn.links.map((link) => (
-                      <TableRow key={link.id}>
-                        <TableCell className="text-muted-foreground font-mono text-xs">
-                          #{link.sortOrder}
-                        </TableCell>
-                        <TableCell className="font-jost-medium">{link.title}</TableCell>
-                        <TableCell className="text-muted-foreground text-xs">{link.href}</TableCell>
-                        <TableCell>
-                          <button
-                            onClick={() => toggleLinkVisibility(link)}
-                            className="cursor-pointer"
-                            title={link.isVisible ? 'Click to hide' : 'Click to publish'}
-                          >
-                            <Badge
-                              variant={link.isVisible ? 'default' : 'secondary'}
-                              className={
-                                link.isVisible
-                                  ? 'bg-primary/15 text-primary hover:bg-primary/25'
-                                  : 'hover:bg-secondary/80'
-                              }
-                            >
-                              <span
-                                className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
-                                  link.isVisible ? 'bg-primary' : 'bg-muted-foreground'
-                                }`}
-                              />
-                              {link.isVisible ? 'Active' : 'Hidden'}
-                            </Badge>
-                          </button>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => toggleLinkVisibility(link)}
-                              title={link.isVisible ? 'Hide' : 'Publish'}
-                              className="hover:bg-accent"
-                            >
-                              {link.isVisible ? (
-                                <Eye className="h-4 w-4" />
-                              ) : (
-                                <EyeOff className="h-4 w-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => openEditLink(link)}
-                              title="Edit"
-                              className="hover:bg-primary/10 hover:text-primary"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() =>
-                                setDeleteTarget({
-                                  type: 'link',
-                                  id: link.id,
-                                  title: link.title,
-                                })
-                              }
-                              title="Delete"
-                              className="text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              <div className="bg-muted/40 text-muted-foreground flex items-center gap-3 border-b px-3 py-2 text-xs font-jost-medium">
+                <span className="w-5" />
+                <span className="w-12">Order</span>
+                <span className="flex-1">Title</span>
+                <span className="hidden flex-1 sm:block">URL</span>
+                <span className="w-24">Status</span>
+                <span className="w-28 text-right">Actions</span>
+              </div>
+
+              {activeColumn.links.length === 0 ? (
+                <div className="text-muted-foreground py-12 text-center text-sm">
+                  No links yet. Click <b>Add Link</b> to create one.
+                </div>
+              ) : (
+                <Reorder.Group
+                  axis="y"
+                  values={activeColumn.links}
+                  onReorder={handleReorderLinks}
+                  className="divide-y"
+                >
+                  {activeColumn.links.map((link) => (
+                    <FooterLinkRow
+                      key={link.id}
+                      link={link}
+                      onToggle={() => toggleLinkVisibility(link)}
+                      onEdit={() => openEditLink(link)}
+                      onDelete={() =>
+                        setDeleteTarget({ type: 'link', id: link.id, title: link.title })
+                      }
+                    />
+                  ))}
+                </Reorder.Group>
+              )}
             </div>
+            {activeColumn.links.length > 1 && (
+              <p className="text-muted-foreground mt-2 text-xs">
+                {reordering
+                  ? 'Saving new order…'
+                  : 'Tip: drag the ⠿ handle on the left to reorder links.'}
+              </p>
+            )}
           </div>
         ) : (
           <div className="text-muted-foreground p-12 text-center text-sm">
@@ -1337,7 +1365,7 @@ export default function AdminFooterPage() {
               <select
                 className="border-border bg-background h-9 w-full cursor-pointer rounded-md border px-3 text-sm"
                 value={linkForm.columnId}
-                onChange={(e) => setLinkForm({ ...linkForm, columnId: e.target.value })}
+                onChange={(e) => onLinkColumnChange(e.target.value)}
               >
                 {columns.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -1350,7 +1378,7 @@ export default function AdminFooterPage() {
               <Label>Title</Label>
               <Input
                 value={linkForm.title}
-                onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })}
+                onChange={(e) => onLinkTitleChange(e.target.value)}
                 placeholder="Our Story"
               />
             </div>
@@ -1358,9 +1386,16 @@ export default function AdminFooterPage() {
               <Label>URL / path</Label>
               <Input
                 value={linkForm.href}
-                onChange={(e) => setLinkForm({ ...linkForm, href: e.target.value })}
+                onChange={(e) => {
+                  setHrefTouched(true);
+                  setLinkForm({ ...linkForm, href: e.target.value });
+                }}
                 placeholder="/our-story"
               />
+              <p className="text-muted-foreground text-xs">
+                Auto-filled from the column and title (spaces become hyphens,
+                lowercased). Edit it here to override.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -1569,6 +1604,102 @@ export default function AdminFooterPage() {
       {/* Keep TS happy about unused setting state */}
       {setting ? null : null}
     </div>
+  );
+}
+
+// ── Draggable footer link row ─────────────────────────────────
+// One Reorder.Item per link; drag only via the grip handle so the action
+// buttons stay clickable.
+function FooterLinkRow({
+  link,
+  onToggle,
+  onEdit,
+  onDelete,
+}: {
+  link: FooterLink;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      value={link}
+      dragListener={false}
+      dragControls={controls}
+      className="bg-card flex items-center gap-3 px-3 py-2.5 text-sm"
+    >
+      <button
+        type="button"
+        onPointerDown={(e) => controls.start(e)}
+        aria-label="Drag to reorder"
+        className="text-muted-foreground w-5 shrink-0 cursor-grab touch-none active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      <span className="text-muted-foreground w-12 shrink-0 font-mono text-xs">
+        #{link.sortOrder}
+      </span>
+      <span className="flex-1 truncate font-jost-medium">{link.title}</span>
+      <span className="text-muted-foreground hidden flex-1 truncate text-xs sm:block">
+        {link.href}
+      </span>
+
+      <span className="w-24 shrink-0">
+        <button
+          onClick={onToggle}
+          className="cursor-pointer"
+          title={link.isVisible ? 'Click to hide' : 'Click to publish'}
+        >
+          <Badge
+            variant={link.isVisible ? 'default' : 'secondary'}
+            className={
+              link.isVisible
+                ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                : 'hover:bg-secondary/80'
+            }
+          >
+            <span
+              className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                link.isVisible ? 'bg-primary' : 'bg-muted-foreground'
+              }`}
+            />
+            {link.isVisible ? 'Active' : 'Hidden'}
+          </Badge>
+        </button>
+      </span>
+
+      <div className="flex w-28 shrink-0 items-center justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onToggle}
+          title={link.isVisible ? 'Hide' : 'Publish'}
+          className="hover:bg-accent"
+        >
+          {link.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onEdit}
+          title="Edit"
+          className="hover:bg-primary/10 hover:text-primary"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onDelete}
+          title="Delete"
+          className="text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </Reorder.Item>
   );
 }
 

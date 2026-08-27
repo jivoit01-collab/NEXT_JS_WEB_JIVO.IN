@@ -206,6 +206,64 @@ export async function deleteLink(id: string): Promise<ActionResponse<FooterLink>
   return { success: true, data: deleted };
 }
 
+// Admin — bulk reorder the columns. orderedIds in new visual order → each gets
+// its index as sortOrder, in one transaction.
+export async function reorderColumns(orderedIds: string[]): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+
+  if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
+    return { success: false, error: 'Invalid order payload' };
+  }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.footerColumn.update({ where: { id }, data: { sortOrder: index } }),
+    ),
+  );
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: null };
+}
+
+// Admin — bulk reorder the links inside one column. Every id must belong to
+// columnId, so a bad payload can't renumber another column's links.
+export async function reorderLinks(
+  columnId: string,
+  orderedIds: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+
+  if (
+    typeof columnId !== 'string' ||
+    !Array.isArray(orderedIds) ||
+    orderedIds.some((id) => typeof id !== 'string')
+  ) {
+    return { success: false, error: 'Invalid order payload' };
+  }
+
+  const owned = await prisma.footerLink.findMany({
+    where: { columnId },
+    select: { id: true },
+  });
+  const ownedIds = new Set(owned.map((l) => l.id));
+  if (orderedIds.length !== ownedIds.size || orderedIds.some((id) => !ownedIds.has(id))) {
+    return { success: false, error: 'Order does not match this column’s links' };
+  }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.footerLink.update({ where: { id }, data: { sortOrder: index } }),
+    ),
+  );
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: null };
+}
+
 // ══════════════════════════════════════════════════════════════
 //  Settings — singleton
 // ══════════════════════════════════════════════════════════════

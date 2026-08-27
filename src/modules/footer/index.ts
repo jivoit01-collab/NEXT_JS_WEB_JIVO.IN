@@ -7,6 +7,8 @@ export {
   createLink,
   updateLink,
   deleteLink,
+  reorderColumns,
+  reorderLinks,
   getFooterSetting,
   updateFooterSetting,
   getAllSocialLinks,

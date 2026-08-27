@@ -8,6 +8,8 @@ export {
   createNavSubLink,
   updateNavSubLink,
   deleteNavSubLink,
+  reorderNavLinks,
+  reorderNavSubLinks,
   getNavbarSetting,
   updateNavbarSetting,
 } from './actions';

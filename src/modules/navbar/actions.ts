@@ -219,6 +219,69 @@ export async function deleteNavSubLink(id: string): Promise<ActionResponse<NavSu
   return { success: true, data: deleted };
 }
 
+// Admin — bulk reorder nav links. Accepts the ids in their new visual order and
+// writes each one's sortOrder to its index, in a single transaction so the list
+// can never be left half-renumbered.
+export async function reorderNavLinks(
+  orderedIds: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+
+  if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
+    return { success: false, error: 'Invalid order payload' };
+  }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.navLink.update({ where: { id }, data: { sortOrder: index } }),
+    ),
+  );
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: null };
+}
+
+// Admin — bulk reorder the sub-links inside one parent nav link. The ids must all
+// belong to navLinkId; each row's sortOrder is set to its position in the array.
+export async function reorderNavSubLinks(
+  navLinkId: string,
+  orderedIds: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+
+  if (
+    typeof navLinkId !== 'string' ||
+    !Array.isArray(orderedIds) ||
+    orderedIds.some((id) => typeof id !== 'string')
+  ) {
+    return { success: false, error: 'Invalid order payload' };
+  }
+
+  // Guard: every id must be a sub-link of this parent, so a bad payload can't
+  // silently reparent or renumber unrelated rows.
+  const owned = await prisma.navSubLink.findMany({
+    where: { navLinkId },
+    select: { id: true },
+  });
+  const ownedIds = new Set(owned.map((s) => s.id));
+  if (orderedIds.length !== ownedIds.size || orderedIds.some((id) => !ownedIds.has(id))) {
+    return { success: false, error: 'Order does not match this link’s sub-links' };
+  }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.navSubLink.update({ where: { id }, data: { sortOrder: index } }),
+    ),
+  );
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/');
+  return { success: true, data: null };
+}
+
 // ── Navbar settings (logo + branding) ──────────────────────────
 
 // Public + admin read — singleton fetch. Missing row falls back without mutating during render.

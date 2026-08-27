@@ -2,18 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { Reorder, useDragControls } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +30,42 @@ import {
   Save,
   Image as ImageIcon,
   Layers,
+  GripVertical,
 } from 'lucide-react';
+
+// ── Helpers ───────────────────────────────────────────────────
+
+/** Turn a title into a URL slug: lowercase, spaces→hyphens, strip the rest. */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // drop anything not a letter/number/space/hyphen
+    .replace(/[\s_]+/g, '-') // spaces & underscores → single hyphen
+    .replace(/-+/g, '-') // collapse repeats
+    .replace(/^-+|-+$/g, ''); // trim leading/trailing hyphens
+}
+
+/** Base path for a parent nav link. Uses its href (e.g. "/products"), falling
+ *  back to a slug of its title ("Our Essence" → "/our-essence"). Always returns
+ *  a leading-slash path with no trailing slash. */
+function parentBasePath(link: { href?: string | null; title: string } | undefined): string {
+  if (!link) return '';
+  const raw = link.href?.trim() || `/${slugify(link.title)}`;
+  const withSlash = raw.startsWith('/') ? raw : `/${raw}`;
+  return withSlash.replace(/\/+$/, '');
+}
+
+/** Compose the auto URL: parent base + "/" + slug(title). */
+function autoHref(
+  parent: { href?: string | null; title: string } | undefined,
+  title: string,
+): string {
+  const base = parentBasePath(parent);
+  const slug = slugify(title);
+  if (!slug) return base;
+  return `${base}/${slug}`;
+}
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -96,6 +124,11 @@ export default function AdminNavbarManager() {
     sortOrder: 0,
     isVisible: true,
   });
+  // Once the admin edits the URL by hand, stop auto-filling it from the title so
+  // we never clobber a deliberate custom path.
+  const [hrefTouched, setHrefTouched] = useState(false);
+  // Drag-reorder: true while a sub-link save from a drop is in flight.
+  const [reordering, setReordering] = useState(false);
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<
@@ -267,6 +300,7 @@ export default function AdminNavbarManager() {
       sortOrder: activeNavLink.subLinks.length,
       isVisible: true,
     });
+    setHrefTouched(false); // fresh form → auto-fill URL from title
     setError('');
     setSubLinkDialogOpen(true);
   };
@@ -280,8 +314,66 @@ export default function AdminNavbarManager() {
       sortOrder: sub.sortOrder,
       isVisible: sub.isVisible,
     });
+    // Existing rows already have a URL — treat it as intentional so editing the
+    // title doesn't silently rewrite an established path.
+    setHrefTouched(true);
     setError('');
     setSubLinkDialogOpen(true);
+  };
+
+  // Update the title and, unless the admin has hand-edited the URL, regenerate
+  // the href as parentBase + slug(title).
+  const onSubLinkTitleChange = (title: string) => {
+    setSubLinkForm((f) => {
+      const parent = links.find((l) => l.id === f.navLinkId);
+      return { ...f, title, href: hrefTouched ? f.href : autoHref(parent, title) };
+    });
+  };
+
+  // Changing the parent re-bases the auto URL too (keeps the same title slug).
+  const onSubLinkParentChange = (navLinkId: string) => {
+    setSubLinkForm((f) => {
+      const parent = links.find((l) => l.id === navLinkId);
+      return { ...f, navLinkId, href: hrefTouched ? f.href : autoHref(parent, f.title) };
+    });
+  };
+
+  // ── Sub-link drag reorder ─────────────────────────────────
+  // framer-motion Reorder hands back the full array in its new order; persist
+  // that order to the server, then refresh so sortOrder badges update.
+  const handleReorderSubLinks = async (reordered: NavSubLinkRow[]) => {
+    if (!activeNavLink) return;
+    // Optimistic: reflect the new order immediately in the active link.
+    setLinks((prev) =>
+      prev.map((l) =>
+        l.id === activeNavLink.id
+          ? { ...l, subLinks: reordered.map((s, i) => ({ ...s, sortOrder: i })) }
+          : l,
+      ),
+    );
+    setReordering(true);
+    try {
+      const res = await fetch('/api/navbar/sublinks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          navLinkId: activeNavLink.id,
+          orderedIds: reordered.map((s) => s.id),
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.error ?? 'Failed to save new order');
+        await fetchLinks(); // revert to server truth
+      } else {
+        router.refresh();
+      }
+    } catch {
+      toast.error('Network error while reordering');
+      await fetchLinks();
+    } finally {
+      setReordering(false);
+    }
   };
 
   const saveSubLink = async () => {
@@ -635,108 +727,52 @@ export default function AdminNavbarManager() {
               </div>
             </div>
 
-            {/* Sub-links table */}
+            {/* Sub-links — drag to reorder. framer-motion Reorder replaces the
+                table so each row can be a draggable item; a grip handle starts
+                the drag so button clicks inside the row still work. */}
             <div className="overflow-hidden rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead className="w-16">Order</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>URL</TableHead>
-                    <TableHead className="w-28">Status</TableHead>
-                    <TableHead className="w-32 text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activeNavLink.subLinks.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="py-12 text-center text-sm text-muted-foreground"
-                      >
-                        No sub-links yet. Click <b>Add Sub-Link</b> to create one.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    activeNavLink.subLinks.map((sub) => (
-                      <TableRow key={sub.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          #{sub.sortOrder}
-                        </TableCell>
-                        <TableCell className="font-jost-medium">{sub.title}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {sub.href}
-                        </TableCell>
-                        <TableCell>
-                          <button
-                            onClick={() => toggleSubLinkVisibility(sub)}
-                            className="cursor-pointer"
-                            title={sub.isVisible ? 'Click to hide' : 'Click to publish'}
-                          >
-                            <Badge
-                              variant={sub.isVisible ? 'default' : 'secondary'}
-                              className={
-                                sub.isVisible
-                                  ? 'bg-primary/15 text-primary hover:bg-primary/25'
-                                  : 'hover:bg-secondary/80'
-                              }
-                            >
-                              <span
-                                className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
-                                  sub.isVisible ? 'bg-primary' : 'bg-muted-foreground'
-                                }`}
-                              />
-                              {sub.isVisible ? 'Active' : 'Hidden'}
-                            </Badge>
-                          </button>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => toggleSubLinkVisibility(sub)}
-                              title={sub.isVisible ? 'Hide' : 'Publish'}
-                              className="hover:bg-accent"
-                            >
-                              {sub.isVisible ? (
-                                <Eye className="h-4 w-4" />
-                              ) : (
-                                <EyeOff className="h-4 w-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => openEditSubLink(sub)}
-                              title="Edit"
-                              className="hover:bg-primary/10 hover:text-primary"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() =>
-                                setDeleteTarget({
-                                  type: 'sublink',
-                                  id: sub.id,
-                                  title: sub.title,
-                                })
-                              }
-                              title="Delete"
-                              className="text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              {/* Header row (matches the old table columns) */}
+              <div className="flex items-center gap-3 border-b bg-muted/40 px-3 py-2 text-xs font-jost-medium text-muted-foreground">
+                <span className="w-5" />
+                <span className="w-12">Order</span>
+                <span className="flex-1">Title</span>
+                <span className="hidden flex-1 sm:block">URL</span>
+                <span className="w-24">Status</span>
+                <span className="w-28 text-right">Actions</span>
+              </div>
+
+              {activeNavLink.subLinks.length === 0 ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">
+                  No sub-links yet. Click <b>Add Sub-Link</b> to create one.
+                </div>
+              ) : (
+                <Reorder.Group
+                  axis="y"
+                  values={activeNavLink.subLinks}
+                  onReorder={handleReorderSubLinks}
+                  className="divide-y"
+                >
+                  {activeNavLink.subLinks.map((sub) => (
+                    <SubLinkRow
+                      key={sub.id}
+                      sub={sub}
+                      onToggle={() => toggleSubLinkVisibility(sub)}
+                      onEdit={() => openEditSubLink(sub)}
+                      onDelete={() =>
+                        setDeleteTarget({ type: 'sublink', id: sub.id, title: sub.title })
+                      }
+                    />
+                  ))}
+                </Reorder.Group>
+              )}
             </div>
+            {activeNavLink.subLinks.length > 1 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {reordering
+                  ? 'Saving new order…'
+                  : 'Tip: drag the ⠿ handle on the left to reorder sub-links.'}
+              </p>
+            )}
           </div>
         ) : (
           <div className="p-12 text-center text-sm text-muted-foreground">
@@ -848,7 +884,7 @@ export default function AdminNavbarManager() {
               <select
                 className="h-9 w-full cursor-pointer rounded-md border border-border bg-background px-3 text-sm"
                 value={subLinkForm.navLinkId}
-                onChange={(e) => setSubLinkForm({ ...subLinkForm, navLinkId: e.target.value })}
+                onChange={(e) => onSubLinkParentChange(e.target.value)}
               >
                 {links.map((l) => (
                   <option key={l.id} value={l.id}>
@@ -861,7 +897,7 @@ export default function AdminNavbarManager() {
               <Label>Title</Label>
               <Input
                 value={subLinkForm.title}
-                onChange={(e) => setSubLinkForm({ ...subLinkForm, title: e.target.value })}
+                onChange={(e) => onSubLinkTitleChange(e.target.value)}
                 placeholder="e.g. The Story / Journey"
                 maxLength={120}
               />
@@ -870,10 +906,17 @@ export default function AdminNavbarManager() {
               <Label>URL / path</Label>
               <Input
                 value={subLinkForm.href}
-                onChange={(e) => setSubLinkForm({ ...subLinkForm, href: e.target.value })}
+                onChange={(e) => {
+                  setHrefTouched(true); // manual edit → stop auto-fill
+                  setSubLinkForm({ ...subLinkForm, href: e.target.value });
+                }}
                 placeholder="/our-essence/story"
                 maxLength={300}
               />
+              <p className="text-xs text-muted-foreground">
+                Auto-filled from the parent link and title (spaces become hyphens,
+                lowercased). Edit it here to override.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -949,6 +992,104 @@ export default function AdminNavbarManager() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// ── Draggable sub-link row ────────────────────────────────────
+// One Reorder.Item per sub-link. Dragging is restricted to the grip handle
+// (useDragControls + dragListener={false}) so the Eye/Edit/Delete buttons stay
+// clickable without accidentally starting a drag.
+function SubLinkRow({
+  sub,
+  onToggle,
+  onEdit,
+  onDelete,
+}: {
+  sub: NavSubLinkRow;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      value={sub}
+      dragListener={false}
+      dragControls={controls}
+      className="flex items-center gap-3 bg-card px-3 py-2.5 text-sm"
+    >
+      {/* Drag handle */}
+      <button
+        type="button"
+        onPointerDown={(e) => controls.start(e)}
+        aria-label="Drag to reorder"
+        className="w-5 shrink-0 cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      <span className="w-12 shrink-0 font-mono text-xs text-muted-foreground">
+        #{sub.sortOrder}
+      </span>
+      <span className="flex-1 truncate font-jost-medium">{sub.title}</span>
+      <span className="hidden flex-1 truncate text-xs text-muted-foreground sm:block">
+        {sub.href}
+      </span>
+
+      <span className="w-24 shrink-0">
+        <button
+          onClick={onToggle}
+          className="cursor-pointer"
+          title={sub.isVisible ? 'Click to hide' : 'Click to publish'}
+        >
+          <Badge
+            variant={sub.isVisible ? 'default' : 'secondary'}
+            className={
+              sub.isVisible
+                ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                : 'hover:bg-secondary/80'
+            }
+          >
+            <span
+              className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                sub.isVisible ? 'bg-primary' : 'bg-muted-foreground'
+              }`}
+            />
+            {sub.isVisible ? 'Active' : 'Hidden'}
+          </Badge>
+        </button>
+      </span>
+
+      <div className="flex w-28 shrink-0 items-center justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onToggle}
+          title={sub.isVisible ? 'Hide' : 'Publish'}
+          className="hover:bg-accent"
+        >
+          {sub.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onEdit}
+          title="Edit"
+          className="hover:bg-primary/10 hover:text-primary"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onDelete}
+          title="Delete"
+          className="text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </Reorder.Item>
   );
 }
 
