@@ -79,7 +79,7 @@ export function MissionSection({ data }: Props) {
             relies on for the three short lines. */}
         <motion.p
           variants={item}
-          className="mx-auto mt-4 max-w-[90ch] text-pretty font-jost-light whitespace-pre-line text-[clamp(1.50rem,0.85rem+0.42vw,1.25rem)] leading-[1.7] drop-shadow-[0_1px_10px_rgba(255,255,255,0.7)] lg:mt-5"
+          className="mx-auto mt-4 max-w-[90ch] text-pretty font-jost-light whitespace-pre-line text-[clamp(1.50rem,0.85rem+0.42vw,1.25rem)] leading-[1.3] drop-shadow-[0_1px_10px_rgba(255,255,255,0.7)] lg:mt-5"
           style={{ color: WATER_NAVY }}
         >
           {paragraph}
