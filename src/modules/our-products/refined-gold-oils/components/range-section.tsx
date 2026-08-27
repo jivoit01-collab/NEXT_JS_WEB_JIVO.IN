@@ -70,7 +70,7 @@ export function RangeSection({ data }: Props) {
         <div className="mx-auto mt-9 grid max-w-3xl grid-cols-2 gap-3 sm:gap-6 md:mt-10 md:gap-7 lg:mt-12 lg:gap-8 2xl:gap-10">
           {variants.map((variant, i) => (
             <motion.div key={`${variant.label}-${i}`} variants={cardItem}>
-              <VariantCard variant={variant} />
+              <VariantCard variant={variant} index={i} />
             </motion.div>
           ))}
         </div>
@@ -79,13 +79,20 @@ export function RangeSection({ data }: Props) {
   );
 }
 
+/** Progressive product scale by position (smallest → largest), as fractions of
+ *  the card's image-box height. The CARD size stays identical — only the product
+ *  inside grows. Beyond 3 variants it caps at full height. */
+const BOTTLE_SCALE = ['70%', '85%', '100%'];
+
 /** One jar card. Renders as a link when `href` is set, else a plain figure. */
-function VariantCard({ variant }: { variant: RefinedGoldProductVariant }) {
+function VariantCard({ variant, index = 0 }: { variant: RefinedGoldProductVariant; index?: number }) {
   const { image, label, href } = variant;
+  const bottleHeight = BOTTLE_SCALE[Math.min(index, BOTTLE_SCALE.length - 1)];
 
   const inner = (
     <>
-      <div className="flex h-[clamp(11rem,34vw,18rem)] items-center justify-center">
+      {/* Bottom-aligned so the different heights share a common baseline. */}
+      <div className="flex h-[clamp(11rem,34vw,18rem)] items-end justify-center">
         {/* SafeImage resolves empty/unknown values to the upload placeholder,
             so a card never renders an empty hole before art is uploaded. */}
         <SafeImage
@@ -95,7 +102,8 @@ function VariantCard({ variant }: { variant: RefinedGoldProductVariant }) {
           height={420}
           quality={85}
           sizes="(max-width: 767px) 45vw, (max-width: 1024px) 34vw, 300px"
-          className="h-full w-auto object-contain transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
+          style={{ height: bottleHeight }}
+          className="w-auto object-contain object-bottom transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
         />
       </div>
       <span

@@ -73,7 +73,7 @@ export function RangeSection({ data }: Props) {
                 variants={cardItem}
                 className={spansRow ? 'col-span-2 lg:col-span-1' : undefined}
               >
-                <VariantCard variant={variant} fullWidth={spansRow} />
+                <VariantCard variant={variant} fullWidth={spansRow} index={i} />
               </motion.div>
             );
           })}
@@ -83,25 +83,34 @@ export function RangeSection({ data }: Props) {
   );
 }
 
+/** Progressive bottle scale by position (smallest → largest), as fractions of
+ *  the card's image-box height. The CARD size stays identical — only the bottle
+ *  inside grows. Beyond 3 variants it caps at full height. */
+const BOTTLE_SCALE = ['70%', '85%', '100%'];
+
 /** One bottle card. Renders as a link when `href` is set, else a plain figure. */
 function VariantCard({
   variant,
   fullWidth = false,
+  index = 0,
 }: {
   variant: GroundnutProductVariant;
   fullWidth?: boolean;
+  index?: number;
 }) {
   const { image, label, href } = variant;
+  const bottleHeight = BOTTLE_SCALE[Math.min(index, BOTTLE_SCALE.length - 1)];
 
   const inner = (
     <>
       {/* A row-spanning card is twice as wide, so its bottle is capped by vw
-          rather than the column — otherwise it renders oversized. */}
+          rather than the column. Bottom-aligned so the different heights share
+          a common baseline. */}
       <div
         className={
           fullWidth
-            ? 'flex h-[clamp(11rem,26vw,18rem)] items-center justify-center lg:h-[clamp(11rem,34vw,18rem)]'
-            : 'flex h-[clamp(11rem,34vw,18rem)] items-center justify-center'
+            ? 'flex h-[clamp(11rem,26vw,18rem)] items-end justify-center lg:h-[clamp(11rem,34vw,18rem)]'
+            : 'flex h-[clamp(11rem,34vw,18rem)] items-end justify-center'
         }
       >
         {/* SafeImage resolves empty/unknown values to the upload placeholder,
@@ -113,7 +122,8 @@ function VariantCard({
           height={420}
           quality={85}
           sizes="(max-width: 640px) 40vw, (max-width: 1024px) 30vw, 260px"
-          className="h-full w-auto object-contain transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
+          style={{ height: bottleHeight }}
+          className="w-auto object-contain object-bottom transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.07]"
         />
       </div>
       <span
