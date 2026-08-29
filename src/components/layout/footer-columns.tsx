@@ -46,18 +46,27 @@ export function FooterColumns({ columns }: { columns: VisibleFooterColumnWithLin
             >
               {column.links.map((link) => (
                 <li key={link.id}>
+                  {/* The link stays full-width so long titles wrap inside the
+                      column, but its cursor is `default`: the pointer only shows
+                      over the text span below (cursor-pointer), never the blank
+                      column space beside a short link. */}
                   <SmartLink
                     href={link.href}
-                    className="group flex items-start gap-2 text-sm leading-snug text-[#586055] transition-colors duration-300 sm:text-[15px] 2xl:text-lg [@media(hover:hover)]:hover:text-[#111]"
+                    className="group flex cursor-default items-start gap-2 text-sm leading-snug text-[#586055] sm:text-[15px] 2xl:text-lg"
                   >
                     <span className="mt-[1px] shrink-0 text-[#0a7d3f]" aria-hidden>
                       &gt;
                     </span>
-                    {/* Block wrapper → the growing underline spans a consistent
-                        width for every link, single- or multi-line. */}
-                    <span className="relative min-w-0 flex-1 pb-1">
-                      {link.title}
-                      <span className="absolute bottom-0 left-0 h-[1.5px] w-0 bg-[#0a7d3f] transition-all duration-300 [@media(hover:hover)]:group-hover:w-full" />
+                    <span className="min-w-0 flex-1">
+                      {/* Inner INLINE span hugs the actual text: it carries the
+                          pointer cursor, the hover text-color, and the underline
+                          — all triggered only when the cursor is over the words.
+                          box-decoration-clone repeats the underline under each
+                          wrapped line; the 2px gradient height reads clearly and
+                          rounds crisply at every zoom. */}
+                      <span className="box-decoration-clone cursor-pointer bg-[linear-gradient(#0a7d3f,#0a7d3f)] bg-size-[0%_2px] bg-bottom-left bg-no-repeat pb-0.5 transition-[background-size,color] duration-300 [@media(hover:hover)]:hover:bg-size-[100%_2px] [@media(hover:hover)]:hover:text-[#111]">
+                        {link.title}
+                      </span>
                     </span>
                   </SmartLink>
                 </li>
