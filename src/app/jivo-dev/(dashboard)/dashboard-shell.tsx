@@ -7,6 +7,7 @@ import { signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LivePreviewButton } from '@/components/shared/admin';
+import { AdminSearch, type AdminSearchItem } from './admin-search';
 import { useTheme } from '@/providers/theme-provider';
 import {
   Menu,
@@ -113,6 +114,28 @@ export function DashboardShell({
   const SIDEBAR: NavSection[] = useMemo(
     () => [...CMS_SECTIONS, ANALYTICS_SECTION, SEO_SECTION],
     [ANALYTICS_SECTION],
+  );
+
+  // Flat, de-duplicated list of every admin page for the top-bar search. SEO
+  // entries carry a `?tab=seo` so search can jump straight to a page's SEO tab;
+  // analytics modules are added from their pre-rendered leaves.
+  const SEARCH_ITEMS: AdminSearchItem[] = useMemo(
+    () =>
+      SIDEBAR.flatMap((section) => {
+        if (section.analyticsLeaves) {
+          return section.analyticsLeaves.map((leaf) => ({
+            label: leaf.title,
+            group: section.title,
+            href: leaf.href,
+          }));
+        }
+        return section.children.map((child) => ({
+          label: child.title,
+          group: section.title,
+          href: child.tab ? `${child.href}?tab=${child.tab}` : child.href,
+        }));
+      }),
+    [SIDEBAR],
   );
 
   useEffect(() => {
@@ -394,6 +417,7 @@ export function DashboardShell({
                 <Menu className="h-4 w-4" />
               </Button>
             )}
+            <AdminSearch items={SEARCH_ITEMS} />
           </div>
           <div className="flex items-center gap-3 2xl:gap-4">
             <Button
