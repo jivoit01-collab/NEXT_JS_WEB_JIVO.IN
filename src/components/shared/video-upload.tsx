@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Loader2, Upload, X } from 'lucide-react';
 import { MAX_VIDEO_UPLOAD_SIZE } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { uploadEndpoint, UPLOAD_FETCH_INIT, uploadAuthHeaders } from '@/lib/upload-endpoint';
 
 export interface VideoUploadMeta {
   width: number;
@@ -42,9 +43,11 @@ async function uploadFile(file: File): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch('/api/upload', {
+  const res = await fetch(uploadEndpoint(), {
     method: 'POST',
     body: formData,
+    headers: uploadAuthHeaders(), // key only; browser sets multipart Content-Type
+    ...UPLOAD_FETCH_INIT,
   });
 
   return res.json();
@@ -69,9 +72,10 @@ async function readVideoDimensions(file: File): Promise<VideoUploadMeta> {
 }
 
 async function deleteFile(filename: string): Promise<void> {
-  await fetch('/api/upload', {
+  await fetch(uploadEndpoint(), {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...uploadAuthHeaders() },
+    ...UPLOAD_FETCH_INIT,
     body: JSON.stringify({ filename }),
   });
 }

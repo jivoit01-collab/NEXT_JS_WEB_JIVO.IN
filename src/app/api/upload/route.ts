@@ -23,6 +23,78 @@ const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'images');
 const MAX_IMAGE_DIMENSION = 3200;
 const IMAGE_WEBP_QUALITY = 95;
 
+/**
+ * Cross-origin allowlist for uploads.
+ *
+ * This lets a developer run the admin LOCALLY while uploading to THIS server's
+ * disk (see lib/upload-endpoint.ts). It is OFF unless UPLOAD_ALLOWED_ORIGINS is
+ * set — a comma-separated list of exact origins permitted to POST/DELETE here,
+ * e.g. "http://localhost:3000". The route is still admin-only (requireAdmin),
+ * so this only widens WHERE an already-authenticated admin request may come
+ * from; it never bypasses auth.
+ */
+const ALLOWED_ORIGINS = (process.env.UPLOAD_ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+/**
+ * Optional shared secret that authorizes an upload WITHOUT a browser session.
+ *
+ * Set UPLOAD_API_KEY on the server AND on the machine running the admin. When a
+ * request carries a matching `x-upload-key` header, it is treated as admin — so
+ * a locally-run admin can upload to this server's disk without logging into this
+ * origin in the browser (which the site's SameSite=Lax cookie would block).
+ *
+ * Empty by default → this bypass is OFF; only a real admin session is accepted.
+ * The key never appears client-side in the public site; it is only sent by the
+ * admin upload calls when NEXT_PUBLIC_UPLOAD_KEY is set in that admin's env.
+ */
+const UPLOAD_API_KEY = process.env.UPLOAD_API_KEY?.trim() ?? '';
+
+/**
+ * Constant-time-ish compare to avoid leaking length/prefix via early return.
+ * (Both are short config strings; this is a light hardening, not a crypto path.)
+ */
+function keyMatches(provided: string | null): boolean {
+  if (!UPLOAD_API_KEY || !provided) return false;
+  if (provided.length !== UPLOAD_API_KEY.length) return false;
+  let diff = 0;
+  for (let i = 0; i < provided.length; i++) {
+    diff |= provided.charCodeAt(i) ^ UPLOAD_API_KEY.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+/**
+ * Authorize an upload/delete: accept EITHER a matching upload key OR a normal
+ * admin session. Returns null when allowed, or a 401/403 response otherwise.
+ */
+async function guardUpload(req: NextRequest): Promise<NextResponse | null> {
+  if (keyMatches(req.headers.get('x-upload-key'))) return null;
+  return requireAdmin();
+}
+
+/** If the request's Origin is allow-listed, the CORS headers to echo back. */
+function corsHeaders(req: NextRequest): Record<string, string> {
+  const origin = req.headers.get('origin')?.replace(/\/$/, '') ?? '';
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) return {};
+  return {
+    'Access-Control-Allow-Origin': origin,
+    // Credentials (the admin auth cookie) must be allowed for the request to authorize.
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
+    // Allow the custom auth header on cross-origin requests.
+    'Access-Control-Allow-Headers': 'Content-Type, x-upload-key',
+    Vary: 'Origin',
+  };
+}
+
+// Preflight for cross-origin uploads/deletes from an allow-listed dev origin.
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders(req) });
+}
+
 function sanitizeFilename(name: string, fallback = 'media'): string {
   return (
     name
@@ -42,9 +114,20 @@ function getSafeExtension(name: string, type: string) {
   return ext;
 }
 
-// POST /api/upload
+/** Merge the allow-listed CORS headers onto a response before returning it, so
+ *  a cross-origin (local-admin → live-server) upload is accepted by the browser. */
+function withCors(res: NextResponse, req: NextRequest): NextResponse {
+  for (const [k, v] of Object.entries(corsHeaders(req))) res.headers.set(k, v);
+  return res;
+}
+
+// POST /api/upload — thin wrapper adds CORS to the handler's response.
 export async function POST(req: NextRequest) {
-  const guard = await requireAdmin();
+  return withCors(await handlePost(req), req);
+}
+
+async function handlePost(req: NextRequest) {
+  const guard = await guardUpload(req);
   if (guard) return guard;
 
   try {
@@ -139,9 +222,13 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE /api/upload
+// DELETE /api/upload — thin wrapper adds CORS to the handler's response.
 export async function DELETE(req: NextRequest) {
-  const guard = await requireAdmin();
+  return withCors(await handleDelete(req), req);
+}
+
+async function handleDelete(req: NextRequest) {
+  const guard = await guardUpload(req);
   if (guard) return guard;
 
   try {

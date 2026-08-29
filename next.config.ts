@@ -45,6 +45,23 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Serve uploaded media at a clean, Google-friendly public URL
+  // (https://jivo.in/uploads/images/<file>) that maps to the runtime file-server
+  // route. This is a REWRITE, not a redirect: the browser/Googlebot sees the
+  // clean URL while the request is handled by /api/uploads/<file>, which reads
+  // the file straight from the on-disk `uploads/` folder. So a newly uploaded
+  // image is live immediately at this URL — no rebuild, no folder move — and the
+  // old /api/uploads/<file> URLs keep working unchanged for anything already
+  // stored in the database.
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/images/:filename',
+        destination: '/api/uploads/:filename',
+      },
+    ];
+  },
+
   async headers() {
     // Base security headers - always on.
     const securityHeaders = [
@@ -79,6 +96,11 @@ const nextConfig: NextConfig = {
         },
         {
           source: '/api/uploads/(.*)',
+          headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, s-maxage=604800' }],
+        },
+        {
+          // Clean public image URL (rewritten to /api/uploads) gets the same cache policy.
+          source: '/uploads/images/(.*)',
           headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, s-maxage=604800' }],
         },
       );
