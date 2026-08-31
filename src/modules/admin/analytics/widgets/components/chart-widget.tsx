@@ -46,7 +46,7 @@ export function makeChartWidget(opts: {
           <AnalyticsChart
             type={opts.type}
             data={rows}
-            height={opts.height ?? (source === 'trend' ? 176 : 160)}
+            height={opts.height ?? (source === 'trend' ? 240 : 160)}
             emptyMessage={opts.description}
           />
         </div>

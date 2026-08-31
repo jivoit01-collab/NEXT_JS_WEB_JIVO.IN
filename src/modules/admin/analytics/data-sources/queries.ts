@@ -92,10 +92,21 @@ function resolveScope(ctx: WidgetContext): Scope {
   return { kind: 'none' };
 }
 
+/** The selected date window as a Prisma `timestamp` filter (or {} for all-time). */
+function dateWhere(ctx: WidgetContext): Prisma.AnalyticsEventWhereInput {
+  const r = ctx.dateRange;
+  if (!r || (!r.from && !r.to)) return {};
+  const timestamp: Prisma.DateTimeFilter = {};
+  if (r.from) timestamp.gte = r.from;
+  if (r.to) timestamp.lte = r.to;
+  return { timestamp };
+}
+
 function eventWhere(ctx: WidgetContext): Prisma.AnalyticsEventWhereInput | null {
   const scope = resolveScope(ctx);
   if (scope.kind === 'none') return null;
-  return scope.kind === 'page' ? scope.where : {};
+  const base = scope.kind === 'page' ? scope.where : {};
+  return { ...base, ...dateWhere(ctx) };
 }
 
 async function pageVisitorIds(where: Prisma.AnalyticsEventWhereInput): Promise<string[]> {
@@ -113,8 +124,13 @@ async function visitorScopeWhere(ctx: WidgetContext): Promise<Prisma.VisitorWher
   const scope = resolveScope(ctx);
   if (scope.kind === 'none') return null;
   const base: Prisma.VisitorWhereInput = { deletedAt: null };
+  // Apply the selected date window to visitor-based breakdowns via createdAt.
+  const r = ctx.dateRange;
+  if (r && (r.from || r.to)) {
+    base.createdAt = { ...(r.from ? { gte: r.from } : {}), ...(r.to ? { lte: r.to } : {}) };
+  }
   if (scope.kind === 'page') {
-    const ids = await pageVisitorIds(scope.where);
+    const ids = await pageVisitorIds({ ...scope.where, ...dateWhere(ctx) });
     if (ids.length === 0) return null;
     base.visitorId = { in: ids };
   }
@@ -122,21 +138,48 @@ async function visitorScopeWhere(ctx: WidgetContext): Promise<Prisma.VisitorWher
 }
 
 // ── Overview (platform-wide KPIs) ────────────────────────────
-export async function getOverviewData(): Promise<WidgetData> {
+export async function getOverviewData(ctx?: WidgetContext): Promise<WidgetData> {
+  // Date window: applied to counts so the KPI cards reflect the selected range.
+  const r = ctx?.dateRange;
+  const from = r?.from ?? undefined;
+  const to = r?.to ?? undefined;
+  const hasWindow = !!from || !!to;
+  // A createdAt/timestamp bound reused across the count queries below.
+  const createdBound = hasWindow
+    ? { createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
+    : {};
+  const tsBound = hasWindow
+    ? { timestamp: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
+    : {};
+
   const [visitors, sessions, events, returning, avgDuration, distinctPages, consent, lastSeen] =
     await Promise.allSettled([
-      countVisitors(),
-      countSessions(),
-      countEvents(),
-      prisma.visitor.count({ where: { visitCount: { gt: 1 }, deletedAt: null } }),
+      // Visitors/sessions have no dated Core helper; count with a createdAt bound
+      // when a window is set, else use the frozen Core totals.
+      hasWindow
+        ? prisma.visitor.count({ where: { deletedAt: null, ...createdBound } })
+        : countVisitors(),
+      hasWindow
+        ? prisma.visitorSession.count({ where: { deletedAt: null, ...createdBound } })
+        : countSessions(),
+      // countEvents already supports from/to.
+      countEvents(hasWindow ? { from, to } : {}),
+      prisma.visitor.count({ where: { visitCount: { gt: 1 }, deletedAt: null, ...createdBound } }),
       prisma.visitorSession
-        .aggregate({ _avg: { duration: true }, where: { duration: { not: null } } })
-        .then((r) => r._avg.duration ?? null),
+        .aggregate({
+          _avg: { duration: true },
+          where: { duration: { not: null }, ...createdBound },
+        })
+        .then((res) => res._avg.duration ?? null),
       prisma.analyticsEvent
-        .findMany({ where: { page: { not: null } }, distinct: ['page'], select: { page: true } })
+        .findMany({
+          where: { page: { not: null }, ...tsBound },
+          distinct: ['page'],
+          select: { page: true },
+        })
         .then((rows) => rows.length),
       prisma.cookieConsent.count({ where: { status: 'ACCEPTED' } }),
-      prisma.visitor.aggregate({ _max: { lastSeen: true } }).then((r) => r._max.lastSeen ?? null),
+      prisma.visitor.aggregate({ _max: { lastSeen: true } }).then((res) => res._max.lastSeen ?? null),
     ]);
 
   const totalVisitors = settledNum(visitors);
@@ -293,18 +336,25 @@ function dayKey(d: Date): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 export async function getTrend(ctx: WidgetContext): Promise<WidgetData> {
-  const w = eventWhere(ctx);
-  if (!w) return { status: 'empty', trend: [] };
+  const scope = resolveScope(ctx);
+  if (scope.kind === 'none') return { status: 'empty', trend: [] };
+  const pageWhere = scope.kind === 'page' ? scope.where : {};
 
-  const DAYS = 30;
+  // Window comes from the selected date range; default to the last 30 days.
+  const DAYS = Math.min(ctx.dateRange?.days ?? 30, 365);
   const now = new Date();
-  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (DAYS - 1));
+  const from =
+    ctx.dateRange?.from ??
+    new Date(now.getFullYear(), now.getMonth(), now.getDate() - (DAYS - 1));
+  const to = ctx.dateRange?.to ?? now;
+
   const events = await prisma.analyticsEvent.findMany({
-    where: { ...w, timestamp: { gte: from } },
+    where: { ...pageWhere, timestamp: { gte: from, lte: to } },
     select: { timestamp: true },
     take: 50000,
   });
 
+  // One bucket per day across the window (keyed M/D so it matches the labels).
   const buckets = new Map<string, number>();
   for (let i = 0; i < DAYS; i++) {
     buckets.set(dayKey(new Date(from.getFullYear(), from.getMonth(), from.getDate() + i)), 0);

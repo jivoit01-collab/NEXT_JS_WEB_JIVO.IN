@@ -80,7 +80,7 @@ export default function MilestonesTimelineManager() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 2xl:max-w-6xl">
+    <div className="mx-auto w-full max-w-[1800px] space-y-6">
       <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <h1 className="font-jost-bold text-xl sm:text-2xl md:text-3xl 2xl:text-4xl">

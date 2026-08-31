@@ -60,6 +60,17 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply the theme BEFORE first paint to avoid a flash / wrong theme on
+            refresh. Reads the same 'theme' localStorage key the ThemeProvider
+            uses; falls back to the OS preference ('system'). Runs synchronously
+            in <head>, so the correct class is on <html> before the body paints. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=(t==='dark')||((t==='system'||!t)&&window.matchMedia('(prefers-color-scheme: dark)').matches);var c=d?'dark':'light';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(c);document.documentElement.style.colorScheme=c;}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body
         suppressHydrationWarning
         className={`${jost.variable} ${futura.variable} font-sans antialiased`}

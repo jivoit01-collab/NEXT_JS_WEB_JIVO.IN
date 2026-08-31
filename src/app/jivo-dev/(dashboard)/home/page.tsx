@@ -446,7 +446,7 @@ export default function AdminHomePageManager() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 2xl:max-w-7xl 2xl:space-y-8">
+    <div className="mx-auto w-full max-w-[1800px] space-y-6 2xl:space-y-8">
       {/* ── Header ──────────────────────────── */}
       <div>
         <div className="mb-1 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-primary">

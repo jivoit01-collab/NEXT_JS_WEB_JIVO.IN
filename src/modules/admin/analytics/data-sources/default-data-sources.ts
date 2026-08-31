@@ -57,7 +57,7 @@ export const defaultAnalyticsDataSource: AnalyticsDataSource = {
       if (ctx.moduleId === 'visitors') return getVisitorKpis();
       if (ctx.moduleId === 'traffic') return getTrafficKpis();
       if (ctx.moduleId === 'reports') return getReportsKpis();
-      return ctx.scope === 'overview' ? getOverviewData() : getModuleData(ctx);
+      return ctx.scope === 'overview' ? getOverviewData(ctx) : getModuleData(ctx);
     }
     if (widgetId === 'trend' || widgetId === 'visitors-trend' || widgetId === 'traffic-trend')
       return getTrend(ctx);

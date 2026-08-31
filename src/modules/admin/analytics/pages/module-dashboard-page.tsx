@@ -7,7 +7,13 @@ import type { AnalyticsModuleDefinition } from '../types';
  * the renderer builds it from the module's widget config (defaults include the
  * page-navigation widget, so drilling into pages happens here).
  */
-export function ModuleDashboardPage({ module: moduleDef }: { module: AnalyticsModuleDefinition }) {
+export function ModuleDashboardPage({
+  module: moduleDef,
+  dateRange,
+}: {
+  module: AnalyticsModuleDefinition;
+  dateRange?: WidgetContext['dateRange'];
+}) {
   const pages = moduleDef.pages ?? [];
   const context: WidgetContext = {
     scope: 'module',
@@ -16,6 +22,7 @@ export function ModuleDashboardPage({ module: moduleDef }: { module: AnalyticsMo
     moduleName: moduleDef.name,
     moduleRoute: moduleDef.route,
     pages: moduleDef.pages,
+    dateRange,
   };
   return (
     <AnalyticsLayout
@@ -23,13 +30,6 @@ export function ModuleDashboardPage({ module: moduleDef }: { module: AnalyticsMo
       breadcrumb={moduleDef.name}
       icon={moduleDef.icon}
       description={moduleDef.description ?? `Analytics across ${moduleDef.name}.`}
-      exportContext={{
-        scope: context.scope,
-        title: context.title,
-        moduleId: context.moduleId,
-        moduleName: context.moduleName,
-        moduleRoute: context.moduleRoute,
-      }}
       pageSelector={
         pages.length > 0
           ? {

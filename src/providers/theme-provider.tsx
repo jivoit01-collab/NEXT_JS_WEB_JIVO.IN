@@ -33,9 +33,17 @@ function applyTheme(theme: Theme): ResolvedTheme {
   return resolvedTheme;
 }
 
+/** Read the class the pre-hydration script already put on <html>, so the first
+ *  client render matches what's painted (no toggle-needs-two-clicks, no flash). */
+function readAppliedTheme(): ResolvedTheme {
+  if (typeof document === 'undefined') return 'light';
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light');
+  // Lazy init from the DOM so resolvedTheme is correct on the very first render.
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(readAppliedTheme);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem(STORAGE_KEY);

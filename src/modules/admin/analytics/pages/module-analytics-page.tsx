@@ -39,7 +39,6 @@ export function ModuleAnalyticsPage({
       icon={icon}
       description={description}
       pageSelector={pageSelector}
-      exportContext={context}
     >
       {sections && sections.length > 0 ? (
         // Legacy named-section placeholders (e.g. auth) until it registers widgets.

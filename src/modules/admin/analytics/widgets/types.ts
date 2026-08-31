@@ -36,6 +36,10 @@ export interface WidgetContext {
   pageId?: string;
   /** Child pages (module scope) — used by the navigation widget. */
   pages?: { id: string; name: string; route: string; icon?: ElementType }[];
+  /** Selected date window (from the toolbar filter). Applied to every dated
+   *  query — event counts, trend bucketing, visitor scopes. `from: null` = all
+   *  time. Absent → the data source falls back to its own default (30 days). */
+  dateRange?: { from: Date | null; to: Date; days: number };
 }
 
 /**

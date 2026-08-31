@@ -468,7 +468,7 @@ export default function AdminNavbarManager() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 2xl:max-w-7xl 2xl:space-y-8">
+    <div className="mx-auto w-full max-w-[1800px] space-y-6 2xl:space-y-8">
       {/* ── Header ──────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

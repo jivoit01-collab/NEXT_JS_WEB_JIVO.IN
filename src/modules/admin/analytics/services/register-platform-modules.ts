@@ -5,9 +5,7 @@
 
 import { AUTH_ANALYTICS_MODULE, AUTH_ANALYTICS_WIDGET_IDS } from '@/modules/platform/auth/analytics';
 import { FEEDBACK_ANALYTICS_MODULE } from '@/modules/platform/feedback/analytics';
-import { KNOWLEDGE_ANALYTICS_MODULE } from '@/modules/platform/knowledge/analytics';
 import { AI_ANALYTICS_MODULE } from '@/modules/platform/conversation/analytics';
-import { OBSERVABILITY_ANALYTICS_MODULE } from '@/modules/platform/observability/analytics';
 import { registerAnalyticsModule } from './registry';
 
 // Auth is a leaf module whose page is built from analytics WIDGETS (its
@@ -23,9 +21,8 @@ registerAnalyticsModule({
 // data-source platforms; here we just add the module + its pages.
 registerAnalyticsModule(FEEDBACK_ANALYTICS_MODULE);
 
-// Knowledge is a module WITH pages (Documents, Collections, Sources, Search,
-// Indexing, Sync Jobs, Settings) — the reusable knowledge layer for AI features.
-registerAnalyticsModule(KNOWLEDGE_ANALYTICS_MODULE);
+// Knowledge module removed from the Analytics navigation (unregistered); its
+// /analytics/knowledge route now 404s. The knowledge PLATFORM itself is untouched.
 
 // AI (Conversation Platform) is a module WITH pages (Conversations, Messages,
 // Memory, Performance, Settings) — conversation lifecycle/state/memory analytics.
@@ -38,6 +35,6 @@ registerAnalyticsModule(AI_ANALYTICS_MODULE);
 // pipeline; re-adding this one line restores the UI when a second provider
 // lands. The descriptor itself is intentionally kept in the codebase.
 
-// AI Observability (Phase 7.9) — execution metadata for debugging & tuning
-// (Executions, Cost & Usage). Reads the Observability module's aggregates.
-registerAnalyticsModule(OBSERVABILITY_ANALYTICS_MODULE);
+// AI Observability module removed from the Analytics navigation (unregistered);
+// its /analytics/ai-observability route now 404s. The observability PLATFORM
+// (execution logging) is untouched — only the dashboard entry is hidden.

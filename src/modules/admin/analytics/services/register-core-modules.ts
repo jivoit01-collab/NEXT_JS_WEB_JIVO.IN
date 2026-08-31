@@ -2,7 +2,7 @@
 // The CMS-backed modules (Dashboard, Our Essence, Products, …) are generated
 // from the CMS registry in `register-cms-modules.ts`.
 
-import { LayoutDashboard, Users, Route, FileBarChart } from 'lucide-react';
+import { LayoutDashboard, Users, Route } from 'lucide-react';
 import { ANALYTICS_ROOT, registerAnalyticsModule } from './registry';
 
 registerAnalyticsModule({
@@ -44,23 +44,5 @@ registerAnalyticsModule({
   widgets: ['overview', 'traffic-trend', 'traffic-sources', 'referrers', 'landing-pages', 'campaigns'],
 });
 
-// Reports — reporting & exports only (placeholders until implemented).
-registerAnalyticsModule({
-  id: 'reports',
-  name: 'Reports',
-  icon: FileBarChart,
-  route: `${ANALYTICS_ROOT}/reports`,
-  category: 'reports',
-  description: 'Scheduled reports and exports.',
-  order: 70,
-  standalone: true,
-  // Phase 6.1: export moved to the toolbar (Export CSV / Export PDF), so the
-  // Export Center + Quick Reports widgets are dropped. Reports stays BI-only.
-  widgets: [
-    'overview', // Summary (Total/Scheduled/Recent Exports/Last Export)
-    'report-activity', // Export History
-    'report-comparison', // Compare Reports (current vs previous)
-    'report-saved', // Report Templates (empty state)
-    'report-scheduled', // Scheduled Reports (empty state)
-  ],
-});
+// Reports module removed — unregistered so it no longer appears in the Analytics
+// sidebar, and its /analytics/reports route now 404s via the catch-all.

@@ -193,7 +193,7 @@ export default function AdminSeoPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl py-4 sm:py-8 2xl:max-w-7xl 2xl:py-10">
+    <div className="mx-auto w-full max-w-[1800px] py-4 sm:py-8 2xl:py-10">
       {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-8 text-center sm:mb-10">
         <p

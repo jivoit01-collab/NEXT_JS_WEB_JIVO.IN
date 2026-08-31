@@ -6,6 +6,13 @@ import {
   ModuleDashboardPage,
   ModuleAnalyticsPage,
 } from '@/modules/admin/analytics';
+import { resolveDateRange, DEFAULT_DATE_RANGE } from '@/modules/admin/analytics/utils';
+import type { DateRangePreset } from '@/modules/admin/analytics/types';
+
+const PRESETS: DateRangePreset[] = ['today', '7d', '30d', '90d', 'ytd', 'all', 'custom'];
+function toPreset(v: string | undefined): DateRangePreset {
+  return v && (PRESETS as string[]).includes(v) ? (v as DateRangePreset) : DEFAULT_DATE_RANGE;
+}
 
 /**
  * ONE route file serves the ENTIRE hierarchical analytics dashboard. It resolves
@@ -17,17 +24,25 @@ import {
  */
 export default async function AnalyticsCatchAllPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug?: string[] }>;
+  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
 }) {
   const { slug } = await params;
+  const sp = await searchParams;
   const route = slug && slug.length ? `${ANALYTICS_ROOT}/${slug.join('/')}` : ANALYTICS_ROOT;
 
   const entry = getAnalyticsEntry(route);
 
+  // Resolve the toolbar date filter (from the URL) into a concrete window and
+  // thread it into every page's WidgetContext so all dated queries scope to it.
+  const resolved = resolveDateRange(toPreset(sp.range), sp.from, sp.to);
+  const dateRange = { from: resolved.from, to: resolved.to, days: resolved.days };
+
   switch (entry.type) {
     case 'overview':
-      return <OverviewPage />;
+      return <OverviewPage dateRange={dateRange} />;
 
     case 'module':
       // Standalone leaves (Authentication, Visitors, Traffic, Reports) render as
@@ -40,10 +55,10 @@ export default async function AnalyticsCatchAllPage({
           description={entry.module.description}
           sections={entry.module.sections}
           widgets={entry.module.widgets}
-          context={{ scope: 'page', title: entry.module.name, moduleId: entry.module.id }}
+          context={{ scope: 'page', title: entry.module.name, moduleId: entry.module.id, dateRange }}
         />
       ) : (
-        <ModuleDashboardPage module={entry.module} />
+        <ModuleDashboardPage module={entry.module} dateRange={dateRange} />
       );
 
     case 'page': {
@@ -72,6 +87,7 @@ export default async function AnalyticsCatchAllPage({
             moduleName: entry.module.name,
             moduleRoute: entry.module.route,
             pageId: entry.page.id,
+            dateRange,
           }}
         />
       );

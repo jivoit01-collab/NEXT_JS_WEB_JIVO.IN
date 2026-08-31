@@ -104,7 +104,7 @@ export function SecurityLogView({ overview }: { overview: SecurityOverview }) {
   const blockedIps = useMemo(() => ips.filter((record) => record.blocked), [ips]);
 
   return (
-    <div className="mx-auto max-w-6xl py-4 sm:py-8 2xl:max-w-360 2xl:py-10">
+    <div className="mx-auto w-full max-w-[1800px] py-4 sm:py-8 2xl:py-10">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <p className="mb-2 flex items-center gap-2 text-xs font-jost-bold uppercase tracking-widest text-gold sm:text-sm">

@@ -18,7 +18,14 @@ export interface AdminSearchItem {
  * dropdown of matching pages. Type to filter, ↑/↓ to move, Enter to go, Esc to
  * close. Pulls its list from the sidebar registry so it always matches the nav.
  */
-export function AdminSearch({ items }: { items: AdminSearchItem[] }) {
+export function AdminSearch({
+  items,
+  className,
+}: {
+  items: AdminSearchItem[];
+  /** Extra classes for the outer wrapper — e.g. a wider `max-w-*`. */
+  className?: string;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -74,7 +81,7 @@ export function AdminSearch({ items }: { items: AdminSearchItem[] }) {
   };
 
   return (
-    <div ref={boxRef} className="relative w-full max-w-md">
+    <div ref={boxRef} className={cn('relative w-full max-w-md', className)}>
       <div className="border-border bg-background/70 flex items-center gap-2 rounded-lg border px-3 py-2">
         <Search className="text-muted-foreground h-4 w-4 shrink-0" />
         <input

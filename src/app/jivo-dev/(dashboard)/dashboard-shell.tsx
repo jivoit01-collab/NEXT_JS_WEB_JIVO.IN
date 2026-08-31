@@ -93,7 +93,7 @@ export function DashboardShell({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -112,7 +112,14 @@ export function DashboardShell({
   );
 
   const SIDEBAR: NavSection[] = useMemo(
-    () => [...CMS_SECTIONS, ANALYTICS_SECTION, SEO_SECTION],
+    () =>
+      [...CMS_SECTIONS, ANALYTICS_SECTION, SEO_SECTION].filter(
+        // Only show a section that actually has content: sub-pages (children) or
+        // analytics leaves. Empty sections (e.g. Media/Community before any page
+        // is added) are hidden and reappear automatically once pages exist —
+        // registry-driven, so no manual sidebar edits.
+        (section) => section.children.length > 0 || (section.analyticsLeaves?.length ?? 0) > 0,
+      ),
     [ANALYTICS_SECTION],
   );
 
@@ -311,51 +318,40 @@ export function DashboardShell({
                   </button>
                 </div>
 
-                {/* Dropdown children */}
+                {/* Dropdown children. `grid-rows-[0fr→1fr]` animates open/close
+                    WITHOUT a fixed max-height, so long lists (SEO, Analytics) are
+                    never clipped and the whole nav scrolls to reach them. Analytics
+                    leaves and CMS children now share the SAME indented, spaced
+                    design (ml-4 border-l pl-3) — matching the Our Essence look. */}
                 <div
                   className={cn(
-                    'overflow-hidden transition-all duration-250 ease-in-out',
-                    isOpen
-                      ? cn('opacity-100', section.analyticsLeaves ? 'max-h-[2000px]' : 'max-h-125')
-                      : 'max-h-0 opacity-0',
+                    'grid transition-[grid-template-rows] duration-250 ease-in-out',
+                    isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
                   )}
                 >
-                  {section.analyticsLeaves ? (
-                    <div className="ml-1 space-y-0.5 py-1">
-                      {renderAnalyticsLeaves(section.analyticsLeaves)}
+                  <div className="overflow-hidden">
+                    <div className="border-border/50 ml-4 space-y-0.5 border-l py-1 pl-3">
+                      {section.analyticsLeaves
+                        ? renderAnalyticsLeaves(section.analyticsLeaves)
+                        : section.children.map((child) => {
+                            const ChildIcon = child.icon;
+                            const childActive = isChildActive(child);
+                            const childHref = child.tab
+                              ? `${child.href}?tab=${child.tab}`
+                              : child.href;
+                            return (
+                              <Link
+                                key={childHref}
+                                href={childHref}
+                                className={cn(leafCls, childActive ? activeCls : idleCls)}
+                              >
+                                <ChildIcon size={14} className="shrink-0" />
+                                <span className="truncate">{child.title}</span>
+                              </Link>
+                            );
+                          })}
                     </div>
-                  ) : (
-                    <div className="border-border/50 ml-4 border-l py-1 pl-3">
-                      {section.children.length === 0 ? (
-                        <span className="text-muted-foreground/50 block py-2 text-[11px] italic">
-                          No pages yet
-                        </span>
-                      ) : (
-                        section.children.map((child) => {
-                          const ChildIcon = child.icon;
-                          const childActive = isChildActive(child);
-                          const childHref = child.tab
-                            ? `${child.href}?tab=${child.tab}`
-                            : child.href;
-                          return (
-                            <Link
-                              key={childHref}
-                              href={childHref}
-                              className={cn(
-                                'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition 2xl:px-3 2xl:py-2.5 2xl:text-sm',
-                                childActive
-                                  ? 'bg-primary/15 font-jost-medium text-primary'
-                                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                              )}
-                            >
-                              <ChildIcon size={14} className="shrink-0" />
-                              <span className="truncate">{child.title}</span>
-                            </Link>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
             );
@@ -370,63 +366,70 @@ export function DashboardShell({
           sidebarCollapsed ? 'md:ml-0' : 'md:ml-64 2xl:ml-72',
         )}
       >
-        <header className="bg-background/95 sticky top-0 z-20 flex h-14 items-center justify-between border-b px-4 backdrop-blur md:hidden print:hidden">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={openMobileSidebar}
-              className="cursor-pointer"
-              aria-label="Open menu"
-            >
-              <Menu size={24} />
-            </button>
-            <h1 className="font-jost-bold truncate text-sm">Admin Panel</h1>
+        {/* Mobile header — two rows: controls on top, a full-width search below,
+            so the search is available and responsive on small screens too. */}
+        <header className="bg-background/95 sticky top-0 z-20 flex flex-col gap-2 border-b px-4 py-2.5 backdrop-blur md:hidden print:hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={openMobileSidebar}
+                className="cursor-pointer"
+                aria-label="Open menu"
+              >
+                <Menu size={24} />
+              </button>
+              <h1 className="font-jost-bold truncate text-sm">Admin Panel</h1>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                className="h-9 w-9"
+              >
+                {mounted && resolvedTheme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+              <LivePreviewButton
+                iconOnly
+                className="h-9 w-9 border-border/60 bg-background/70"
+              />
+              <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/jivo-dev/login' })} className="gap-2">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="h-9 w-9"
-            >
-              {mounted && theme === 'dark' ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </Button>
-            <LivePreviewButton
-              iconOnly
-              className="h-9 w-9 border-border/60 bg-background/70"
-            />
-            <Button variant="destructive" size="sm" onClick={() => signOut({ callbackUrl: '/jivo-dev/login' })} className="gap-2">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
+          {/* Full-width search on its own row. */}
+          <AdminSearch items={SEARCH_ITEMS} className="max-w-none" />
         </header>
 
         <header className="bg-background/95 sticky top-0 z-20 hidden h-16 items-center justify-between gap-3 border-b px-6 backdrop-blur md:flex 2xl:h-20 2xl:gap-4 2xl:px-8 print:!hidden">
-          <div className="flex items-center gap-3">
+          {/* Left cluster grows so the search bar can stretch wide. */}
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             {sidebarCollapsed && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarCollapsed(false)}
-                className="h-9 w-9"
+                className="h-9 w-9 shrink-0"
                 aria-label="Open sidebar"
               >
                 <Menu className="h-4 w-4" />
               </Button>
             )}
-            <AdminSearch items={SEARCH_ITEMS} />
+            <AdminSearch items={SEARCH_ITEMS} className="max-w-2xl" />
           </div>
           <div className="flex items-center gap-3 2xl:gap-4">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
               className="h-9 w-9"
             >
-              {mounted && theme === 'dark' ? (
+              {mounted && resolvedTheme === 'dark' ? (
                 <Sun className="h-4 w-4" />
               ) : (
                 <Moon className="h-4 w-4" />

@@ -1,4 +1,5 @@
 import { BarChart3 } from 'lucide-react';
+import { CartesianChart } from './cartesian-chart';
 
 /**
  * THE one reusable analytics chart. Every analytics widget renders through this —
@@ -38,7 +39,6 @@ const PALETTE = [
   '#3b82f6',
   '#64748b',
 ];
-const ACCENT = '#0a7d3f';
 const TAU = Math.PI * 2;
 
 function EmptyChart({ message, height }: { message: string; height: number }) {
@@ -238,68 +238,5 @@ function HorizontalBarChart({ rows, showValues }: { rows: ChartPoint[]; showValu
   );
 }
 
-// ── Line / Area / Bar (cartesian) ────────────────────────────
-function CartesianChart({
-  rows,
-  height,
-  type,
-}: {
-  rows: ChartPoint[];
-  height: number;
-  type: 'line' | 'area' | 'bar';
-}) {
-  const W = 300;
-  const H = 100;
-  const padY = 6;
-  const max = Math.max(...rows.map((r) => r.value), 1);
-  const n = rows.length;
-  const y = (v: number) => padY + (1 - v / max) * (H - padY * 2);
-  const slot = W / n;
-  const cx = (i: number) => slot * i + slot / 2;
-
-  const linePts = rows.map((r, i) => `${cx(i)},${y(r.value)}`).join(' ');
-  const areaPts = `${cx(0)},${H} ${linePts} ${cx(n - 1)},${H}`;
-  const labelIdx = [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i);
-
-  return (
-    <div>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        width="100%"
-        style={{ height }}
-        className="overflow-visible"
-      >
-        {type === 'bar' ? (
-          rows.map((r, i) => {
-            const bw = Math.max(2, slot * 0.6);
-            const bh = ((H - padY * 2) * r.value) / max;
-            return (
-              <rect key={r.label} x={cx(i) - bw / 2} y={H - bh} width={bw} height={bh} rx={2} fill={ACCENT} opacity={0.8} />
-            );
-          })
-        ) : (
-          <>
-            {type === 'area' && <polygon points={areaPts} fill={ACCENT} opacity={0.12} />}
-            <polyline
-              points={linePts}
-              fill="none"
-              stroke={ACCENT}
-              strokeWidth={2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </>
-        )}
-      </svg>
-      <div className="text-muted-foreground mt-2 flex justify-between text-[10px] 2xl:text-xs">
-        {labelIdx.map((i) => (
-          <span key={i} className="truncate">
-            {rows[i].label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
+// Line/Area/Bar (cartesian) now live in the client `CartesianChart` (imported
+// above) — it adds X/Y axes and a hover tooltip.

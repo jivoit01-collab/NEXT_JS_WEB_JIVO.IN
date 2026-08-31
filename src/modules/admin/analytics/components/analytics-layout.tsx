@@ -1,9 +1,7 @@
 import { AnalyticsBreadcrumb } from './analytics-breadcrumb';
 import { DateFilter } from './date-filter';
 import { PageSelector, type PageSelectorData } from './page-selector';
-import { ToolbarExport } from './toolbar-export';
 import { RefreshButton } from './toolbar-actions';
-import type { AnalyticsExportContext } from '../widgets/types';
 
 /**
  * The ONE reusable shell every analytics page uses — breadcrumb, title,
@@ -20,7 +18,6 @@ export function AnalyticsLayout({
   breadcrumb,
   breadcrumbParent,
   pageSelector,
-  exportContext,
   children,
 }: {
   title: string;
@@ -32,12 +29,13 @@ export function AnalyticsLayout({
   breadcrumbParent?: { name: string; href: string };
   /** Toolbar page selector — present only for modules that own CMS pages. */
   pageSelector?: PageSelectorData;
-  /** Widget context used by the toolbar CSV export (this page's data). */
-  exportContext?: AnalyticsExportContext;
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-7xl">
+    // Full-width: fill the space between the sidebar and the edge (and the whole
+    // screen when the sidebar is closed), instead of a centred 7xl column that
+    // left a large gap on wide monitors. Capped very wide for ultra-wide screens.
+    <div className="mx-auto w-full max-w-[1800px]">
       <AnalyticsBreadcrumb current={breadcrumb ?? title} parent={breadcrumbParent} />
 
       {/* Header row */}
@@ -58,10 +56,10 @@ export function AnalyticsLayout({
           </div>
         </div>
 
-        {/* Toolbar — page selector · export (CSV/PDF) · date filter · refresh */}
+        {/* Toolbar — page selector · date filter · refresh.
+            Export CSV/PDF removed per request. */}
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           {pageSelector && <PageSelector {...pageSelector} />}
-          {exportContext && <ToolbarExport context={exportContext} />}
           <DateFilter />
           <RefreshButton />
         </div>

@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
   }, [searchQuery]);
 
   return (
-    <div className="mx-auto max-w-5xl py-4 sm:py-8 2xl:max-w-7xl 2xl:py-10">
+    <div className="mx-auto w-full max-w-[1800px] py-4 sm:py-8 2xl:py-10">
       {/* Header */}
       <div className="mb-8 text-center sm:mb-10">
         <p className="mb-3 text-xs font-jost-bold uppercase tracking-widest text-gold sm:text-sm 2xl:text-base">
