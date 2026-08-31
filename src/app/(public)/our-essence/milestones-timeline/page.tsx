@@ -20,19 +20,20 @@ export default async function MilestonesTimelinePage() {
     getStructuredData(MILESTONES_TIMELINE_SEO_PAGE, defaultSeo),
   ]);
 
-  const sectionMap = new Map<string, unknown>([['video', defaultSections.video]]);
-  for (const section of sections) {
-    const existing = sectionMap.get(section.section);
-    sectionMap.set(section.section, {
-      ...(typeof existing === 'object' && existing ? existing : {}),
-      ...(section.content as object),
-    });
-  }
+  // Merge each ACTIVE DB section (ordered by sortOrder) with its default content;
+  // hidden sections are omitted.
+  const defaults = defaultSections as Record<string, unknown>;
+  const orderedSections = sections.map((s) => {
+    const base = defaults[s.section];
+    const baseObj = typeof base === 'object' && base ? base : {};
+    const contentObj = typeof s.content === 'object' && s.content ? s.content : {};
+    return { section: s.section, content: { ...baseObj, ...contentObj } };
+  });
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
-      <MilestonesTimelineMain sections={sectionMap} />
+      <MilestonesTimelineMain sections={orderedSections} />
     </>
   );
 }

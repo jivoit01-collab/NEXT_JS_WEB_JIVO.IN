@@ -1,12 +1,8 @@
+import type { ComponentType } from 'react';
 import dynamic from 'next/dynamic';
 import { OurFairShareHeroSection } from './hero-section';
 import { HealthcareSectionSkeleton } from './healthcare-section';
 import { WomenEmpowermentSectionSkeleton } from './women-empowerment-section';
-import type {
-  OurFairShareHealthcareContent,
-  OurFairShareHeroContent,
-  OurFairShareWomenContent,
-} from '../types';
 
 const HealthcareSection = dynamic(
   () => import('./healthcare-section').then((mod) => mod.HealthcareSection),
@@ -18,20 +14,26 @@ const WomenEmpowermentSection = dynamic(
   { loading: () => <WomenEmpowermentSectionSkeleton /> },
 );
 
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: OurFairShareHeroSection as ComponentType<{ data?: unknown }>,
+  healthcare: HealthcareSection as unknown as ComponentType<{ data?: unknown }>,
+  women: WomenEmpowermentSection as unknown as ComponentType<{ data?: unknown }>,
+};
+
 interface OurFairShareMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function OurFairShareMain({ sections }: OurFairShareMainProps) {
   return (
     <main>
-      <OurFairShareHeroSection data={sections.get('hero') as OurFairShareHeroContent | undefined} />
-      <HealthcareSection
-        data={sections.get('healthcare') as OurFairShareHealthcareContent | undefined}
-      />
-      <WomenEmpowermentSection
-        data={sections.get('women') as OurFairShareWomenContent | undefined}
-      />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null;
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

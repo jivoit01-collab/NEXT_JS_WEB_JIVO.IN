@@ -23,24 +23,38 @@ const EducateEmpowerSection = dynamic(
   { loading: () => <EducateEmpowerSectionSkeleton /> },
 );
 
+// Each section key → a render function (SplitStorySection needs extra props),
+// so order + visibility stay DB-driven while per-section props are preserved.
+const SECTION_RENDERERS: Record<string, (content: unknown) => React.ReactNode> = {
+  hero: (content) => (
+    <SocialInitiativesHero data={content as SocialInitiativesHeroContent | undefined} />
+  ),
+  responsibilities: (content) => (
+    <SplitStorySection
+      data={content as SocialInitiativesSplitContent | undefined}
+      fallbackData={defaultResponsibilitiesContent}
+      tone="ocean"
+    />
+  ),
+  educate: (content) => (
+    <EducateEmpowerSection data={content as SocialInitiativesEducateContent | undefined} />
+  ),
+};
+
 interface SocialInitiativesMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function SocialInitiativesMain({ sections }: SocialInitiativesMainProps) {
   return (
     <main>
-      <SocialInitiativesHero
-        data={sections.get('hero') as SocialInitiativesHeroContent | undefined}
-      />
-      <SplitStorySection
-        data={sections.get('responsibilities') as SocialInitiativesSplitContent | undefined}
-        fallbackData={defaultResponsibilitiesContent}
-        tone="ocean"
-      />
-      <EducateEmpowerSection
-        data={sections.get('educate') as SocialInitiativesEducateContent | undefined}
-      />
+      {sections.map(({ section, content }) => {
+        const render = SECTION_RENDERERS[section];
+        if (!render) return null;
+        return <div key={section}>{render(content)}</div>;
+      })}
     </main>
   );
 }

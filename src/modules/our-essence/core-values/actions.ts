@@ -10,6 +10,8 @@ import {
   getCoreValuesSection,
   upsertCoreValuesSection,
   deleteCoreValuesSectionById,
+  setCoreValuesSectionActive,
+  reorderCoreValuesSections,
 } from './data';
 import { coreValuesSectionSchemas } from './validations';
 import type { CoreValuesSectionKey } from './types';
@@ -110,3 +112,42 @@ export async function deleteCoreValuesSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setCoreValuesSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurEssenceCoreValues>> {
+  const guard = await requireAdmin<OurEssenceCoreValues>();
+  if (guard) return guard;
+  try {
+    const row = await setCoreValuesSectionActive(section, isActive);
+    revalidatePath('/our-essence/core-values');
+    revalidatePath('/jivo-dev/our-essence-core-values');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setCoreValuesSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderCoreValuesSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderCoreValuesSections(orderedSections);
+    revalidatePath('/our-essence/core-values');
+    revalidatePath('/jivo-dev/our-essence-core-values');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderCoreValuesSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

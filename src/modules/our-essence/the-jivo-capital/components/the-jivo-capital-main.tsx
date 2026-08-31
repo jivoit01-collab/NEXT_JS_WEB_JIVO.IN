@@ -29,46 +29,52 @@ const FreshLockSection = dynamic(
   },
 );
 
+// Render functions preserve each section's LazyOnView wrapper + specific props
+// (the oil/water plants reuse PlantSection with different fallback/align).
+const SECTION_RENDERERS: Record<string, (content: unknown) => React.ReactNode> = {
+  hero: (content) => (
+    <TheJivoCapitalHero data={content as TheJivoCapitalHeroContent | undefined} />
+  ),
+  oilPlant: (content) => (
+    <LazyOnView rootMargin="300px" fallback={<PlantSectionSkeleton />} minHeight="560px">
+      <PlantSection fallback="oil" data={content as TheJivoCapitalPlantContent | undefined} />
+    </LazyOnView>
+  ),
+  waterPlant: (content) => (
+    <LazyOnView
+      rootMargin="300px"
+      fallback={<PlantSectionSkeleton align="right" />}
+      minHeight="560px"
+    >
+      <PlantSection fallback="water" data={content as TheJivoCapitalPlantContent | undefined} />
+    </LazyOnView>
+  ),
+  farmToBottle: (content) => (
+    <LazyOnView rootMargin="300px" fallback={<FarmToBottleSectionSkeleton />} minHeight="560px">
+      <FarmToBottleSection data={content as TheJivoCapitalFarmToBottleContent | undefined} />
+    </LazyOnView>
+  ),
+  freshLock: (content) => (
+    <LazyOnView rootMargin="300px" fallback={<FreshLockSectionSkeleton />} minHeight="560px">
+      <FreshLockSection data={content as TheJivoCapitalFreshLockContent | undefined} />
+    </LazyOnView>
+  ),
+};
+
 interface TheJivoCapitalMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function TheJivoCapitalMain({ sections }: TheJivoCapitalMainProps) {
   return (
     <main>
-      <TheJivoCapitalHero
-        data={sections.get('hero') as TheJivoCapitalHeroContent | undefined}
-      />
-      <LazyOnView rootMargin="300px" fallback={<PlantSectionSkeleton />} minHeight="560px">
-        <PlantSection
-          fallback="oil"
-          data={sections.get('oilPlant') as TheJivoCapitalPlantContent | undefined}
-        />
-      </LazyOnView>
-      <LazyOnView
-        rootMargin="300px"
-        fallback={<PlantSectionSkeleton align="right" />}
-        minHeight="560px"
-      >
-        <PlantSection
-          fallback="water"
-          data={sections.get('waterPlant') as TheJivoCapitalPlantContent | undefined}
-        />
-      </LazyOnView>
-      <LazyOnView
-        rootMargin="300px"
-        fallback={<FarmToBottleSectionSkeleton />}
-        minHeight="560px"
-      >
-        <FarmToBottleSection
-          data={sections.get('farmToBottle') as TheJivoCapitalFarmToBottleContent | undefined}
-        />
-      </LazyOnView>
-      <LazyOnView rootMargin="300px" fallback={<FreshLockSectionSkeleton />} minHeight="560px">
-        <FreshLockSection
-          data={sections.get('freshLock') as TheJivoCapitalFreshLockContent | undefined}
-        />
-      </LazyOnView>
+      {sections.map(({ section, content }) => {
+        const render = SECTION_RENDERERS[section];
+        if (!render) return null;
+        return <div key={section}>{render(content)}</div>;
+      })}
     </main>
   );
 }

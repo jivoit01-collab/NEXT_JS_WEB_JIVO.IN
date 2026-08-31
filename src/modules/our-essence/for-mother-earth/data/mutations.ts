@@ -27,3 +27,18 @@ export async function upsertForMotherEarthSection(
 export async function deleteForMotherEarthSectionById(id: string) {
   return prisma.ourEssenceForMotherEarth.delete({ where: { id } });
 }
+
+/** Set a section's active flag (show/hide it on the public page). */
+export async function setForMotherEarthSectionActive(section: string, isActive: boolean) {
+  return prisma.ourEssenceForMotherEarth.update({ where: { section }, data: { isActive } });
+}
+
+/** Persist a new section order: each key's index becomes its sortOrder. */
+export async function reorderForMotherEarthSections(orderedSections: string[]) {
+  return prisma.$transaction(
+    orderedSections.map((section, index) =>
+      prisma.ourEssenceForMotherEarth.update({ where: { section }, data: { sortOrder: index } }),
+    ),
+  );
+}
+

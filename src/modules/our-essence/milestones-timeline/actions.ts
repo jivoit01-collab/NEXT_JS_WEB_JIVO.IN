@@ -6,6 +6,8 @@ import type { ActionResponse } from '@/lib/action-response';
 import type { PageContent } from '@prisma/client';
 import {
   deleteMilestonesTimelineSectionById,
+  setMilestonesTimelineSectionActive,
+  reorderMilestonesTimelineSections,
   getAllMilestonesTimelineSections,
   getMilestonesTimelineSection,
   getMilestonesTimelineSections,
@@ -105,5 +107,42 @@ export async function deleteMilestonesTimelineSectionAction(
   } catch (error) {
     console.error('[deleteMilestonesTimelineSectionAction]', { id, error });
     return { success: false, error: 'Failed to delete section' };
+  }
+}
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setMilestonesTimelineSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<PageContent>> {
+  const guard = await requireAdmin<PageContent>();
+  if (guard) return guard;
+  try {
+    const row = await setMilestonesTimelineSectionActive(section, isActive);
+    revalidatePath(MILESTONES_TIMELINE_ROUTE);
+    revalidatePath(MILESTONES_TIMELINE_ADMIN_ROUTE);
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setMilestonesTimelineSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderMilestonesTimelineSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderMilestonesTimelineSections(orderedSections);
+    revalidatePath(MILESTONES_TIMELINE_ROUTE);
+    revalidatePath(MILESTONES_TIMELINE_ADMIN_ROUTE);
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderMilestonesTimelineSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
   }
 }

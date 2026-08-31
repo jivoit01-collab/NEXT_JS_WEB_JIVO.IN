@@ -16,15 +16,12 @@ export default async function CoreValuesPage() {
     getStructuredData('our-essence-core-values', defaultSeo),
   ]);
 
-  const sectionMap = new Map<string, unknown>();
-  for (const s of sections) {
-    sectionMap.set(s.section, s.content);
-  }
+  const orderedSections = sections.map((s) => ({ section: s.section, content: s.content }));
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
-      <CoreValuesMain sections={sectionMap} />
+      <CoreValuesMain sections={orderedSections} />
     </>
   );
 }

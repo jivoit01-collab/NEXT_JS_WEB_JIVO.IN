@@ -6,6 +6,8 @@ import type { ActionResponse } from '@/lib/action-response';
 import type { OurEssenceForMotherEarth } from '@prisma/client';
 import {
   deleteForMotherEarthSectionById,
+  setForMotherEarthSectionActive,
+  reorderForMotherEarthSections,
   getAllForMotherEarthSections,
   getForMotherEarthSection,
   getForMotherEarthSections,
@@ -107,3 +109,42 @@ export async function deleteForMotherEarthSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setForMotherEarthSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurEssenceForMotherEarth>> {
+  const guard = await requireAdmin<OurEssenceForMotherEarth>();
+  if (guard) return guard;
+  try {
+    const row = await setForMotherEarthSectionActive(section, isActive);
+    revalidatePath('/our-essence/for-mother-earth');
+    revalidatePath('/jivo-dev/our-essence-for-mother-earth');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setForMotherEarthSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderForMotherEarthSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderForMotherEarthSections(orderedSections);
+    revalidatePath('/our-essence/for-mother-earth');
+    revalidatePath('/jivo-dev/our-essence-for-mother-earth');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderForMotherEarthSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

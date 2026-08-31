@@ -3,7 +3,10 @@ export {
   getAllCertificationsSections,
   getCertificationsSection,
 } from './queries';
-export { upsertCertificationsSection, deleteCertificationsSectionById } from './mutations';
+export { upsertCertificationsSection, deleteCertificationsSectionById ,
+  setCertificationsSectionActive,
+  reorderCertificationsSections,
+} from './mutations';
 export {
   defaultSeo,
   defaultHeroContent,

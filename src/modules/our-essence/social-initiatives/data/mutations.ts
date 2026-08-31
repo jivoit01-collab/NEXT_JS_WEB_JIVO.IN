@@ -27,3 +27,18 @@ export async function upsertSocialInitiativesSection(
 export async function deleteSocialInitiativesSectionById(id: string) {
   return prisma.ourEssenceSocialInitiatives.delete({ where: { id } });
 }
+
+/** Set a section's active flag (show/hide it on the public page). */
+export async function setSocialInitiativesSectionActive(section: string, isActive: boolean) {
+  return prisma.ourEssenceSocialInitiatives.update({ where: { section }, data: { isActive } });
+}
+
+/** Persist a new section order: each key's index becomes its sortOrder. */
+export async function reorderSocialInitiativesSections(orderedSections: string[]) {
+  return prisma.$transaction(
+    orderedSections.map((section, index) =>
+      prisma.ourEssenceSocialInitiatives.update({ where: { section }, data: { sortOrder: index } }),
+    ),
+  );
+}
+

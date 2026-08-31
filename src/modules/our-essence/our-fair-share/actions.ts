@@ -6,6 +6,8 @@ import type { ActionResponse } from '@/lib/action-response';
 import type { OurEssenceOurFairShare } from '@prisma/client';
 import {
   deleteOurFairShareSectionById,
+  setOurFairShareSectionActive,
+  reorderOurFairShareSections,
   getAllOurFairShareSections,
   getOurFairShareSection,
   getOurFairShareSections,
@@ -107,3 +109,42 @@ export async function deleteOurFairShareSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setOurFairShareSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurEssenceOurFairShare>> {
+  const guard = await requireAdmin<OurEssenceOurFairShare>();
+  if (guard) return guard;
+  try {
+    const row = await setOurFairShareSectionActive(section, isActive);
+    revalidatePath('/our-essence/our-fair-share');
+    revalidatePath('/jivo-dev/our-essence-our-fair-share');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setOurFairShareSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderOurFairShareSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderOurFairShareSections(orderedSections);
+    revalidatePath('/our-essence/our-fair-share');
+    revalidatePath('/jivo-dev/our-essence-our-fair-share');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderOurFairShareSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

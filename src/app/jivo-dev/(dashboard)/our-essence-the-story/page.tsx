@@ -8,7 +8,11 @@ import { ImageUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
 import {
   upsertTheStorySectionAction,
+  getAllTheStorySectionsAction,
+  setTheStorySectionActiveAction,
+  reorderTheStorySectionsAction,
 } from '@/modules/our-essence/the-story/actions';
+import { SectionManagerPanel, type ManagedSection } from '@/components/shared/section-manager-panel';
 import type {
   TheStoryHeroContent,
   TheStoryFounderContent,
@@ -42,8 +46,23 @@ export default function TheStoryManager() {
   const [vision, setVision] = useState<TheStoryVisionContent>(defaultVisionContent);
 
   // Load data on mount
+  const [managedSections, setManagedSections] = useState<ManagedSection[]>([]);
+  const sectionLabel = (key: string) => TABS.find((t) => t.key === key)?.label ?? key;
+  const loadManagedSections = useCallback(async () => {
+    const res = await getAllTheStorySectionsAction();
+    if (res.success) {
+      const known = new Set(TABS.filter((t) => t.key !== 'seo').map((t) => t.key));
+      setManagedSections(
+        res.data
+          .filter((r) => known.has(r.section as TabKey))
+          .map((r) => ({ key: r.section, label: sectionLabel(r.section), isActive: r.isActive })),
+      );
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
+      await loadManagedSections();
       try {
         const res = await fetch('/api/our-essence/the-story');
         const json = await res.json();
@@ -59,7 +78,7 @@ export default function TheStoryManager() {
         setLoadingData(false);
       }
     })();
-  }, []);
+  }, [loadManagedSections]);
 
   const handleSave = useCallback(async () => {
     if (activeTab === 'seo') return; // SEO tab has its own save
@@ -119,6 +138,17 @@ export default function TheStoryManager() {
           </button>
         )}
       </div>
+
+      {managedSections.length > 0 && (
+        <SectionManagerPanel
+          sections={managedSections}
+          onReorder={(orderedKeys) => reorderTheStorySectionsAction(orderedKeys)}
+          onToggleActive={async (key, isActive) => {
+            const res = await setTheStorySectionActiveAction(key, isActive);
+            return { success: res.success, error: res.success ? undefined : res.error };
+          }}
+        />
+      )}
 
       {/* Tabs */}
       <div className="rounded-lg border bg-card">

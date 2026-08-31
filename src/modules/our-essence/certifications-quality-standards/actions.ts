@@ -10,6 +10,8 @@ import {
   getCertificationsSection,
   upsertCertificationsSection,
   deleteCertificationsSectionById,
+  setCertificationsSectionActive,
+  reorderCertificationsSections,
 } from './data';
 import { certificationsSectionSchemas } from './validations';
 import type { CertificationsSectionKey } from './types';
@@ -110,3 +112,42 @@ export async function deleteCertificationsSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setCertificationsSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurEssenceCertifications>> {
+  const guard = await requireAdmin<OurEssenceCertifications>();
+  if (guard) return guard;
+  try {
+    const row = await setCertificationsSectionActive(section, isActive);
+    revalidatePath('/our-essence/certifications-quality-standards');
+    revalidatePath('/jivo-dev/our-essence-certifications-quality-standards');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setCertificationsSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderCertificationsSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderCertificationsSections(orderedSections);
+    revalidatePath('/our-essence/certifications-quality-standards');
+    revalidatePath('/jivo-dev/our-essence-certifications-quality-standards');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderCertificationsSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

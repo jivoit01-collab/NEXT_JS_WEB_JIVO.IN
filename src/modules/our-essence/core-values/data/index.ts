@@ -1,5 +1,8 @@
 export { getCoreValuesSections, getAllCoreValuesSections, getCoreValuesSection } from './queries';
-export { upsertCoreValuesSection, deleteCoreValuesSectionById } from './mutations';
+export { upsertCoreValuesSection, deleteCoreValuesSectionById ,
+  setCoreValuesSectionActive,
+  reorderCoreValuesSections,
+} from './mutations';
 export {
   defaultSeo,
   defaultHeroContent,

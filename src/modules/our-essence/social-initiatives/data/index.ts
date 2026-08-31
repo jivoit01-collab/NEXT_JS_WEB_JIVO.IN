@@ -17,4 +17,7 @@ export {
   getSocialInitiativesSections,
 } from './queries';
 
-export { deleteSocialInitiativesSectionById, upsertSocialInitiativesSection } from './mutations';
+export { deleteSocialInitiativesSectionById, upsertSocialInitiativesSection ,
+  setSocialInitiativesSectionActive,
+  reorderSocialInitiativesSections,
+} from './mutations';

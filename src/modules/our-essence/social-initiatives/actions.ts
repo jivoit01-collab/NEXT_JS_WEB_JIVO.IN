@@ -6,6 +6,8 @@ import type { ActionResponse } from '@/lib/action-response';
 import type { OurEssenceSocialInitiatives } from '@prisma/client';
 import {
   deleteSocialInitiativesSectionById,
+  setSocialInitiativesSectionActive,
+  reorderSocialInitiativesSections,
   getAllSocialInitiativesSections,
   getSocialInitiativesSection,
   getSocialInitiativesSections,
@@ -107,3 +109,42 @@ export async function deleteSocialInitiativesSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setSocialInitiativesSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurEssenceSocialInitiatives>> {
+  const guard = await requireAdmin<OurEssenceSocialInitiatives>();
+  if (guard) return guard;
+  try {
+    const row = await setSocialInitiativesSectionActive(section, isActive);
+    revalidatePath('/our-essence/social-initiatives');
+    revalidatePath('/jivo-dev/our-essence-social-initiatives');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setSocialInitiativesSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderSocialInitiativesSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderSocialInitiativesSections(orderedSections);
+    revalidatePath('/our-essence/social-initiatives');
+    revalidatePath('/jivo-dev/our-essence-social-initiatives');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderSocialInitiativesSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

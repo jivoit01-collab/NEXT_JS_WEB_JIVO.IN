@@ -6,7 +6,13 @@ import { AlertCircle, Loader, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
-import { upsertSocialInitiativesSectionAction } from '@/modules/our-essence/social-initiatives/actions';
+import {
+  upsertSocialInitiativesSectionAction,
+  getAllSocialInitiativesSectionsAction,
+  setSocialInitiativesSectionActiveAction,
+  reorderSocialInitiativesSectionsAction,
+} from '@/modules/our-essence/social-initiatives/actions';
+import { SectionManagerPanel, type ManagedSection } from '@/components/shared/section-manager-panel';
 import { SOCIAL_INITIATIVES_SEO_PAGE } from '@/modules/our-essence/social-initiatives/constants';
 import {
   defaultEducateContent,
@@ -54,8 +60,23 @@ export default function SocialInitiativesManager() {
   );
   const [educate, setEducate] = useState<SocialInitiativesEducateContent>(defaultEducateContent);
 
+  const [managedSections, setManagedSections] = useState<ManagedSection[]>([]);
+  const sectionLabel = (key: string) => TABS.find((t) => t.key === key)?.label ?? key;
+  const loadManagedSections = useCallback(async () => {
+    const res = await getAllSocialInitiativesSectionsAction();
+    if (res.success) {
+      const known = new Set(TABS.filter((t) => t.key !== 'seo').map((t) => t.key));
+      setManagedSections(
+        res.data
+          .filter((r) => known.has(r.section as TabKey))
+          .map((r) => ({ key: r.section, label: sectionLabel(r.section), isActive: r.isActive })),
+      );
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
+      await loadManagedSections();
       try {
         const res = await fetch('/api/admin/our-essence/social-initiatives');
         const json = (await res.json()) as ApiResponse;
@@ -80,7 +101,7 @@ export default function SocialInitiativesManager() {
         setLoadingData(false);
       }
     })();
-  }, []);
+  }, [loadManagedSections]);
 
   const handleSave = useCallback(async () => {
     if (activeTab === 'seo') return;
@@ -124,6 +145,17 @@ export default function SocialInitiativesManager() {
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <p>{loadError}</p>
         </div>
+      )}
+
+      {managedSections.length > 0 && (
+        <SectionManagerPanel
+          sections={managedSections}
+          onReorder={(orderedKeys) => reorderSocialInitiativesSectionsAction(orderedKeys)}
+          onToggleActive={async (key, isActive) => {
+            const res = await setSocialInitiativesSectionActiveAction(key, isActive);
+            return { success: res.success, error: res.success ? undefined : res.error };
+          }}
+        />
       )}
 
       <div className="bg-card rounded-lg border">

@@ -10,6 +10,8 @@ import {
   getTheStorySection,
   upsertTheStorySection,
   deleteTheStorySectionById,
+  setTheStorySectionActive,
+  reorderTheStorySections,
 } from './data';
 import { theStorySectionSchemas } from './validations';
 import type { TheStorySectionKey } from './types';
@@ -111,3 +113,42 @@ export async function deleteTheStorySectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setTheStorySectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurEssenceTheStory>> {
+  const guard = await requireAdmin<OurEssenceTheStory>();
+  if (guard) return guard;
+  try {
+    const row = await setTheStorySectionActive(section, isActive);
+    revalidatePath('/our-essence/the-story');
+    revalidatePath('/jivo-dev/our-essence-the-story');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setTheStorySectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderTheStorySectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderTheStorySections(orderedSections);
+    revalidatePath('/our-essence/the-story');
+    revalidatePath('/jivo-dev/our-essence-the-story');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderTheStorySectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

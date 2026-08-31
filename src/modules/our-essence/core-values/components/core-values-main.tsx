@@ -1,12 +1,8 @@
+import type { ComponentType } from 'react';
 import dynamic from 'next/dynamic';
 import { CoreValuesHero } from './hero-section';
 import { FoundationSectionSkeleton } from './foundation-section';
 import { PrinciplesSectionSkeleton } from './principles-section';
-import type {
-  CoreValuesHeroContent,
-  CoreValuesFoundationContent,
-  CoreValuesPrinciplesContent,
-} from '../types';
 
 // Hero is above-the-fold — eager (server-rendered) for instant LCP.
 // Below-the-fold sections use next/dynamic for JS code splitting.
@@ -19,20 +15,26 @@ const PrinciplesSection = dynamic(
   { loading: () => <PrinciplesSectionSkeleton /> },
 );
 
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: CoreValuesHero as ComponentType<{ data?: unknown }>,
+  foundation: FoundationSection as unknown as ComponentType<{ data?: unknown }>,
+  principles: PrinciplesSection as unknown as ComponentType<{ data?: unknown }>,
+};
+
 interface CoreValuesMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function CoreValuesMain({ sections }: CoreValuesMainProps) {
   return (
     <main>
-      <CoreValuesHero data={sections.get('hero') as CoreValuesHeroContent | undefined} />
-      <FoundationSection
-        data={sections.get('foundation') as CoreValuesFoundationContent | undefined}
-      />
-      <PrinciplesSection
-        data={sections.get('principles') as CoreValuesPrinciplesContent | undefined}
-      />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null;
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

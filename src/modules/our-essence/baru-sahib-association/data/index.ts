@@ -19,4 +19,6 @@ export {
 export {
   deleteBaruSahibAssociationSectionById,
   upsertBaruSahibAssociationSection,
+  setBaruSahibAssociationSectionActive,
+  reorderBaruSahibAssociationSections,
 } from './mutations';

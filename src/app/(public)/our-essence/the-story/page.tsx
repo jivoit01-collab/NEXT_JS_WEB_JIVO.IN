@@ -18,15 +18,12 @@ export default async function TheStoryPage() {
     getStructuredData('our-essence-the-story', defaultSeo),
   ]);
 
-  const sectionMap = new Map<string, unknown>();
-  for (const s of sections) {
-    sectionMap.set(s.section, s.content);
-  }
+  const orderedSections = sections.map((s) => ({ section: s.section, content: s.content }));
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
-      <TheStoryMain sections={sectionMap} />
+      <TheStoryMain sections={orderedSections} />
     </>
   );
 }

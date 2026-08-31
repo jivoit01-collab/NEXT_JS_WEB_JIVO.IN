@@ -6,6 +6,8 @@ import type { ActionResponse } from '@/lib/action-response';
 import type { OurEssenceTheJivoCapital } from '@prisma/client';
 import {
   deleteTheJivoCapitalSectionById,
+  setTheJivoCapitalSectionActive,
+  reorderTheJivoCapitalSections,
   getAllTheJivoCapitalSections,
   getTheJivoCapitalSection,
   getTheJivoCapitalSections,
@@ -110,3 +112,42 @@ export async function deleteTheJivoCapitalSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setTheJivoCapitalSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurEssenceTheJivoCapital>> {
+  const guard = await requireAdmin<OurEssenceTheJivoCapital>();
+  if (guard) return guard;
+  try {
+    const row = await setTheJivoCapitalSectionActive(section, isActive);
+    revalidatePath('/our-essence/the-jivo-capital');
+    revalidatePath('/jivo-dev/our-essence-the-jivo-capital');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setTheJivoCapitalSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderTheJivoCapitalSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderTheJivoCapitalSections(orderedSections);
+    revalidatePath('/our-essence/the-jivo-capital');
+    revalidatePath('/jivo-dev/our-essence-the-jivo-capital');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderTheJivoCapitalSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

@@ -20,3 +20,18 @@ export async function upsertTheStorySection(
 export async function deleteTheStorySectionById(id: string) {
   return prisma.ourEssenceTheStory.delete({ where: { id } });
 }
+
+/** Set a section's active flag (show/hide it on the public page). */
+export async function setTheStorySectionActive(section: string, isActive: boolean) {
+  return prisma.ourEssenceTheStory.update({ where: { section }, data: { isActive } });
+}
+
+/** Persist a new section order: each key's index becomes its sortOrder. */
+export async function reorderTheStorySections(orderedSections: string[]) {
+  return prisma.$transaction(
+    orderedSections.map((section, index) =>
+      prisma.ourEssenceTheStory.update({ where: { section }, data: { sortOrder: index } }),
+    ),
+  );
+}
+
