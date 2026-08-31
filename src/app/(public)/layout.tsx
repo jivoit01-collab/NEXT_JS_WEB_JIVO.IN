@@ -6,10 +6,17 @@ import { CookieProvider } from '@/modules/core/cookie-consent';
 import { TrackingProvider } from '@/modules/core/tracking';
 import { AuthProvider } from '@/modules/platform/auth';
 import { SiteChat } from '@/components/shared/site-chat';
+import { isAiEnabledResolved } from '@/modules/platform/gateway/feature/db-toggle';
 import { getNavbarSetting, getVisibleNavLinks } from '@/modules/navbar';
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const [navSetting, navLinks] = await Promise.all([getNavbarSetting(), getVisibleNavLinks()]);
+  const [navSetting, navLinks, aiEnabled] = await Promise.all([
+    getNavbarSetting(),
+    getVisibleNavLinks(),
+    // DB-resolved chatbot switch (admin override → env fallback). When OFF, the
+    // whole widget/launcher is not rendered — no icon, no "unavailable" panel.
+    isAiEnabledResolved(),
+  ]);
 
   const links = navLinks.map((link) => ({
     title: link.title,
@@ -51,11 +58,12 @@ export default async function PublicLayout({ children }: { children: React.React
           </div>
         </SmoothScrollProvider>
         <PublicRuntimeLoader />
-        {/* AI Chat Widget (Phase 7.8). Self-gates on the master AI flag, the
-            'web' channel and PREFERENCES consent — renders nothing otherwise.
-            Talks ONLY to the AI Gateway. Kept outside the smooth wrapper so its
-            `fixed` launcher/panel positioning works. */}
-        <SiteChat />
+        {/* AI Chat Widget (Phase 7.8). Rendered ONLY when the chatbot is enabled
+            (admin DB toggle → env fallback) — when OFF, the launcher icon and
+            panel are removed entirely, not just shown as "unavailable". It still
+            self-gates on channel + consent. Talks ONLY to the AI Gateway; kept
+            outside the smooth wrapper so its `fixed` positioning works. */}
+        {aiEnabled && <SiteChat />}
       </TrackingProvider>
     </CookieProvider>
     </AuthProvider>
