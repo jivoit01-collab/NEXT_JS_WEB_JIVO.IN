@@ -187,3 +187,24 @@ model KnowledgeSyncJob {
   @@index([sourceId])
   @@index([createdAt])
 }
+
+// ==========================================================================
+// KNOWLEDGE FAQ — manually authored Q&A entries for the chatbot.
+// Admins add/edit these in the admin ("Chatbot FAQ"); the `faqs` source adapter
+// reads ACTIVE rows and indexes them into KnowledgeDocument, so the chatbot can
+// answer from hand-written knowledge (not just synced CMS content). Standalone
+// table — no FK into frozen/business models, matching the platform's design.
+// ==========================================================================
+model KnowledgeFaq {
+  id            String   @id @default(cuid())
+  question      String   @db.Text
+  answer        String   @db.Text
+  collectionKey String   @default("faq") // groups it in the knowledge collection
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+}

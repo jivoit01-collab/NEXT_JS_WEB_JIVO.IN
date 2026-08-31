@@ -210,6 +210,33 @@ export const companyAdapter: SourceAdapter = {
   },
 };
 
+/**
+ * FAQs — manually authored Q&A entries from the "Chatbot FAQ" admin. Each active
+ * FAQ becomes one knowledge document ("Q\nA"), so the chatbot can answer directly
+ * from hand-written knowledge. externalKey is the row id → stable upsert target;
+ * deactivated/deleted rows are pruned on a FULL sync.
+ */
+export const faqsAdapter: SourceAdapter = {
+  key: 'faqs',
+  name: 'FAQs',
+  type: 'FAQ',
+  defaultCollectionKey: 'faq',
+  async fetchItems(): Promise<RawKnowledgeItem[]> {
+    const rows = await prisma.knowledgeFaq.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+    return rows.map((f) => ({
+      externalKey: `faq:${f.id}`,
+      entityType: 'FAQ',
+      entityId: f.id,
+      collectionKey: f.collectionKey || 'faq',
+      title: f.question,
+      content: `Q: ${f.question}\nA: ${f.answer}`,
+    }));
+  },
+};
+
 /** A prepared plug-in that returns nothing until its business module ships. */
 function preparedAdapter(
   key: string,
@@ -226,7 +253,7 @@ registerSourceAdapter(cmsPagesAdapter);
 registerSourceAdapter(productsAdapter);
 registerSourceAdapter(companyAdapter);
 registerSourceAdapter(preparedAdapter('blogs', 'Blogs', 'BLOG', 'blogs'));
-registerSourceAdapter(preparedAdapter('faqs', 'FAQs', 'FAQ', 'faq'));
+registerSourceAdapter(faqsAdapter);
 registerSourceAdapter(preparedAdapter('recipes', 'Recipes', 'RECIPE', 'recipes'));
 registerSourceAdapter(preparedAdapter('media', 'Media', 'MEDIA', 'media'));
 registerSourceAdapter(preparedAdapter('community', 'Community', 'COMMUNITY', 'community'));

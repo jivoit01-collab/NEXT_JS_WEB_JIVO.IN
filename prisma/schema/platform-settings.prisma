@@ -1,0 +1,13 @@
+// ==========================================================================
+// PLATFORM SETTINGS — a tiny singleton row for runtime toggles that ops flip
+// from the admin WITHOUT a redeploy (unlike build-time env vars). Today it
+// carries the chatbot master switch (aiEnabled); more runtime flags can be added
+// as columns later. One row, id = "default".
+// ==========================================================================
+model PlatformSetting {
+  id        String   @id @default("default")
+  // Chatbot master switch. `null` = defer to the env var / static default
+  // (isAiEnabled); true/false = an explicit admin override that wins.
+  aiEnabled Boolean?
+  updatedAt DateTime @updatedAt
+}

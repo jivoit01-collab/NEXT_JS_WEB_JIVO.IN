@@ -2,7 +2,7 @@
 // The CMS-backed modules (Dashboard, Our Essence, Products, …) are generated
 // from the CMS registry in `register-cms-modules.ts`.
 
-import { LayoutDashboard, Users, Route } from 'lucide-react';
+import { LayoutDashboard, Users, Route, MessageCircleQuestion } from 'lucide-react';
 import { ANALYTICS_ROOT, registerAnalyticsModule } from './registry';
 
 registerAnalyticsModule({
@@ -46,3 +46,17 @@ registerAnalyticsModule({
 
 // Reports module removed — unregistered so it no longer appears in the Analytics
 // sidebar, and its /analytics/reports route now 404s via the catch-all.
+
+// Chatbot FAQ — a sidebar entry under Analytics. Its route is a REAL page
+// (app/.../analytics/chatbot-faq/page.tsx) that intercepts the analytics
+// catch-all, so this registration only places the link in the sidebar.
+registerAnalyticsModule({
+  id: 'chatbot-faq',
+  name: 'Chatbot FAQ',
+  icon: MessageCircleQuestion,
+  route: `${ANALYTICS_ROOT}/chatbot-faq`,
+  category: 'business',
+  description: 'Manage the chatbot knowledge (FAQs), sync, and on/off switch.',
+  order: 80,
+  standalone: true,
+});

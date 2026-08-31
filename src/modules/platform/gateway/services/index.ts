@@ -13,7 +13,8 @@ import 'server-only';
 // ==========================================================================
 
 import { GATEWAY_CONFIG, GATEWAY_FEATURES } from '../config';
-import { isAiEnabled, AI_DISABLED_MESSAGE } from '../feature';
+import { AI_DISABLED_MESSAGE } from '../feature';
+import { isAiEnabledResolved } from '../feature/db-toggle';
 import { gatewayRequestSchema } from '../validations';
 import { gatewayError, correlationId as makeCorrelationId } from '../utils';
 import { resolveIdentity } from '../auth';
@@ -40,9 +41,9 @@ import type {
 export async function execute(request: AIGatewayRequest): Promise<AIGatewayResult> {
   const channel: GatewayChannel = request.channel ?? GATEWAY_CONFIG.defaultChannel;
 
-  // 0) Master AI switch. When AI is disabled, refuse cleanly — no pipeline, no
-  //    provider call, no stored conversation.
-  if (!isAiEnabled()) {
+  // 0) Master AI switch (DB override → env/static fallback). When AI is disabled,
+  //    refuse cleanly — no pipeline, no provider call, no stored conversation.
+  if (!(await isAiEnabledResolved())) {
     return gatewayError('unavailable', AI_DISABLED_MESSAGE);
   }
 
