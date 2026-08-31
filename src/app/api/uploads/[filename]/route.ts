@@ -8,6 +8,18 @@ export const runtime = 'nodejs';
 /** Root-level uploads directory (outside /public) */
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'images');
 const PLACEHOLDER_PATH = path.join(process.cwd(), 'uploads', 'placeholder.png');
+
+/**
+ * DEV-ONLY remote fallback. When set (e.g. "https://abc.jivo.in"), a file that
+ * is missing on THIS machine's disk is fetched from that origin's public uploads
+ * path and streamed back — so a local admin sharing the live DB can still see
+ * images that were uploaded on the live server. Ignored entirely in production,
+ * so it never affects the live site. Set DEV_UPLOADS_FALLBACK_ORIGIN in .env.local.
+ */
+const DEV_FALLBACK_ORIGIN =
+  process.env.NODE_ENV !== 'production'
+    ? (process.env.DEV_UPLOADS_FALLBACK_ORIGIN?.trim().replace(/\/$/, '') ?? '')
+    : '';
 const VIDEO_CHUNK_SIZE = 8 * 1024 * 1024; // 8MB chunks keep 300-400MB videos from spiking memory.
 const STREAM_READ_SIZE = 256 * 1024;
 
@@ -134,11 +146,34 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ file
 
   let filePath = path.join(UPLOAD_DIR, filename);
 
-  // Fall back to the placeholder when the requested file doesn't exist
+  // File missing on local disk: in dev, try the remote fallback origin (the live
+  // server) so images uploaded there still render on localhost; otherwise fall
+  // back to the placeholder.
   if (!existsSync(filePath)) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn('[UPLOAD API] Missing file:', filename);
+      console.warn('[UPLOAD API] Missing file locally:', filename);
     }
+
+    if (DEV_FALLBACK_ORIGIN) {
+      try {
+        const remoteUrl = `${DEV_FALLBACK_ORIGIN}/uploads/images/${encodeURIComponent(filename)}`;
+        const remote = await fetch(remoteUrl);
+        if (remote.ok && remote.body) {
+          return new NextResponse(remote.body, {
+            status: 200,
+            headers: {
+              'Content-Type': remote.headers.get('content-type') ?? contentType,
+              'Cache-Control': 'public, max-age=3600',
+              // Marker so it's obvious in DevTools this came from the live server.
+              'X-Uploads-Source': 'dev-remote-fallback',
+            },
+          });
+        }
+      } catch (err) {
+        console.warn('[UPLOAD API] Remote fallback failed for', filename, err);
+      }
+    }
+
     if (existsSync(PLACEHOLDER_PATH)) {
       filePath = PLACEHOLDER_PATH;
     } else {

@@ -1,13 +1,22 @@
 import Image, { type ImageProps } from 'next/image';
 
-export const SAFE_IMAGE_PLACEHOLDER = '/api/uploads/placeholder.png';
+/**
+ * Public base path for uploaded media. This is a CLEAN URL
+ * (https://jivo.in/uploads/images/<file>) that next.config rewrites to the
+ * runtime file-server route `/api/uploads/<file>` — so the browser and Googlebot
+ * see a stable, indexable path while the file is streamed straight off disk.
+ * Bare filenames stored in the DB are unchanged; only the rendered src uses this.
+ */
+export const UPLOADS_PUBLIC_BASE = '/uploads/images';
+
+export const SAFE_IMAGE_PLACEHOLDER = `${UPLOADS_PUBLIC_BASE}/placeholder.png`;
 
 /**
  * Resolves a stored image value to a serveable URL:
  *   - Empty/falsy/placeholder -> placeholder
  *   - External (http/data)    -> pass through
  *   - Absolute path (/...)    -> URL-encode segments
- *   - Bare filename           -> /api/uploads/<filename>
+ *   - Bare filename           -> /uploads/images/<filename>
  */
 export function resolveSafeImageSrc(raw: string): string {
   if (!raw || raw === 'placeholder.png') return SAFE_IMAGE_PLACEHOLDER;
@@ -15,9 +24,9 @@ export function resolveSafeImageSrc(raw: string): string {
     return raw;
   }
 
-  // Bare filename (no leading slash) -> serve through uploads API.
+  // Bare filename (no leading slash) -> serve through the clean uploads path.
   if (!raw.startsWith('/')) {
-    return `/api/uploads/${encodeURIComponent(raw)}`;
+    return `${UPLOADS_PUBLIC_BASE}/${encodeURIComponent(raw)}`;
   }
 
   // Absolute path -> URL-encode each segment.

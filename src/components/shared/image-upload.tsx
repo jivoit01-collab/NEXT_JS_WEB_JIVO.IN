@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { isExternalImageSrc } from './safe-image';
+import { isExternalImageSrc, UPLOADS_PUBLIC_BASE } from './safe-image';
+import { uploadEndpoint, UPLOAD_FETCH_INIT, uploadAuthHeaders } from '@/lib/upload-endpoint';
 import {
   Upload,
   X,
@@ -85,12 +86,13 @@ interface UploadResponse {
   error?: string;
 }
 
-/** Convert a stored filename to its API-served URL */
+/** Convert a stored filename to its clean public URL (/uploads/images/<file>),
+ *  which next.config rewrites to the runtime file server. */
 export function toSrc(filename: string): string {
-  if (!filename || filename === 'placeholder.png') return '/api/uploads/placeholder.png';
+  if (!filename || filename === 'placeholder.png') return `${UPLOADS_PUBLIC_BASE}/placeholder.png`;
   // Already a full path (legacy or external URL) — pass through
   if (filename.startsWith('/') || filename.startsWith('http')) return filename;
-  return `/api/uploads/${filename}`;
+  return `${UPLOADS_PUBLIC_BASE}/${filename}`;
 }
 
 /** Returns true when the value is empty or just the seed placeholder — treat as "no image uploaded". */
@@ -130,9 +132,11 @@ async function uploadFile(file: File): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch('/api/upload', {
+  const res = await fetch(uploadEndpoint(), {
     method: 'POST',
     body: formData,
+    headers: uploadAuthHeaders(), // key only; browser sets multipart Content-Type
+    ...UPLOAD_FETCH_INIT,
   });
 
   return res.json();
@@ -143,9 +147,10 @@ async function deleteFile(filename: string): Promise<void> {
   // unset image field across the whole site — removing it would break them all.
   // Guarding here covers every caller (remove button, replace, multi-upload).
   if (!filename || filename === 'placeholder.png') return;
-  await fetch('/api/upload', {
+  await fetch(uploadEndpoint(), {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...uploadAuthHeaders() },
+    ...UPLOAD_FETCH_INIT,
     body: JSON.stringify({ filename }),
   });
 }
