@@ -21,6 +21,8 @@ export {
   updateHeroSlide,
   deleteHeroSlide,
   reorderHeroSlides,
+  reorderHomeSectionsAction,
+  setHomeSectionActiveAction,
 } from './actions';
 
 // Validations

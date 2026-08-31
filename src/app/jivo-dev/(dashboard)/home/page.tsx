@@ -8,14 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from '@/components/ui/table';
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -34,15 +26,20 @@ import {
   EyeOff,
   Home,
   Layers,
-  CheckCircle2,
   X,
   Search,
   Image as ImageIcon,
   ArrowUp,
   ArrowDown,
+  Save,
 } from 'lucide-react';
 import { SeoTabPanel } from '@/modules/seo';
-import { defaultSeo as homeDefaultSeo } from '@/modules/home';
+import {
+  defaultSeo as homeDefaultSeo,
+  reorderHomeSectionsAction,
+  setHomeSectionActiveAction,
+} from '@/modules/home';
+import { SectionManagerPanel, type ManagedSection } from '@/components/shared/section-manager-panel';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -141,15 +138,17 @@ export default function AdminHomePageManager() {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingSection, setEditingSection] = useState<HomeSection | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [createKey, setCreateKey] = useState<SectionKey | ''>('');
-  const [formContent, setFormContent] = useState<Record<string, unknown>>({});
-  const [formSortOrder, setFormSortOrder] = useState(0);
-  const [formIsActive, setFormIsActive] = useState(true);
-  const [error, setError] = useState('');
+
+  // ── Inline section tabs (edit each section in a tab, no dialog) ──
+  const [activeSectionTab, setActiveSectionTab] = useState<SectionKey>('hero');
+  // Live-edited content per section, keyed by section key. Seeded from the DB
+  // rows (or defaults for sections not yet created).
+  const [sectionContent, setSectionContent] = useState<Record<SectionKey, Record<string, unknown>>>(
+    {} as Record<SectionKey, Record<string, unknown>>,
+  );
+  const [savingSection, setSavingSection] = useState(false);
 
   // ── Hero Slides state ──────────────────────────
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
@@ -171,14 +170,57 @@ export default function AdminHomePageManager() {
     try {
       const res = await fetch('/api/home?all=true', { cache: 'no-store' });
       const data = await res.json();
-      if (data.success) setSections(data.data);
-      else toast.error(data.error ?? 'Failed to load sections');
+      if (data.success) {
+        setSections(data.data);
+        // Seed the inline editor content for every known section (DB content or
+        // defaults for sections not yet created).
+        const byKey: Record<string, HomeSection> = {};
+        for (const s of data.data as HomeSection[]) byKey[s.section] = s;
+        const seeded = {} as Record<SectionKey, Record<string, unknown>>;
+        for (const key of SECTION_ORDER) {
+          seeded[key] = byKey[key]?.content ?? getDefaultContent(key);
+        }
+        setSectionContent(seeded);
+      } else {
+        toast.error(data.error ?? 'Failed to load sections');
+      }
     } catch {
       toast.error('Failed to load home sections');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  // Save the currently-open section tab (create if it doesn't exist yet).
+  const saveSectionTab = async () => {
+    setSavingSection(true);
+    try {
+      const key = activeSectionTab;
+      const existing = sections.find((s) => s.section === key);
+      const content = sectionContent[key] ?? getDefaultContent(key);
+      const url = existing ? `/api/home/${existing.id}` : '/api/home';
+      const method = existing ? 'PUT' : 'POST';
+      const body = existing
+        ? { content }
+        : { section: key, content, sortOrder: SECTION_ORDER.indexOf(key), isActive: true };
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.error ?? 'Failed to save');
+        return;
+      }
+      toast.success(`${SECTION_LABELS[key]} saved`);
+      await fetchSections();
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setSavingSection(false);
+    }
+  };
 
   const fetchSlides = useCallback(async () => {
     try {
@@ -194,83 +236,6 @@ export default function AdminHomePageManager() {
     fetchSections();
     fetchSlides();
   }, [fetchSections, fetchSlides]);
-
-  const existingKeys = sections.map((s) => s.section);
-  const availableToCreate = SECTION_ORDER.filter((k) => !existingKeys.includes(k));
-  const activeCount = sections.filter((s) => s.isActive).length;
-
-  const openCreate = (key: SectionKey) => {
-    setEditingSection(null);
-    setCreateKey(key);
-    setFormContent(getDefaultContent(key));
-    setFormSortOrder(SECTION_ORDER.indexOf(key));
-    setFormIsActive(true);
-    setError('');
-    setDialogOpen(true);
-  };
-
-  const openEdit = (section: HomeSection) => {
-    setEditingSection(section);
-    setCreateKey('');
-    setFormContent(section.content);
-    setFormSortOrder(section.sortOrder);
-    setFormIsActive(section.isActive);
-    setError('');
-    setDialogOpen(true);
-  };
-
-  const openDelete = (id: string) => {
-    setDeletingId(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    setError('');
-
-    try {
-      const isEdit = !!editingSection;
-      const url = isEdit ? `/api/home/${editingSection.id}` : '/api/home';
-      const method = isEdit ? 'PUT' : 'POST';
-
-      const body = isEdit
-        ? { content: formContent, sortOrder: formSortOrder, isActive: formIsActive }
-        : {
-            section: createKey,
-            content: formContent,
-            sortOrder: formSortOrder,
-            isActive: formIsActive,
-          };
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-      if (!data.success) {
-        setError(data.error ?? 'Something went wrong');
-        toast.error(data.error ?? 'Failed to save');
-        return;
-      }
-
-      const label = isEdit
-        ? SECTION_LABELS[editingSection.section as SectionKey]
-        : SECTION_LABELS[createKey as SectionKey];
-      toast.success(`${label} ${isEdit ? 'updated' : 'created'}`, {
-        description: 'Refresh your live site tab to see the change.',
-        duration: 5000,
-      });
-      setDialogOpen(false);
-      await fetchSections();
-      router.refresh(); // revalidate public / route cache
-    } catch {
-      toast.error('Network error — please retry');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleDelete = async () => {
     if (!deletingId) return;
@@ -292,26 +257,6 @@ export default function AdminHomePageManager() {
       toast.error('Network error');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const toggleActive = async (section: HomeSection) => {
-    try {
-      const res = await fetch(`/api/home/${section.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !section.isActive }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success(`${section.title ?? section.section} ${section.isActive ? 'hidden' : 'published'}`);
-        await fetchSections();
-        router.refresh();
-      } else {
-        toast.error(data.error ?? 'Update failed');
-      }
-    } catch {
-      toast.error('Network error');
     }
   };
 
@@ -435,8 +380,6 @@ export default function AdminHomePageManager() {
     }
   };
 
-  const currentSectionKey = editingSection?.section ?? createKey;
-
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -460,253 +403,103 @@ export default function AdminHomePageManager() {
         </p>
       </div>
 
-      {/* ── Top-level Tabs (Sections / SEO) ── */}
+      {/* ── Top-level Tabs (Sections / Hero Carousel / SEO) ──
+          Styled like the product/essence pages: an underline tab row on a card,
+          active tab = green (primary) with a bottom border. */}
       <Tabs defaultValue={searchParams.get('tab') === 'seo' ? 'seo' : 'sections'} className="space-y-6">
-        <TabsList className="w-full justify-start sm:w-auto">
-          <TabsTrigger value="sections" className="gap-2">
+        <TabsList className="bg-card flex h-auto w-full justify-start gap-0 overflow-x-auto rounded-lg border p-0">
+          <TabsTrigger
+            value="sections"
+            className="data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground gap-2 rounded-none border-b-2 border-transparent bg-transparent px-4 py-3 font-jost-medium whitespace-nowrap shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:px-6 2xl:py-4 2xl:text-base"
+          >
             <Layers className="h-4 w-4" /> Sections
           </TabsTrigger>
-          <TabsTrigger value="hero-carousel" className="gap-2">
+          <TabsTrigger
+            value="hero-carousel"
+            className="data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground gap-2 rounded-none border-b-2 border-transparent bg-transparent px-4 py-3 font-jost-medium whitespace-nowrap shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:px-6 2xl:py-4 2xl:text-base"
+          >
             <ImageIcon className="h-4 w-4" /> Hero Carousel
           </TabsTrigger>
-          <TabsTrigger value="seo" className="gap-2">
+          <TabsTrigger
+            value="seo"
+            className="data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground gap-2 rounded-none border-b-2 border-transparent bg-transparent px-4 py-3 font-jost-medium whitespace-nowrap shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:px-6 2xl:py-4 2xl:text-base"
+          >
             <Search className="h-4 w-4" /> SEO
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="sections" className="space-y-6">
 
-      {/* ── Stats row ──────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
-          icon={<Layers className="h-4 w-4" />}
-          label="Total sections"
-          value={sections.length}
+      {/* ── Manage Sections — drag-reorder + show/hide (same as other pages) ── */}
+      {sections.length > 0 && (
+        <SectionManagerPanel
+          sections={sections.map(
+            (s): ManagedSection => ({
+              key: s.section,
+              label: SECTION_LABELS[s.section as SectionKey] ?? s.title ?? s.section,
+              isActive: s.isActive,
+            }),
+          )}
+          onReorder={async (orderedKeys) => {
+            const res = await reorderHomeSectionsAction(orderedKeys);
+            if (res.success) await fetchSections();
+            return { success: res.success, error: res.success ? undefined : res.error };
+          }}
+          onToggleActive={async (key, isActive) => {
+            const res = await setHomeSectionActiveAction(key, isActive);
+            if (res.success) await fetchSections();
+            return { success: res.success, error: res.success ? undefined : res.error };
+          }}
         />
-        <StatCard
-          icon={<CheckCircle2 className="h-4 w-4 text-primary" />}
-          label="Active"
-          value={activeCount}
-          tone="primary"
-        />
-        <StatCard
-          icon={<EyeOff className="h-4 w-4" />}
-          label="Inactive"
-          value={sections.length - activeCount}
-        />
-        <StatCard
-          icon={<Plus className="h-4 w-4" />}
-          label="Available to add"
-          value={availableToCreate.length}
-        />
-      </div>
-
-      {/* ── Missing sections chips ─────────── */}
-      {availableToCreate.length > 0 && (
-        <div className="rounded-xl border border-dashed bg-muted/30 p-4">
-          <p className="mb-3 text-sm font-jost-medium">
-            You haven&apos;t created these sections yet:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {availableToCreate.map((key) => (
-              <Button
-                key={key}
-                variant="outline"
-                size="sm"
-                onClick={() => openCreate(key)}
-                className="gap-2"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                {SECTION_LABELS[key]}
-              </Button>
-            ))}
-          </div>
-        </div>
       )}
 
-      {/* ── Sections table ─────────────────── */}
-      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead className="w-20">Order</TableHead>
-              <TableHead>Section</TableHead>
-              <TableHead className="w-28">Status</TableHead>
-              <TableHead className="w-40">Last updated</TableHead>
-              <TableHead className="w-32 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sections.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
-                  No home sections yet — add one from the chips above.
-                </TableCell>
-              </TableRow>
-            ) : (
-              sections.map((section) => (
-                <TableRow key={section.id} className="group">
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    #{section.sortOrder}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-jost-medium">
-                      {section.title ??
-                        SECTION_LABELS[section.section as SectionKey] ??
-                        section.section}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {section.section}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => toggleActive(section)}
-                      className="cursor-pointer"
-                      title={section.isActive ? 'Click to unpublish' : 'Click to publish'}
-                    >
-                      <Badge
-                        variant={section.isActive ? 'default' : 'secondary'}
-                        className={
-                          section.isActive
-                            ? 'bg-primary/15 text-primary hover:bg-primary/25'
-                            : 'hover:bg-secondary/80'
-                        }
-                      >
-                        <span
-                          className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
-                            section.isActive ? 'bg-primary' : 'bg-muted-foreground'
-                          }`}
-                        />
-                        {section.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(section.updatedAt).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openEdit(section)}
-                        title="Edit"
-                        className="cursor-pointer hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openDelete(section.id)}
-                        title="Delete"
-                        className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* ── Section content tabs — edit each section inline (no dialog) ── */}
+      <div className="rounded-lg border bg-card">
+        <div className="flex overflow-x-auto border-b">
+          {SECTION_ORDER.map((key) => (
+            <button
+              key={key}
+              onClick={() => setActiveSectionTab(key)}
+              className={`whitespace-nowrap px-3 py-2.5 text-sm font-jost-medium transition-colors sm:px-4 sm:py-3 sm:text-base 2xl:px-6 2xl:py-4 2xl:text-lg ${
+                activeSectionTab === key
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {SECTION_LABELS[key]}
+            </button>
+          ))}
+        </div>
 
-      {/* ── Edit / Create Dialog ───────────── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <span
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-md ${
-                  editingSection ? 'bg-primary/10 text-primary' : 'bg-primary/10 text-primary'
-                }`}
-              >
-                {editingSection ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-              </span>
-              {editingSection
-                ? `Edit — ${
-                    SECTION_LABELS[editingSection.section as SectionKey] ??
-                    editingSection.section
-                  }`
-                : `Create — ${SECTION_LABELS[createKey as SectionKey] ?? createKey}`}
-            </DialogTitle>
-          </DialogHeader>
+        <div className="space-y-5 p-4 sm:p-6 2xl:p-8">
+          {(() => {
+            const key = activeSectionTab;
+            const content = sectionContent[key] ?? getDefaultContent(key);
+            const onChange = (next: Record<string, unknown>) =>
+              setSectionContent((prev) => ({ ...prev, [key]: next }));
+            return (
+              <>
+                {key === 'hero' && <HeroEditor content={content} onChange={onChange} />}
+                {key === 'categories' && <CategoriesEditor content={content} onChange={onChange} />}
+                {key === 'vision_mission' && (
+                  <VisionMissionEditor content={content} onChange={onChange} />
+                )}
+                {key === 'products_foundation' && (
+                  <ProductsFoundationEditor content={content} onChange={onChange} />
+                )}
+                {key === 'why_jivo' && <WhyJivoEditor content={content} onChange={onChange} />}
+              </>
+            );
+          })()}
 
-          <div className="space-y-5 py-2">
-            {/* Meta row */}
-            <div className="grid grid-cols-2 gap-4 rounded-lg border bg-muted/20 p-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Sort order</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={formSortOrder}
-                  onChange={(e) => setFormSortOrder(parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Visibility</Label>
-                <Button
-                  type="button"
-                  variant={formIsActive ? 'default' : 'secondary'}
-                  className="w-full"
-                  onClick={() => setFormIsActive(!formIsActive)}
-                >
-                  {formIsActive ? (
-                    <>
-                      <Eye className="mr-2 h-4 w-4" /> Active — visible on site
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="mr-2 h-4 w-4" /> Inactive — hidden
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Section-specific editor */}
-            {currentSectionKey === 'hero' && (
-              <HeroEditor content={formContent} onChange={setFormContent} />
-            )}
-            {currentSectionKey === 'categories' && (
-              <CategoriesEditor content={formContent} onChange={setFormContent} />
-            )}
-            {currentSectionKey === 'vision_mission' && (
-              <VisionMissionEditor content={formContent} onChange={setFormContent} />
-            )}
-            {currentSectionKey === 'products_foundation' && (
-              <ProductsFoundationEditor content={formContent} onChange={setFormContent} />
-            )}
-            {currentSectionKey === 'why_jivo' && (
-              <WhyJivoEditor content={formContent} onChange={setFormContent} />
-            )}
-
-            {error && (
-              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                <X className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
+          <div className="flex justify-end border-t pt-4">
+            <Button onClick={saveSectionTab} disabled={savingSection} className="gap-2">
+              {savingSection ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save Changes
+            </Button>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={saving} className="min-w-28">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : editingSection ? 'Save changes' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
       {/* ── Delete confirmation ────────────── */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -1001,35 +794,6 @@ export default function AdminHomePageManager() {
           />
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-// ── Small StatCard ────────────────────────────────────────────
-
-function StatCard({
-  icon,
-  label,
-  value,
-  tone = 'default',
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  tone?: 'default' | 'primary';
-}) {
-  return (
-    <div className="rounded-xl border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-center gap-2 text-xs font-jost-medium uppercase tracking-wide text-muted-foreground">
-        {icon} {label}
-      </div>
-      <div
-        className={`mt-1 text-2xl font-jost-bold 2xl:text-3xl ${
-          tone === 'primary' ? 'text-primary' : 'text-foreground'
-        }`}
-      >
-        {value}
-      </div>
     </div>
   );
 }

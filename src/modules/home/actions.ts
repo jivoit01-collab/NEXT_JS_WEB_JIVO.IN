@@ -297,3 +297,47 @@ export async function reorderHeroSlides(ids: string[]): Promise<ActionResponse<n
   revalidatePath('/');
   return { success: true, data: null };
 }
+
+// ── Section reorder (admin) — drag-to-reorder from the Manage Sections panel ──
+export async function reorderHomeSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((s) => typeof s !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await prisma.$transaction(
+      orderedSections.map((section, index) =>
+        prisma.homePage.update({ where: { section }, data: { sortOrder: index } }),
+      ),
+    );
+    revalidatePath('/', 'layout');
+    revalidatePath('/');
+    revalidatePath('/jivo-dev/home');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderHomeSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+
+// ── Section visibility (admin) — toggle by section KEY (for the panel) ──
+export async function setHomeSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<HomePage>> {
+  const guard = await requireAdmin<HomePage>();
+  if (guard) return guard;
+  try {
+    const row = await prisma.homePage.update({ where: { section }, data: { isActive } });
+    revalidatePath('/', 'layout');
+    revalidatePath('/');
+    revalidatePath('/jivo-dev/home');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setHomeSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}

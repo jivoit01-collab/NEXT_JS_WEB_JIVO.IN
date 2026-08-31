@@ -36,35 +36,47 @@ const WhyJivo = dynamic(
 );
 
 interface HomeMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
   heroSlides?: HeroSlideData[];
   isLoading?: boolean;
 }
 
+/**
+ * Renders only ACTIVE home sections, in the admin-set DB order. Each key maps to
+ * a render function (Hero needs slides; all pass isLoading), so order + visibility
+ * are DB-driven while per-section props are preserved. A deactivated section is
+ * absent from `sections`, so it is not rendered.
+ */
 export function HomeMain({ sections, heroSlides, isLoading }: HomeMainProps) {
+  const renderers: Record<string, (content: unknown) => React.ReactNode> = {
+    hero: (content) => (
+      <HeroSection data={content as HeroContent | undefined} slides={heroSlides} isLoading={isLoading} />
+    ),
+    categories: (content) => (
+      <ProductCategories data={content as CategoriesContent | undefined} isLoading={isLoading} />
+    ),
+    vision_mission: (content) => (
+      <VisionMission data={content as VisionMissionContent | undefined} isLoading={isLoading} />
+    ),
+    products_foundation: (content) => (
+      <ProductsFoundation
+        data={content as ProductsFoundationContent | undefined}
+        isLoading={isLoading}
+      />
+    ),
+    why_jivo: (content) => (
+      <WhyJivo data={content as WhyJivoContent | undefined} isLoading={isLoading} />
+    ),
+  };
+
   return (
     <main>
-      <HeroSection
-        data={sections.get('hero') as HeroContent | undefined}
-        slides={heroSlides}
-        isLoading={isLoading}
-      />
-      <ProductCategories
-        data={sections.get('categories') as CategoriesContent | undefined}
-        isLoading={isLoading}
-      />
-      <VisionMission
-        data={sections.get('vision_mission') as VisionMissionContent | undefined}
-        isLoading={isLoading}
-      />
-      <ProductsFoundation
-        data={sections.get('products_foundation') as ProductsFoundationContent | undefined}
-        isLoading={isLoading}
-      />
-      <WhyJivo
-        data={sections.get('why_jivo') as WhyJivoContent | undefined}
-        isLoading={isLoading}
-      />
+      {sections.map(({ section, content }) => {
+        const render = renderers[section];
+        if (!render) return null;
+        return <div key={section}>{render(content)}</div>;
+      })}
     </main>
   );
 }
