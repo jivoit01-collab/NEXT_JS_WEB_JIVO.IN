@@ -20,3 +20,21 @@ export async function upsertDesiGheeSection(
 export async function deleteDesiGheeSectionById(id: string) {
   return prisma.ourProductsDesiGhee.delete({ where: { id } });
 }
+
+/** Set a section's active flag (show/hide it on the public page). */
+export async function setDesiGheeSectionActive(section: string, isActive: boolean) {
+  return prisma.ourProductsDesiGhee.update({
+    where: { section },
+    data: { isActive },
+  });
+}
+
+/** Persist a new section order: each key's index becomes its sortOrder, in a
+ *  single transaction so the order can never be left half-applied. */
+export async function reorderDesiGheeSections(orderedSections: string[]) {
+  return prisma.$transaction(
+    orderedSections.map((section, index) =>
+      prisma.ourProductsDesiGhee.update({ where: { section }, data: { sortOrder: index } }),
+    ),
+  );
+}

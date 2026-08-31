@@ -1,39 +1,32 @@
+import type { ComponentType } from 'react';
 import { RefinedGoldOilsHero } from './hero-section';
 import { RangeSection } from './range-section';
 import { HighlightsSection } from './highlights-section';
 import { WhatIsGoldSection } from './what-is-gold-section';
-import type {
-  RefinedGoldOilsHeroContent,
-  RefinedGoldOilsRangeContent,
-  RefinedGoldOilsHighlightsContent,
-  RefinedGoldOilsWhatIsContent,
-} from '../types';
+
+/** Section key → component. Order + visibility come from the DB (sortOrder /
+ *  isActive), not code. */
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: RefinedGoldOilsHero as ComponentType<{ data?: unknown }>,
+  range: RangeSection as ComponentType<{ data?: unknown }>,
+  keyHighlights: HighlightsSection as ComponentType<{ data?: unknown }>,
+  whatIsGold: WhatIsGoldSection as ComponentType<{ data?: unknown }>,
+};
 
 interface RefinedGoldOilsMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
-/**
- * Section order follows the approved design:
- *   1. Hero  2. Range  3. Key highlights + benefits  4. What is Jivo Gold
- *
- * Section 1 mirrors the groundnut hero (same bottle sizes); sections 2 and 4
- * mirror the desi-ghee range and bg-image sections. Only content and colours
- * differ. All render eagerly so SEO copy ships in the ISR HTML.
- */
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function RefinedGoldOilsMain({ sections }: RefinedGoldOilsMainProps) {
   return (
     <main>
-      <RefinedGoldOilsHero
-        data={sections.get('hero') as RefinedGoldOilsHeroContent | undefined}
-      />
-      <RangeSection data={sections.get('range') as RefinedGoldOilsRangeContent | undefined} />
-      <HighlightsSection
-        data={sections.get('keyHighlights') as RefinedGoldOilsHighlightsContent | undefined}
-      />
-      <WhatIsGoldSection
-        data={sections.get('whatIsGold') as RefinedGoldOilsWhatIsContent | undefined}
-      />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null;
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

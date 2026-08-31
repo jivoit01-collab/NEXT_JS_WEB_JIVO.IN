@@ -1,34 +1,32 @@
+import type { ComponentType } from 'react';
 import { WaterHero } from './hero-section';
 import { RangeSection } from './range-section';
 import { BetterBottleSection } from './better-bottle-section';
 import { MissionSection } from './mission-section';
-import type {
-  WaterHeroContent,
-  WaterRangeContent,
-  WaterBetterBottleContent,
-  WaterMissionContent,
-} from '../types';
+
+/** Section key → component. Order + visibility come from the DB (sortOrder /
+ *  isActive), not code. */
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: WaterHero as ComponentType<{ data?: unknown }>,
+  range: RangeSection as ComponentType<{ data?: unknown }>,
+  betterBottle: BetterBottleSection as ComponentType<{ data?: unknown }>,
+  mission: MissionSection as ComponentType<{ data?: unknown }>,
+};
 
 interface WaterMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
-/**
- * Section order follows the approved design:
- *   1. Hero (bg photo)  2. Range  3. A Better Bottle  4. Our Mission (bg photo)
- *
- * Sections 1-3 mirror the canola page's styling; section 4 mirrors the
- * sunflower page's bg-image section. Only content and colours differ.
- */
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function WaterMain({ sections }: WaterMainProps) {
   return (
     <main>
-      <WaterHero data={sections.get('hero') as WaterHeroContent | undefined} />
-      <RangeSection data={sections.get('range') as WaterRangeContent | undefined} />
-      <BetterBottleSection
-        data={sections.get('betterBottle') as WaterBetterBottleContent | undefined}
-      />
-      <MissionSection data={sections.get('mission') as WaterMissionContent | undefined} />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null;
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

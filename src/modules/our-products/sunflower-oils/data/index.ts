@@ -4,7 +4,12 @@ export {
   getSunflowerOilsSection,
 } from './queries';
 
-export { upsertSunflowerOilsSection, deleteSunflowerOilsSectionById } from './mutations';
+export {
+  upsertSunflowerOilsSection,
+  deleteSunflowerOilsSectionById,
+  setSunflowerOilsSectionActive,
+  reorderSunflowerOilsSections,
+} from './mutations';
 
 export {
   defaultSeo,

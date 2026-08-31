@@ -20,3 +20,18 @@ export async function upsertWaterSection(
 export async function deleteWaterSectionById(id: string) {
   return prisma.ourProductsWater.delete({ where: { id } });
 }
+
+/** Set a section's active flag (show/hide it on the public page). */
+export async function setWaterSectionActive(section: string, isActive: boolean) {
+  return prisma.ourProductsWater.update({ where: { section }, data: { isActive } });
+}
+
+/** Persist a new section order: each key's index becomes its sortOrder. */
+export async function reorderWaterSections(orderedSections: string[]) {
+  return prisma.$transaction(
+    orderedSections.map((section, index) =>
+      prisma.ourProductsWater.update({ where: { section }, data: { sortOrder: index } }),
+    ),
+  );
+}
+

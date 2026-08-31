@@ -1,36 +1,38 @@
+import type { ComponentType } from 'react';
 import { DesiGheeHero } from './hero-section';
 import { RangeSection } from './range-section';
 import { HighlightsSection } from './highlights-section';
 import { BilonaSection } from './bilona-section';
-import type {
-  DesiGheeHeroContent,
-  DesiGheeRangeContent,
-  DesiGheeHighlightsContent,
-  DesiGheeBilonaContent,
-} from '../types';
+
+/** Section key → the component that renders it. Adding a new section = one entry
+ *  here; order + visibility come from the DB (sortOrder / isActive), not code. */
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: DesiGheeHero as ComponentType<{ data?: unknown }>,
+  range: RangeSection as ComponentType<{ data?: unknown }>,
+  keyHighlights: HighlightsSection as ComponentType<{ data?: unknown }>,
+  bilona: BilonaSection as ComponentType<{ data?: unknown }>,
+};
 
 interface DesiGheeMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
 /**
- * Section order follows the approved design screenshots:
- *   1. Hero  2. Range  3. Key highlights  4. The art of Bilona churning
+ * Renders only the ACTIVE sections, in the order the admin arranged them
+ * (DB `sortOrder`). A deactivated section is absent from `sections`, so it is
+ * NOT rendered at all — reorder/hide is fully data-driven, no code change.
  *
- * All sections render eagerly so their SEO-relevant copy ships in the ISR HTML
- * (performance.md §9.2). The interactive sections are lightweight client
- * islands — no next/dynamic skeleton swap, which avoids the
- * skeleton-then-content flash flagged in the production audit.
+ * All sections render eagerly so their SEO copy ships in the ISR HTML.
  */
 export function DesiGheeMain({ sections }: DesiGheeMainProps) {
   return (
     <main>
-      <DesiGheeHero data={sections.get('hero') as DesiGheeHeroContent | undefined} />
-      <RangeSection data={sections.get('range') as DesiGheeRangeContent | undefined} />
-      <HighlightsSection
-        data={sections.get('keyHighlights') as DesiGheeHighlightsContent | undefined}
-      />
-      <BilonaSection data={sections.get('bilona') as DesiGheeBilonaContent | undefined} />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null; // unknown key → skip safely
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

@@ -4,7 +4,12 @@ export {
   getRefinedGoldOilsSection,
 } from './queries';
 
-export { upsertRefinedGoldOilsSection, deleteRefinedGoldOilsSectionById } from './mutations';
+export {
+  upsertRefinedGoldOilsSection,
+  deleteRefinedGoldOilsSectionById,
+  setRefinedGoldOilsSectionActive,
+  reorderRefinedGoldOilsSections,
+} from './mutations';
 
 export {
   defaultSeo,

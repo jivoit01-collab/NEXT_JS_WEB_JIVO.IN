@@ -10,6 +10,8 @@ import {
   getRefinedGoldOilsSection,
   upsertRefinedGoldOilsSection,
   deleteRefinedGoldOilsSectionById,
+  setRefinedGoldOilsSectionActive,
+  reorderRefinedGoldOilsSections,
 } from './data';
 import { refinedGoldOilsSectionSchemas } from './validations';
 import type { RefinedGoldOilsSectionKey } from './types';
@@ -110,3 +112,42 @@ export async function deleteRefinedGoldOilsSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setRefinedGoldOilsSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurProductsRefinedGoldOils>> {
+  const guard = await requireAdmin<OurProductsRefinedGoldOils>();
+  if (guard) return guard;
+  try {
+    const row = await setRefinedGoldOilsSectionActive(section, isActive);
+    revalidatePath('/products/refined-gold-oils');
+    revalidatePath('/jivo-dev/our-products/refined-gold-oils');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setRefinedGoldOilsSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderRefinedGoldOilsSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderRefinedGoldOilsSections(orderedSections);
+    revalidatePath('/products/refined-gold-oils');
+    revalidatePath('/jivo-dev/our-products/refined-gold-oils');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderRefinedGoldOilsSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

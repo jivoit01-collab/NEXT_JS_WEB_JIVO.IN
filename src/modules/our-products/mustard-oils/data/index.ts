@@ -4,7 +4,12 @@ export {
   getMustardOilsSection,
 } from './queries';
 
-export { upsertMustardOilsSection, deleteMustardOilsSectionById } from './mutations';
+export {
+  upsertMustardOilsSection,
+  deleteMustardOilsSectionById,
+  setMustardOilsSectionActive,
+  reorderMustardOilsSections,
+} from './mutations';
 
 export {
   defaultSeo,

@@ -1,39 +1,32 @@
+import type { ComponentType } from 'react';
 import { GroundnutOilsHero } from './hero-section';
 import { RangeSection } from './range-section';
 import { GoodnessSection } from './goodness-section';
 import { AuthenticitySection } from './authenticity-section';
-import type {
-  GroundnutOilsHeroContent,
-  GroundnutOilsRangeContent,
-  GroundnutOilsGoodnessContent,
-  GroundnutOilsAuthenticityContent,
-} from '../types';
+
+/** Section key → component. Order + visibility come from the DB (sortOrder /
+ *  isActive), not code. */
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: GroundnutOilsHero as ComponentType<{ data?: unknown }>,
+  range: RangeSection as ComponentType<{ data?: unknown }>,
+  goodness: GoodnessSection as ComponentType<{ data?: unknown }>,
+  authenticity: AuthenticitySection as ComponentType<{ data?: unknown }>,
+};
 
 interface GroundnutOilsMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
-/**
- * Section order follows the approved design screenshots:
- *   1. Hero  2. Range  3. The goodness within  4. Promising authenticity
- *
- * Sections 1 and 2 intentionally mirror the canola page's styling and
- * animation exactly; only their content differs.
- *
- * All sections render eagerly so their SEO-relevant copy ships in the ISR HTML
- * (performance.md §9.2). The interactive sections are lightweight client
- * islands — no next/dynamic skeleton swap, which avoids the
- * skeleton-then-content flash flagged in the production audit.
- */
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function GroundnutOilsMain({ sections }: GroundnutOilsMainProps) {
   return (
     <main>
-      <GroundnutOilsHero data={sections.get('hero') as GroundnutOilsHeroContent | undefined} />
-      <RangeSection data={sections.get('range') as GroundnutOilsRangeContent | undefined} />
-      <GoodnessSection data={sections.get('goodness') as GroundnutOilsGoodnessContent | undefined} />
-      <AuthenticitySection
-        data={sections.get('authenticity') as GroundnutOilsAuthenticityContent | undefined}
-      />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null;
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

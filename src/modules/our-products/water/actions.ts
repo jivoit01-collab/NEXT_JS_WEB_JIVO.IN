@@ -10,6 +10,8 @@ import {
   getWaterSection,
   upsertWaterSection,
   deleteWaterSectionById,
+  setWaterSectionActive,
+  reorderWaterSections,
 } from './data';
 import { waterSectionSchemas } from './validations';
 import { cleanupRemovedImages } from '@/lib/uploads-usage';
@@ -115,3 +117,42 @@ export async function deleteWaterSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setWaterSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurProductsWater>> {
+  const guard = await requireAdmin<OurProductsWater>();
+  if (guard) return guard;
+  try {
+    const row = await setWaterSectionActive(section, isActive);
+    revalidatePath('/products/water');
+    revalidatePath('/jivo-dev/our-products/water');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setWaterSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderWaterSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderWaterSections(orderedSections);
+    revalidatePath('/products/water');
+    revalidatePath('/jivo-dev/our-products/water');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderWaterSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

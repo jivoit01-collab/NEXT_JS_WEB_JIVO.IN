@@ -20,3 +20,18 @@ export async function upsertGroundnutOilsSection(
 export async function deleteGroundnutOilsSectionById(id: string) {
   return prisma.ourProductsGroundnutOils.delete({ where: { id } });
 }
+
+/** Set a section's active flag (show/hide it on the public page). */
+export async function setGroundnutOilsSectionActive(section: string, isActive: boolean) {
+  return prisma.ourProductsGroundnutOils.update({ where: { section }, data: { isActive } });
+}
+
+/** Persist a new section order: each key's index becomes its sortOrder. */
+export async function reorderGroundnutOilsSections(orderedSections: string[]) {
+  return prisma.$transaction(
+    orderedSections.map((section, index) =>
+      prisma.ourProductsGroundnutOils.update({ where: { section }, data: { sortOrder: index } }),
+    ),
+  );
+}
+

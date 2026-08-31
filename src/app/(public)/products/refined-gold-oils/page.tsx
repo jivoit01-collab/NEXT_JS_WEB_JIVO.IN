@@ -16,15 +16,13 @@ export default async function RefinedGoldOilsPage() {
     getStructuredData('our-products-refined-gold-oils', defaultSeo),
   ]);
 
-  const sectionMap = new Map<string, unknown>();
-  for (const s of sections) {
-    sectionMap.set(s.section, s.content);
-  }
+  // Already ACTIVE-only + ordered by sortOrder (see the query) — pass through.
+  const orderedSections = sections.map((s) => ({ section: s.section, content: s.content }));
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
-      <RefinedGoldOilsMain sections={sectionMap} />
+      <RefinedGoldOilsMain sections={orderedSections} />
     </>
   );
 }

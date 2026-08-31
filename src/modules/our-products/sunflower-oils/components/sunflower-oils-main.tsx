@@ -1,39 +1,32 @@
+import type { ComponentType } from 'react';
 import { SunflowerOilsHero } from './hero-section';
 import { RangeSection } from './range-section';
 import { BenefitsSection } from './benefits-section';
 import { WhyItMattersSection } from './why-it-matters-section';
-import type {
-  SunflowerOilsHeroContent,
-  SunflowerOilsRangeContent,
-  SunflowerOilsBenefitsContent,
-  SunflowerOilsWhyItMattersContent,
-} from '../types';
+
+/** Section key → component. Order + visibility come from the DB (sortOrder /
+ *  isActive), not code. */
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: SunflowerOilsHero as ComponentType<{ data?: unknown }>,
+  range: RangeSection as ComponentType<{ data?: unknown }>,
+  benefits: BenefitsSection as ComponentType<{ data?: unknown }>,
+  whyItMatters: WhyItMattersSection as ComponentType<{ data?: unknown }>,
+};
 
 interface SunflowerOilsMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
-/**
- * Section order follows the approved design screenshots:
- *   1. Hero  2. Range  3. Benefits  4. Why it matters
- *
- * Sections 1 and 2 intentionally mirror the groundnut page's styling and
- * animation exactly; only their content differs.
- *
- * All sections render eagerly so their SEO-relevant copy ships in the ISR HTML
- * (performance.md §9.2). The interactive sections are lightweight client
- * islands — no next/dynamic skeleton swap, which avoids the
- * skeleton-then-content flash flagged in the production audit.
- */
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function SunflowerOilsMain({ sections }: SunflowerOilsMainProps) {
   return (
     <main>
-      <SunflowerOilsHero data={sections.get('hero') as SunflowerOilsHeroContent | undefined} />
-      <RangeSection data={sections.get('range') as SunflowerOilsRangeContent | undefined} />
-      <BenefitsSection data={sections.get('benefits') as SunflowerOilsBenefitsContent | undefined} />
-      <WhyItMattersSection
-        data={sections.get('whyItMatters') as SunflowerOilsWhyItMattersContent | undefined}
-      />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null;
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

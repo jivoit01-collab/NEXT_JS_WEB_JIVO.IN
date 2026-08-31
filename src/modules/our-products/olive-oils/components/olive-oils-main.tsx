@@ -1,12 +1,8 @@
+import type { ReactNode } from 'react';
 import { OliveOilsHero } from './hero-section';
 import { VariantSection } from './variant-section';
 import { DifferenceSection } from './difference-section';
 import { OLIVE_VIRGIN, OLIVE_LIGHT, OLIVE_POMACE } from '../constants';
-import {
-  defaultExtraVirginContent,
-  defaultExtraLightContent,
-  defaultPomaceContent,
-} from '../data/defaults';
 import type {
   OliveOilsHeroContent,
   OliveOilsVariantContent,
@@ -14,60 +10,59 @@ import type {
 } from '../types';
 
 interface OliveOilsMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
 /**
- * Section order follows the approved design screenshots:
- *   1. Hero  2. Extra Virgin  3. Extra Light  4. Pomace  5. The Jivo difference
+ * Renders only ACTIVE sections, in the admin-set DB order.
  *
- * Sections 2-4 share one `VariantSection` component — they differ only in
- * background colour, which side the olive artwork sits on, and their content.
- *
- * All sections render eagerly so their SEO-relevant copy ships in the ISR HTML
- * (performance.md §9.2). The interactive sections are lightweight client
- * islands — no next/dynamic skeleton swap, which avoids the
- * skeleton-then-content flash flagged in the production audit.
+ * The three variant sections (extraVirgin/extraLight/pomace) all use the SAME
+ * `VariantSection` but with different background / image side / label colour, so
+ * each section key maps to a RENDER FUNCTION (not just a component) that applies
+ * its own styling. Deactivating or reordering any section is driven by the DB.
  */
-export function OliveOilsMain({ sections }: OliveOilsMainProps) {
-  const extraVirgin =
-    (sections.get('extraVirgin') as OliveOilsVariantContent | undefined) ??
-    defaultExtraVirginContent;
-  const extraLight =
-    (sections.get('extraLight') as OliveOilsVariantContent | undefined) ?? defaultExtraLightContent;
-  const pomace =
-    (sections.get('pomace') as OliveOilsVariantContent | undefined) ?? defaultPomaceContent;
+const SECTION_RENDERERS: Record<string, (content: unknown) => ReactNode> = {
+  hero: (content) => <OliveOilsHero data={content as OliveOilsHeroContent | undefined} />,
+  extraVirgin: (content) => (
+    <VariantSection
+      id="olive-extra-virgin-heading"
+      data={content as OliveOilsVariantContent}
+      background={OLIVE_VIRGIN}
+      imageSide="right"
+    />
+  ),
+  extraLight: (content) => (
+    <VariantSection
+      id="olive-extra-light-heading"
+      data={content as OliveOilsVariantContent}
+      background={OLIVE_LIGHT}
+      imageSide="left"
+      labelColor="#FFFFFF"
+    />
+  ),
+  pomace: (content) => (
+    <VariantSection
+      id="olive-pomace-heading"
+      data={content as OliveOilsVariantContent}
+      background={OLIVE_POMACE}
+      imageSide="right"
+      labelColor="#FFFFFF"
+    />
+  ),
+  difference: (content) => (
+    <DifferenceSection data={content as OliveOilsDifferenceContent | undefined} />
+  ),
+};
 
+export function OliveOilsMain({ sections }: OliveOilsMainProps) {
   return (
     <main>
-      <OliveOilsHero data={sections.get('hero') as OliveOilsHeroContent | undefined} />
-
-      <VariantSection
-        id="olive-extra-virgin-heading"
-        data={extraVirgin}
-        background={OLIVE_VIRGIN}
-        imageSide="right"
-      />
-      {/* Extra Light and Pomace sit on darker fields, so their pack labels are
-          white for legibility — Extra Virgin keeps the pale sage default. */}
-      <VariantSection
-        id="olive-extra-light-heading"
-        data={extraLight}
-        background={OLIVE_LIGHT}
-        imageSide="left"
-        labelColor="#FFFFFF"
-      />
-      <VariantSection
-        id="olive-pomace-heading"
-        data={pomace}
-        background={OLIVE_POMACE}
-        imageSide="right"
-        labelColor="#FFFFFF"
-      />
-
-      <DifferenceSection
-        data={sections.get('difference') as OliveOilsDifferenceContent | undefined}
-      />
+      {sections.map(({ section, content }) => {
+        const render = SECTION_RENDERERS[section];
+        if (!render) return null;
+        return <div key={section}>{render(content)}</div>;
+      })}
     </main>
   );
 }

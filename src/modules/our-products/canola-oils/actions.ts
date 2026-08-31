@@ -10,6 +10,8 @@ import {
   getCanolaOilsSection,
   upsertCanolaOilsSection,
   deleteCanolaOilsSectionById,
+  setCanolaOilsSectionActive,
+  reorderCanolaOilsSections,
 } from './data';
 import { canolaOilsSectionSchemas } from './validations';
 import type { CanolaOilsSectionKey } from './types';
@@ -110,3 +112,42 @@ export async function deleteCanolaOilsSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setCanolaOilsSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurProductsCanolaOils>> {
+  const guard = await requireAdmin<OurProductsCanolaOils>();
+  if (guard) return guard;
+  try {
+    const row = await setCanolaOilsSectionActive(section, isActive);
+    revalidatePath('/products/canola-oils');
+    revalidatePath('/jivo-dev/our-products/canola-oils');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setCanolaOilsSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderCanolaOilsSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderCanolaOilsSections(orderedSections);
+    revalidatePath('/products/canola-oils');
+    revalidatePath('/jivo-dev/our-products/canola-oils');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderCanolaOilsSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

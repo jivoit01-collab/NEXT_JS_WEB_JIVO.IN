@@ -4,7 +4,12 @@ export {
   getGroundnutOilsSection,
 } from './queries';
 
-export { upsertGroundnutOilsSection, deleteGroundnutOilsSectionById } from './mutations';
+export {
+  upsertGroundnutOilsSection,
+  deleteGroundnutOilsSectionById,
+  setGroundnutOilsSectionActive,
+  reorderGroundnutOilsSections,
+} from './mutations';
 
 export {
   defaultSeo,

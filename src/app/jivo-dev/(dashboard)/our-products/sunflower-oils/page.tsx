@@ -6,7 +6,13 @@ import { Save, Loader, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload, isPlaceholderOrEmpty } from '@/components/shared/admin';
 import { SeoTabPanel } from '@/modules/seo';
-import { upsertSunflowerOilsSectionAction } from '@/modules/our-products/sunflower-oils/actions';
+import {
+  upsertSunflowerOilsSectionAction,
+  getAllSunflowerOilsSectionsAction,
+  setSunflowerOilsSectionActiveAction,
+  reorderSunflowerOilsSectionsAction,
+} from '@/modules/our-products/sunflower-oils/actions';
+import { SectionManagerPanel, type ManagedSection } from '@/components/shared/section-manager-panel';
 import type {
   SunflowerOilsHeroContent,
   SunflowerOilsRangeContent,
@@ -48,8 +54,24 @@ export default function SunflowerOilsManager() {
   const [whyItMatters, setWhyItMatters] =
     useState<SunflowerOilsWhyItMattersContent>(defaultWhyItMattersContent);
 
+  // Section order + visibility for the Manage Sections panel (from the DB rows).
+  const [managedSections, setManagedSections] = useState<ManagedSection[]>([]);
+  const sectionLabel = (key: string) => TABS.find((t) => t.key === key)?.label ?? key;
+  const loadManagedSections = useCallback(async () => {
+    const res = await getAllSunflowerOilsSectionsAction();
+    if (res.success) {
+      const known = new Set(TABS.filter((t) => t.key !== 'seo').map((t) => t.key));
+      setManagedSections(
+        res.data
+          .filter((r) => known.has(r.section as ContentTabKey))
+          .map((r) => ({ key: r.section, label: sectionLabel(r.section), isActive: r.isActive })),
+      );
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
+      await loadManagedSections();
       try {
         const res = await fetch('/api/our-products/sunflower-oils');
         const json = await res.json();
@@ -68,7 +90,7 @@ export default function SunflowerOilsManager() {
         setLoadingData(false);
       }
     })();
-  }, []);
+  }, [loadManagedSections]);
 
   const handleSave = useCallback(async () => {
     if (activeTab === 'seo') return;
@@ -127,6 +149,17 @@ export default function SunflowerOilsManager() {
         </div>
         {activeTab !== 'seo' && saveButton}
       </div>
+
+      {managedSections.length > 0 && (
+        <SectionManagerPanel
+          sections={managedSections}
+          onReorder={(orderedKeys) => reorderSunflowerOilsSectionsAction(orderedKeys)}
+          onToggleActive={async (key, isActive) => {
+            const res = await setSunflowerOilsSectionActiveAction(key, isActive);
+            return { success: res.success, error: res.success ? undefined : res.error };
+          }}
+        />
+      )}
 
       {/* Tabs */}
       <div className="rounded-lg border bg-card">

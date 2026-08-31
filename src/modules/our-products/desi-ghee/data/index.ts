@@ -1,6 +1,11 @@
 export { getDesiGheeSections, getAllDesiGheeSections, getDesiGheeSection } from './queries';
 
-export { upsertDesiGheeSection, deleteDesiGheeSectionById } from './mutations';
+export {
+  upsertDesiGheeSection,
+  deleteDesiGheeSectionById,
+  setDesiGheeSectionActive,
+  reorderDesiGheeSections,
+} from './mutations';
 
 export {
   defaultSeo,

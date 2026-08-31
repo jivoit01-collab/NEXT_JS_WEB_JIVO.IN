@@ -16,15 +16,14 @@ export default async function DesiGheePage() {
     getStructuredData('our-products-desi-ghee', defaultSeo),
   ]);
 
-  const sectionMap = new Map<string, unknown>();
-  for (const s of sections) {
-    sectionMap.set(s.section, s.content);
-  }
+  // `sections` is already ACTIVE-only and ordered by sortOrder (see the query),
+  // so pass it straight through — the main component renders in this exact order.
+  const orderedSections = sections.map((s) => ({ section: s.section, content: s.content }));
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
-      <DesiGheeMain sections={sectionMap} />
+      <DesiGheeMain sections={orderedSections} />
     </>
   );
 }

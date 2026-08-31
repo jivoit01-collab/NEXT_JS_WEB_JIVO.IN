@@ -4,7 +4,12 @@ export {
   getCanolaOilsSection,
 } from './queries';
 
-export { upsertCanolaOilsSection, deleteCanolaOilsSectionById } from './mutations';
+export {
+  upsertCanolaOilsSection,
+  deleteCanolaOilsSectionById,
+  setCanolaOilsSectionActive,
+  reorderCanolaOilsSections,
+} from './mutations';
 
 export {
   defaultSeo,

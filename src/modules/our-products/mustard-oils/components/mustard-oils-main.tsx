@@ -1,39 +1,32 @@
+import type { ComponentType } from 'react';
 import { MustardOilsHero } from './hero-section';
 import { RangeSection } from './range-section';
 import { ExtractionSection } from './extraction-section';
 import { WarmthSection } from './warmth-section';
-import type {
-  MustardOilsHeroContent,
-  MustardOilsRangeContent,
-  MustardOilsExtractionContent,
-  MustardOilsWarmthContent,
-} from '../types';
+
+/** Section key → component. Order + visibility come from the DB (sortOrder /
+ *  isActive), not code. */
+const SECTION_COMPONENTS: Record<string, ComponentType<{ data?: unknown }>> = {
+  hero: MustardOilsHero as ComponentType<{ data?: unknown }>,
+  range: RangeSection as ComponentType<{ data?: unknown }>,
+  extraction: ExtractionSection as ComponentType<{ data?: unknown }>,
+  warmth: WarmthSection as ComponentType<{ data?: unknown }>,
+};
 
 interface MustardOilsMainProps {
-  sections: Map<string, unknown>;
+  /** ACTIVE sections in display order (already filtered + sorted by the query). */
+  sections: { section: string; content: unknown }[];
 }
 
-/**
- * Section order follows the approved design screenshots:
- *   1. Hero  2. Range  3. Kachi ghani extraction  4. A little warmth
- *
- * Sections 1 and 2 intentionally mirror the groundnut page's styling and
- * animation exactly; only their content and palette differ.
- *
- * All sections render eagerly so their SEO-relevant copy ships in the ISR HTML
- * (performance.md §9.2). The interactive sections are lightweight client
- * islands — no next/dynamic skeleton swap, which avoids the
- * skeleton-then-content flash flagged in the production audit.
- */
+/** Renders only ACTIVE sections in the admin-set DB order. */
 export function MustardOilsMain({ sections }: MustardOilsMainProps) {
   return (
     <main>
-      <MustardOilsHero data={sections.get('hero') as MustardOilsHeroContent | undefined} />
-      <RangeSection data={sections.get('range') as MustardOilsRangeContent | undefined} />
-      <ExtractionSection
-        data={sections.get('extraction') as MustardOilsExtractionContent | undefined}
-      />
-      <WarmthSection data={sections.get('warmth') as MustardOilsWarmthContent | undefined} />
+      {sections.map(({ section, content }) => {
+        const Component = SECTION_COMPONENTS[section];
+        if (!Component) return null;
+        return <Component key={section} data={content} />;
+      })}
     </main>
   );
 }

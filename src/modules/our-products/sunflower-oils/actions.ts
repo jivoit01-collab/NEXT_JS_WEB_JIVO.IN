@@ -10,6 +10,8 @@ import {
   getSunflowerOilsSection,
   upsertSunflowerOilsSection,
   deleteSunflowerOilsSectionById,
+  setSunflowerOilsSectionActive,
+  reorderSunflowerOilsSections,
 } from './data';
 import { sunflowerOilsSectionSchemas } from './validations';
 import type { SunflowerOilsSectionKey } from './types';
@@ -110,3 +112,42 @@ export async function deleteSunflowerOilsSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setSunflowerOilsSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurProductsSunflowerOils>> {
+  const guard = await requireAdmin<OurProductsSunflowerOils>();
+  if (guard) return guard;
+  try {
+    const row = await setSunflowerOilsSectionActive(section, isActive);
+    revalidatePath('/products/sunflower-oils');
+    revalidatePath('/jivo-dev/our-products/sunflower-oils');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setSunflowerOilsSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderSunflowerOilsSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderSunflowerOilsSections(orderedSections);
+    revalidatePath('/products/sunflower-oils');
+    revalidatePath('/jivo-dev/our-products/sunflower-oils');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderSunflowerOilsSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

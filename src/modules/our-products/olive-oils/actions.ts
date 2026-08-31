@@ -10,6 +10,8 @@ import {
   getOliveOilsSection,
   upsertOliveOilsSection,
   deleteOliveOilsSectionById,
+  setOliveOilsSectionActive,
+  reorderOliveOilsSections,
 } from './data';
 import { oliveOilsSectionSchemas } from './validations';
 import type { OliveOilsSectionKey } from './types';
@@ -110,3 +112,42 @@ export async function deleteOliveOilsSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setOliveOilsSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurProductsOliveOils>> {
+  const guard = await requireAdmin<OurProductsOliveOils>();
+  if (guard) return guard;
+  try {
+    const row = await setOliveOilsSectionActive(section, isActive);
+    revalidatePath('/products/olive-oils');
+    revalidatePath('/jivo-dev/our-products/olive-oils');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setOliveOilsSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderOliveOilsSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderOliveOilsSections(orderedSections);
+    revalidatePath('/products/olive-oils');
+    revalidatePath('/jivo-dev/our-products/olive-oils');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderOliveOilsSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

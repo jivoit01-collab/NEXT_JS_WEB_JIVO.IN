@@ -10,6 +10,8 @@ import {
   getDesiGheeSection,
   upsertDesiGheeSection,
   deleteDesiGheeSectionById,
+  setDesiGheeSectionActive,
+  reorderDesiGheeSections,
 } from './data';
 import { desiGheeSectionSchemas } from './validations';
 import type { DesiGheeSectionKey } from './types';
@@ -108,5 +110,48 @@ export async function deleteDesiGheeSectionAction(
   } catch (err) {
     console.error('[deleteDesiGheeSectionAction]', { id, err });
     return { success: false, error: 'Failed to delete section' };
+  }
+}
+
+// ── Section visibility + order (admin) ───────────────────────
+
+/** Show/hide a section on the public page. */
+export async function setDesiGheeSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurProductsDesiGhee>> {
+  const guard = await requireAdmin<OurProductsDesiGhee>();
+  if (guard) return guard;
+
+  try {
+    const row = await setDesiGheeSectionActive(section, isActive);
+    revalidatePath('/products/desi-ghee');
+    revalidatePath('/jivo-dev/our-products/desi-ghee');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setDesiGheeSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+/** Persist a new section order (array of section keys in display order). */
+export async function reorderDesiGheeSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+
+  if (!Array.isArray(orderedSections) || orderedSections.some((s) => typeof s !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+
+  try {
+    await reorderDesiGheeSections(orderedSections);
+    revalidatePath('/products/desi-ghee');
+    revalidatePath('/jivo-dev/our-products/desi-ghee');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderDesiGheeSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
   }
 }

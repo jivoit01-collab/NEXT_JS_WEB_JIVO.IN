@@ -16,15 +16,13 @@ export default async function CanolaOilsPage() {
     getStructuredData('our-products-canola-oils', defaultSeo),
   ]);
 
-  const sectionMap = new Map<string, unknown>();
-  for (const s of sections) {
-    sectionMap.set(s.section, s.content);
-  }
+  // Already ACTIVE-only + ordered by sortOrder (see the query) — pass through.
+  const orderedSections = sections.map((s) => ({ section: s.section, content: s.content }));
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
-      <CanolaOilsMain sections={sectionMap} />
+      <CanolaOilsMain sections={orderedSections} />
     </>
   );
 }

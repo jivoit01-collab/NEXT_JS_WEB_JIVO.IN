@@ -1,6 +1,11 @@
 export { getOliveOilsSections, getAllOliveOilsSections, getOliveOilsSection } from './queries';
 
-export { upsertOliveOilsSection, deleteOliveOilsSectionById } from './mutations';
+export {
+  upsertOliveOilsSection,
+  deleteOliveOilsSectionById,
+  setOliveOilsSectionActive,
+  reorderOliveOilsSections,
+} from './mutations';
 
 export {
   defaultSeo,

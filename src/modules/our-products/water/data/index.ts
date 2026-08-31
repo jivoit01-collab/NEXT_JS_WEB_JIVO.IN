@@ -1,5 +1,10 @@
 export { getWaterSections, getAllWaterSections, getWaterSection } from './queries';
-export { upsertWaterSection, deleteWaterSectionById } from './mutations';
+export {
+  upsertWaterSection,
+  deleteWaterSectionById,
+  setWaterSectionActive,
+  reorderWaterSections,
+} from './mutations';
 export {
   defaultSeo,
   defaultHeroContent,

@@ -16,15 +16,12 @@ export default async function OliveOilsPage() {
     getStructuredData('our-products-olive-oils', defaultSeo),
   ]);
 
-  const sectionMap = new Map<string, unknown>();
-  for (const s of sections) {
-    sectionMap.set(s.section, s.content);
-  }
+  const orderedSections = sections.map((s) => ({ section: s.section, content: s.content }));
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
-      <OliveOilsMain sections={sectionMap} />
+      <OliveOilsMain sections={orderedSections} />
     </>
   );
 }

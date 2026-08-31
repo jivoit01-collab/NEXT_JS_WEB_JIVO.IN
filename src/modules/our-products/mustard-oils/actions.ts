@@ -10,6 +10,8 @@ import {
   getMustardOilsSection,
   upsertMustardOilsSection,
   deleteMustardOilsSectionById,
+  setMustardOilsSectionActive,
+  reorderMustardOilsSections,
 } from './data';
 import { mustardOilsSectionSchemas } from './validations';
 import type { MustardOilsSectionKey } from './types';
@@ -110,3 +112,42 @@ export async function deleteMustardOilsSectionAction(
     return { success: false, error: 'Failed to delete section' };
   }
 }
+
+// ── Section visibility + order (admin) ───────────────────────
+
+export async function setMustardOilsSectionActiveAction(
+  section: string,
+  isActive: boolean,
+): Promise<ActionResponse<OurProductsMustardOils>> {
+  const guard = await requireAdmin<OurProductsMustardOils>();
+  if (guard) return guard;
+  try {
+    const row = await setMustardOilsSectionActive(section, isActive);
+    revalidatePath('/products/mustard-oils');
+    revalidatePath('/jivo-dev/our-products/mustard-oils');
+    return { success: true, data: row };
+  } catch (err) {
+    console.error('[setMustardOilsSectionActiveAction]', { section, err });
+    return { success: false, error: 'Failed to update section visibility' };
+  }
+}
+
+export async function reorderMustardOilsSectionsAction(
+  orderedSections: string[],
+): Promise<ActionResponse<null>> {
+  const guard = await requireAdmin<null>();
+  if (guard) return guard;
+  if (!Array.isArray(orderedSections) || orderedSections.some((x) => typeof x !== 'string')) {
+    return { success: false, error: 'Invalid order' };
+  }
+  try {
+    await reorderMustardOilsSections(orderedSections);
+    revalidatePath('/products/mustard-oils');
+    revalidatePath('/jivo-dev/our-products/mustard-oils');
+    return { success: true, data: null };
+  } catch (err) {
+    console.error('[reorderMustardOilsSectionsAction]', err);
+    return { success: false, error: 'Failed to reorder sections' };
+  }
+}
+

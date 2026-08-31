@@ -226,6 +226,29 @@ Create `src/app/(admin)/admin/dashboard/{page}/page.tsx` — full CMS editor.
 
 **The tab list MUST end with an `"SEO"` tab** (after all content section tabs) — see §23 for the exact field layout. This is mandatory for every CMS page.
 
+### Step 8b: Section Order + Activate/Deactivate (MANDATORY for every multi-section CMS page)
+
+Every section table already has **`sortOrder` (Int)** and **`isActive` (Boolean)** columns. Section order and visibility MUST be driven by these DB columns — **never** by a hardcoded render order or by always rendering every section. Reordering or hiding a section is a **content operation done from the admin**, not a code change.
+
+Implement all four parts for each such page (reference implementation: `desi-ghee`):
+
+1. **Public page renders data-driven, in DB order, active-only.**
+   - The query already returns `where: { isActive: true }, orderBy: { sortOrder: 'asc' }`. Pass that **ordered list** (`{ section, content }[]`) to the page's `*Main` component — do NOT collapse it into a name-keyed `Map` (that loses order) and do NOT hardcode `<Hero/><Range/>…`.
+   - The `*Main` component maps a `SECTION_COMPONENTS: Record<sectionKey, Component>` registry over the ordered list, so **inactive sections are absent → never rendered**, and order follows `sortOrder`. Unknown keys are skipped.
+
+2. **Mutations** (`data/mutations.ts`): add
+   - `set{Model}SectionActive(section, isActive)` → `prisma.{model}.update({ where:{section}, data:{ isActive } })`
+   - `reorder{Model}Sections(orderedSections: string[])` → a single `prisma.$transaction` setting each key's index as `sortOrder`.
+   Export both from the module's `data/index.ts`.
+
+3. **Server actions** (`actions.ts`, admin-guarded, revalidate the public + admin paths):
+   - `set{Model}SectionActiveAction(section, isActive)`
+   - `reorder{Model}SectionsAction(orderedSections: string[])` (validate it's a `string[]`).
+
+4. **Admin UI**: render the **reusable** `SectionManagerPanel` from `@/components/shared/section-manager-panel` at the top of the product/essence admin page (above the content tabs). Feed it `{ key, label, isActive }[]` (labels from the page's content TABS, loaded via `getAll{Model}SectionsAction`), and wire `onReorder` / `onToggleActive` to the two actions above. The panel provides drag-to-reorder + a per-section Visible/Hidden toggle; it is product-agnostic — only the two callbacks differ per page.
+
+This applies to **every** `/jivo-dev/our-products/*`, `/jivo-dev/our-essence/*`, and any other multi-section `/jivo-dev/*` content page, and to **all future** CMS pages created via this workflow.
+
 ### Step 9: API Routes
 
 Create API routes:
