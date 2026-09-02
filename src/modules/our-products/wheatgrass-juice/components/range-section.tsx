@@ -42,38 +42,73 @@ export function RangeSection({ data }: Props) {
   const cardItem = prefersReduced ? reducedMotion : throwFromLeft;
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
 
-  /** Keep the arrows' disabled state in sync with the scroll position. */
-  const syncArrows = useCallback(() => {
+  /**
+   * Continuous, seamless marquee.
+   *
+   * The card list is rendered TWICE. A rAF loop advances scrollLeft by a few
+   * px each frame; once it passes the width of the first copy it subtracts
+   * that width, which lands on the identical card in the second copy. The jump
+   * is invisible, so the row cycles 1→last→1 forever with no pagination steps
+   * and no visible reset.
+   */
+  const [paused, setPaused] = useState(false);
+  // Only animate while the section is actually on screen.
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    // 2px tolerance: sub-pixel scroll offsets never quite hit the exact edge.
-    setAtStart(el.scrollLeft <= 2);
-    setAtEnd(el.scrollLeft >= el.scrollWidth - el.clientWidth - 2);
+    const io = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      // Start as soon as any part of the row is visible.
+      { threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   useEffect(() => {
-    syncArrows();
+    // Honour reduced-motion, and idle while off-screen or paused.
+    if (prefersReduced || paused || !inView) return;
     const el = trackRef.current;
     if (!el) return;
-    el.addEventListener('scroll', syncArrows, { passive: true });
-    window.addEventListener('resize', syncArrows, { passive: true });
-    return () => {
-      el.removeEventListener('scroll', syncArrows);
-      window.removeEventListener('resize', syncArrows);
-    };
-  }, [syncArrows]);
 
-  const scrollByPage = useCallback(
+    let raf = 0;
+    let last = performance.now();
+    const SPEED = 40; // px per second — slow, readable drift.
+
+    const tick = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+
+      // Half the scrollWidth = one full copy of the card list.
+      const cycle = el.scrollWidth / 2;
+      if (cycle > 0) {
+        let next = el.scrollLeft + SPEED * dt;
+        // Wrap by subtracting exactly one copy — visually identical, so the
+        // loop is seamless rather than snapping back to zero.
+        if (next >= cycle) next -= cycle;
+        el.scrollLeft = next;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [paused, prefersReduced, inView, variants.length]);
+
+  /** Arrow steps move by ONE card, smoothly, then hand back to the marquee. */
+  const handleArrow = useCallback(
     (direction: 1 | -1) => {
       const el = trackRef.current;
       if (!el) return;
-      el.scrollBy({
-        left: direction * el.clientWidth * 0.8,
-        behavior: prefersReduced ? 'auto' : 'smooth',
-      });
+      setPaused(true);
+      const firstCard = el.firstElementChild as HTMLElement | null;
+      const gap = parseFloat(getComputedStyle(el).columnGap || '0') || 0;
+      const step = firstCard ? firstCard.offsetWidth + gap : 240;
+      el.scrollBy({ left: direction * step, behavior: prefersReduced ? 'auto' : 'smooth' });
+      window.setTimeout(() => setPaused(false), 2500);
     },
     [prefersReduced],
   );
@@ -81,7 +116,7 @@ export function RangeSection({ data }: Props) {
   return (
     <section
       aria-labelledby="wheatgrass-range-heading"
-      className="overflow-x-clip px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-8 lg:py-24 2xl:py-28"
+      className="overflow-x-clip px-4 py-14  sm:py-16 md:py-20  lg:py-24 2xl:py-28"
       style={{ backgroundColor: WHEATGRASS_SAGE }}
     >
       <motion.div
@@ -89,12 +124,12 @@ export function RangeSection({ data }: Props) {
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className="mx-auto w-full max-w-6xl 2xl:max-w-7xl"
+        className="mx-auto w-full max-w-[95%] sm:max-w-[82%] lg:max-w-[80%]"
       >
         <motion.h2
           id="wheatgrass-range-heading"
           variants={item}
-          className="group/heading mx-auto block w-fit cursor-default text-balance text-center font-jost-extrabold text-[clamp(1.5rem,1.05rem+1.9vw,2.75rem)] leading-[1.12] tracking-[0.1em] text-white uppercase transition-transform duration-300 ease-out hover:-translate-y-0.5"
+          className="group/heading mx-auto block w-fit cursor-default text-center font-jost-extrabold text-[clamp(0.95rem,0.5rem+1.6vw,2rem)] leading-[1.12] tracking-[0.08em] whitespace-nowrap text-white uppercase transition-transform duration-300 ease-out hover:-translate-y-0.5"
         >
           <span className="relative inline-block">
             {heading}
@@ -107,12 +142,27 @@ export function RangeSection({ data }: Props) {
           </span>
         </motion.h2>
 
-        {/* Carousel: arrows flank a scroll-snapping track. */}
-        <div className="relative mt-9 md:mt-10 lg:mt-12">
+        {/* Carousel — FULL-BLEED.
+            Negative margins cancel the parent's max-width + section padding, so
+            the track spans the whole viewport and cards appear to run in from
+            off-screen. `100vw` is deliberate: the site hides scrollbars, so it
+            matches the visible width without overflowing.
+            Auto-scroll pauses while the pointer is inside this box or a control
+            has focus, and resumes — from the same position — when it leaves. */}
+        <div
+          className="relative mt-9 left-1/2 w-screen max-w-[100vw] -translate-x-1/2 md:mt-10 lg:mt-12"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocusCapture={() => setPaused(true)}
+          onBlurCapture={() => setPaused(false)}
+          // Touch: pause while the finger is down, resume shortly after.
+          onTouchStart={() => setPaused(true)}
+          onTouchEnd={() => window.setTimeout(() => setPaused(false), 4000)}
+        >
+          {/* Desktop/tablet: chevrons pinned to the OUTER edges of the row. */}
           <CarouselArrow
             side="left"
-            disabled={atStart}
-            onClick={() => scrollByPage(-1)}
+            onClick={() => handleArrow(-1)}
             label="Previous products"
           />
 
@@ -120,15 +170,26 @@ export function RangeSection({ data }: Props) {
             ref={trackRef}
             // The native scrollbar is hidden; arrows and swipe are the intended
             // affordances (the site hides scrollbars globally anyway).
-            className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-1 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-6 md:gap-7 lg:gap-8 2xl:gap-10 [&::-webkit-scrollbar]:hidden"
+            // `overflow-x-auto` clips on BOTH axes, which cut off the cards'
+            // hover lift and shadow. Vertical padding (plus matching negative
+            // margins so the layout is unchanged) gives that motion room, and
+            // the horizontal padding keeps the first/last card's shadow intact.
+            // No scroll-snap and no `scroll-smooth`: both fight a continuous
+            // rAF marquee, causing stutter. Vertical padding + matching
+            // negative margins keep the cards' hover lift/shadow unclipped.
+            className="-my-6 flex gap-4 overflow-x-auto px-4 py-6 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-5 sm:px-20 md:gap-6 lg:gap-7 lg:px-24 [&::-webkit-scrollbar]:hidden"
           >
-            {variants.map((variant, i) => (
+            {/* Rendered twice: the marquee wraps by exactly one copy's width,
+                so the seam lands on an identical card and is invisible. The
+                duplicates are decorative, hence aria-hidden. */}
+            {[...variants, ...variants].map((variant, i) => (
               <motion.div
                 key={`${variant.label}-${i}`}
                 variants={cardItem}
-                // Two-up on phones, three at md, four from lg — matching the
-                // design's four-across desktop row.
-                className="w-[calc(50%-0.375rem)] shrink-0 snap-start sm:w-[calc(50%-0.75rem)] md:w-[calc(33.333%-1.167rem)] lg:w-[calc(25%-1.5rem)]"
+                aria-hidden={i >= variants.length}
+                // Fluid width with a generous floor so cards never shrink to
+                // thumbnails on sm/md — they grow with the viewport instead.
+                className="w-[clamp(14rem,26vw,21rem)] shrink-0"
               >
                 <VariantCard variant={variant} />
               </motion.div>
@@ -137,8 +198,7 @@ export function RangeSection({ data }: Props) {
 
           <CarouselArrow
             side="right"
-            disabled={atEnd}
-            onClick={() => scrollByPage(1)}
+            onClick={() => handleArrow(1)}
             label="Next products"
           />
         </div>
@@ -147,15 +207,13 @@ export function RangeSection({ data }: Props) {
   );
 }
 
-/** Prev/next control. Disabled (and non-interactive) at each end of the track. */
+/** Prev/next control. The marquee loops, so it never reaches a disabled end. */
 function CarouselArrow({
   side,
-  disabled,
   onClick,
   label,
 }: {
   side: 'left' | 'right';
-  disabled: boolean;
   onClick: () => void;
   label: string;
 }) {
@@ -164,13 +222,19 @@ function CarouselArrow({
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
       aria-label={label}
-      className={`absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-white transition-all duration-300 ease-out hover:scale-110 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30 motion-reduce:transition-none md:inline-flex ${
-        side === 'left' ? '-left-2 lg:-left-8' : '-right-2 lg:-right-8'
+      // Solid pill pinned INSIDE the full-bleed track, hard against the
+      // screen edge, so it sits over the cards running past it.
+      className={`absolute top-1/2 z-20 inline-flex min-h-11 -translate-y-1/2 items-center justify-center gap-1.5 rounded-full bg-black/25 px-3 py-3 text-white backdrop-blur-sm transition-all duration-300 ease-out hover:scale-110 hover:bg-black/40 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none motion-reduce:transition-none sm:px-3.5 ${
+        side === 'left' ? 'left-2 sm:left-4 lg:left-6' : 'right-2 sm:right-4 lg:right-6'
       }`}
     >
-      <Icon className="h-8 w-8" strokeWidth={2.5} />
+      {/* Label only on the smallest screens; icon-only from sm up. */}
+      {side === 'left' ? <Icon className="h-6 w-6 sm:h-8 sm:w-8 lg:h-9 lg:w-9" strokeWidth={2.5} /> : null}
+      <span className="text-xs font-jost-medium tracking-[0.08em] uppercase sm:hidden">
+        {side === 'left' ? 'Prev' : 'Next'}
+      </span>
+      {side === 'right' ? <Icon className="h-6 w-6 sm:h-8 sm:w-8 lg:h-9 lg:w-9" strokeWidth={2.5} /> : null}
     </button>
   );
 }
@@ -212,7 +276,7 @@ function VariantCard({ variant }: { variant: WheatgrassVariant }) {
   );
 
   const cardClass =
-    'group block h-full rounded-2xl p-3.5 transition-all duration-500 ease-out sm:p-6 lg:p-8 hover:-translate-y-1.5 hover:shadow-[0_18px_45px_rgba(0,0,0,0.28)]';
+    'group block h-full rounded-2xl p-3.5 transition-all duration-500 ease-out sm:p-5 lg:p-7 hover:-translate-y-2 hover:shadow-[0_22px_50px_rgba(0,0,0,0.35)] motion-reduce:transform-none motion-reduce:transition-none';
 
   if (href) {
     return (
@@ -243,13 +307,13 @@ export function RangeSectionSkeleton() {
       className="animate-pulse px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:px-8 lg:py-24 2xl:py-28"
       style={{ backgroundColor: WHEATGRASS_SAGE }}
     >
-      <div className="mx-auto w-full max-w-6xl 2xl:max-w-7xl">
+      <div className="mx-auto w-full max-w-[95%] sm:max-w-[82%] lg:max-w-[80%]">
         <div className="mx-auto h-8 w-72 rounded-md bg-white/20 sm:h-10 lg:h-12 lg:w-[30rem]" />
         <div className="mt-9 flex gap-3 sm:gap-6 md:mt-10 md:gap-7 lg:mt-12 lg:gap-8 2xl:gap-10">
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className="w-[calc(50%-0.375rem)] shrink-0 rounded-2xl p-3.5 sm:w-[calc(50%-0.75rem)] sm:p-6 md:w-[calc(33.333%-1.167rem)] lg:w-[calc(25%-1.5rem)] lg:p-8"
+              className="w-[clamp(9.5rem,26vw,15rem)] shrink-0 rounded-2xl p-3.5 sm:p-5 lg:p-7"
               style={{ backgroundColor: WHEATGRASS_CARD_GREEN }}
             >
               <div className="mx-auto h-[clamp(11rem,30vw,17rem)] w-20 rounded-lg bg-white/10" />

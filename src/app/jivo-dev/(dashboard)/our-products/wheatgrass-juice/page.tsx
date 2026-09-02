@@ -302,6 +302,7 @@ export default function WheatgrassJuiceManager() {
               </div>
 
               <RepeatableList
+                grid
                 label="Product variants"
                 count={range.variants.length}
                 minItems={1}
@@ -316,7 +317,9 @@ export default function WheatgrassJuiceManager() {
                 }
                 renderItem={(i) => (
                   <div className="space-y-3">
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    {/* Stacked (not side-by-side): each item now sits in a
+                        narrow grid card, where two columns would be cramped. */}
+                    <div className="space-y-3">
                       <div>
                         <label className="mb-1 block text-xs font-jost-medium">Flavour</label>
                         <input
@@ -579,6 +582,12 @@ interface RepeatableListProps {
   onAdd: () => void;
   onRemove: (index: number) => void;
   renderItem: (index: number) => React.ReactNode;
+  /**
+   * Lay items out as CARDS in a responsive grid (up to 4 per row) instead of
+   * stacked full-width rows. Used by the Range tab, where each item is a small
+   * product card and a horizontal row wastes most of the width.
+   */
+  grid?: boolean;
 }
 
 function RepeatableList({
@@ -588,6 +597,7 @@ function RepeatableList({
   onAdd,
   onRemove,
   renderItem,
+  grid = false,
 }: RepeatableListProps) {
   const handleRemove = (i: number) => {
     if (count <= minItems) {
@@ -612,7 +622,13 @@ function RepeatableList({
         </button>
       </div>
 
-      <div className="space-y-3 sm:space-y-4">
+      <div
+        className={
+          grid
+            ? 'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4'
+            : 'space-y-3 sm:space-y-4'
+        }
+      >
         {Array.from({ length: count }, (_, i) => (
           <div key={i} className="space-y-3 rounded-lg border bg-background/60 p-3 sm:p-4">
             <div className="flex items-center justify-between">

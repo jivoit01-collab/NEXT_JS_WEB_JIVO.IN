@@ -74,7 +74,7 @@ export function CopyWithArtSection({
   return (
     <section
       aria-labelledby={headingId}
-      className="relative flex w-full min-h-[70dvh] items-center overflow-hidden px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:min-h-dvh lg:px-[7%] lg:py-24 2xl:px-[9%] 2xl:py-28"
+      className="relative flex w-full min-h-[40dvh] items-center overflow-hidden px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:min-h-[75dvh] lg:px-[7%] lg:py-24 2xl:px-[9%] 2xl:py-28"
       style={{ backgroundColor }}
     >
       {/* Decorative artwork — bleeds off the right edge, behind the copy.
@@ -112,7 +112,7 @@ export function CopyWithArtSection({
         className="relative z-10 mx-auto w-full max-w-400"
       >
         {/* Left-aligned copy column, capped so it clears the artwork. */}
-        <div className="min-w-0 max-w-[62ch] lg:max-w-[58%]">
+        <div className="min-w-0 max-w-[72ch] lg:max-w-[88%]">
           <motion.h2
             id={headingId}
             variants={item}
