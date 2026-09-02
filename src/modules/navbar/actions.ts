@@ -17,7 +17,7 @@ const SETTING_ID = 'default';
 
 type NavLinkWithSubs = NavLink & { subLinks: NavSubLink[] };
 type VisibleNavLinkWithSubs = Pick<NavLink, 'title' | 'href'> & {
-  subLinks: Pick<NavSubLink, 'title' | 'href'>[];
+  subLinks: Pick<NavSubLink, 'title' | 'href' | 'group'>[];
 };
 type NavbarSettingForRender = Pick<NavbarSetting, 'logoUrl' | 'logoAlt'>;
 
@@ -44,6 +44,7 @@ export async function getVisibleNavLinks(): Promise<VisibleNavLinkWithSubs[]> {
         select: {
           title: true,
           href: true,
+          group: true,
         },
       },
     },

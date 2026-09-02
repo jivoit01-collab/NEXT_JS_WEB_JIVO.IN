@@ -24,6 +24,11 @@ model NavSubLink {
   navLink   NavLink  @relation(fields: [navLinkId], references: [id], onDelete: Cascade)
   title     String   // "The Story / Journey", "Canola Oil", etc.
   href      String?   // "/our-essence/story", "/products/canola-oil", etc.
+  // Optional grouping for a two-level mega-dropdown (e.g. Products →
+  // "Healthy Oils" / "Beverages" / "Staples"). Null = a flat/ungrouped sub-link
+  // (the current behaviour for Our Essence, Media, Community). Group order on
+  // the public site follows the smallest sortOrder among a group's sub-links.
+  group     String?
   sortOrder Int      @default(0)
   isVisible Boolean  @default(true)
   createdAt DateTime @default(now())

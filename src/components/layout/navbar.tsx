@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 type NavbarSubLink = {
   title: string;
   href: string;
+  group?: string | null;
 };
 
 type NavbarLink = {
@@ -21,6 +22,39 @@ type NavbarLink = {
   href?: string;
   subLinks?: NavbarSubLink[];
 };
+
+/** A group of sub-links for the two-level mega-dropdown. */
+type SubLinkGroup = {
+  name: string; // "" = ungrouped (rendered as standalone items)
+  items: NavbarSubLink[];
+};
+
+/**
+ * Split a link's sub-links into ordered groups. Group order follows the FIRST
+ * appearance of each group in the (already sortOrder-ordered) sub-links, so
+ * dragging sub-links in admin controls group order too. Ungrouped links collect
+ * under a trailing "" group. Returns null when NOTHING is grouped — the caller
+ * then renders the classic flat dropdown.
+ */
+function groupSubLinks(subLinks: NavbarSubLink[]): SubLinkGroup[] | null {
+  const hasGroups = subLinks.some((s) => s.group && s.group.trim());
+  if (!hasGroups) return null;
+  const order: string[] = [];
+  const map = new Map<string, NavbarSubLink[]>();
+  for (const s of subLinks) {
+    const key = s.group?.trim() || '';
+    if (!map.has(key)) {
+      map.set(key, []);
+      order.push(key);
+    }
+    map.get(key)!.push(s);
+  }
+  // Named groups first (in first-seen order), the ungrouped bucket last.
+  const named = order.filter((k) => k !== '');
+  const groups: SubLinkGroup[] = named.map((name) => ({ name, items: map.get(name)! }));
+  if (map.has('')) groups.push({ name: '', items: map.get('')! });
+  return groups;
+}
 
 const HOME_LINK: NavbarLink = { title: 'Home', href: '/' };
 
@@ -46,6 +80,12 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
   const [drawerMounted, setDrawerMounted] = useState(false);
   const [expandedMobile, setExpandedMobile] = useState<Record<string, boolean>>({});
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  // Which group's side panel is open inside a grouped dropdown (desktop).
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  // Vertical offset (px, within the group column) of the hovered group button so
+  // the side panel opens level with it — the cursor can then move straight across
+  // to the links instead of crossing empty space (which would close the menu).
+  const [groupTop, setGroupTop] = useState(0);
 
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const altText = logoAlt?.trim() || SITE_NAME;
@@ -58,7 +98,10 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
 
   // Hover close
   const closeDropdown = useCallback(() => {
-    leaveTimer.current = setTimeout(() => setActiveDropdown(null), 200);
+    leaveTimer.current = setTimeout(() => {
+      setActiveDropdown(null);
+      setActiveGroup(null);
+    }, 200);
   }, []);
 
   useEffect(() => {
@@ -141,6 +184,9 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
             // Items near the right edge open their panel leftwards, otherwise the
             // last menus (e.g. Community) overflow past the viewport edge.
             const alignRight = index >= links.length - 2;
+            // Two-level grouping (e.g. Products → Healthy Oils / Beverages …).
+            // null when nothing is grouped → classic flat dropdown.
+            const groups = hasSubLinks ? groupSubLinks(link.subLinks ?? []) : null;
 
             return (
               <div
@@ -194,21 +240,99 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                         : 'pointer-events-none translate-y-2 opacity-0',
                     )}
                   >
-                    <div className="max-h-[min(70vh,32rem)] min-w-[220px] max-w-[min(82vw,340px)] overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:min-w-65 2xl:p-3">
-                      {link.subLinks?.map((sub) => (
-                        <SmartLink
-                          key={sub.href + sub.title}
-                          href={sub.href}
-                          onClick={() => setActiveDropdown(null)}
-                          className="group block min-h-11 rounded-xl px-4 py-2.5 text-sm font-jost-bold text-white transition duration-300 2xl:px-5 2xl:py-3 2xl:text-base"
-                        >
-                          <span className="relative inline-block text-pretty">
-                            {sub.title}
-                            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
-                          </span>
-                        </SmartLink>
-                      ))}
-                    </div>
+                    {groups ? (
+                      /* Two-level: a group column; hovering a named group opens
+                         its links in a SEPARATE floating box to the LEFT (with a
+                         gap), sized to fit its links. Arrows point left. */
+                      <div className="relative">
+                        {/* Group column box */}
+                        <div className="flex max-h-[min(72vh,34rem)] w-[200px] flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:w-56 2xl:p-3">
+                          {groups.map((grp) =>
+                            grp.name === '' ? (
+                              // Ungrouped links render directly in the column.
+                              grp.items.map((sub) => (
+                                <SmartLink
+                                  key={sub.href + sub.title}
+                                  href={sub.href}
+                                  onClick={() => setActiveDropdown(null)}
+                                  onMouseEnter={() => setActiveGroup(null)}
+                                  className="group/leaf block min-h-11 rounded-xl px-4 py-2.5 text-sm font-jost-bold text-white transition duration-300 2xl:px-5 2xl:py-3 2xl:text-base"
+                                >
+                                  <span className="relative inline-block text-pretty">
+                                    {sub.title}
+                                    <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover/leaf:w-full" />
+                                  </span>
+                                </SmartLink>
+                              ))
+                            ) : (
+                              <button
+                                key={grp.name}
+                                type="button"
+                                onMouseEnter={(e) => {
+                                  setActiveGroup(grp.name);
+                                  // Align the side panel's top with this button.
+                                  setGroupTop((e.currentTarget as HTMLButtonElement).offsetTop);
+                                }}
+                                onClick={(e) => {
+                                  setActiveGroup(grp.name);
+                                  setGroupTop((e.currentTarget as HTMLButtonElement).offsetTop);
+                                }}
+                                className={cn(
+                                  'flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-left text-sm font-jost-bold text-white transition duration-300 2xl:px-5 2xl:py-3 2xl:text-base',
+                                  activeGroup === grp.name ? 'bg-white/15' : 'hover:bg-white/10',
+                                )}
+                              >
+                                {/* Chevron points LEFT — the panel opens to the left. */}
+                                <ChevronDown className="h-5 w-5 shrink-0  rotate-90 opacity-70" />
+                                <span className="text-pretty">{grp.name}</span>
+                              </button>
+                              
+                            ),
+                          )}
+                        </div>
+
+                        {/* Side panel: floats to the LEFT of the group column with
+                            a gap; width fits its links (min ~ 12rem, capped). */}
+                        {groups.some((g) => g.name === activeGroup && g.name !== '') && (
+                          <div
+                            style={{ top: groupTop }}
+                            className="absolute right-full z-10 mr-2 flex max-h-[min(72vh,34rem)] w-max min-w-[12rem] max-w-[min(60vw,20rem)] flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:p-3"
+                          >
+                            {groups
+                              .find((g) => g.name === activeGroup)!
+                              .items.map((sub) => (
+                                <SmartLink
+                                  key={sub.href + sub.title}
+                                  href={sub.href}
+                                  onClick={() => setActiveDropdown(null)}
+                                  className="group/leaf block min-h-11 rounded-xl px-4 py-2.5 text-sm font-jost-bold whitespace-nowrap text-white transition duration-300 2xl:px-5 2xl:py-3 2xl:text-base"
+                                >
+                                  <span className="relative inline-block text-pretty">
+                                    {sub.title}
+                                    <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover/leaf:w-full" />
+                                  </span>
+                                </SmartLink>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="max-h-[min(70vh,32rem)] min-w-[220px] max-w-[min(82vw,340px)] overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:min-w-65 2xl:p-3">
+                        {link.subLinks?.map((sub) => (
+                          <SmartLink
+                            key={sub.href + sub.title}
+                            href={sub.href}
+                            onClick={() => setActiveDropdown(null)}
+                            className="group block min-h-11 rounded-xl px-4 py-2.5 text-sm font-jost-bold text-white transition duration-300 2xl:px-5 2xl:py-3 2xl:text-base"
+                          >
+                            <span className="relative inline-block text-pretty">
+                              {sub.title}
+                              <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                            </span>
+                          </SmartLink>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -281,6 +405,7 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
               const key = link.title;
               const hasSubLinks = (link.subLinks?.length ?? 0) > 0;
               const isExpanded = expandedMobile[key] ?? false;
+              const mobileGroups = hasSubLinks ? groupSubLinks(link.subLinks ?? []) : null;
 
               return (
                 <div
@@ -337,19 +462,86 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                     >
                       <div className="overflow-hidden">
                         <div className="ml-4 border-l border-white/15 py-1 pl-3">
-                          {link.subLinks?.map((sub) => (
-                            <SmartLink
-                              key={sub.href + sub.title}
-                              href={sub.href}
-                              onClick={() => setMobileOpen(false)}
-                              className="group block min-h-11 min-w-0 rounded-md px-3 py-2.5 text-sm font-jost-bold text-white/78 transition duration-300 hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
-                            >
-                              <span className="relative inline-block min-w-0 text-pretty">
-                                {sub.title}
-                                <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
-                              </span>
-                            </SmartLink>
-                          ))}
+                          {mobileGroups
+                            ? mobileGroups.map((grp) =>
+                                grp.name === '' ? (
+                                  // Ungrouped links render flat.
+                                  grp.items.map((sub) => (
+                                    <SmartLink
+                                      key={sub.href + sub.title}
+                                      href={sub.href}
+                                      onClick={() => setMobileOpen(false)}
+                                      className="group block min-h-11 min-w-0 rounded-md px-3 py-2.5 text-sm font-jost-bold text-white/78 transition duration-300 hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+                                    >
+                                      <span className="relative inline-block min-w-0 text-pretty">
+                                        {sub.title}
+                                        <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                                      </span>
+                                    </SmartLink>
+                                  ))
+                                ) : (
+                                  // Named group → nested accordion.
+                                  (() => {
+                                    const gKey = `${key}::${grp.name}`;
+                                    const gOpen = expandedMobile[gKey] ?? false;
+                                    return (
+                                      <div key={gKey}>
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleMobileAccordion(gKey)}
+                                          aria-expanded={gOpen}
+                                          className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-sm font-jost-bold text-white/90 transition duration-300 hover:text-white"
+                                        >
+                                          <span className="text-pretty">{grp.name}</span>
+                                          <ChevronDown
+                                            className={cn(
+                                              'h-4 w-4 shrink-0 transition-transform duration-300',
+                                              gOpen && 'rotate-180',
+                                            )}
+                                          />
+                                        </button>
+                                        <div
+                                          className={cn(
+                                            'grid transition-[grid-template-rows] duration-300 ease-out',
+                                            gOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                                          )}
+                                        >
+                                          <div className="overflow-hidden">
+                                            <div className="ml-3 border-l border-white/12 pl-3">
+                                              {grp.items.map((sub) => (
+                                                <SmartLink
+                                                  key={sub.href + sub.title}
+                                                  href={sub.href}
+                                                  onClick={() => setMobileOpen(false)}
+                                                  className="group block min-h-11 min-w-0 rounded-md px-3 py-2 text-sm font-jost-bold text-white/72 transition duration-300 hover:text-white"
+                                                >
+                                                  <span className="relative inline-block min-w-0 text-pretty">
+                                                    {sub.title}
+                                                    <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                                                  </span>
+                                                </SmartLink>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()
+                                ),
+                              )
+                            : link.subLinks?.map((sub) => (
+                                <SmartLink
+                                  key={sub.href + sub.title}
+                                  href={sub.href}
+                                  onClick={() => setMobileOpen(false)}
+                                  className="group block min-h-11 min-w-0 rounded-md px-3 py-2.5 text-sm font-jost-bold text-white/78 transition duration-300 hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+                                >
+                                  <span className="relative inline-block min-w-0 text-pretty">
+                                    {sub.title}
+                                    <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-white transition-all duration-300 group-hover:w-full" />
+                                  </span>
+                                </SmartLink>
+                              ))}
                         </div>
                       </div>
                     </div>

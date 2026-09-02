@@ -21,7 +21,11 @@ export default async function PublicLayout({ children }: { children: React.React
   const links = navLinks.map((link) => ({
     title: link.title,
     href: link.href,
-    subLinks: link.subLinks.map((sub) => ({ title: sub.title, href: sub.href })),
+    subLinks: link.subLinks.map((sub) => ({
+      title: sub.title,
+      href: sub.href,
+      group: sub.group,
+    })),
   }));
 
   const fixedLinks = links.map((link) => ({
@@ -33,6 +37,7 @@ export default async function PublicLayout({ children }: { children: React.React
       .map((sub) => ({
         title: sub.title,
         href: sub.href as string,
+        group: sub.group,
       })),
   }));
 

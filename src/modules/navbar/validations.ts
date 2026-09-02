@@ -23,6 +23,13 @@ export const navSubLinkSchema = z.object({
   navLinkId: z.string().min(1, 'Parent link is required'),
   title: z.string().min(1, 'Title is required').max(120, 'Title too long'),
   href: z.string().min(1, 'Link is required').max(300, 'Link too long'),
+  // Optional group for a two-level mega-dropdown (e.g. "Healthy Oils"). Empty
+  // string is normalized to null (ungrouped).
+  group: z
+    .string()
+    .max(80, 'Group name too long')
+    .optional()
+    .transform((v) => (v && v.trim() ? v.trim() : null)),
   sortOrder: z.coerce.number().int().min(0).default(0),
   isVisible: z.boolean().default(true),
 });
@@ -31,6 +38,12 @@ export const navSubLinkUpdateSchema = z.object({
   navLinkId: z.string().min(1).optional(),
   title: z.string().min(1).max(120).optional(),
   href: z.string().min(1).max(300).optional(),
+  group: z
+    .string()
+    .max(80)
+    .nullable()
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v && v.trim() ? v.trim() : null)),
   sortOrder: z.coerce.number().int().min(0).optional(),
   isVisible: z.boolean().optional(),
 });

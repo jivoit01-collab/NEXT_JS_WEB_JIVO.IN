@@ -15,7 +15,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ImageUpload, SafeImage } from '@/components/shared/admin';
 import {
   Plus,
   Pencil,
@@ -27,10 +26,9 @@ import {
   Link2,
   X,
   CheckCircle2,
-  Save,
-  Image as ImageIcon,
   Layers,
   GripVertical,
+  ChevronDown,
 } from 'lucide-react';
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -74,6 +72,7 @@ interface NavSubLinkRow {
   navLinkId: string;
   title: string;
   href: string;
+  group: string | null;
   sortOrder: number;
   isVisible: boolean;
 }
@@ -86,13 +85,6 @@ interface NavLinkRow {
   isVisible: boolean;
   subLinks: NavSubLinkRow[];
   createdAt: string;
-  updatedAt: string;
-}
-
-interface NavbarSettingRow {
-  id: string;
-  logoUrl: string | null;
-  logoAlt: string | null;
   updatedAt: string;
 }
 
@@ -121,6 +113,7 @@ export default function AdminNavbarManager() {
     navLinkId: '',
     title: '',
     href: '',
+    group: '',
     sortOrder: 0,
     isVisible: true,
   });
@@ -129,6 +122,14 @@ export default function AdminNavbarManager() {
   const [hrefTouched, setHrefTouched] = useState(false);
   // Drag-reorder: true while a sub-link save from a drop is in flight.
   const [reordering, setReordering] = useState(false);
+  // Inline "create a new group" box in the active-link panel. Typing a name and
+  // hitting Add just registers the group locally so it appears in every row's
+  // "move to group" dropdown — a link only actually joins it once assigned.
+  const [newGroupName, setNewGroupName] = useState('');
+  const [draftGroups, setDraftGroups] = useState<string[]>([]);
+  // Group filter for the sub-links list: '' = All, '__none__' = ungrouped only,
+  // otherwise a specific group name.
+  const [groupFilter, setGroupFilter] = useState<string>('');
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<
@@ -138,12 +139,6 @@ export default function AdminNavbarManager() {
   >(null);
 
   const [error, setError] = useState('');
-
-  // Logo / branding state
-  const [setting, setSetting] = useState<NavbarSettingRow | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string>('');
-  const [logoAlt, setLogoAlt] = useState<string>('');
-  const [savingLogo, setSavingLogo] = useState(false);
 
   // ── Fetch ─────────────────────────────────────────────────
 
@@ -162,61 +157,63 @@ export default function AdminNavbarManager() {
     }
   }, []);
 
-  const fetchSetting = useCallback(async () => {
-    try {
-      const res = await fetch('/api/navbar/settings', { cache: 'no-store' });
-      const data = await res.json();
-      if (data.success) {
-        setSetting(data.data);
-        setLogoUrl(data.data.logoUrl ?? '');
-        setLogoAlt(data.data.logoAlt ?? '');
-      } else {
-        toast.error(data.error ?? 'Failed to load navbar settings');
-      }
-    } catch {
-      toast.error('Failed to load navbar settings');
-    }
-  }, []);
-
   useEffect(() => {
-    Promise.all([fetchLinks(), fetchSetting()]).finally(() => setLoading(false));
-  }, [fetchLinks, fetchSetting]);
+    fetchLinks().finally(() => setLoading(false));
+  }, [fetchLinks]);
 
   const activeNavLink = links.find((l) => l.id === activeNavLinkId) ?? null;
+  // Distinct group names already used in the active nav link — powers the Group
+  // field's autocomplete so admins reuse the same groups instead of re-typing.
+  const existingGroups = Array.from(
+    new Set((activeNavLink?.subLinks ?? []).map((s) => s.group).filter((g): g is string => !!g)),
+  );
+  // All group names offered in each row's "move to" dropdown: those already in
+  // use plus any freshly-typed drafts not yet assigned to a link.
+  const allGroups = Array.from(new Set([...existingGroups, ...draftGroups]));
+  // Show the per-row Group dropdown as soon as ANY group exists (assigned or a
+  // fresh draft) so links can actually be moved into it. Otherwise it's a flat
+  // list and the column stays hidden.
+  const hasAnyGroup = allGroups.length > 0;
   const totalSubLinks = links.reduce((n, l) => n + l.subLinks.length, 0);
   const visibleCount = links.filter((l) => l.isVisible).length;
 
-  // ── Logo save ─────────────────────────────────────────────
-
-  const saveLogo = async () => {
-    setSavingLogo(true);
-    try {
-      const res = await fetch('/api/navbar/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          logoUrl: logoUrl || null,
-          logoAlt: logoAlt || null,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success('Navbar logo updated');
-        setSetting(data.data);
-        router.refresh();
-      } else {
-        toast.error(data.error ?? 'Failed to save logo');
-      }
-    } catch {
-      toast.error('Network error');
-    } finally {
-      setSavingLogo(false);
-    }
+  // Switch the active link tab, clearing the local "new group" drafts so a draft
+  // typed under one link doesn't leak into another.
+  const selectNavLink = (id: string) => {
+    setActiveNavLinkId(id);
+    setDraftGroups([]);
+    setNewGroupName('');
+    setGroupFilter('');
   };
 
-  const logoDirty =
-    (setting?.logoUrl ?? '') !== logoUrl ||
-    (setting?.logoAlt ?? '') !== logoAlt;
+  // Register a freshly-typed group name as a draft so it shows in every row's
+  // dropdown (and the filter) even before any link is assigned to it.
+  const addDraftGroup = () => {
+    const name = newGroupName.trim();
+    if (!name) {
+      toast.error('Type a group name first');
+      return;
+    }
+    if (allGroups.includes(name)) {
+      toast.info(`"${name}" already exists`);
+      setGroupFilter(name);
+      setNewGroupName('');
+      return;
+    }
+    setDraftGroups((d) => [...d, name]);
+    setGroupFilter(name); // jump the filter to the new group so it's obvious
+    setNewGroupName('');
+    toast.success(`Group "${name}" added — assign links to it via their Group dropdown`);
+  };
+
+  // Sub-links shown after applying the group filter. Only the full (unfiltered)
+  // list is drag-reorderable — filtering to a subset would make drop order
+  // ambiguous, so drag is disabled while a filter is active.
+  const filteredSubLinks = (activeNavLink?.subLinks ?? []).filter((s) => {
+    if (groupFilter === '') return true;
+    if (groupFilter === '__none__') return !s.group;
+    return s.group === groupFilter;
+  });
 
   // ── NavLink handlers ──────────────────────────────────────
 
@@ -297,6 +294,7 @@ export default function AdminNavbarManager() {
       navLinkId: activeNavLink.id,
       title: '',
       href: '',
+      group: '',
       sortOrder: activeNavLink.subLinks.length,
       isVisible: true,
     });
@@ -311,6 +309,7 @@ export default function AdminNavbarManager() {
       navLinkId: sub.navLinkId,
       title: sub.title,
       href: sub.href,
+      group: sub.group ?? '',
       sortOrder: sub.sortOrder,
       isVisible: sub.isVisible,
     });
@@ -404,6 +403,38 @@ export default function AdminNavbarManager() {
       toast.error('Network error — please retry');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Move a sub-link into a group (or ungroup with null) in one click, without
+  // opening the edit dialog. Sends only the `group` field via the update schema.
+  const setSubLinkGroup = async (sub: NavSubLinkRow, group: string | null) => {
+    // Optimistic update so the row jumps into its new section immediately.
+    setLinks((prev) =>
+      prev.map((l) =>
+        l.id === sub.navLinkId
+          ? { ...l, subLinks: l.subLinks.map((s) => (s.id === sub.id ? { ...s, group } : s)) }
+          : l,
+      ),
+    );
+    try {
+      const res = await fetch(`/api/navbar/sublinks/${sub.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(group ? `Moved to "${group}"` : 'Removed from group');
+        await fetchLinks();
+        router.refresh();
+      } else {
+        toast.error(data.error ?? 'Update failed');
+        await fetchLinks();
+      }
+    } catch {
+      toast.error('Network error');
+      await fetchLinks();
     }
   };
 
@@ -515,95 +546,6 @@ export default function AdminNavbarManager() {
         />
       </div>
 
-      {/* ── Brand / Logo card ──────────────── */}
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <ImageIcon className="h-4 w-4" />
-          </span>
-          <div>
-            <h2 className="text-base font-jost-bold">Brand logo</h2>
-            <p className="text-xs text-muted-foreground">
-              Shown on the left of the public navbar. Recommended: transparent
-              PNG/WebP, ~120x40 px.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-[auto,1fr]">
-          <div>
-            <Label className="mb-2 block text-xs uppercase tracking-wide text-muted-foreground">
-              Logo image
-            </Label>
-            <ImageUpload
-              value={logoUrl || undefined}
-              onChange={(url) => setLogoUrl(url)}
-              onRemove={() => setLogoUrl('')}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="logo-alt" className="text-xs uppercase tracking-wide text-muted-foreground">
-                Alt text (accessibility)
-              </Label>
-              <Input
-                id="logo-alt"
-                placeholder="Jivo Wellness"
-                value={logoAlt}
-                onChange={(e) => setLogoAlt(e.target.value)}
-                maxLength={200}
-              />
-              <p className="text-xs text-muted-foreground">
-                Defaults to the site name when left empty.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Live preview
-              </Label>
-              <div className="flex h-16 items-center justify-between rounded-md bg-gradient-to-br from-[#3d4f2f] to-[#2a3a1f] px-4">
-                {logoUrl ? (
-                  <SafeImage
-                    src={logoUrl}
-                    alt={logoAlt || 'Logo preview'}
-                    width={120}
-                    height={28}
-                    className="h-7 w-auto object-contain"
-                  />
-                ) : (
-                  <span className="font-playfair text-lg font-jost-bold text-white">
-                    {logoAlt || 'Jivo Wellness'}
-                  </span>
-                )}
-                <span className="text-xs text-white/60">navbar preview</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-1">
-              {logoDirty && (
-                <span className="text-xs text-muted-foreground">
-                  Unsaved changes
-                </span>
-              )}
-              <Button
-                onClick={saveLogo}
-                disabled={!logoDirty || savingLogo}
-                className="gap-2"
-              >
-                {savingLogo ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Save logo
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* ══════════════════════════════════════════════ */}
       {/* NAV LINKS — TAB ROW (like footer columns)     */}
       {/* ══════════════════════════════════════════════ */}
@@ -630,7 +572,7 @@ export default function AdminNavbarManager() {
               return (
                 <button
                   key={link.id}
-                  onClick={() => setActiveNavLinkId(link.id)}
+                  onClick={() => selectNavLink(link.id)}
                   className={`group flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
                     isActive
                       ? 'border-primary bg-primary text-primary-foreground shadow-sm'
@@ -727,6 +669,102 @@ export default function AdminNavbarManager() {
               </div>
             </div>
 
+            {/* Group toolbar — create a group by typing its name; then use each
+                row's "Group" dropdown to move links into it. Filter to show only
+                one group's links. A group only "exists" on the public site once
+                a link is assigned to it. */}
+            <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border bg-muted/20 px-3 py-2.5">
+              {/* Label + all filter chips share one line on the left. */}
+              <span className="flex shrink-0 items-center gap-1.5 text-xs font-jost-bold uppercase tracking-wide text-muted-foreground">
+                <Layers className="h-3.5 w-3.5" /> Groups
+              </span>
+
+              {allGroups.length === 0 ? (
+                <span className="text-xs text-muted-foreground">
+                  None yet — type a name to create one.
+                </span>
+              ) : (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setGroupFilter('')}
+                    className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
+                      groupFilter === ''
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-card hover:border-primary/40'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {allGroups.map((g) => {
+                    const count = activeNavLink.subLinks.filter((s) => s.group === g).length;
+                    const active = groupFilter === g;
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setGroupFilter(active ? '' : g)}
+                        className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
+                          active
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : count > 0
+                              ? 'border-primary/30 bg-primary/10 text-primary hover:border-primary/50'
+                              : 'border-dashed border-border text-muted-foreground hover:border-muted-foreground'
+                        }`}
+                      >
+                        {g} · {count}
+                        {count === 0 && ' (empty)'}
+                      </button>
+                    );
+                  })}
+                  {(() => {
+                    const ungrouped = activeNavLink.subLinks.filter((s) => !s.group).length;
+                    if (ungrouped === 0) return null;
+                    const active = groupFilter === '__none__';
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setGroupFilter(active ? '' : '__none__')}
+                        className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
+                          active
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-border bg-card text-muted-foreground hover:border-primary/40'
+                        }`}
+                      >
+                        Ungrouped · {ungrouped}
+                      </button>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Create control stays on the same line, pushed to the right. */}
+              <div className="ml-auto flex flex-1 items-center gap-1.5 sm:max-w-sm">
+                <Input
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addDraftGroup();
+                    }
+                  }}
+                  placeholder="New group name…"
+                  className="h-9 flex-1 text-sm"
+                  maxLength={80}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-9 shrink-0 gap-1"
+                  disabled={!newGroupName.trim()}
+                  onClick={addDraftGroup}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add group
+                </Button>
+              </div>
+            </div>
+
             {/* Sub-links — drag to reorder. framer-motion Reorder replaces the
                 table so each row can be a draggable item; a grip handle starts
                 the drag so button clicks inside the row still work. */}
@@ -737,6 +775,7 @@ export default function AdminNavbarManager() {
                 <span className="w-12">Order</span>
                 <span className="flex-1">Title</span>
                 <span className="hidden flex-1 sm:block">URL</span>
+                {hasAnyGroup && <span className="w-40">Group</span>}
                 <span className="w-24">Status</span>
                 <span className="w-28 text-right">Actions</span>
               </div>
@@ -745,7 +784,12 @@ export default function AdminNavbarManager() {
                 <div className="py-12 text-center text-sm text-muted-foreground">
                   No sub-links yet. Click <b>Add Sub-Link</b> to create one.
                 </div>
-              ) : (
+              ) : filteredSubLinks.length === 0 ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">
+                  No links in this group yet. Set a link&apos;s <b>Group</b> to move it here.
+                </div>
+              ) : groupFilter === '' ? (
+                // Unfiltered → full drag-reorderable list.
                 <Reorder.Group
                   axis="y"
                   values={activeNavLink.subLinks}
@@ -756,6 +800,9 @@ export default function AdminNavbarManager() {
                     <SubLinkRow
                       key={sub.id}
                       sub={sub}
+                      showGroup={hasAnyGroup}
+                      groups={allGroups}
+                      onSetGroup={(g) => setSubLinkGroup(sub, g)}
                       onToggle={() => toggleSubLinkVisibility(sub)}
                       onEdit={() => openEditSubLink(sub)}
                       onDelete={() =>
@@ -764,13 +811,35 @@ export default function AdminNavbarManager() {
                     />
                   ))}
                 </Reorder.Group>
+              ) : (
+                // Filtered → static (non-draggable) subset; reordering a subset
+                // would be ambiguous against the full sortOrder.
+                <div className="divide-y">
+                  {filteredSubLinks.map((sub) => (
+                    <SubLinkRow
+                      key={sub.id}
+                      sub={sub}
+                      showGroup={hasAnyGroup}
+                      groups={allGroups}
+                      draggable={false}
+                      onSetGroup={(g) => setSubLinkGroup(sub, g)}
+                      onToggle={() => toggleSubLinkVisibility(sub)}
+                      onEdit={() => openEditSubLink(sub)}
+                      onDelete={() =>
+                        setDeleteTarget({ type: 'sublink', id: sub.id, title: sub.title })
+                      }
+                    />
+                  ))}
+                </div>
               )}
             </div>
             {activeNavLink.subLinks.length > 1 && (
               <p className="mt-2 text-xs text-muted-foreground">
                 {reordering
                   ? 'Saving new order…'
-                  : 'Tip: drag the ⠿ handle on the left to reorder sub-links.'}
+                  : groupFilter !== ''
+                    ? 'Filtered view — clear the filter (pick “All”) to drag-reorder links.'
+                    : 'Tip: drag the ⠿ handle to reorder. Use a row’s Group dropdown to move it into a group.'}
               </p>
             )}
           </div>
@@ -918,6 +987,25 @@ export default function AdminNavbarManager() {
                 lowercased). Edit it here to override.
               </p>
             </div>
+            <div className="space-y-2">
+              <Label>Group (optional)</Label>
+              <Input
+                list="navsublink-groups"
+                value={subLinkForm.group}
+                onChange={(e) => setSubLinkForm({ ...subLinkForm, group: e.target.value })}
+                placeholder="e.g. Healthy Oils"
+                maxLength={80}
+              />
+              <datalist id="navsublink-groups">
+                {existingGroups.map((g) => (
+                  <option key={g} value={g} />
+                ))}
+              </datalist>
+              <p className="text-xs text-muted-foreground">
+                Groups this link under a sub-heading in the dropdown (e.g. Healthy
+                Oils / Beverages / Staples). Leave blank for a flat link.
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Sort order</Label>
@@ -1001,32 +1089,45 @@ export default function AdminNavbarManager() {
 // clickable without accidentally starting a drag.
 function SubLinkRow({
   sub,
+  showGroup,
+  groups,
+  draggable = true,
+  onSetGroup,
   onToggle,
   onEdit,
   onDelete,
 }: {
   sub: NavSubLinkRow;
+  showGroup: boolean;
+  groups: string[];
+  draggable?: boolean;
+  onSetGroup: (group: string | null) => void;
   onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   const controls = useDragControls();
-  return (
-    <Reorder.Item
-      value={sub}
-      dragListener={false}
-      dragControls={controls}
-      className="flex items-center gap-3 bg-card px-3 py-2.5 text-sm"
-    >
-      {/* Drag handle */}
-      <button
-        type="button"
-        onPointerDown={(e) => controls.start(e)}
-        aria-label="Drag to reorder"
-        className="w-5 shrink-0 cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
+  // A group in use elsewhere but not this row still needs to appear as an option
+  // (plus this row's own group, in case it was hidden by a stale drop).
+  const options = Array.from(new Set([...groups, ...(sub.group ? [sub.group] : [])]));
+
+  const inner = (
+    <>
+      {/* Drag handle — inert (dimmed) when the list is filtered and can't reorder. */}
+      {draggable ? (
+        <button
+          type="button"
+          onPointerDown={(e) => controls.start(e)}
+          aria-label="Drag to reorder"
+          className="w-5 shrink-0 cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      ) : (
+        <span className="w-5 shrink-0 text-muted-foreground/30">
+          <GripVertical className="h-4 w-4" />
+        </span>
+      )}
 
       <span className="w-12 shrink-0 font-mono text-xs text-muted-foreground">
         #{sub.sortOrder}
@@ -1035,6 +1136,27 @@ function SubLinkRow({
       <span className="hidden flex-1 truncate text-xs text-muted-foreground sm:block">
         {sub.href}
       </span>
+
+      {showGroup && (
+        <span className="w-40 shrink-0">
+          <div className="relative">
+            <select
+              value={sub.group ?? ''}
+              onChange={(e) => onSetGroup(e.target.value || null)}
+              className="h-8 w-full cursor-pointer appearance-none rounded-md border border-border bg-background px-2.5 pr-7 text-xs text-foreground transition hover:border-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/40"
+              title="Move this link into a group"
+            >
+              <option value="">— No group —</option>
+              {options.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          </div>
+        </span>
+      )}
 
       <span className="w-24 shrink-0">
         <button
@@ -1089,6 +1211,24 @@ function SubLinkRow({
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+    </>
+  );
+
+  const rowClass = 'flex items-center gap-3 bg-card px-3 py-2.5 text-sm';
+
+  // Draggable rows must live inside the Reorder.Group as Reorder.Items; the
+  // filtered (static) list renders the same content in a plain div instead.
+  if (!draggable) {
+    return <div className={rowClass}>{inner}</div>;
+  }
+  return (
+    <Reorder.Item
+      value={sub}
+      dragListener={false}
+      dragControls={controls}
+      className={rowClass}
+    >
+      {inner}
     </Reorder.Item>
   );
 }
