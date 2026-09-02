@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — HEALTHY WHEATGRASS JUICE page
+// Route: /products/wheatgrass-juice
+// Admin: /jivo-dev/our-products/wheatgrass-juice
+// Sections: hero, range, wellness, difference, highlights
+// ==========================================
+
+model OurProductsWheatgrassJuice {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "wellness", "difference", "highlights"
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

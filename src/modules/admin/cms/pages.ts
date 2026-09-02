@@ -78,6 +78,7 @@ export const CMS_MODULES: CmsModule[] = [
       { id: 'sunflower-oils', name: 'Sunflower Oils', icon: Droplet, adminHref: '/jivo-dev/our-products/sunflower-oils', seo: true },
       { id: 'refined-gold-oils', name: 'Gold Refined Oil', icon: Droplet, adminHref: '/jivo-dev/our-products/refined-gold-oils', seo: true },
       { id: 'water', name: 'Natural Mineral Water', icon: Droplet, adminHref: '/jivo-dev/our-products/water', seo: true },
+      { id: 'wheatgrass-juice', name: 'Healthy Wheatgrass Juice', icon: Droplet, adminHref: '/jivo-dev/our-products/wheatgrass-juice', seo: true },
     ],
   },
   {
