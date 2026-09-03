@@ -48,7 +48,7 @@ export function HighlightsSection({ data }: Props) {
   return (
     <section
       aria-labelledby="wheatgrass-highlights-heading"
-      className="relative grid min-h-[70dvh] w-full overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack] lg:min-h-[80dvh]"
+      className="relative grid min-h-[52dvh] w-full overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack] sm:min-h-[58dvh] md:min-h-[70dvh] lg:min-h-[82dvh] xl:min-h-dvh"
       style={{ backgroundColor: WHEATGRASS_FOREST }}
     >
       {/* Background layer — full-bleed wheatgrass photo. A dark scrim keeps the
@@ -66,7 +66,7 @@ export function HighlightsSection({ data }: Props) {
         ) : (
           <div className="absolute inset-0" style={{ backgroundColor: WHEATGRASS_FOREST }} />
         )}
-        <div aria-hidden className="absolute inset-0 bg-black/30" />
+        <div aria-hidden className="absolute inset-0 bg-black/35" />
       </div>
 
       {/* Copy layer */}
@@ -80,7 +80,7 @@ export function HighlightsSection({ data }: Props) {
         <motion.h2
           id="wheatgrass-highlights-heading"
           variants={item}
-          className="font-jost-extrabold sm:mb-25 text-balance text-[clamp(1.5rem,1.05rem+2.2vw,3rem)] leading-[1.1] tracking-[0.04em] uppercase drop-shadow-[0_2px_16px_rgba(0,0,0,0.8)]"
+          className="font-jost-extrabold sm:mb-25 text-balance text-[clamp(1.75rem,1.15rem+2.8vw,3.75rem)] leading-[1.1] tracking-[0.04em] uppercase drop-shadow-[0_2px_16px_rgba(0,0,0,0.8)]"
           style={{ color: WHEATGRASS_CREAM }}
         >
           {heading}
@@ -105,17 +105,17 @@ export function HighlightsSection({ data }: Props) {
                 height={160}
                 quality={85}
                 sizes="(max-width: 640px) 22vw, (max-width: 1024px) 14vw, 90px"
-                className="mx-auto h-[clamp(2.75rem,6vw,4rem)] w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
+                className="mx-auto h-[clamp(3.5rem,7.5vw,5.5rem)] w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
               />
               <h3
-                className="mt-4 font-jost-bold-italic text-[clamp(0.8rem,0.72rem+0.3vw,0.95rem)] leading-snug drop-shadow-[0_1px_8px_rgba(0,0,0,0.75)]"
+                className="mt-5 font-jost-bold-italic text-[clamp(0.95rem,0.82rem+0.42vw,1.2rem)] leading-snug drop-shadow-[0_1px_8px_rgba(0,0,0,0.75)]"
                 style={{ color: WHEATGRASS_CREAM }}
               >
                 {highlight.label}
               </h3>
               {highlight.description ? (
                 <p
-                  className="mt-2 text-pretty font-jost-light text-[clamp(0.8rem,0.72rem+0.3vw,0.95rem)] leading-relaxed drop-shadow-[0_1px_8px_rgba(0,0,0,0.75)]"
+                  className="mt-2.5 text-pretty font-jost-light text-[clamp(0.9rem,0.8rem+0.36vw,1.1rem)] leading-relaxed drop-shadow-[0_1px_8px_rgba(0,0,0,0.75)]"
                   style={{ color: WHEATGRASS_CREAM }}
                 >
                   {highlight.description}
@@ -132,14 +132,14 @@ export function HighlightsSection({ data }: Props) {
 export function HighlightsSectionSkeleton() {
   return (
     <section
-      className="relative flex min-h-[70dvh] animate-pulse flex-col justify-center overflow-hidden px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:min-h-dvh lg:px-[7%] lg:py-24 2xl:px-[9%] 2xl:py-28"
+      className="relative flex min-h-[52dvh] animate-pulse flex-col justify-center overflow-hidden px-4 py-14 sm:min-h-[58dvh] sm:px-6 sm:py-16 md:min-h-[70dvh] md:py-20 lg:min-h-[82dvh] lg:px-[7%] lg:py-24 xl:min-h-dvh 2xl:px-[9%] 2xl:py-28"
       style={{ backgroundColor: WHEATGRASS_FOREST }}
     >
       <div className="h-9 w-64 rounded-md bg-white/15 sm:h-11 lg:h-14 lg:w-96" />
       <div className="mt-12 grid grid-cols-2 gap-x-2 gap-y-10 sm:grid-cols-3 sm:gap-x-4 md:mt-16 md:gap-x-6 lg:mt-20 lg:grid-cols-6">
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="px-3 text-center sm:px-5 lg:px-6">
-            <div className="mx-auto h-[clamp(2.75rem,6vw,4rem)] w-[clamp(2.75rem,6vw,4rem)] rounded-lg bg-white/10" />
+            <div className="mx-auto h-[clamp(3.5rem,7.5vw,5.5rem)] w-[clamp(3.5rem,7.5vw,5.5rem)] rounded-lg bg-white/10" />
             <div className="mx-auto mt-4 h-3.5 w-24 rounded bg-white/10" />
             <div className="mx-auto mt-2 h-3.5 w-20 rounded bg-white/10" />
           </div>

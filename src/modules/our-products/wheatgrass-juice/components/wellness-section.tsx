@@ -25,19 +25,25 @@ export function WellnessSection({ data }: Props) {
       backgroundColor={WHEATGRASS_FOREST}
       headingColor={WHEATGRASS_CREAM}
       bodyColor={WHEATGRASS_CREAM}
-      artPosition="bottom"
       // ── BLADES TUNING ──────────────────────────────────────────
-      // tilt: 0 keeps the blades' own natural fan angle from the artwork.
-      // Nudged right/down so the tips reach toward the copy, matching the
-      // reference where the fan sits low on the right.
       artTuning={{
-        // The source art is a single UPRIGHT bunch (407x1700). -58deg lays it
-        // on the diagonal so the blades sweep up-left with the roots anchored
-        // at the bottom-right corner, matching the reference.
-        tilt: -58,
-        offsetX: '-6%',
-        offsetY: '-14%',
-        width: 'clamp(16rem, 42vw, 34rem)',
+        // The art is a single UPRIGHT bunch; a negative tilt lays it on the
+        // diagonal so the blades sweep up-left, roots toward the lower right.
+        tilt: -72,
+        // offsetX -> CSS `right`: POSITIVE pulls the art INWARD (more of it
+        // visible), NEGATIVE pushes it off the edge where overflow-hidden
+        // clips it. Rotation makes the visible shape far wider than its box,
+        // so a positive value is what keeps the whole fan on-screen.
+        // offsetY -> CSS `bottom`: POSITIVE lifts it UP, NEGATIVE drops it
+        // below the section edge.
+        offsetX: '-8%',
+        // Scales WITH the art (same clamp curve as `width`), so the art keeps
+        // an identical 0.64x offset-to-size ratio on every screen. A fixed
+        // 14rem stayed 224px while the art shrank, so on mobile it was pushed
+        // down ~2x further relative to its own size. Peak value is still 14rem,
+        // so the desktop look is unchanged.
+        offsetY: 'clamp(7rem, 19.09vw, 18rem)',
+        width: 'clamp(11rem, 30vw, 24rem)',
       }}
     />
   );

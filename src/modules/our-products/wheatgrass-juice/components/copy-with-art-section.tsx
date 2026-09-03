@@ -19,11 +19,17 @@ const textReveal = {
  * mirroring the range cards' throw from the left.
  */
 const artReveal = {
-  hidden: { opacity: 0, x: 140, rotate: 3 },
+  // NOTE: no `rotate` here. The per-section tilt lives on the same CSS
+  // transform, so animating rotate would overwrite it and flatten the artwork.
+  //
+  // `hidden` keeps FULL opacity and only offsets the position: this artwork is
+  // decorative and server-rendered, so it must be visible even before (or
+  // without) hydration. An opacity-0 start left it permanently invisible when
+  // the viewport trigger did not fire.
+  hidden: { opacity: 1, x: 90 },
   show: {
     opacity: 1,
     x: 0,
-    rotate: 0,
     transition: { type: 'spring' as const, stiffness: 70, damping: 18, mass: 1 },
   },
 };
@@ -34,8 +40,14 @@ const artReveal = {
  * independently without touching the shared layout below.
  *
  *   tilt    — rotation in DEGREES. Negative = anticlockwise, positive = clockwise.
- *   offsetX — horizontal nudge; negative pulls the art LEFT (into the section).
- *   offsetY — vertical nudge; negative lifts it UP, positive pushes it DOWN.
+ *   offsetX — maps to CSS `right`. POSITIVE pulls the art INWARD (away from the
+ *             right edge); NEGATIVE pushes it OFF the edge, where the section's
+ *             `overflow-hidden` clips it. Use `0%` to sit flush against the edge.
+ *   offsetY — nudge from the section's vertical CENTRE. Use absolute units
+ *             (rem/px), NOT percentages: a % here resolves against the
+ *             section's height, which changes as the copy reflows, so the art
+ *             would drift up/down between screens. NEGATIVE moves it UP,
+ *             POSITIVE moves it DOWN.
  *   width   — art size as a CSS width (a clamp() so it scales with the viewport).
  */
 export interface ArtTuning {
@@ -58,11 +70,6 @@ interface Props {
   headingColor: string;
   /** Body copy colour. */
   bodyColor: string;
-  /**
-   * How far down the artwork sits. The wellness section's blades hang from the
-   * middle; the difference section's bottle runs to the bottom edge.
-   */
-  artPosition?: 'center' | 'bottom';
   /** Per-section artwork tilt/offset/size — see ArtTuning above. */
   artTuning: ArtTuning;
 }
@@ -84,7 +91,6 @@ export function CopyWithArtSection({
   backgroundColor,
   headingColor,
   bodyColor,
-  artPosition = 'center',
   artTuning,
 }: Props) {
   const prefersReduced = useReducedMotion();
@@ -94,32 +100,48 @@ export function CopyWithArtSection({
   return (
     <section
       aria-labelledby={headingId}
-      className="relative flex w-full min-h-[40dvh] items-start overflow-hidden px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:min-h-[75dvh] lg:px-[5%] lg:py-24 2xl:px-[7%] 2xl:py-28"
+      className="relative flex w-full min-h-[36dvh] items-start overflow-hidden px-4 py-16 sm:px-6 sm:py-20 md:min-h-dvh md:py-24 lg:px-[5%] lg:py-28 2xl:px-[7%] 2xl:py-32"
       style={{ backgroundColor }}
     >
-      {/* Decorative artwork — bleeds off the right edge, behind the copy.
-          On phones it drops to a low-opacity backdrop so the text stays
-          readable without needing a scrim. */}
+      {/* ── ART ANCHOR ────────────────────────────────────────────
+          A centred, max-width box — NOT the section edge. The section's own
+          padding grows with the viewport (px-4 → 2xl:px-[7%]), so anchoring to
+          its edge made the art drift as the screen changed. Anchoring to this
+          fixed-width box keeps the art in the SAME relative position at every
+          breakpoint; only its size changes (via the clamp() width below). */}
+      <div className="pointer-events-none absolute inset-y-0 left-1/2 z-0 w-full max-w-[90rem] -translate-x-1/2">
       <motion.div
         aria-hidden
         variants={art}
         initial="hidden"
         whileInView="show"
-        viewport={defaultViewport}
+        // `amount: 0` (not the shared 0.25): this artwork is deliberately
+        // positioned to overflow its section, so a 25% threshold may never be
+        // reached and the reveal would never fire — leaving it at opacity 0.
+        viewport={{ once: true, amount: 0 }}
         style={{
           width: artTuning.width,
           right: artTuning.offsetX,
-          // `bottom` art hangs from the lower edge; `center` art is vertically
-          // centred, so its offset rides on top of the -50% centering shift.
-          ...(artPosition === 'bottom'
-            ? { bottom: artTuning.offsetY }
-            : { top: '50%', transform: `translateY(calc(-50% + ${artTuning.offsetY}))` }),
+          // ALWAYS anchored to the vertical CENTRE, never to `bottom`.
+          //
+          // A `bottom: N%` offset is a share of the SECTION's height, and that
+          // height changes whenever the copy reflows (zoom, font size, a longer
+          // paragraph) — so the art visibly slid up and down between screens.
+          // Centring pins it to a stable reference; `offsetY` (below) then
+          // nudges it from that centre in absolute units, so the relationship
+          // to the copy stays identical at every size.
+          top: '50%',
         }}
         className="pointer-events-none absolute z-0 opacity-25 sm:opacity-60 lg:opacity-100"
       >
+        {/* Separate element for the centring + vertical nudge. Motion animates
+            `x` on the wrapper above, which writes to the SAME `transform`
+            property — putting the translateY there let Motion overwrite it on
+            hydration and the art jumped out of position. */}
+        <div style={{ transform: `translateY(calc(-50% + ${artTuning.offsetY}))` }}>
         {/* SafeImage resolves empty/unknown values to the upload placeholder.
-            The tilt lives on the IMAGE, not the wrapper, so it never fights the
-            wrapper's centering transform. */}
+            The tilt lives on the IMAGE, not this wrapper, so it never fights
+            the centring transform above. */}
         <SafeImage
           src={image}
           alt=""
@@ -130,7 +152,9 @@ export function CopyWithArtSection({
           style={{ transform: `rotate(${artTuning.tilt}deg)` }}
           className="h-auto w-full origin-center object-contain"
         />
+        </div>
       </motion.div>
+      </div>
 
       <motion.div
         variants={prefersReduced ? reducedMotion : container}
