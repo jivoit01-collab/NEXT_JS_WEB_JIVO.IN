@@ -36,14 +36,14 @@ export function WellnessSection({ data }: Props) {
         // so a positive value is what keeps the whole fan on-screen.
         // offsetY -> CSS `bottom`: POSITIVE lifts it UP, NEGATIVE drops it
         // below the section edge.
-        offsetX: '-8%',
+        offsetX: '-12%',
         // Scales WITH the art (same clamp curve as `width`), so the art keeps
         // an identical 0.64x offset-to-size ratio on every screen. A fixed
         // 14rem stayed 224px while the art shrank, so on mobile it was pushed
         // down ~2x further relative to its own size. Peak value is still 14rem,
         // so the desktop look is unchanged.
         offsetY: 'clamp(7rem, 19.09vw, 18rem)',
-        width: 'clamp(11rem, 30vw, 24rem)',
+        width: 'clamp(11rem, 30vw, 26rem)',
       }}
     />
   );

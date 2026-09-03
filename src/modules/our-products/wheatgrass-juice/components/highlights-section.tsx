@@ -105,10 +105,10 @@ export function HighlightsSection({ data }: Props) {
                 height={160}
                 quality={85}
                 sizes="(max-width: 640px) 22vw, (max-width: 1024px) 14vw, 90px"
-                className="mx-auto h-[clamp(3.5rem,7.5vw,5.5rem)] w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
+                className="mx-auto h-[clamp(3rem,6vw,4rem)] w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
               />
               <h3
-                className="mt-5 font-jost-bold-italic text-[clamp(0.95rem,0.82rem+0.42vw,1.2rem)] leading-snug drop-shadow-[0_1px_8px_rgba(0,0,0,0.75)]"
+                className="mt-12 font-jost-bold-italic text-[clamp(0.95rem,0.82rem+0.42vw,1.2rem)] leading-snug drop-shadow-[0_1px_8px_rgba(0,0,0,0.75)]"
                 style={{ color: WHEATGRASS_CREAM }}
               >
                 {highlight.label}

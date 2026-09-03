@@ -98,17 +98,38 @@ export function RangeSection({ data }: Props) {
     return () => cancelAnimationFrame(raf);
   }, [paused, prefersReduced, inView, variants.length]);
 
-  /** Arrow steps move by ONE card, smoothly, then hand back to the marquee. */
+  /**
+   * Arrow step — MANUAL mode.
+   *
+   * Moves exactly one card and CLAMPS to the real product range: `next` stops
+   * on the last real card instead of rolling into the duplicated copy, and
+   * `prev` stops on the first. So a user driving the arrows always sees real
+   * products and never gets snapped back to card 1 mid-browse. Auto-scroll
+   * stays paused until the pointer leaves the carousel, at which point the
+   * seamless start→end→start loop resumes on its own.
+   */
   const handleArrow = useCallback(
     (direction: 1 | -1) => {
       const el = trackRef.current;
       if (!el) return;
       setPaused(true);
+
       const firstCard = el.firstElementChild as HTMLElement | null;
       const gap = parseFloat(getComputedStyle(el).columnGap || '0') || 0;
       const step = firstCard ? firstCard.offsetWidth + gap : 240;
-      el.scrollBy({ left: direction * step, behavior: prefersReduced ? 'auto' : 'smooth' });
-      window.setTimeout(() => setPaused(false), 2500);
+
+      // The list is rendered twice for the marquee, so ONE copy is half the
+      // scroll width. The last real card starts one viewport short of that.
+      const cycle = el.scrollWidth / 2;
+      const maxManual = Math.max(0, cycle - el.clientWidth);
+
+      // If the marquee has drifted into the duplicate copy, fold the position
+      // back into the first copy before stepping — otherwise clamping would
+      // fight the current offset.
+      const current = el.scrollLeft % (cycle || 1);
+      const target = Math.min(Math.max(current + direction * step, 0), maxManual);
+
+      el.scrollTo({ left: target, behavior: prefersReduced ? 'auto' : 'smooth' });
     },
     [prefersReduced],
   );
@@ -164,6 +185,7 @@ export function RangeSection({ data }: Props) {
             side="left"
             onClick={() => handleArrow(-1)}
             label="Previous products"
+            onHoverChange={setPaused}
           />
 
           <div
@@ -200,6 +222,7 @@ export function RangeSection({ data }: Props) {
             side="right"
             onClick={() => handleArrow(1)}
             label="Next products"
+            onHoverChange={setPaused}
           />
         </div>
       </motion.div>
@@ -212,16 +235,23 @@ function CarouselArrow({
   side,
   onClick,
   label,
+  onHoverChange,
 }: {
   side: 'left' | 'right';
   onClick: () => void;
   label: string;
+  /** Pause the marquee while the pointer rests on the control. */
+  onHoverChange: (hovering: boolean) => void;
 }) {
   const Icon = side === 'left' ? ChevronLeft : ChevronRight;
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => onHoverChange(true)}
+      onMouseLeave={() => onHoverChange(false)}
+      onFocus={() => onHoverChange(true)}
+      onBlur={() => onHoverChange(false)}
       aria-label={label}
       // Solid pill pinned INSIDE the full-bleed track, hard against the
       // screen edge, so it sits over the cards running past it.

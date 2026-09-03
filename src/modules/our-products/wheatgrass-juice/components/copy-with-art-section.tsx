@@ -178,7 +178,7 @@ export function CopyWithArtSection({
               without it, `\n` collapses to a single space. */}
           <motion.p
             variants={item}
-            className="mt-6 lg:max-w-[70%] text-pretty whitespace-pre-line font-jost-light text-[clamp(0.95rem,0.88rem+0.3vw,1.15rem)] leading-[1.75] lg:mt-25"            style={{ color: bodyColor }}
+            className="mt-6 lg:max-w-[65%] text-pretty whitespace-pre-line font-jost-light text-[clamp(0.95rem,0.88rem+0.3vw,1.15rem)] leading-[1.75] lg:mt-40"            style={{ color: bodyColor }}
           >
             {paragraph}
           </motion.p>
