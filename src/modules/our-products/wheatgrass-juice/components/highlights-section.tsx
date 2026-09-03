@@ -48,7 +48,7 @@ export function HighlightsSection({ data }: Props) {
   return (
     <section
       aria-labelledby="wheatgrass-highlights-heading"
-      className="relative grid min-h-[70dvh] w-full overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack] lg:min-h-dvh"
+      className="relative grid min-h-[70dvh] w-full overflow-hidden [grid-template-areas:'stack'] *:[grid-area:stack] lg:min-h-[80dvh]"
       style={{ backgroundColor: WHEATGRASS_FOREST }}
     >
       {/* Background layer — full-bleed wheatgrass photo. A dark scrim keeps the
@@ -59,14 +59,14 @@ export function HighlightsSection({ data }: Props) {
             src={backgroundImage}
             alt=""
             fill
-            quality={85}
+            quality={95}
             sizes="100vw"
             className="object-cover object-center"
           />
         ) : (
           <div className="absolute inset-0" style={{ backgroundColor: WHEATGRASS_FOREST }} />
         )}
-        <div aria-hidden className="absolute inset-0 bg-black/35" />
+        <div aria-hidden className="absolute inset-0 bg-black/30" />
       </div>
 
       {/* Copy layer */}
@@ -80,7 +80,7 @@ export function HighlightsSection({ data }: Props) {
         <motion.h2
           id="wheatgrass-highlights-heading"
           variants={item}
-          className="font-jost-extrabold text-balance text-[clamp(1.5rem,1.05rem+2.2vw,3rem)] leading-[1.1] tracking-[0.04em] uppercase drop-shadow-[0_2px_16px_rgba(0,0,0,0.8)]"
+          className="font-jost-extrabold sm:mb-25 text-balance text-[clamp(1.5rem,1.05rem+2.2vw,3rem)] leading-[1.1] tracking-[0.04em] uppercase drop-shadow-[0_2px_16px_rgba(0,0,0,0.8)]"
           style={{ color: WHEATGRASS_CREAM }}
         >
           {heading}
@@ -88,12 +88,12 @@ export function HighlightsSection({ data }: Props) {
 
         {/* Highlight row — full-height dividers between columns at lg, as in
             the design. Wraps to 2/3 columns below that. */}
-        <div className="mt-12 grid grid-cols-2 items-stretch gap-x-2 gap-y-10 sm:grid-cols-3 sm:gap-x-4 md:mt-16 md:gap-x-6 lg:mt-20 lg:grid-cols-6 lg:gap-x-0 lg:gap-y-0">
+        <div className="mt-12  grid grid-cols-2 items-stretch gap-x-2 gap-y-10 sm:grid-cols-3 sm:gap-x-4 md:mt-16 md:gap-x-6 lg:mt-20 lg:grid-cols-6 lg:gap-x-0 lg:gap-y-0">
           {highlights.map((highlight, i) => (
             <motion.article
               key={`${highlight.label}-${i}`}
               variants={highlightItem}
-              className="group h-full min-w-0 px-3 text-center transition-transform duration-500 ease-out hover:-translate-y-1.5 motion-reduce:transform-none sm:px-5 lg:border-l lg:border-white/30 lg:px-6 lg:first:border-l-0"
+              className="group h-full min-w-0 px-3 text-center transition-transform duration-500 ease-out hover:-translate-y-1.5 motion-reduce:transform-none sm:px-5 lg:border-l lg:border-white lg:px-6 lg:first:border-l-0"
             >
               {/* SafeImage resolves empty/unknown values to the upload
                   placeholder, so a highlight never renders an empty hole

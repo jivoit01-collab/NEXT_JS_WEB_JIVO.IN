@@ -245,7 +245,7 @@ function VariantCard({ variant }: { variant: WheatgrassVariant }) {
 
   const inner = (
     <>
-      <div className="flex h-[clamp(11rem,30vw,17rem)] items-center justify-center">
+      <div className="flex mt-5 h-[clamp(11rem,30vw,17rem)] items-center justify-center">
         {/* SafeImage resolves empty/unknown values to the upload placeholder,
             so a card never renders an empty hole before art is uploaded. */}
         <SafeImage

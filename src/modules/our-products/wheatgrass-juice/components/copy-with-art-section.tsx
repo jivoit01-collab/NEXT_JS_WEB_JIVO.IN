@@ -74,7 +74,7 @@ export function CopyWithArtSection({
   return (
     <section
       aria-labelledby={headingId}
-      className="relative flex w-full min-h-[40dvh] items-center overflow-hidden px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:min-h-[75dvh] lg:px-[7%] lg:py-24 2xl:px-[9%] 2xl:py-28"
+      className="relative flex w-full min-h-[40dvh] items-start overflow-hidden px-4 py-14 sm:px-6 sm:py-16 md:py-20 lg:min-h-[75dvh] lg:px-[5%] lg:py-24 2xl:px-[7%] 2xl:py-28"
       style={{ backgroundColor }}
     >
       {/* Decorative artwork — bleeds off the right edge, behind the copy.
@@ -126,8 +126,7 @@ export function CopyWithArtSection({
               without it, `\n` collapses to a single space. */}
           <motion.p
             variants={item}
-            className="mt-6 text-pretty whitespace-pre-line font-jost-light text-[clamp(0.95rem,0.88rem+0.3vw,1.15rem)] leading-[1.75] lg:mt-8"
-            style={{ color: bodyColor }}
+            className="mt-6 lg:max-w-[70%] bg-amber-200 text-pretty whitespace-pre-line font-jost-light text-[clamp(0.95rem,0.88rem+0.3vw,1.15rem)] leading-[1.75] lg:mt-25"            style={{ color: bodyColor }}
           >
             {paragraph}
           </motion.p>
