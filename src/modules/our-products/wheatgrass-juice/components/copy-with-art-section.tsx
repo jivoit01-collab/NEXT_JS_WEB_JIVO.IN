@@ -28,6 +28,23 @@ const artReveal = {
   },
 };
 
+/**
+ * ── ARTWORK TUNING DIALS ──────────────────────────────────────
+ * Each section passes its own values, so the two artworks can be positioned
+ * independently without touching the shared layout below.
+ *
+ *   tilt    — rotation in DEGREES. Negative = anticlockwise, positive = clockwise.
+ *   offsetX — horizontal nudge; negative pulls the art LEFT (into the section).
+ *   offsetY — vertical nudge; negative lifts it UP, positive pushes it DOWN.
+ *   width   — art size as a CSS width (a clamp() so it scales with the viewport).
+ */
+export interface ArtTuning {
+  tilt: number;
+  offsetX: string;
+  offsetY: string;
+  width: string;
+}
+
 interface Props {
   /** Anchors `aria-labelledby` — must be unique per section on the page. */
   headingId: string;
@@ -46,6 +63,8 @@ interface Props {
    * middle; the difference section's bottle runs to the bottom edge.
    */
   artPosition?: 'center' | 'bottom';
+  /** Per-section artwork tilt/offset/size — see ArtTuning above. */
+  artTuning: ArtTuning;
 }
 
 /**
@@ -66,6 +85,7 @@ export function CopyWithArtSection({
   headingColor,
   bodyColor,
   artPosition = 'center',
+  artTuning,
 }: Props) {
   const prefersReduced = useReducedMotion();
   const item = prefersReduced ? reducedMotion : textReveal;
@@ -86,11 +106,20 @@ export function CopyWithArtSection({
         initial="hidden"
         whileInView="show"
         viewport={defaultViewport}
-        className={`pointer-events-none absolute right-0 z-0 w-[78vw] max-w-[34rem] opacity-25 sm:w-[62vw] sm:opacity-60 lg:w-[52vw] lg:max-w-[46rem] lg:opacity-100 2xl:max-w-[54rem] ${
-          artPosition === 'bottom' ? 'bottom-0' : 'top-1/2 -translate-y-1/2'
-        }`}
+        style={{
+          width: artTuning.width,
+          right: artTuning.offsetX,
+          // `bottom` art hangs from the lower edge; `center` art is vertically
+          // centred, so its offset rides on top of the -50% centering shift.
+          ...(artPosition === 'bottom'
+            ? { bottom: artTuning.offsetY }
+            : { top: '50%', transform: `translateY(calc(-50% + ${artTuning.offsetY}))` }),
+        }}
+        className="pointer-events-none absolute z-0 opacity-25 sm:opacity-60 lg:opacity-100"
       >
-        {/* SafeImage resolves empty/unknown values to the upload placeholder. */}
+        {/* SafeImage resolves empty/unknown values to the upload placeholder.
+            The tilt lives on the IMAGE, not the wrapper, so it never fights the
+            wrapper's centering transform. */}
         <SafeImage
           src={image}
           alt=""
@@ -98,9 +127,8 @@ export function CopyWithArtSection({
           height={900}
           quality={85}
           sizes="(max-width: 640px) 78vw, (max-width: 1024px) 62vw, 52vw"
-          className={`h-auto w-full object-contain ${
-            artPosition === 'bottom' ? 'object-right-bottom' : 'object-right'
-          }`}
+          style={{ transform: `rotate(${artTuning.tilt}deg)` }}
+          className="h-auto w-full origin-center object-contain"
         />
       </motion.div>
 
@@ -126,7 +154,7 @@ export function CopyWithArtSection({
               without it, `\n` collapses to a single space. */}
           <motion.p
             variants={item}
-            className="mt-6 lg:max-w-[70%] bg-amber-200 text-pretty whitespace-pre-line font-jost-light text-[clamp(0.95rem,0.88rem+0.3vw,1.15rem)] leading-[1.75] lg:mt-25"            style={{ color: bodyColor }}
+            className="mt-6 lg:max-w-[70%] text-pretty whitespace-pre-line font-jost-light text-[clamp(0.95rem,0.88rem+0.3vw,1.15rem)] leading-[1.75] lg:mt-25"            style={{ color: bodyColor }}
           >
             {paragraph}
           </motion.p>

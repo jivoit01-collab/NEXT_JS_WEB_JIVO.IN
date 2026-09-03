@@ -25,7 +25,20 @@ export function WellnessSection({ data }: Props) {
       backgroundColor={WHEATGRASS_FOREST}
       headingColor={WHEATGRASS_CREAM}
       bodyColor={WHEATGRASS_CREAM}
-      artPosition="center"
+      artPosition="bottom"
+      // ── BLADES TUNING ──────────────────────────────────────────
+      // tilt: 0 keeps the blades' own natural fan angle from the artwork.
+      // Nudged right/down so the tips reach toward the copy, matching the
+      // reference where the fan sits low on the right.
+      artTuning={{
+        // The source art is a single UPRIGHT bunch (407x1700). -58deg lays it
+        // on the diagonal so the blades sweep up-left with the roots anchored
+        // at the bottom-right corner, matching the reference.
+        tilt: -58,
+        offsetX: '-6%',
+        offsetY: '-14%',
+        width: 'clamp(16rem, 42vw, 34rem)',
+      }}
     />
   );
 }
