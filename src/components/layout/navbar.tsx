@@ -282,21 +282,22 @@ export function Navbar({ logoAlt, links: navLinks }: NavbarProps) {
                                   activeGroup === grp.name ? 'bg-white/15' : 'hover:bg-white/10',
                                 )}
                               >
-                                {/* Chevron points LEFT — the panel opens to the left. */}
-                                <ChevronDown className="h-5 w-5 shrink-0  rotate-90 opacity-70" />
+                                {/* Name first, then a RIGHT-pointing chevron — the
+                                    panel opens to the right of this column. */}
                                 <span className="text-pretty">{grp.name}</span>
+                                <ChevronDown className="ml-auto h-5 w-5 shrink-0 -rotate-90 opacity-70" />
                               </button>
                               
                             ),
                           )}
                         </div>
 
-                        {/* Side panel: floats to the LEFT of the group column with
-                            a gap; width fits its links (min ~ 12rem, capped). */}
+                        {/* Side panel: floats to the RIGHT of the group column
+                            with a gap; width fits its links (min ~ 12rem, capped). */}
                         {groups.some((g) => g.name === activeGroup && g.name !== '') && (
                           <div
                             style={{ top: groupTop }}
-                            className="absolute right-full z-10 mr-2 flex max-h-[min(72vh,34rem)] w-max min-w-[12rem] max-w-[min(60vw,20rem)] flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:p-3"
+                            className="absolute left-full z-10 ml-2 flex max-h-[min(72vh,34rem)] w-max min-w-[12rem] max-w-[min(60vw,20rem)] flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-2xl border border-white/22 bg-black/28 p-2 shadow-[0_20px_40px_rgba(0,0,0,0.28)] ring-1 ring-white/12 backdrop-blur-2xl 2xl:p-3"
                           >
                             {groups
                               .find((g) => g.name === activeGroup)!
