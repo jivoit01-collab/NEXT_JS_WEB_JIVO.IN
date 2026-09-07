@@ -718,7 +718,7 @@ export default function AdminFooterPage() {
             </div>
           </div>
 
-          {/* Brand block promise + CTA button */}
+          {/* Brand block promise + CTA button
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Brand promise line</Label>
@@ -738,7 +738,7 @@ export default function AdminFooterPage() {
                 placeholder="Since 2016"
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">

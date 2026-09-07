@@ -107,7 +107,7 @@ export async function Footer() {
 
               <div className="mt-6 h-px w-12 bg-[#c3c2b8] 2xl:mt-7" />
 
-              {/* Brand promise line */}
+              {/* Brand promise line
               {brandPromise && (
                 <p className="font-jost-medium mt-5 text-sm text-[#3a423a] sm:text-[15px] 2xl:text-base">
                   {brandPromise}
@@ -117,7 +117,7 @@ export async function Footer() {
                 <p className="mt-1 text-xs text-[#6c7266] sm:text-sm 2xl:text-base">
                   {brandPromiseSub}
                 </p>
-              )}
+              )} */}
 
               {/* CTAs — Explore Products (primary) + Share Feedback (secondary).
                   Stacked on mobile; side by side from sm up. Equal-width with
