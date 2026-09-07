@@ -32,15 +32,15 @@ export function DifferenceSection({ data }: Props) {
       // off the corner rather than floating inside the section.
       artTuning={{
         // Upright bottle laid on the diagonal, cap toward the upper left.
-        tilt: 50,
+        tilt: 48,
         // POSITIVE = pull INWARD from the right/bottom edges. See the blades
         // above: rotation widens the visible shape well beyond its box.
         offsetX: '14%',
         // Scales WITH the art (same clamp curve as `width`) so the offset-to-
         // size ratio stays 0.45x at every width; peak is still 10rem, so the
         // desktop look is unchanged.
-        offsetY: 'clamp(5.91rem, 13.64vw, 12rem)',
-        width: 'clamp(13rem, 30vw, 22rem)',
+        offsetY: 'clamp(5.91rem, 13.64vw, 14rem)',
+        width: 'clamp(13rem, 30vw, 24rem)',
       }}
     />
   );
