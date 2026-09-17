@@ -25,6 +25,7 @@ import {
   Award,
   ShieldAlert,
   Droplet,
+  Coffee,
 } from 'lucide-react';
 import type { CmsModule } from './types';
 
@@ -79,6 +80,7 @@ export const CMS_MODULES: CmsModule[] = [
       { id: 'refined-gold-oils', name: 'Gold Refined Oil', icon: Droplet, adminHref: '/jivo-dev/our-products/refined-gold-oils', seo: true },
       { id: 'water', name: 'Natural Mineral Water', icon: Droplet, adminHref: '/jivo-dev/our-products/water', seo: true },
       { id: 'wheatgrass-juice', name: 'Healthy Wheatgrass Juice', icon: Droplet, adminHref: '/jivo-dev/our-products/wheatgrass-juice', seo: true },
+      { id: 'coffee', name: 'Koffie', icon: Coffee, adminHref: '/jivo-dev/our-products/coffee', seo: true },
     ],
   },
   {

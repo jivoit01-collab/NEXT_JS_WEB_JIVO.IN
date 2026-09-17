@@ -21,6 +21,7 @@ const ADMIN_TO_PUBLIC_ROUTE: Record<string, string> = {
   '/our-products/refined-gold-oils': '/products/refined-gold-oils',
   '/our-products/water': '/products/water',
   '/our-products/wheatgrass-juice': '/products/wheatgrass-juice',
+  '/our-products/coffee': '/products/coffee',
   '/media': '/media',
   '/community': '/community',
   '/our-essence': '/our-essence',

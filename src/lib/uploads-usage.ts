@@ -26,6 +26,7 @@ const JSON_CONTENT_TABLES = [
   'OurProductsSunflowerOils',
   'OurProductsRefinedGoldOils',
   'OurProductsWater',
+  'OurProductsCoffee',
   'PrivacyPolicy',
 ] as const;
 

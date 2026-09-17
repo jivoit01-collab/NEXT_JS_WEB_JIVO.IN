@@ -1,0 +1,19 @@
+// ==========================================
+// OUR PRODUCTS — KOFFIE (instant coffee) page
+// Route: /products/coffee
+// Admin: /jivo-dev/our-products/coffee
+// Sections: hero, range, keyHighlights, beyondBeans
+// ==========================================
+
+model OurProductsCoffee {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "range", "keyHighlights", "beyondBeans"
+  title     String?
+  content   Json
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Package, Droplet } from 'lucide-react';
+import { Search, Package, Droplet, Coffee } from 'lucide-react';
 
 interface PageEntry {
   label: string;
@@ -61,6 +61,13 @@ const SECTION_PAGES: PageEntry[] = [
     icon: Droplet,
     description: 'Hero, range, key highlights and what-is-gold sections',
     color: 'from-amber-500/10 to-red-500/10',
+  },
+  {
+    label: 'Koffie',
+    href: '/jivo-dev/our-products/coffee',
+    icon: Coffee,
+    description: 'Hero, range, key highlights and beyond-beans sections',
+    color: 'from-orange-900/10 to-amber-700/10',
   },
 ];
 

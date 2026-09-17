@@ -994,6 +994,38 @@ async function main() {
         category: 'Mineral Water',
       },
     },
+    {
+      page: 'our-products-coffee',
+      metaTitle: 'Koffie — Instant Smooth Premium Coffee | Jivo Wellness',
+      metaDescription:
+        'Jivo Koffie — instant smooth premium coffee from ethically sourced arabica, precision roasted for layered cocoa and nut notes with a steady, balanced energy lift. Available in 50g and 100g.',
+      keywords: [
+        'jivo koffie',
+        'jivo coffee',
+        'instant coffee india',
+        'premium instant coffee',
+        'arabica instant coffee',
+        'smooth instant coffee',
+        'coffee 50g',
+        'coffee 100g',
+        'antioxidant rich coffee',
+        'chlorogenic acid coffee',
+      ],
+      ogTitle: "Jivo Koffie — Dawn's Bold Awakening",
+      ogDescription:
+        'Instant smooth premium coffee — ethically sourced arabica, precision roasted for layered taste and steady energy.',
+      ogImage: 'og-default.png',
+      twitterCard: 'summary_large_image',
+      canonicalUrl: `${BASE}/products/coffee`,
+      robots: 'index,follow',
+      structuredData: {
+        '@type': 'Product',
+        name: 'Jivo Koffie Instant Smooth Premium Coffee',
+        url: `${BASE}/products/coffee`,
+        brand: { '@type': 'Brand', name: 'Jivo' },
+        category: 'Instant Coffee',
+      },
+    },
   ];
 
   for (const seo of seoSeeds) {
@@ -1787,6 +1819,87 @@ async function main() {
           },
         });
         console.log(`  Canola Oils "${s.section}": created`);
+      }
+    }
+  }
+
+  // ── Our Products — Koffie (insert-only unless --reset) ─────
+  const coffeeSections = [
+    {
+      section: 'hero',
+      title: 'Hero',
+      sortOrder: 0,
+      content: {
+        logoImage: PLACEHOLDER,
+        heading: 'KOFFIE',
+        subtitleLineOne: "Dawn's Bold Awakening.",
+        subtitleLineTwo: '',
+        ctaLabel: 'BUY',
+        ctaHref: '/our-products',
+        productImage: PLACEHOLDER,
+        productImageSecondary: '',
+      },
+    },
+    {
+      section: 'range',
+      title: 'Our Range of Products',
+      sortOrder: 1,
+      content: {
+        heading: 'OUR RANGE OF PRODUCTS',
+        variants: [
+          { image: PLACEHOLDER, label: '50g', href: '' },
+          { image: PLACEHOLDER, label: '100g', href: '' },
+        ],
+      },
+    },
+    {
+      section: 'keyHighlights',
+      title: 'Key Highlights',
+      sortOrder: 2,
+      content: {
+        heading: 'KEY HIGHLIGHTS',
+        paragraph: '',
+        highlightsHeading: '',
+        highlights: [
+          'Ethical Sourcing: Select arabica from responsible estates.',
+          'Precision Roasting: Captures complexity without excess.',
+          'Antioxidant Rich: Matches elite sources for protection.',
+          'Even Roast Profile: Mark of expert handling.',
+          'Layered Taste Notes: Cocoa, nut, subtle fruit—refined delight.',
+          'Steady Energy Boost: Sharpens focus, eases digestion, lifts spirit.',
+        ],
+        image: PLACEHOLDER,
+      },
+    },
+    {
+      section: 'beyondBeans',
+      title: 'Beyond Beans: Wellness Infused',
+      sortOrder: 3,
+      content: {
+        heading: 'BEYOND BEANS: WELLNESS INFUSED',
+        paragraph:
+          "What elevates Jivo Coffee beyond standard roasts: it doesn't just stimulate—it orchestrates your day. The supreme conduit for alertness, it unleashes antioxidants and balanced vigor throughout. Ordinary cups falter with tremors; Jivo aligns—laden with polyphenols for cardiovascular support, mental acuity, and subtle metabolic lift. Core elements like chlorogenic acid foster stable glucose and reduce oxidative stress, nurturing holistic health sans downturns. Moreover, its optimal roast maintains integrity: flavors persist across methods, outlasting scorched alternatives for consistently pure enjoyment.",
+        backgroundImage: '',
+      },
+    },
+  ];
+
+  if (FORCE_RESET) {
+    await prisma.ourProductsCoffee.deleteMany();
+    for (const s of coffeeSections) {
+      await prisma.ourProductsCoffee.create({ data: { ...s, isActive: true } });
+    }
+    console.log(`✓ Koffie: RESET (${coffeeSections.length} sections)`);
+  } else {
+    for (const s of coffeeSections) {
+      const exists = await prisma.ourProductsCoffee.findUnique({
+        where: { section: s.section },
+      });
+      if (exists) {
+        console.log(`  Koffie "${s.section}": skipped`);
+      } else {
+        await prisma.ourProductsCoffee.create({ data: { ...s, isActive: true } });
+        console.log(`  Koffie "${s.section}": created`);
       }
     }
   }

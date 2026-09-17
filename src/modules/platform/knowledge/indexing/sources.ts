@@ -133,6 +133,7 @@ const PRODUCT_FAMILIES: {
   { key: 'canola', name: 'Jivo Canola Oil', url: '/products/canola-oils', rows: () => prisma.ourProductsCanolaOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
   { key: 'olive', name: 'Jivo Olive Oil', url: '/products/olive-oils', rows: () => prisma.ourProductsOliveOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
   { key: 'mustard', name: 'Jivo Mustard Oil', url: '/products/mustard-oils', rows: () => prisma.ourProductsMustardOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
+  { key: 'coffee', name: 'Jivo Koffie', url: '/products/coffee', rows: () => prisma.ourProductsCoffee.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
   { key: 'groundnut', name: 'Jivo Groundnut Oil', url: '/products/groundnut-oils', rows: () => prisma.ourProductsGroundnutOils.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { section: true, title: true, content: true } }) },
 ];
 
